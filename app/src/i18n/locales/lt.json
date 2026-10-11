@@ -1,0 +1,84 @@
+{
+  "app": {
+    "name": "Atliekų grafikas"
+  },
+  "kinds": {
+    "household": "Mišrios atliekos",
+    "packaging": "Pakuotės",
+    "glass": "Stiklas",
+    "householdDescription": "Mišrių komunalinių atliekų konteineris",
+    "packagingDescription": "Popieriaus, plastiko ir metalo pakuotės",
+    "glassDescription": "Stiklo pakuotės"
+  },
+  "common": {
+    "retry": "Bandyti dar kartą",
+    "continue": "Tęsti",
+    "done": "Baigta",
+    "skip": "Tokio konteinerio neturiu",
+    "openSettings": "Atidaryti nustatymus"
+  },
+  "onboarding": {
+    "title": "Nepraleiskite išvežimo dienos",
+    "body": "Pasirinkite, kur gyvenate, ir priminsime vakare prieš atliekų išvežimą. Visi duomenys lieka jūsų telefone.",
+    "disclaimer": "Tai neoficiali savanorių sukurta programėlė. Datos paimtos iš UAB „Nemenčinės komunalininkas“ skelbiamų grafikų ir gali turėti klaidų. Kilus abejonių, visada pasitikrinkite oficialų grafiką.",
+    "start": "Pasirinkti vietovę"
+  },
+  "select": {
+    "title": "{{kind}}: jūsų vietovė",
+    "hint": "Ieškokite savo kaimo, miesto ar gatvės ir pasirinkite eilutę, kurioje yra jūsų adresas.",
+    "searchPlaceholder": "pvz. Riešė, Bajorų g.",
+    "noResults": "Nieko nerasta. Pabandykite trumpesnį žodį be galūnės.",
+    "noDates": "Grafike nėra tikslių datų: {{note}}",
+    "count_one": "{{count}} vietovė",
+    "count_few": "{{count}} vietovės",
+    "count_many": "{{count}} vietovės",
+    "count_other": "{{count}} vietovių"
+  },
+  "home": {
+    "nextPickup": "Artimiausias išvežimas",
+    "upcoming": "Toliau",
+    "today": "Šiandien",
+    "tomorrow": "Rytoj",
+    "inDays_one": "Po {{count}} dienos",
+    "inDays_few": "Po {{count}} dienų",
+    "inDays_many": "Po {{count}} dienos",
+    "inDays_other": "Po {{count}} dienų",
+    "nothingUpcoming": "Paskelbtame grafike artimiausių išvežimų dar nėra. Naujo grafiko patikrinsime automatiškai.",
+    "areaMissing": "Naujame grafike pasikeitė vietovės ({{kind}}). Pasirinkite savo vietovę iš naujo.",
+    "noteOnly": "{{kind}}: grafike nurodyta tik „{{note}}“, todėl priminimų siųsti negalime.",
+    "notificationsOff": "Pranešimai išjungti, todėl priminimų negausite.",
+    "updated": "Grafikas atnaujintas {{date}}",
+    "refreshFailed": "Nepavyko patikrinti naujo grafiko. Rodomas išsaugotas.",
+    "settings": "Nustatymai"
+  },
+  "settings": {
+    "title": "Nustatymai",
+    "areas": "Mano vietovės",
+    "notSelected": "Nepasirinkta",
+    "reminder": "Priminimas",
+    "eveningBefore": "Vakare prieš",
+    "morningOf": "Tą rytą",
+    "time": "Laikas",
+    "language": "Kalba",
+    "systemLanguage": "Telefono kalba",
+    "about": "Apie",
+    "privacy": "Privatumo politika",
+    "source": "Oficialus grafikas",
+    "sourceCode": "Programos kodas",
+    "disclaimerTitle": "Jokių garantijų",
+    "disclaimer": "Programėlė teikiama nemokamai, tokia, kokia yra, be jokių garantijų. Autoriai neatsako už praleistus ar klaidingus priminimus ir jokias pasekmes, kylančias juos naudojant. Programėlė nesusijusi su UAB „Nemenčinės komunalininkas“.",
+    "version": "Versija {{version}}"
+  },
+  "notifications": {
+    "channelName": "Išvežimo priminimai",
+    "titleTomorrow": "Rytoj: {{kinds}}",
+    "titleToday": "Šiandien: {{kinds}}",
+    "body": "Konteinerius išstumkite iki 7:00.",
+    "refreshTitle": "Jūsų grafikas baigiasi",
+    "refreshBody": "Atidarykite programėlę, kad ji įkeltų naują grafiką."
+  },
+  "errors": {
+    "loadFailed": "Nepavyko įkelti grafiko. Patikrinkite interneto ryšį.",
+    "unsupported": "Pasikeitė grafiko formatas. Atnaujinkite programėlę."
+  }
+}

@@ -1,0 +1,68 @@
+name: Release
+
+# Every merge to main that touches the app builds Android and iOS in parallel on EAS and
+# submits them to the TEST channels only: Google Play internal testing and TestFlight.
+# Promoting a tested build to the public is a manual step in each store (docs/releasing.md).
+on:
+  push:
+    branches: [main]
+    paths: ["app/**", ".github/workflows/release.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never run two releases at once; a newer merge waits for the running one.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    # Off until the store accounts and EAS credentials exist (docs/releasing.md, step 6).
+    if: vars.RELEASE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm run check
+
+  build-and-submit:
+    needs: checks
+    runs-on: ubuntu-latest
+    environment: testers
+    strategy:
+      fail-fast: false # an iOS failure shouldn't stop the Android release, and vice versa
+      matrix:
+        platform: [android, ios]
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: expo/expo-github-action@v9
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci
+      # Waits for the build so failures show up here. Public repos don't pay for Actions minutes.
+      - name: Build on EAS and submit to testers
+        run: >
+          eas build
+          --platform ${{ matrix.platform }}
+          --profile production
+          --auto-submit
+          --non-interactive

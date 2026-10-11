@@ -1,0 +1,61 @@
+name: Schedule data
+
+# Scrapes nemenkom.lt daily and publishes schedule.json + the privacy policy to GitHub Pages.
+# If parsing or validation fails, nothing is deployed and the last good data stays live.
+on:
+  schedule:
+    - cron: "17 4 * * *" # daily, 04:17 UTC
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "pipeline/**"
+      - "site/**"
+      - "PRIVACY.md"
+      - ".github/workflows/schedule-data.yml"
+  # No path filter on PRs: this is a required check (it only runs tests on PRs).
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pipeline
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - run: uv sync --locked
+      - run: uv run ruff check . && uv run ruff format --check .
+      - run: uv run pytest
+      - name: Build schedule.json from the live website
+        if: github.event_name != 'pull_request'
+        run: uv run python -m schedule_pipeline --out ../site/schedule.json
+      - name: Render privacy policy
+        if: github.event_name != 'pull_request'
+        run: uv run python -m schedule_pipeline.site ../PRIVACY.md --out ../site/privacy/index.html --title "Privacy Policy / Privatumo politika"
+      - uses: actions/upload-pages-artifact@v5
+        if: github.event_name != 'pull_request'
+        with:
+          path: site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
