@@ -30,8 +30,8 @@ export default function SelectRow() {
 
   const answer = (areaId: string | null) => {
     const settings = useSettings.getState();
-    // Picking rows by hand replaces any automatic location.
-    if (settings.place?.locationId) useSettings.setState({ place: { choices: {} } });
+    // The hand-picking setup flow replaces any automatic location; a single change doesn't.
+    if (flow === 'manual' && settings.place?.locationId) useSettings.setState({ place: { choices: {} } });
     useSettings.getState().choose(kind, areaId);
     if (flow !== 'manual') return router.back();
     const nextKind = WASTE_KINDS[WASTE_KINDS.indexOf(kind) + 1];
