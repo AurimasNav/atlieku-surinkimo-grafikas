@@ -1,8 +1,8 @@
 name: Release
 
-# Every merge to main that touches the app builds Android and iOS in parallel on EAS and
-# submits them to the TEST channels only: Google Play internal testing and TestFlight.
-# Promoting a tested build to the public is a manual step in each store (docs/releasing.md).
+# Every merge to main that touches the app builds it on EAS and submits it to the TEST
+# channel only (Google Play internal testing). Promoting a tested build to the public is a
+# manual step in Play Console (docs/releasing.md).
 on:
   push:
     branches: [main]
@@ -40,9 +40,11 @@ jobs:
     runs-on: ubuntu-latest
     environment: testers
     strategy:
-      fail-fast: false # an iOS failure shouldn't stop the Android release, and vice versa
+      fail-fast: false # one platform failing shouldn't stop the others
       matrix:
-        platform: [android, ios]
+        # Android only for now. Add `ios` once there is an Apple Developer account
+        # (docs/releasing.md, "Adding iOS later"); both then build in parallel.
+        platform: [android]
     defaults:
       run:
         working-directory: app
