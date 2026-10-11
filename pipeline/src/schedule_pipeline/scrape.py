@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
-import urllib.request
 from html.parser import HTMLParser
 from pathlib import PurePosixPath
 from urllib.parse import unquote, urljoin, urlparse
 
+from . import http
 from .model import Kind, SourceFile
 
 PAGE_URL = "https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/"
-USER_AGENT = (
-    "atlieku-surinkimo-grafikas/0.1 (+https://github.com/AurimasNav/atlieku-surinkimo-grafikas)"
-)
 SUPPORTED_EXTENSIONS = {".xlsx", ".pdf"}
 
 
@@ -60,6 +57,4 @@ def find_schedule_files(html: str, base_url: str = PAGE_URL) -> list[SourceFile]
 
 
 def fetch(url: str, timeout: float = 60) -> bytes:
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return response.read()
+    return http.get(url, timeout=timeout)
