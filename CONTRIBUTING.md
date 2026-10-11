@@ -53,8 +53,9 @@ uv run ruff check . && uv run ruff format .
 
 ### App (Expo)
 
-Requires Node.js LTS. To run on Android, install Android Studio and create an emulator. iOS
-needs a real iPhone with [Expo Go](https://expo.dev/go), or a Mac with Xcode for the simulator.
+Requires Node.js LTS. To run on Android, install Android Studio and create an emulator. The
+app is only released for Android, but keep it working on iOS too: you can test on an iPhone
+with [Expo Go](https://expo.dev/go) for free, no Apple account needed.
 
 ```sh
 cd app

@@ -2,7 +2,7 @@
 
 **Effective date:** 11 October 2026
 
-This policy covers the "Atliekų grafikas" mobile app for Android and iOS (the "app"), an open
+This policy covers the "Atliekų grafikas" mobile app (the "app"), an open
 source project published at <https://github.com/AurimasNav/atlieku-surinkimo-grafikas>.
 The published version of this policy is at
 <https://aurimasnav.github.io/atlieku-surinkimo-grafikas/privacy/>.
@@ -85,8 +85,8 @@ Questions about this policy: open an issue at
 
 **Įsigalioja:** 2026 m. spalio 11 d.
 
-Ši politika taikoma „Atliekų grafikas“ mobiliajai programėlei, skirtai „Android“ ir „iOS“
-(toliau – programėlė). Tai atvirojo kodo projektas, skelbiamas
+Ši politika taikoma „Atliekų grafikas“ mobiliajai programėlei (toliau – programėlė). Tai
+atvirojo kodo projektas, skelbiamas
 <https://github.com/AurimasNav/atlieku-surinkimo-grafikas>.
 
 ## Santrauka
