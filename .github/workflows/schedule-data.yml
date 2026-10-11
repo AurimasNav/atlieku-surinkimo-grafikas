@@ -31,7 +31,7 @@ jobs:
         working-directory: pipeline
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.0 # publishes exact version tags only
       - run: uv sync --locked
       - run: uv run ruff check . && uv run ruff format --check .
       - run: uv run pytest
