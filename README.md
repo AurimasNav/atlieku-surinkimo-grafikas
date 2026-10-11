@@ -24,6 +24,13 @@ Available in Lithuanian, English, Russian and Polish.
 | [`site/`](site) | Static GitHub Pages site (data, privacy policy) |
 | [`docs/`](docs) | [Release process](docs/releasing.md), app store privacy answers |
 
+## AI-assisted development
+
+This project is developed with the help of AI coding assistants. Code, data processing and
+documentation are written with AI assistance and reviewed and tested by the maintainer before
+release. This note covers the whole project, so individual commits and pull requests don't
+repeat it.
+
 ## Contributing
 
 Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup,
