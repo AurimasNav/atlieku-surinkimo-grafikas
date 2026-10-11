@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppText, Banner, Button, Card, KindBadge } from '@/components/ui';
-import { daysBetween, parseIsoDate } from '@/lib/dates';
+import { daysBetween, parseIsoDate, toIsoDate } from '@/lib/dates';
 import { hasNotificationPermission } from '@/lib/notifications';
 import { type Pickup, upcomingPickups } from '@/lib/reminders';
 import { resolveSelections } from '@/lib/selected-areas';
@@ -27,7 +27,10 @@ export default function Home() {
     hasNotificationPermission().then(setNotificationsOn);
   }, [data]);
 
-  const { areas, missing } = useMemo(() => resolveSelections(data, selections), [data, selections]);
+  const { areas, missing } = useMemo(
+    () => resolveSelections(data, selections, toIsoDate(new Date())),
+    [data, selections],
+  );
   const pickups = useMemo(() => upcomingPickups(areas, new Date()).slice(0, UPCOMING_COUNT), [areas]);
 
   if (!onboarded) return <Redirect href="/onboarding" />;

@@ -12,7 +12,7 @@ from pathlib import Path
 from .model import SCHEMA_VERSION, Area, Kind, ParseResult, SourceFile
 from .pdf_parser import parse_pdf
 from .scrape import PAGE_URL, fetch, find_schedule_files
-from .xlsx_parser import parse_xlsx
+from .xlsx_parser import DEFAULT_GROUP, parse_xlsx
 
 # Fewer areas than this means the format changed and the parser missed rows.
 MIN_AREAS: dict[Kind, int] = {"household": 100, "packaging": 10, "glass": 10}
@@ -87,7 +87,15 @@ def build_dataset(
     areas = drop_old_dates(merge_areas(areas), today - timedelta(days=keep_days))
     files = [source for source, _ in sources]
     validate(areas, files)
-    areas.sort(key=lambda a: (a.kind, a.group or "", a.district or "", a.name.casefold()))
+    # Individual houses first: most users live in one, and the picker shows rows in this order.
+    areas.sort(
+        key=lambda a: (
+            a.kind,
+            (a.group or DEFAULT_GROUP) != DEFAULT_GROUP,
+            a.district or "",
+            a.name.casefold(),
+        )
+    )
 
     dataset = {
         "schemaVersion": SCHEMA_VERSION,

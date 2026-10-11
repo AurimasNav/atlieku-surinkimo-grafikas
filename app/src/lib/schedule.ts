@@ -48,14 +48,22 @@ export async function fetchSchedule(etag?: string): Promise<{ data: ScheduleData
 export function normalizeForSearch(text: string): string {
   return text
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 }
 
-export function searchAreas(areas: Area[], kind: WasteKind, query: string): Area[] {
+/**
+ * Whether an area still matters: it has a pickup today or later, or a rule we show as text.
+ * Rows from an earlier schedule period stay in the data for a while but shouldn't be offered.
+ */
+export function isCurrent(area: Area, today: string): boolean {
+  return Boolean(area.note) || (area.dates.at(-1) ?? '') >= today;
+}
+
+export function searchAreas(areas: Area[], kind: WasteKind, query: string, today: string): Area[] {
   const words = normalizeForSearch(query).split(/\s+/).filter(Boolean);
   return areas.filter((area) => {
-    if (area.kind !== kind) return false;
+    if (area.kind !== kind || !isCurrent(area, today)) return false;
     if (!words.length) return true;
     const haystack = normalizeForSearch(`${area.district ?? ''} ${area.name}`);
     return words.every((word) => haystack.includes(word));

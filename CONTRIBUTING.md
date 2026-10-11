@@ -64,6 +64,27 @@ npm start          # press "a" for Android, or scan the QR code with Expo Go
 npm run check      # translations, types, lint and tests: run before opening a PR
 ```
 
+To build and run the real app (not Expo Go) on an emulator, you also need JDK 17:
+
+```sh
+npx expo run:android --variant release --device <emulator name>
+```
+
+**Windows notes:**
+
+- If the build fails with `ninja: error: manifest 'build.ninja' still dirty after 100 tries`,
+  the build is hitting Windows' 260-character path limit. The `ninja.exe` bundled with the
+  Android SDK's CMake (`%LOCALAPPDATA%\Android\Sdk\cmake\3.22.1\bin`) is too old to use long
+  paths. Make sure long paths are enabled in Windows, then replace that `ninja.exe` with the
+  latest one from <https://github.com/ninja-build/ninja/releases> (keep a backup). Mapping the
+  folder to a short drive letter with `subst` does **not** help, because Gradle resolves it
+  back to the full path.
+- To build faster for an emulator only, set `ORG_GRADLE_PROJECT_reactNativeArchitectures=x86_64`
+  before building.
+- `.bat` tools such as `sdkmanager` split arguments on `;`, so
+  `sdkmanager "platforms;android-36"` fails from PowerShell. Use the newer `android sdk install
+  platforms/android-36` instead.
+
 The app reads the data from GitHub Pages. To use your own copy (for example a fork, or a
 locally built `schedule.json`), set `EXPO_PUBLIC_SITE_URL` to the folder that contains it.
 
