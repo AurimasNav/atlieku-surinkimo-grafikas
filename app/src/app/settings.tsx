@@ -8,10 +8,11 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ReminderPicker } from '@/components/reminder-picker';
-import { AppText, Button, Card, Chip, KindIcon, ListRow, ScreenHeader } from '@/components/ui';
+import { AppText, Button, Card, Chip, KindIcon, ListRow, PressableScale, ScreenHeader } from '@/components/ui';
 import { LANGUAGE_NAMES, LANGUAGES, type Language } from '@/i18n';
 import { PRIVACY_URL, REPOSITORY_URL, SOURCE_PAGE_URL } from '@/lib/config';
 import { toIsoDate } from '@/lib/dates';
+import { openIssue } from '@/lib/feedback';
 import { resolvePlace } from '@/lib/resolve';
 import { WASTE_KINDS } from '@/lib/schedule';
 import { useSchedule } from '@/store/schedule';
@@ -19,7 +20,7 @@ import { useSettings } from '@/store/settings';
 import { radius, spacing, useTheme } from '@/theme';
 
 export default function Settings() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { place, language, setLanguage } = useSettings();
@@ -42,7 +43,10 @@ export default function Settings() {
                 <Ionicons name="location" size={22} color={theme.onPrimary} />
               </View>
               <View style={styles.placeText}>
-                <AppText variant="heading">{location?.name ?? t('settings.notSelected')}</AppText>
+                <AppText variant="heading">
+                  {location?.name ??
+                    (place?.custom && Object.keys(place.custom).length ? t('custom.title') : t('settings.notSelected'))}
+                </AppText>
                 <AppText variant="caption" muted>
                   {[street, location && `${location.district} sen.`].filter(Boolean).join(' · ')}
                 </AppText>
@@ -51,13 +55,27 @@ export default function Settings() {
             <View style={styles.kinds}>
               {WASTE_KINDS.map((kind) => {
                 const status = resolved.kinds[kind];
+                const label =
+                  status.status === 'ok'
+                    ? status.custom
+                      ? t('manage.statusCustom')
+                      : status.area.name
+                    : status.status === 'none' && status.skipped
+                      ? t('setup.skipped')
+                      : t('setup.notCollected');
                 return (
-                  <View key={kind} style={[styles.kindRow, { opacity: status.status === 'ok' ? 1 : 0.5 }]}>
+                  <PressableScale
+                    key={kind}
+                    haptic="select"
+                    accessibilityRole="button"
+                    onPress={() => router.push({ pathname: '/kind/[kind]', params: { kind } })}
+                    style={[styles.kindRow, { opacity: status.status === 'ok' ? 1 : 0.5 }]}>
                     <KindIcon kind={kind} size={28} />
                     <AppText variant="caption" numberOfLines={2} style={styles.kindText}>
-                      {status.status === 'ok' ? status.area.name : t('setup.notCollected')}
+                      {label}
                     </AppText>
-                  </View>
+                    <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+                  </PressableScale>
                 );
               })}
             </View>
@@ -80,6 +98,34 @@ export default function Settings() {
               />
             ))}
           </View>
+        </Section>
+
+        <Section title={t('feedback.title')}>
+          <View style={styles.links}>
+            <ListRow
+              icon={<Ionicons name="bug" size={22} color={theme.primary} />}
+              title={t('feedback.bug')}
+              onPress={() => openIssue('bug_report', { language: i18n.language })}
+            />
+            <ListRow
+              icon={<Ionicons name="calendar-clear" size={22} color={theme.primary} />}
+              title={t('feedback.schedule')}
+              onPress={() =>
+                openIssue('schedule_problem', {
+                  place: [location?.name, street].filter(Boolean).join(', '),
+                  'data-date': data?.generatedAt.slice(0, 10),
+                })
+              }
+            />
+            <ListRow
+              icon={<Ionicons name="bulb" size={22} color={theme.primary} />}
+              title={t('feedback.idea')}
+              onPress={() => openIssue('feature_request')}
+            />
+          </View>
+          <AppText variant="caption" muted>
+            {t('feedback.githubNote')}
+          </AppText>
         </Section>
 
         <Section title={t('settings.about')}>

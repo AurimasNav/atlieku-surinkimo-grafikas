@@ -23,6 +23,10 @@ the last good data.
 
 ## Reporting a problem
 
+The app's "Help & feedback" buttons open the issue forms in `.github/ISSUE_TEMPLATE/` with
+fields prefilled by `app/src/lib/feedback.ts`. **If you rename a form or a field `id`, update
+`feedback.ts` too**, or the prefill silently stops working.
+
 - **Wrong or missing dates:** open an issue with your area (as shown in the app), the date you
   expected, and a link to the official schedule file.
 - **The schedule stopped updating:** check the latest run of the *Schedule data* workflow on the
@@ -87,6 +91,10 @@ npx expo run:android --variant release --device <emulator name>
   back to the full path.
 - To build faster for an emulator only, set `ORG_GRADLE_PROJECT_reactNativeArchitectures=x86_64`
   before building.
+- To test "Use my current location", feed a position to the emulator while the app is asking
+  for it: `app/scripts/emulator-location.ps1` sends the PC's own Windows location (Wi-Fi based,
+  roughly ±50–200 m), or `-Latitude 54.7692 -Longitude 25.1840` for a fixed address. You can
+  also set a position in the emulator's Extended controls (⋯ → Location).
 - `.bat` tools such as `sdkmanager` split arguments on `;`, so
   `sdkmanager "platforms;android-36"` fails from PowerShell. Use the newer `android sdk install
   platforms/android-36` instead.

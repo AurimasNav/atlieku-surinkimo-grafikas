@@ -9,7 +9,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { KindFilter } from '@/components/kind-filter';
 import { AppText, Button, IconButton, KindBadge, KindIcon, Notice, PressableScale } from '@/components/ui';
+import { clearLastCrash, lastCrash } from '@/lib/crash';
 import { toIsoDate } from '@/lib/dates';
+import { openIssue } from '@/lib/feedback';
 import { formatTime, useDateFormat } from '@/lib/format';
 import { hasNotificationPermission } from '@/lib/notifications';
 import { type Pickup, upcomingPickups } from '@/lib/reminders';
@@ -34,6 +36,7 @@ export default function Home() {
   const { data, refreshing, error, refresh } = useSchedule();
   const [filter, setFilter] = useState<Filter>('all');
   const [notificationsOn, setNotificationsOn] = useState(true);
+  const [crash, setCrash] = useState(lastCrash);
 
   useEffect(() => {
     hasNotificationPermission().then(setNotificationsOn);
@@ -55,7 +58,9 @@ export default function Home() {
 
   const [next, ...rest] = pickups;
   const pending = pendingKinds(resolved);
-  const placeName = resolved.location?.name ?? t('home.choosePlace');
+  const placeName =
+    resolved.location?.name ??
+    (place?.custom && Object.keys(place.custom).length ? t('custom.title') : t('home.choosePlace'));
   const notes = resolved.areas.filter((area) => area.note && !area.dates.length);
   const reminderText = t(reminder.daysBefore === 1 ? 'home.reminderEvening' : 'home.reminderMorning', {
     time: formatTime(reminder.hour, reminder.minute),
@@ -107,6 +112,33 @@ export default function Home() {
         ) : (
           <>
             {/* Things that need attention */}
+            {crash && (
+              <Notice
+                action={
+                  <View style={styles.noticeActions}>
+                    <Button
+                      variant="secondary"
+                      icon="logo-github"
+                      title={t('crash.report')}
+                      onPress={() => {
+                        openIssue('crash_report', { error: crash.error, 'app-version': crash.version, language: i18n.language });
+                        clearLastCrash();
+                        setCrash(null);
+                      }}
+                    />
+                    <Button
+                      variant="ghost"
+                      title={t('crash.dismiss')}
+                      onPress={() => {
+                        clearLastCrash();
+                        setCrash(null);
+                      }}
+                    />
+                  </View>
+                }>
+                {t('crash.lastTitle')}
+              </Notice>
+            )}
             {!notificationsOn && (
               <Notice action={<Button variant="secondary" title={t('common.openSettings')} onPress={() => Linking.openSettings()} />}>
                 {t('home.notificationsOff')}
@@ -177,9 +209,11 @@ export default function Home() {
             )}
 
             {/* Filter by waste type */}
-            {activeKinds.length > 1 && (
+            {activeKinds.length > 0 && (
               <KindFilter
                 kinds={activeKinds}
+                inactive={WASTE_KINDS.filter((kind) => !activeKinds.includes(kind))}
+                onInactivePress={(kind) => router.push({ pathname: '/kind/[kind]', params: { kind } })}
                 counts={Object.fromEntries(
                   activeKinds.map((kind) => [kind, allPickups.filter((p) => p.kinds.includes(kind)).length]),
                 )}
@@ -228,6 +262,20 @@ export default function Home() {
               </Animated.View>
             ))}
 
+            <Button
+              variant="ghost"
+              icon="flag-outline"
+              title={t('feedback.wrongDates')}
+              onPress={() =>
+                openIssue('schedule_problem', {
+                  place: [resolved.location?.name, resolved.location?.streets?.find(([key]) => key === place?.street)?.[1]]
+                    .filter(Boolean)
+                    .join(', '),
+                  'data-date': data.generatedAt.slice(0, 10),
+                })
+              }
+              style={styles.reportLink}
+            />
             <AppText variant="caption" muted style={styles.footer}>
               {t('home.updated', {
                 date: new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }).format(new Date(data.generatedAt)),
@@ -291,5 +339,7 @@ const styles = StyleSheet.create({
   itemBody: { flex: 1, gap: 6 },
   itemKinds: { gap: 6 },
   itemKind: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  footer: { textAlign: 'center', marginTop: spacing.md },
+  footer: { textAlign: 'center' },
+  reportLink: { marginTop: spacing.md },
+  noticeActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
 });

@@ -1,0 +1,23 @@
+name: Idea or suggestion
+description: Suggest a feature or an improvement.
+title: "[Idea]: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping make the app better! You can write in Lithuanian, English, Russian or Polish.
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What problem would it solve for you?
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
