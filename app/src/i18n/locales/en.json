@@ -149,5 +149,39 @@
     "report": "Report this problem",
     "lastTitle": "The app closed unexpectedly last time. Would you like to report it? The report contains technical details only.",
     "dismiss": "Dismiss"
+  },
+  "custom": {
+    "title": "My schedule",
+    "notListed": "My place isn't listed: set my own schedule",
+    "setupTitle": "Your own schedule",
+    "setupHint": "Tell us when each container is collected and we'll remind you. You'll find the days on your bin, in your contract or on your waste company's website.",
+    "nextPickup": "Next pickup",
+    "repeats": "Repeats",
+    "week1": "Every week",
+    "week2": "Every 2 weeks",
+    "week3": "Every 3 weeks",
+    "week4": "Every 4 weeks",
+    "month1": "Every month",
+    "month2": "Every 2 months",
+    "month3": "Every 3 months",
+    "monthlyNote": "Monthly pickups keep the same weekday, e.g. the 2nd Tuesday of each month.",
+    "preview": "Next dates",
+    "save": "Save schedule",
+    "remove": "Remove my schedule",
+    "notSet": "Not set",
+    "set": "Set schedule",
+    "needOne": "Set at least one schedule to continue."
+  },
+  "manage": {
+    "useOfficial": "Use the official schedule for my place",
+    "pickRow": "Choose another schedule row",
+    "setCustom": "Set my own schedule",
+    "editCustom": "Edit my schedule",
+    "noContainer": "I don't have this container",
+    "statusCustom": "Your own schedule",
+    "statusNone": "Not in the official schedule for your place",
+    "statusSkipped": "You don't have this container",
+    "statusPending": "Several schedule rows match your place",
+    "hint": "Changes apply to your reminders right away."
   }
 }

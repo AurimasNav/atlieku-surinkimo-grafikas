@@ -1,3 +1,5 @@
+import { customDates, type CustomSchedule } from './custom-schedule';
+import { parseIsoDate } from './dates';
 import { type Area, isCurrent, type Location, type ScheduleData, WASTE_KINDS, type WasteKind } from './schedule';
 
 /** What the user picked, stored on the phone. */
@@ -8,10 +10,19 @@ export type Place = {
   street?: string;
   /** Per-kind answers: an area id, or null for "I don't have this container". */
   choices: Partial<Record<WasteKind, string | null>>;
+  /** Schedules the user set up themselves; they take priority over the official data. */
+  custom?: Partial<Record<WasteKind, CustomSchedule>>;
 };
 
+/** Id of the synthetic area a custom schedule turns into (stable, for reminders). */
+export const customAreaId = (kind: WasteKind) => `custom-${kind}`;
+
+export function isCustomArea(area: Area): boolean {
+  return area.id.startsWith('custom-');
+}
+
 export type KindStatus =
-  | { status: 'ok'; area: Area }
+  | { status: 'ok'; area: Area; custom?: boolean }
   /** Not collected here according to the schedules, or the user said they don't have it. */
   | { status: 'none'; skipped?: boolean }
   /** Several rows could apply; ask the user to pick one of these. */
@@ -46,6 +57,12 @@ export function resolvePlace(data: ScheduleData | null, place: Place | null, tod
   };
 
   for (const kind of WASTE_KINDS) {
+    const custom = place?.custom?.[kind];
+    if (custom) {
+      const dates = customDates(custom, parseIsoDate(today));
+      kinds[kind] = { status: 'ok', custom: true, area: { id: customAreaId(kind), kind, name: '', dates } };
+      continue;
+    }
     const choice = place?.choices[kind];
     if (choice === null) {
       kinds[kind] = { status: 'none', skipped: true };

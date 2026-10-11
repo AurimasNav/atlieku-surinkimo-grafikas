@@ -153,5 +153,39 @@
     "report": "Zgłoś problem",
     "lastTitle": "Ostatnim razem aplikacja nieoczekiwanie się zamknęła. Czy chcesz to zgłosić? Zgłoszenie zawiera tylko dane techniczne.",
     "dismiss": "Zamknij"
+  },
+  "custom": {
+    "title": "Mój harmonogram",
+    "notListed": "Nie ma mojej miejscowości: ustawię harmonogram sam",
+    "setupTitle": "Twój harmonogram",
+    "setupHint": "Podaj, kiedy odbierany jest każdy pojemnik, a my przypomnimy. Dni znajdziesz na pojemniku, w umowie lub na stronie firmy odbierającej odpady.",
+    "nextPickup": "Następny odbiór",
+    "repeats": "Powtarza się",
+    "week1": "Co tydzień",
+    "week2": "Co 2 tygodnie",
+    "week3": "Co 3 tygodnie",
+    "week4": "Co 4 tygodnie",
+    "month1": "Co miesiąc",
+    "month2": "Co 2 miesiące",
+    "month3": "Co 3 miesiące",
+    "monthlyNote": "Comiesięczny odbiór przypada w ten sam dzień tygodnia, np. w drugi wtorek miesiąca.",
+    "preview": "Najbliższe daty",
+    "save": "Zapisz harmonogram",
+    "remove": "Usuń mój harmonogram",
+    "notSet": "Nie ustawiono",
+    "set": "Ustaw harmonogram",
+    "needOne": "Ustaw co najmniej jeden harmonogram, aby kontynuować."
+  },
+  "manage": {
+    "useOfficial": "Użyj oficjalnego harmonogramu mojej miejscowości",
+    "pickRow": "Wybierz inny wiersz harmonogramu",
+    "setCustom": "Ustaw własny harmonogram",
+    "editCustom": "Zmień mój harmonogram",
+    "noContainer": "Nie mam takiego pojemnika",
+    "statusCustom": "Twój własny harmonogram",
+    "statusNone": "Brak w oficjalnym harmonogramie Twojej miejscowości",
+    "statusSkipped": "Nie masz takiego pojemnika",
+    "statusPending": "Do Twojej miejscowości pasuje kilka wierszy harmonogramu",
+    "hint": "Zmiany od razu obowiązują dla przypomnień."
   }
 }
