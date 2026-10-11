@@ -137,5 +137,55 @@
   "errors": {
     "loadFailed": "Nepavyko įkelti grafiko. Patikrinkite interneto ryšį.",
     "unsupported": "Pasikeitė grafiko formatas. Atnaujinkite programėlę."
+  },
+  "feedback": {
+    "title": "Pagalba ir atsiliepimai",
+    "bug": "Pranešti apie klaidą",
+    "schedule": "Neteisingos datos ar adresas",
+    "idea": "Pasiūlyti idėją",
+    "githubNote": "Atidaroma forma „GitHub“ svetainėje (reikia nemokamos paskyros). Niekas nesiunčiama, kol patys nepateiksite.",
+    "wrongDates": "Datos atrodo neteisingos? Praneškite"
+  },
+  "crash": {
+    "title": "Kažkas nutiko",
+    "body": "Programėlėje įvyko netikėta klaida. Bandykite dar kartą arba praneškite, kad galėtume ją ištaisyti.",
+    "retry": "Bandyti dar kartą",
+    "report": "Pranešti apie klaidą",
+    "lastTitle": "Praėjusį kartą programėlė netikėtai užsidarė. Ar norite apie tai pranešti? Pranešime yra tik techninė informacija.",
+    "dismiss": "Uždaryti"
+  },
+  "custom": {
+    "title": "Mano grafikas",
+    "notListed": "Mano vietovės nėra: nustatysiu grafiką pats",
+    "setupTitle": "Jūsų grafikas",
+    "setupHint": "Nurodykite, kada išvežamas kiekvienas konteineris, ir mes priminsime. Dienas rasite ant konteinerio, sutartyje arba atliekų vežėjo svetainėje.",
+    "nextPickup": "Kitas išvežimas",
+    "repeats": "Kartojasi",
+    "week1": "Kas savaitę",
+    "week2": "Kas 2 savaites",
+    "week3": "Kas 3 savaites",
+    "week4": "Kas 4 savaites",
+    "month1": "Kas mėnesį",
+    "month2": "Kas 2 mėnesius",
+    "month3": "Kas 3 mėnesius",
+    "monthlyNote": "Kas mėnesį išvežama tą pačią savaitės dieną, pvz., antrą mėnesio antradienį.",
+    "preview": "Artimiausios datos",
+    "save": "Išsaugoti grafiką",
+    "remove": "Pašalinti mano grafiką",
+    "notSet": "Nenustatyta",
+    "set": "Nustatyti grafiką",
+    "needOne": "Nustatykite bent vieną grafiką, kad galėtumėte tęsti."
+  },
+  "manage": {
+    "useOfficial": "Naudoti oficialų mano vietovės grafiką",
+    "pickRow": "Pasirinkti kitą grafiko eilutę",
+    "setCustom": "Nustatyti savo grafiką",
+    "editCustom": "Keisti mano grafiką",
+    "noContainer": "Tokio konteinerio neturiu",
+    "statusCustom": "Jūsų nustatytas grafikas",
+    "statusNone": "Jūsų vietovės oficialiame grafike nėra",
+    "statusSkipped": "Tokio konteinerio neturite",
+    "statusPending": "Jūsų vietovei tinka kelios grafiko eilutės",
+    "hint": "Pakeitimai priminimams taikomi iš karto."
   }
 }

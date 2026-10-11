@@ -28,6 +28,10 @@ open, and matches it against a downloaded address list on the device. The positi
 transmitted or stored, so it is not "collected" in Apple's or Google's sense. The permission
 text (`locationWhenInUsePermission` in `app/app.json`) says this. No background location.
 
+**Feedback and crash reports:** the app only opens a prefilled GitHub issue form in the browser;
+the user decides whether to submit it. Nothing is transmitted by the app, so this isn't data
+collection by the app either. Crash details are stored on the device until reported or dismissed.
+
 **Why "Data Not Collected" is correct:** Apple counts data as collected when it is sent off the
 device and stored longer than needed to serve the request. The app downloads one public file;
 the request carries no user data, and the IP address that reaches GitHub Pages is not stored

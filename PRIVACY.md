@@ -36,6 +36,19 @@ every user) and finds the nearest address **on your phone**. Your position is ne
 anywhere and is not stored; only the place you confirm is saved, as when you search by name.
 You can refuse the permission and search for your place instead.
 
+## Reporting problems and ideas
+
+The app never sends reports by itself. If you tap "Report a problem", "Wrong dates or address",
+"Suggest an idea" or "Report this problem" after an error, it opens a form on GitHub in your
+browser, prefilled with the app version, phone model and system version, the app language and,
+depending on the form, your selected place, the schedule date or the technical error details.
+You can edit or delete anything before submitting. Submitted issues are **public** and need a
+GitHub account; GitHub's privacy statement applies.
+
+If the app closes because of an error, the technical error details are kept on your phone so
+the app can offer to report them the next time it opens. They are deleted when you report or
+dismiss them.
+
 ## Reminders
 
 Reminders are scheduled **locally** by your phone's operating system. The app does not use
@@ -124,6 +137,20 @@ jūsų buvimo vietą. Tada ji atsisiunčia viešą adresų sąrašą (`addresses
 naudotojams tą patį failą) ir artimiausią adresą randa **jūsų telefone**. Jūsų buvimo vieta
 niekur nesiunčiama ir nesaugoma; išsaugoma tik jūsų patvirtinta vietovė, kaip ir ieškant
 pagal pavadinimą. Leidimo galite neduoti ir vietovę surasti paieškoje.
+
+## Pranešimai apie klaidas ir pasiūlymai
+
+Programėlė pati jokių pranešimų nesiunčia. Paspaudus „Pranešti apie klaidą“, „Neteisingos datos
+ar adresas“, „Pasiūlyti idėją“ arba klaidos atveju „Pranešti apie klaidą“, naršyklėje
+atidaroma „GitHub“ forma, iš anksto užpildyta programėlės versija, telefono modeliu ir sistemos
+versija, programėlės kalba ir, priklausomai nuo formos, jūsų pasirinkta vietove, grafiko data
+arba techninėmis klaidos detalėmis. Prieš pateikdami viską galite pakeisti ar ištrinti.
+Pateikti pranešimai yra **vieši**, jiems reikia „GitHub“ paskyros; taikomas „GitHub“ privatumo
+pareiškimas.
+
+Jei programėlė užsidaro dėl klaidos, techninės klaidos detalės išsaugomos jūsų telefone, kad
+kitą kartą atidarius programėlę būtų pasiūlyta apie jas pranešti. Jos ištrinamos, kai
+pranešate arba atsisakote.
 
 ## Priminimai
 

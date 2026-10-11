@@ -39,8 +39,13 @@ export function useDateFormat() {
     weekday: (iso: string) => capitalize(format(iso, { weekday: 'short' })).replace('.', ''),
     /** "15" */
     day: (iso: string) => String(parseIsoDate(iso).getDate()),
-    /** "October 2026" style month heading */
-    month: (iso: string) => capitalize(format(iso, { month: 'long', year: 'numeric' })),
+    /** Month heading: "October", plus the year only when it isn't this year. */
+    month: (iso: string) =>
+      capitalize(
+        Number(iso.slice(0, 4)) === new Date().getFullYear()
+          ? format(iso, { month: 'long' })
+          : format(iso, { month: 'long', year: 'numeric' }),
+      ),
     /** "Today", "Tomorrow", "In 5 days" */
     relative: (iso: string) => {
       const days = daysBetween(new Date(), parseIsoDate(iso));
