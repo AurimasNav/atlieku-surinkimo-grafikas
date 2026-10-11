@@ -12,6 +12,7 @@ import { AppText, Button, Card, Chip, KindIcon, ListRow, ScreenHeader } from '@/
 import { LANGUAGE_NAMES, LANGUAGES, type Language } from '@/i18n';
 import { PRIVACY_URL, REPOSITORY_URL, SOURCE_PAGE_URL } from '@/lib/config';
 import { toIsoDate } from '@/lib/dates';
+import { openIssue } from '@/lib/feedback';
 import { resolvePlace } from '@/lib/resolve';
 import { WASTE_KINDS } from '@/lib/schedule';
 import { useSchedule } from '@/store/schedule';
@@ -19,7 +20,7 @@ import { useSettings } from '@/store/settings';
 import { radius, spacing, useTheme } from '@/theme';
 
 export default function Settings() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { place, language, setLanguage } = useSettings();
@@ -80,6 +81,34 @@ export default function Settings() {
               />
             ))}
           </View>
+        </Section>
+
+        <Section title={t('feedback.title')}>
+          <View style={styles.links}>
+            <ListRow
+              icon={<Ionicons name="bug" size={22} color={theme.primary} />}
+              title={t('feedback.bug')}
+              onPress={() => openIssue('bug_report', { language: i18n.language })}
+            />
+            <ListRow
+              icon={<Ionicons name="calendar-clear" size={22} color={theme.primary} />}
+              title={t('feedback.schedule')}
+              onPress={() =>
+                openIssue('schedule_problem', {
+                  place: [location?.name, street].filter(Boolean).join(', '),
+                  'data-date': data?.generatedAt.slice(0, 10),
+                })
+              }
+            />
+            <ListRow
+              icon={<Ionicons name="bulb" size={22} color={theme.primary} />}
+              title={t('feedback.idea')}
+              onPress={() => openIssue('feature_request')}
+            />
+          </View>
+          <AppText variant="caption" muted>
+            {t('feedback.githubNote')}
+          </AppText>
         </Section>
 
         <Section title={t('settings.about')}>

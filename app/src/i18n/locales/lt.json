@@ -137,5 +137,21 @@
   "errors": {
     "loadFailed": "Nepavyko įkelti grafiko. Patikrinkite interneto ryšį.",
     "unsupported": "Pasikeitė grafiko formatas. Atnaujinkite programėlę."
+  },
+  "feedback": {
+    "title": "Pagalba ir atsiliepimai",
+    "bug": "Pranešti apie klaidą",
+    "schedule": "Neteisingos datos ar adresas",
+    "idea": "Pasiūlyti idėją",
+    "githubNote": "Atidaroma forma „GitHub“ svetainėje (reikia nemokamos paskyros). Niekas nesiunčiama, kol patys nepateiksite.",
+    "wrongDates": "Datos atrodo neteisingos? Praneškite"
+  },
+  "crash": {
+    "title": "Kažkas nutiko",
+    "body": "Programėlėje įvyko netikėta klaida. Bandykite dar kartą arba praneškite, kad galėtume ją ištaisyti.",
+    "retry": "Bandyti dar kartą",
+    "report": "Pranešti apie klaidą",
+    "lastTitle": "Praėjusį kartą programėlė netikėtai užsidarė. Ar norite apie tai pranešti? Pranešime yra tik techninė informacija.",
+    "dismiss": "Uždaryti"
   }
 }
