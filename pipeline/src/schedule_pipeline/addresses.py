@@ -12,9 +12,9 @@ from __future__ import annotations
 import csv
 import io
 import json
-import urllib.request
 from dataclasses import dataclass
 
+from . import http
 from .registry import ATTRIBUTION, Registry
 
 FILES = "https://www.registrucentras.lt/aduomenys/?byla="
@@ -33,9 +33,8 @@ class AddressPoint:
 
 
 def _download(name: str) -> bytes:
-    request = urllib.request.Request(FILES + name, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(request, timeout=300) as response:
-        return response.read()
+    # This server rejects unknown user agents, so present a browser one.
+    return http.get(FILES + name, timeout=300, user_agent="Mozilla/5.0")
 
 
 def parse(points_geojson: bytes, numbers_csv: bytes) -> list[AddressPoint]:
