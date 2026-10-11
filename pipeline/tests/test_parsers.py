@@ -145,6 +145,9 @@ def test_build_dataset():
     assert dataset["schemaVersion"] == 1
     assert set(dataset["coverage"]) == {"household", "packaging", "glass"}
     assert dataset["coverage"]["household"]["to"].startswith("2026-12")
+    household = [a for a in dataset["areas"] if a["kind"] == "household"]
+    assert household[0]["group"] == "Individualūs namai"
+    assert household[-1]["group"] == "Daugiabučiai namai"
     ids = [a["id"] for a in dataset["areas"]]
     assert len(ids) == len(set(ids))
     # Nothing older than the cutoff survives.
