@@ -1,0 +1,7 @@
+# Keep LF in the repo regardless of the contributor's OS (the team develops on Windows).
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.pdf binary
+*.xlsx binary

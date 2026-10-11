@@ -1,0 +1,84 @@
+{
+  "app": {
+    "name": "Harmonogram odpadów"
+  },
+  "kinds": {
+    "household": "Odpady zmieszane",
+    "packaging": "Opakowania",
+    "glass": "Szkło",
+    "householdDescription": "Pojemnik na zmieszane odpady komunalne",
+    "packagingDescription": "Opakowania z papieru, plastiku i metalu",
+    "glassDescription": "Opakowania szklane"
+  },
+  "common": {
+    "retry": "Spróbuj ponownie",
+    "continue": "Dalej",
+    "done": "Gotowe",
+    "skip": "Nie mam takiego pojemnika",
+    "openSettings": "Otwórz ustawienia"
+  },
+  "onboarding": {
+    "title": "Nie przegap dnia odbioru",
+    "body": "Wybierz, gdzie mieszkasz, a przypomnimy Ci wieczorem przed odbiorem odpadów. Wszystkie dane zostają na Twoim telefonie.",
+    "disclaimer": "To nieoficjalna aplikacja stworzona przez wolontariuszy. Daty pochodzą z harmonogramów publikowanych przez UAB „Nemenčinės komunalininkas“ i mogą zawierać błędy. W razie wątpliwości sprawdź oficjalny harmonogram.",
+    "start": "Wybierz miejscowość"
+  },
+  "select": {
+    "title": "{{kind}}: Twoja miejscowość",
+    "hint": "Wyszukaj swoją wieś, miasto lub ulicę i wybierz wiersz, w którym jest Twój adres.",
+    "searchPlaceholder": "np. Riešė, Bajorų g.",
+    "noResults": "Nic nie znaleziono. Spróbuj krótszego słowa, bez końcówki.",
+    "noDates": "Brak dokładnych dat w harmonogramie: {{note}}",
+    "count_one": "{{count}} miejscowość",
+    "count_few": "{{count}} miejscowości",
+    "count_many": "{{count}} miejscowości",
+    "count_other": "{{count}} miejscowości"
+  },
+  "home": {
+    "nextPickup": "Najbliższy odbiór",
+    "upcoming": "Następne",
+    "today": "Dzisiaj",
+    "tomorrow": "Jutro",
+    "inDays_one": "Za {{count}} dzień",
+    "inDays_few": "Za {{count}} dni",
+    "inDays_many": "Za {{count}} dni",
+    "inDays_other": "Za {{count}} dnia",
+    "nothingUpcoming": "W opublikowanym harmonogramie nie ma jeszcze najbliższych odbiorów. Nowy harmonogram sprawdzimy automatycznie.",
+    "areaMissing": "W nowym harmonogramie zmieniły się miejscowości ({{kind}}). Wybierz swoją ponownie.",
+    "noteOnly": "{{kind}}: harmonogram podaje tylko „{{note}}”, więc nie możemy wysyłać przypomnień.",
+    "notificationsOff": "Powiadomienia są wyłączone, więc nie otrzymasz przypomnień.",
+    "updated": "Harmonogram zaktualizowano {{date}}",
+    "refreshFailed": "Nie udało się sprawdzić nowego harmonogramu. Wyświetlamy zapisany.",
+    "settings": "Ustawienia"
+  },
+  "settings": {
+    "title": "Ustawienia",
+    "areas": "Moje miejscowości",
+    "notSelected": "Nie wybrano",
+    "reminder": "Przypomnienie",
+    "eveningBefore": "Wieczorem dzień wcześniej",
+    "morningOf": "Rano w dniu odbioru",
+    "time": "Godzina",
+    "language": "Język",
+    "systemLanguage": "Język telefonu",
+    "about": "O aplikacji",
+    "privacy": "Polityka prywatności",
+    "source": "Oficjalny harmonogram",
+    "sourceCode": "Kod źródłowy",
+    "disclaimerTitle": "Bez gwarancji",
+    "disclaimer": "Aplikacja jest udostępniana bezpłatnie, w stanie „takim, jaka jest”, bez żadnych gwarancji. Autorzy nie ponoszą odpowiedzialności za pominięte lub błędne przypomnienia ani za żadne skutki polegania na nich. Aplikacja nie jest powiązana z UAB „Nemenčinės komunalininkas“.",
+    "version": "Wersja {{version}}"
+  },
+  "notifications": {
+    "channelName": "Przypomnienia o odbiorze",
+    "titleTomorrow": "Jutro: {{kinds}}",
+    "titleToday": "Dzisiaj: {{kinds}}",
+    "body": "Wystaw pojemniki do 7:00.",
+    "refreshTitle": "Twój harmonogram się kończy",
+    "refreshBody": "Otwórz aplikację, aby wczytała nowy harmonogram."
+  },
+  "errors": {
+    "loadFailed": "Nie udało się wczytać harmonogramu. Sprawdź połączenie z internetem.",
+    "unsupported": "Format harmonogramu się zmienił. Zaktualizuj aplikację."
+  }
+}

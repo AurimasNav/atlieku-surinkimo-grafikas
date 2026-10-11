@@ -1,0 +1,80 @@
+{
+  "app": {
+    "name": "Waste Schedule"
+  },
+  "kinds": {
+    "household": "Mixed waste",
+    "packaging": "Packaging",
+    "glass": "Glass",
+    "householdDescription": "Mixed household waste container",
+    "packagingDescription": "Paper, plastic and metal packaging",
+    "glassDescription": "Glass packaging"
+  },
+  "common": {
+    "retry": "Try again",
+    "continue": "Continue",
+    "done": "Done",
+    "skip": "I don't have this container",
+    "openSettings": "Open settings"
+  },
+  "onboarding": {
+    "title": "Never miss a pickup day",
+    "body": "Choose where you live and we'll remind you the evening before your bins are collected. Everything stays on your phone.",
+    "disclaimer": "This is an unofficial app made by volunteers. Dates are taken from the schedules published by UAB „Nemenčinės komunalininkas“ and may contain mistakes. Always check the official schedule if in doubt.",
+    "start": "Choose my area"
+  },
+  "select": {
+    "title": "{{kind}}: your area",
+    "hint": "Search for your village, town or street, then pick the row that includes your address.",
+    "searchPlaceholder": "e.g. Riešė, Bajorų g.",
+    "noResults": "Nothing found. Try a shorter word, without the ending.",
+    "noDates": "No exact dates in the schedule: {{note}}",
+    "count_one": "{{count}} area",
+    "count_other": "{{count}} areas"
+  },
+  "home": {
+    "nextPickup": "Next pickup",
+    "upcoming": "Coming up",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "inDays_one": "In {{count}} day",
+    "inDays_other": "In {{count}} days",
+    "nothingUpcoming": "No upcoming pickups in the published schedule yet. We'll check for a new schedule automatically.",
+    "areaMissing": "The new schedule changed the areas for {{kind}}. Please choose yours again.",
+    "noteOnly": "{{kind}}: the schedule only says “{{note}}”, so we can't send reminders for it.",
+    "notificationsOff": "Notifications are turned off, so you won't get reminders.",
+    "updated": "Schedule updated {{date}}",
+    "refreshFailed": "Couldn't check for a new schedule. Showing the saved one.",
+    "settings": "Settings"
+  },
+  "settings": {
+    "title": "Settings",
+    "areas": "My areas",
+    "notSelected": "Not selected",
+    "reminder": "Reminder",
+    "eveningBefore": "Evening before",
+    "morningOf": "On the morning",
+    "time": "Time",
+    "language": "Language",
+    "systemLanguage": "Phone language",
+    "about": "About",
+    "privacy": "Privacy policy",
+    "source": "Official schedule",
+    "sourceCode": "Source code",
+    "disclaimerTitle": "No guarantees",
+    "disclaimer": "This app is provided free of charge, as is, without any warranty. The authors are not responsible for missed or wrong reminders, or for any consequences of relying on them. It is not affiliated with UAB „Nemenčinės komunalininkas“.",
+    "version": "Version {{version}}"
+  },
+  "notifications": {
+    "channelName": "Pickup reminders",
+    "titleTomorrow": "Tomorrow: {{kinds}}",
+    "titleToday": "Today: {{kinds}}",
+    "body": "Put your bins out by 7:00.",
+    "refreshTitle": "Your schedule is running out",
+    "refreshBody": "Open the app so it can load the next schedule."
+  },
+  "errors": {
+    "loadFailed": "Couldn't load the schedule. Check your internet connection.",
+    "unsupported": "The schedule format has changed. Please update the app."
+  }
+}
