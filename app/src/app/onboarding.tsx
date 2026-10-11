@@ -2,14 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText, Button } from '@/components/ui';
+import { LANGUAGE_NAMES, LANGUAGES, type Language, resolveLanguage } from '@/i18n';
 import { WASTE_KINDS } from '@/lib/schedule';
-import { kindIcons, kindPalette, radius, spacing } from '@/theme';
+import { useSettings } from '@/store/settings';
+import { fonts, kindIcons, kindPalette, radius, spacing } from '@/theme';
 
 const FEATURES = [
   ['location', 'onboarding.featurePlace'],
@@ -20,6 +23,10 @@ const FEATURES = [
 export default function Welcome() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const language = useSettings((s) => s.language);
+  const setLanguage = useSettings((s) => s.setLanguage);
+  const [languagesOpen, setLanguagesOpen] = useState(false);
+  const options: (Language | 'system')[] = ['system', ...LANGUAGES];
 
   return (
     <LinearGradient
@@ -28,6 +35,41 @@ export default function Welcome() {
       end={{ x: 0.6, y: 1 }}
       style={[styles.screen, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
       <StatusBar style="light" />
+
+      {/* Language before anything else: the phone may be in a language the user doesn't prefer. */}
+      <View style={[styles.languageBar, { top: insets.top + spacing.sm }]}>
+        <Pressable
+          onPress={() => setLanguagesOpen((open) => !open)}
+          accessibilityRole="button"
+          accessibilityLabel={t('settings.language')}
+          style={styles.languageButton}>
+          <Ionicons name="globe-outline" size={16} color="#FFFFFF" />
+          <Text style={styles.languageText}>{LANGUAGE_NAMES[resolveLanguage(language)]}</Text>
+          <Ionicons name={languagesOpen ? 'chevron-up' : 'chevron-down'} size={14} color="#FFFFFF" />
+        </Pressable>
+        {languagesOpen && (
+          <Animated.View entering={FadeInDown.duration(200)} style={styles.languageList}>
+            {options.map((code) => {
+              const selected = code === language;
+              return (
+                <Pressable
+                  key={code}
+                  onPress={() => {
+                    setLanguage(code);
+                    setLanguagesOpen(false);
+                  }}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected }}
+                  style={[styles.languageOption, selected && styles.languageOptionSelected]}>
+                  <Text style={[styles.languageText, selected && styles.languageTextSelected]}>
+                    {code === 'system' ? t('settings.systemLanguage') : LANGUAGE_NAMES[code]}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </Animated.View>
+        )}
+      </View>
 
       {/* Three container tiles: a playful nod to the three bins the app tracks. */}
       <Animated.View entering={FadeInDown.duration(500)} style={styles.tiles}>
@@ -77,6 +119,21 @@ export default function Welcome() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, paddingHorizontal: spacing.lg },
+  languageBar: { position: 'absolute', right: spacing.lg, alignItems: 'flex-end', zIndex: 1, gap: spacing.sm },
+  languageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 36,
+    paddingHorizontal: 14,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+  },
+  languageList: { backgroundColor: 'rgba(6,48,31,0.96)', borderRadius: radius.md, padding: 6, gap: 2 },
+  languageOption: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: radius.sm },
+  languageOptionSelected: { backgroundColor: '#FFFFFF' },
+  languageText: { color: '#FFFFFF', fontFamily: fonts.bold, fontSize: 14 },
+  languageTextSelected: { color: '#0A4A31' },
   tiles: { flexDirection: 'row', gap: spacing.sm + 4, marginTop: spacing.lg, marginBottom: spacing.xl },
   tile: {
     width: 68,
