@@ -58,7 +58,9 @@ export default function Home() {
 
   const [next, ...rest] = pickups;
   const pending = pendingKinds(resolved);
-  const placeName = resolved.location?.name ?? t('home.choosePlace');
+  const placeName =
+    resolved.location?.name ??
+    (place?.custom && Object.keys(place.custom).length ? t('custom.title') : t('home.choosePlace'));
   const notes = resolved.areas.filter((area) => area.note && !area.dates.length);
   const reminderText = t(reminder.daysBefore === 1 ? 'home.reminderEvening' : 'home.reminderMorning', {
     time: formatTime(reminder.hour, reminder.minute),
@@ -207,9 +209,11 @@ export default function Home() {
             )}
 
             {/* Filter by waste type */}
-            {activeKinds.length > 1 && (
+            {activeKinds.length > 0 && (
               <KindFilter
                 kinds={activeKinds}
+                inactive={WASTE_KINDS.filter((kind) => !activeKinds.includes(kind))}
+                onInactivePress={(kind) => router.push({ pathname: '/kind/[kind]', params: { kind } })}
                 counts={Object.fromEntries(
                   activeKinds.map((kind) => [kind, allPickups.filter((p) => p.kinds.includes(kind)).length]),
                 )}

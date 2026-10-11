@@ -15,23 +15,29 @@ export type KindFilterValue = 'all' | WasteKind;
  */
 export function KindFilter({
   kinds,
+  inactive = [],
   counts,
   value,
   onChange,
+  onInactivePress,
 }: {
   kinds: WasteKind[];
+  /** Shown greyed out with a "+"; tapping calls onInactivePress (e.g. to set them up). */
+  inactive?: WasteKind[];
   counts: Partial<Record<WasteKind, number>>;
   value: KindFilterValue;
   onChange: (value: KindFilterValue) => void;
+  onInactivePress?: (kind: WasteKind) => void;
 }) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const options: KindFilterValue[] = ['all', ...kinds];
+  const options: KindFilterValue[] = ['all', ...kinds, ...inactive];
 
   return (
     <View accessibilityRole="tablist" style={[styles.bar, { backgroundColor: theme.surface }]}>
       {options.map((option) => {
         const selected = option === value;
+        const disabled = option !== 'all' && inactive.includes(option);
         const fg = selected ? theme.background : theme.text;
         return (
           <PressableScale
@@ -40,9 +46,11 @@ export function KindFilter({
             accessibilityRole="tab"
             accessibilityState={{ selected }}
             accessibilityLabel={option === 'all' ? t('home.filterAll') : t(`kinds.${option}`)}
-            onPress={() => onChange(selected && option !== 'all' ? 'all' : option)}
+            onPress={() =>
+              disabled ? onInactivePress?.(option) : onChange(selected && option !== 'all' ? 'all' : option)
+            }
             wrapperStyle={styles.segmentWrapper}
-            style={[styles.segment, selected && { backgroundColor: theme.text }]}>
+            style={[styles.segment, selected && { backgroundColor: theme.text }, disabled && styles.inactive]}>
             {option === 'all' ? (
               <View style={[styles.icon, { backgroundColor: selected ? theme.background : theme.surfaceMuted }]}>
                 <Ionicons name="apps" size={15} color={selected ? theme.text : theme.textMuted} />
@@ -59,11 +67,14 @@ export function KindFilter({
               style={[styles.label, { color: fg }]}>
               {option === 'all' ? t('home.filterAll') : t(`kinds.${option}Short`)}
             </Text>
-            {option !== 'all' && (
-              <Text style={[styles.count, { color: selected ? theme.background : theme.textMuted }]}>
-                {counts[option] ?? 0}
-              </Text>
-            )}
+            {option !== 'all' &&
+              (disabled ? (
+                <Ionicons name="add-circle-outline" size={14} color={theme.textMuted} />
+              ) : (
+                <Text style={[styles.count, { color: selected ? theme.background : theme.textMuted }]}>
+                  {counts[option] ?? 0}
+                </Text>
+              ))}
           </PressableScale>
         );
       })}
@@ -86,4 +97,5 @@ const styles = StyleSheet.create({
   icon: { width: 28, height: 28, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   label: { fontFamily: fonts.bold, fontSize: 13, lineHeight: 17 },
   count: { fontFamily: fonts.bold, fontSize: 12, lineHeight: 14 },
+  inactive: { opacity: 0.45 },
 });

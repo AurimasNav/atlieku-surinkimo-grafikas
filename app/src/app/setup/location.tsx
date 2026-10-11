@@ -167,12 +167,22 @@ export default function ChooseLocation() {
           }
           ListFooterComponent={
             found ? null : (
-              <Button
-                variant="ghost"
-                title={t('setup.manualLink')}
-                onPress={() => router.push({ pathname: '/select/[kind]', params: { kind: 'household', flow: 'manual' } })}
-                style={styles.manual}
-              />
+              <View style={styles.manual}>
+                <Button
+                  variant="secondary"
+                  icon="calendar"
+                  title={t('custom.notListed')}
+                  onPress={() => {
+                    useSettings.getState().startCustomPlace();
+                    router.push('/setup/custom');
+                  }}
+                />
+                <Button
+                  variant="ghost"
+                  title={t('setup.manualLink')}
+                  onPress={() => router.push({ pathname: '/select/[kind]', params: { kind: 'household', flow: 'manual' } })}
+                />
+              </View>
             )
           }
         />
@@ -208,5 +218,5 @@ const styles = StyleSheet.create({
   pin: { width: 40, height: 40, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   empty: { paddingVertical: spacing.md },
-  manual: { marginTop: spacing.md },
+  manual: { marginTop: spacing.md, gap: spacing.xs },
 });
