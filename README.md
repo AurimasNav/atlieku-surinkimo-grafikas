@@ -13,6 +13,8 @@ Available in Lithuanian, English, Russian and Polish.
 
 - A daily GitHub Action downloads the official schedule files (Excel and PDF), converts them
   to `schedule.json`, validates the result and publishes it to GitHub Pages.
+- The same job matches every schedule row to official settlements and streets from the
+  Lithuanian Address Register, so users pick their place once and get all three schedules.
 - The app downloads that file, you pick your area once, and your phone schedules the reminders
   itself as local notifications. There is no backend server and no account.
 - Nothing about you leaves your phone. See the [privacy policy](PRIVACY.md).
@@ -40,7 +42,9 @@ your own build, rename and rebrand it. See [TRADEMARKS.md](TRADEMARKS.md).
 ## Disclaimer
 
 This is an unofficial project, not affiliated with or endorsed by UAB "Nemenčinės
-komunalininkas". The schedule data belongs to its publisher. Dates are converted
+komunalininkas". The schedule data belongs to its publisher. Settlement and street names
+come from the Address Register (Adresų registras) of VĮ Registrų centras, published as open
+data at [get.data.gov.lt](https://get.data.gov.lt/datasets/gov/rc/ar/:ns). Dates are converted
 automatically and may contain mistakes; always check the official schedule if in doubt.
 
 The app and its source code are provided free of charge, **"as is", without warranty of any

@@ -7,7 +7,7 @@ import { useSettings } from '@/store/settings';
 
 import { toIsoDate } from './dates';
 import { planReminders } from './reminders';
-import { resolveSelections } from './selected-areas';
+import { resolvePlace } from './resolve';
 
 const CHANNEL_ID = 'pickup-reminders';
 const supported = Platform.OS !== 'web';
@@ -51,9 +51,9 @@ export async function requestNotificationPermission(): Promise<boolean> {
 export async function syncReminders(now = new Date()): Promise<number> {
   if (!supported) return 0;
   const { data } = useSchedule.getState();
-  const { selections, reminder, language } = useSettings.getState();
+  const { place, reminder, language } = useSettings.getState();
   const t = i18n.getFixedT(resolveLanguage(language));
-  const plan = planReminders(resolveSelections(data, selections, toIsoDate(now)).areas, reminder, now);
+  const plan = planReminders(resolvePlace(data, place, toIsoDate(now)).areas, reminder, now);
 
   await Notifications.cancelAllScheduledNotificationsAsync();
   if (!(await hasNotificationPermission())) return 0;
