@@ -8,7 +8,10 @@
     "glass": "Stiklas",
     "householdDescription": "Mišrių komunalinių atliekų konteineris",
     "packagingDescription": "Popieriaus, plastiko ir metalo pakuotės",
-    "glassDescription": "Stiklo pakuotės"
+    "glassDescription": "Stiklo pakuotės",
+    "householdShort": "Mišrios",
+    "packagingShort": "Pakuotės",
+    "glassShort": "Stiklas"
   },
   "common": {
     "retry": "Bandyti dar kartą",

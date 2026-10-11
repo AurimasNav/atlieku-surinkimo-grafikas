@@ -8,7 +8,10 @@
     "glass": "Glass",
     "householdDescription": "Mixed household waste container",
     "packagingDescription": "Paper, plastic and metal packaging",
-    "glassDescription": "Glass packaging"
+    "glassDescription": "Glass packaging",
+    "householdShort": "Mixed",
+    "packagingShort": "Packaging",
+    "glassShort": "Glass"
   },
   "common": {
     "retry": "Try again",
