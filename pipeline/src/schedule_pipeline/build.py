@@ -11,6 +11,7 @@ from pathlib import Path
 
 from . import addresses as address_points
 from . import registry as address_register
+from . import snapshot
 from .locations import build_locations
 from .model import SCHEMA_VERSION, Area, Kind, ParseResult, SourceFile
 from .pdf_parser import parse_pdf
@@ -172,8 +173,12 @@ def main(argv: list[str] | None = None) -> int:
     html = fetch(PAGE_URL).decode("utf-8", errors="replace")
     files = find_schedule_files(html)
     sources = [(f, fetch(f.url)) for f in files]
-    registry = address_register.fetch()
-    points = address_points.fetch()
+    registry, registry_note = _live_or_snapshot(
+        "Address Register", address_register.fetch, snapshot.load_registry
+    )
+    points, points_note = _live_or_snapshot(
+        "Address points", address_points.fetch, snapshot.load_points
+    )
     try:
         dataset, warnings = build_dataset(sources, registry, date.today(), args.keep_days)
         served = {loc["id"] for loc in dataset["locations"]}
@@ -192,8 +197,28 @@ def main(argv: list[str] | None = None) -> int:
     (args.out.parent / "addresses.json").write_text(
         json.dumps(addresses, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
     )
-    write_summary(dataset, warnings)
+    write_summary(dataset, [n for n in (registry_note, points_note) if n] + warnings)
     return 0
+
+
+def _live_or_snapshot(name, fetch_live, load_snapshot):
+    """Live data if the source answers; otherwise the committed snapshot (the register's sites
+    block cloud servers such as GitHub Actions). Returns (data, note for the job summary)."""
+    try:
+        return fetch_live(), None
+    except OSError as error:  # urllib errors, timeouts and connection failures
+        data, taken_at = load_snapshot()
+        age = snapshot.age_days(taken_at, date.today())
+        note = (
+            f"{name}: live source unavailable ({error}); "
+            f"used the snapshot from {taken_at} ({age} days old)"
+        )
+        if age > snapshot.MAX_AGE_DAYS:
+            note += (
+                " - please refresh it: cd pipeline && uv run python -m schedule_pipeline.snapshot"
+            )
+        print(note, file=sys.stderr)
+        return data, note
 
 
 if __name__ == "__main__":
