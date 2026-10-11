@@ -91,6 +91,10 @@ npx expo run:android --variant release --device <emulator name>
   back to the full path.
 - To build faster for an emulator only, set `ORG_GRADLE_PROJECT_reactNativeArchitectures=x86_64`
   before building.
+- To test "Use my current location", feed a position to the emulator while the app is asking
+  for it: `app/scripts/emulator-location.ps1` sends the PC's own Windows location (Wi-Fi based,
+  roughly ±50–200 m), or `-Latitude 54.7692 -Longitude 25.1840` for a fixed address. You can
+  also set a position in the emulator's Extended controls (⋯ → Location).
 - `.bat` tools such as `sdkmanager` split arguments on `;`, so
   `sdkmanager "platforms;android-36"` fails from PowerShell. Use the newer `android sdk install
   platforms/android-36` instead.
