@@ -1,12 +1,13 @@
 # Atliekų grafikas
 
-Mobile app (Android and iOS) that reminds you when household, packaging and glass waste is
+Android app that reminds you when household, packaging and glass waste is
 collected at your address in Vilnius district, based on the schedules published by
 [UAB "Nemenčinės komunalininkas"](https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/).
 
 Available in Lithuanian, English, Russian and Polish.
 
-> Work in progress. "Atliekų grafikas" is a working name.
+> Work in progress. "Atliekų grafikas" is a working name. The code also supports iOS, but it
+> isn't published on the App Store yet (Apple charges $99/year).
 
 ## How it works
 

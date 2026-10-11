@@ -1,6 +1,6 @@
 # App store privacy answers
 
-What to enter in App Store Connect and Google Play Console. This is based on the app as it is
+What to enter in Google Play Console (and App Store Connect, once iOS is published). This is based on the app as it is
 today: **if you add analytics, crash reporting, push notifications, EAS Update or any other
 service that sends data off the device, update these answers and [PRIVACY.md](../PRIVACY.md) in
 the same pull request.** The web version of the policy is generated from PRIVACY.md.
@@ -9,7 +9,9 @@ Privacy policy URL for both stores:
 `https://aurimasnav.github.io/atlieku-surinkimo-grafikas/privacy/`
 (published by the `Schedule data` workflow from `site/`).
 
-## Apple App Store Connect
+## Apple App Store Connect (not published yet)
+
+Only needed once the app is released on iOS; see [releasing.md](releasing.md#adding-ios-later).
 
 | Question | Answer |
 |---|---|
@@ -68,4 +70,5 @@ Put this at the end of the description in both stores (and in the other language
       **It can't be changed after the first upload.**
 - [ ] GitHub Pages is enabled (Settings → Pages → Source: GitHub Actions) and the privacy URL
       loads.
-- [ ] Apple Developer Program ($99/year) and Google Play developer account ($25 once).
+- [ ] Google Play developer account ($25 once). Apple Developer Program ($99/year) only when
+      adding iOS.
