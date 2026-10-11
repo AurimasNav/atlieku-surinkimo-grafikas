@@ -9,6 +9,7 @@ import sys
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
+from . import addresses as address_points
 from . import registry as address_register
 from .locations import build_locations
 from .model import SCHEMA_VERSION, Area, Kind, ParseResult, SourceFile
@@ -21,6 +22,8 @@ from .xlsx_parser import DEFAULT_GROUP, parse_xlsx
 MIN_AREAS: dict[Kind, int] = {"household": 100, "packaging": 10, "glass": 10}
 # Share of household rows that must link to a register settlement; below it, matching broke.
 MIN_LINKED_HOUSEHOLD = 0.85
+# Served settlements had ~50k addresses in 2026; far fewer means the download went wrong.
+MIN_ADDRESS_POINTS = 20_000
 
 
 class ValidationError(Exception):
@@ -170,8 +173,13 @@ def main(argv: list[str] | None = None) -> int:
     files = find_schedule_files(html)
     sources = [(f, fetch(f.url)) for f in files]
     registry = address_register.fetch()
+    points = address_points.fetch()
     try:
         dataset, warnings = build_dataset(sources, registry, date.today(), args.keep_days)
+        served = {loc["id"] for loc in dataset["locations"]}
+        addresses = address_points.build_addresses(points, registry, served, dataset["generatedAt"])
+        if len(addresses["points"]) < MIN_ADDRESS_POINTS:
+            raise ValidationError(f"only {len(addresses['points'])} address points")
     except ValidationError as error:
         print(f"Validation failed: {error}", file=sys.stderr)
         return 1
@@ -179,6 +187,10 @@ def main(argv: list[str] | None = None) -> int:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
         json.dumps(dataset, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
+    )
+    # Downloaded by the app only when the user asks to find their address by GPS.
+    (args.out.parent / "addresses.json").write_text(
+        json.dumps(addresses, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
     )
     write_summary(dataset, warnings)
     return 0

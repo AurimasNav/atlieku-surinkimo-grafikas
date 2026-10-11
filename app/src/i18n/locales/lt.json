@@ -55,7 +55,20 @@
     "nextOn": "Kitas: {{date}}",
     "noDates": "Tikslios datos neskelbiamos",
     "enable": "Įjungti priminimus",
-    "remindWhen": "Priminti"
+    "remindWhen": "Priminti",
+    "useLocation": "Naudoti mano buvimo vietą",
+    "useLocationHint": "Suras artimiausią adresą. Jūsų buvimo vieta niekur nesiunčiama.",
+    "locating": "Ieškome jūsų adreso…",
+    "foundTitle": "Ar tai jūsų namai?",
+    "foundStreetUnsure": "Jūsų buvimo vieta apytikslė, todėl toliau patvirtinsite gatvę.",
+    "confirmHome": "Taip, čia mano namai",
+    "notHome": "Ne, ieškosiu pats",
+    "locationDenied": "Prieiga prie buvimo vietos išjungta. Raskite vietovę paieškoje žemiau arba leiskite naudoti buvimo vietą telefono nustatymuose.",
+    "locationUnavailable": "Nepavyko nustatyti buvimo vietos. Raskite vietovę paieškoje žemiau.",
+    "locationOffline": "Nepavyko atsisiųsti adresų sąrašo. Patikrinkite interneto ryšį.",
+    "locationFar": "Šalia jūsų nėra UAB „Nemenčinės komunalininkas“ aptarnaujamų adresų. Jei esate ne namuose, raskite vietovę paieškoje žemiau.",
+    "orSearch": "arba ieškokite",
+    "locationServicesOff": "Telefone išjungta buvimo vieta. Įjunkite ją ir bandykite dar kartą arba raskite vietovę paieškoje žemiau."
   },
   "select": {
     "title": "{{kind}}: jūsų vietovė",

@@ -23,6 +23,11 @@ Only needed once the app is released on iOS; see [releasing.md](releasing.md#add
 | Third-party content | The app shows public schedule data published by UAB „Nemenčinės komunalininkas“, with attribution and a link to the source. |
 | Age rating | Answer "None" to every content question; the result is 4+. |
 
+**Location:** the optional "Use my current location" reads the position once, while the app is
+open, and matches it against a downloaded address list on the device. The position is never
+transmitted or stored, so it is not "collected" in Apple's or Google's sense. The permission
+text (`locationWhenInUsePermission` in `app/app.json`) says this. No background location.
+
 **Why "Data Not Collected" is correct:** Apple counts data as collected when it is sent off the
 device and stored longer than needed to serve the request. The app downloads one public file;
 the request carries no user data, and the IP address that reaches GitHub Pages is not stored
@@ -49,6 +54,7 @@ by us or linked to the user.
 | Government apps | **Not** a government app. The store listing must not suggest it is official. Keep the disclaimer below in the description. |
 | Account deletion | Not applicable, the app has no accounts |
 | Exact alarm permission | Not used. Reminders use inexact scheduling, which is accurate enough for a reminder the evening before. |
+| Location permissions | Foreground only (`ACCESS_FINE_LOCATION`/`ACCESS_COARSE_LOCATION`), used once to find the user's address on the device. Background location is blocked, so no location declaration form is needed. Data safety stays "No data collected": the location is processed only on the device. |
 
 ## Store listing disclaimer
 
