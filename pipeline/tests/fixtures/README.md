@@ -8,3 +8,7 @@ These files belong to their publisher and are **not** covered by this project's 
 license.
 
 When the publisher changes the format, add the new file here and a test that covers it.
+
+`registry-*.json` and `addresses-sample.*` are extracts of the Address Register (Adresų
+registras) open data of VĮ Registrų centras, from get.data.gov.lt and
+registrucentras.lt/aduomenys. The address sample covers Avižieniai and Aleksandravas only.

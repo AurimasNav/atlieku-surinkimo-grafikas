@@ -44,6 +44,12 @@ uv run python -m schedule_pipeline --out ../site/schedule.json   # build from th
 uv run ruff check . && uv run ruff format .
 ```
 
+**Location matching** (`locations.py`) links each Address Register settlement and street to
+its row in every schedule. The job summary on the Actions tab shows how many places resolve
+to a single row, need a street, need the user to choose, or aren't in a schedule, and lists
+rows that matched nothing. Tests in `tests/test_locations.py` pin hand-checked cases; add one
+when you fix a mismatch.
+
 **When the publisher changes the file format** (this will happen):
 
 1. Save the new file to `pipeline/tests/fixtures/`.
@@ -84,6 +90,11 @@ npx expo run:android --variant release --device <emulator name>
 - `.bat` tools such as `sdkmanager` split arguments on `;`, so
   `sdkmanager "platforms;android-36"` fails from PowerShell. Use the newer `android sdk install
   platforms/android-36` instead.
+
+To try pipeline changes in the app before they're published, write the output to
+`.local-site/schedule.json`, serve that folder (`python -m http.server 8765` inside it) and
+create `app/.env.local` with `EXPO_PUBLIC_SITE_URL=http://10.0.2.2:8765` (the emulator's
+address for your PC). Both are gitignored. Restart Metro after changing `.env.local`.
 
 The app reads the data from GitHub Pages. To use your own copy (for example a fork, or a
 locally built `schedule.json`), set `EXPO_PUBLIC_SITE_URL` to the folder that contains it.
