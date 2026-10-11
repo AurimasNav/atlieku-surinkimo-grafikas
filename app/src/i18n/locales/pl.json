@@ -55,7 +55,20 @@
     "nextOn": "Następny: {{date}}",
     "noDates": "Dokładne daty nie są publikowane",
     "enable": "Włącz przypomnienia",
-    "remindWhen": "Przypominaj"
+    "remindWhen": "Przypominaj",
+    "useLocation": "Użyj mojej lokalizacji",
+    "useLocationHint": "Znajdziemy najbliższy adres. Twoja lokalizacja nigdzie nie jest wysyłana.",
+    "locating": "Szukamy Twojego adresu…",
+    "foundTitle": "Czy to Twój dom?",
+    "foundStreetUnsure": "Lokalizacja jest przybliżona, więc za chwilę potwierdzisz ulicę.",
+    "confirmHome": "Tak, to mój dom",
+    "notHome": "Nie, wyszukam sam",
+    "locationDenied": "Dostęp do lokalizacji jest wyłączony. Wyszukaj miejscowość poniżej lub zezwól na lokalizację w ustawieniach telefonu.",
+    "locationUnavailable": "Nie udało się ustalić lokalizacji. Wyszukaj miejscowość poniżej.",
+    "locationOffline": "Nie udało się pobrać listy adresów. Sprawdź połączenie z internetem.",
+    "locationFar": "W pobliżu nie ma adresów obsługiwanych przez UAB „Nemenčinės komunalininkas“. Jeśli nie jesteś w domu, wyszukaj miejscowość poniżej.",
+    "orSearch": "lub wyszukaj",
+    "locationServicesOff": "Lokalizacja w telefonie jest wyłączona. Włącz ją i spróbuj ponownie lub wyszukaj miejscowość poniżej."
   },
   "select": {
     "title": "{{kind}}: Twoja miejscowość",
