@@ -48,6 +48,17 @@ uv run python -m schedule_pipeline --out ../site/schedule.json   # build from th
 uv run ruff check . && uv run ruff format .
 ```
 
+**Address Register snapshot.** get.data.gov.lt and registrucentras.lt block requests from
+cloud servers, including GitHub Actions, so the daily job falls back to the snapshot in
+`pipeline/data/`. Refresh it about once a month from a computer in Lithuania and open a PR:
+
+```sh
+cd pipeline
+uv run python -m schedule_pipeline.snapshot
+```
+
+The job summary says which source was used and warns when the snapshot is over 60 days old.
+
 **Location matching** (`locations.py`) links each Address Register settlement and street to
 its row in every schedule. The job summary on the Actions tab shows how many places resolve
 to a single row, need a street, need the user to choose, or aren't in a schedule, and lists
