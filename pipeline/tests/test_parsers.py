@@ -6,10 +6,12 @@ import pytest
 from schedule_pipeline.build import ValidationError, build_dataset
 from schedule_pipeline.dates import assign_years, parse_days, parse_month, parse_weekdays
 from schedule_pipeline.pdf_parser import parse_pdf
+from schedule_pipeline.registry import Registry
 from schedule_pipeline.scrape import classify, find_schedule_files
 from schedule_pipeline.xlsx_parser import parse_xlsx
 
 FIXTURES = Path(__file__).parent / "fixtures"
+REGISTRY = Registry.load(FIXTURES / "registry-vilniaus-r-2026-10-11.json")
 
 
 def fixture(name: str) -> bytes:
@@ -141,7 +143,7 @@ def all_sources():
 
 
 def test_build_dataset():
-    dataset, _ = build_dataset(all_sources(), today=date(2026, 10, 11), keep_days=31)
+    dataset, _ = build_dataset(all_sources(), REGISTRY, today=date(2026, 10, 11), keep_days=31)
     assert dataset["schemaVersion"] == 1
     assert set(dataset["coverage"]) == {"household", "packaging", "glass"}
     assert dataset["coverage"]["household"]["to"].startswith("2026-12")
@@ -157,7 +159,7 @@ def test_build_dataset():
 def test_build_fails_when_a_schedule_is_missing():
     sources = [s for s in all_sources() if s[0].kind != "glass"]
     with pytest.raises(ValidationError, match="glass"):
-        build_dataset(sources, today=date(2026, 10, 11), keep_days=31)
+        build_dataset(sources, REGISTRY, today=date(2026, 10, 11), keep_days=31)
 
 
 def test_identical_rows_from_two_quarters_are_merged():

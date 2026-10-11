@@ -1,8 +1,15 @@
+import {
+  Manrope_500Medium,
+  Manrope_600SemiBold,
+  Manrope_700Bold,
+  Manrope_800ExtraBold,
+  useFonts,
+} from '@expo-google-fonts/manrope';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { AppState, useColorScheme } from 'react-native';
+import { AppState } from 'react-native';
 
 import i18n, { resolveLanguage } from '@/i18n';
 // Importing this module also defines the background task, which must happen at startup.
@@ -12,11 +19,21 @@ import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
 import { useTheme } from '@/theme';
 
+SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
-  const { t } = useTranslation();
   const theme = useTheme();
-  const scheme = useColorScheme();
   const language = useSettings((s) => s.language);
+  const [fontsLoaded, fontError] = useFonts({
+    Manrope_500Medium,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
+    Manrope_800ExtraBold,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) SplashScreen.hideAsync();
+  }, [fontsLoaded, fontError]);
 
   useEffect(() => {
     i18n.changeLanguage(resolveLanguage(language));
@@ -33,11 +50,7 @@ export default function RootLayout() {
     });
     // Re-plan reminders whenever the inputs to the plan change.
     const unsubscribeSettings = useSettings.subscribe((state, prev) => {
-      if (
-        state.selections !== prev.selections ||
-        state.reminder !== prev.reminder ||
-        state.language !== prev.language
-      ) {
+      if (state.place !== prev.place || state.reminder !== prev.reminder || state.language !== prev.language) {
         syncReminders();
       }
     });
@@ -52,26 +65,24 @@ export default function RootLayout() {
     };
   }, []);
 
-  const navigationTheme = scheme === 'dark' ? DarkTheme : DefaultTheme;
+  if (!fontsLoaded && !fontError) return null;
 
+  const navigationTheme = theme.dark ? DarkTheme : DefaultTheme;
   return (
     <ThemeProvider
       value={{
         ...navigationTheme,
         colors: { ...navigationTheme.colors, background: theme.background, primary: theme.primary },
       }}>
-      <StatusBar style="auto" />
+      <StatusBar style={theme.dark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
-          headerShadowVisible: false,
-          headerStyle: { backgroundColor: theme.background },
-          headerTintColor: theme.text,
+          headerShown: false,
           contentStyle: { backgroundColor: theme.background },
+          animation: 'slide_from_right',
         }}>
-        <Stack.Screen name="index" options={{ title: t('app.name') }} />
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="select/[kind]" options={{ title: '' }} />
-        <Stack.Screen name="settings" options={{ title: t('settings.title') }} />
+        <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
+        <Stack.Screen name="setup/done" options={{ animation: 'fade_from_bottom' }} />
       </Stack>
     </ThemeProvider>
   );

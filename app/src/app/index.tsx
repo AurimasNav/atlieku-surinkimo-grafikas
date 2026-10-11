@@ -1,184 +1,295 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Link, Redirect, router, Stack } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Redirect, router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Linking, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppText, Banner, Button, Card, KindBadge } from '@/components/ui';
-import { daysBetween, parseIsoDate, toIsoDate } from '@/lib/dates';
+import { KindFilter } from '@/components/kind-filter';
+import { AppText, Button, IconButton, KindBadge, KindIcon, Notice, PressableScale } from '@/components/ui';
+import { toIsoDate } from '@/lib/dates';
+import { formatTime, useDateFormat } from '@/lib/format';
 import { hasNotificationPermission } from '@/lib/notifications';
 import { type Pickup, upcomingPickups } from '@/lib/reminders';
-import { resolveSelections } from '@/lib/selected-areas';
+import { pendingKinds, resolvePlace } from '@/lib/resolve';
+import { WASTE_KINDS, type WasteKind } from '@/lib/schedule';
 import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
-import { spacing, useTheme } from '@/theme';
+import { fonts, radius, spacing, useTheme } from '@/theme';
 
-const UPCOMING_COUNT = 12;
+type Filter = 'all' | WasteKind;
+
+const UPCOMING_LIMIT = 30;
 
 export default function Home() {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const date = useDateFormat();
   const onboarded = useSettings((s) => s.onboarded);
-  const selections = useSettings((s) => s.selections);
+  const place = useSettings((s) => s.place);
+  const reminder = useSettings((s) => s.reminder);
   const { data, refreshing, error, refresh } = useSchedule();
+  const [filter, setFilter] = useState<Filter>('all');
   const [notificationsOn, setNotificationsOn] = useState(true);
 
   useEffect(() => {
     hasNotificationPermission().then(setNotificationsOn);
   }, [data]);
 
-  const { areas, missing } = useMemo(
-    () => resolveSelections(data, selections, toIsoDate(new Date())),
-    [data, selections],
+  const resolved = useMemo(() => resolvePlace(data, place, toIsoDate(new Date())), [data, place]);
+  const activeKinds = WASTE_KINDS.filter((kind) => resolved.kinds[kind].status === 'ok');
+  const allPickups = useMemo(() => upcomingPickups(resolved.areas, new Date()), [resolved]);
+  const pickups = useMemo(
+    () =>
+      (filter === 'all'
+        ? allPickups
+        : allPickups.filter((p) => p.kinds.includes(filter)).map((p) => ({ ...p, kinds: [filter] }))
+      ).slice(0, UPCOMING_LIMIT),
+    [allPickups, filter],
   );
-  const pickups = useMemo(() => upcomingPickups(areas, new Date()).slice(0, UPCOMING_COUNT), [areas]);
 
   if (!onboarded) return <Redirect href="/onboarding" />;
 
-  const formatDate = (iso: string) =>
-    new Intl.DateTimeFormat(i18n.language, { weekday: 'long', month: 'long', day: 'numeric' }).format(
-      parseIsoDate(iso),
-    );
-  const relative = (iso: string) => {
-    const days = daysBetween(new Date(), parseIsoDate(iso));
-    if (days === 0) return t('home.today');
-    if (days === 1) return t('home.tomorrow');
-    return t('home.inDays', { count: days });
-  };
+  const [next, ...rest] = pickups;
+  const pending = pendingKinds(resolved);
+  const placeName = resolved.location?.name ?? t('home.choosePlace');
+  const notes = resolved.areas.filter((area) => area.note && !area.dates.length);
+  const reminderText = t(reminder.daysBefore === 1 ? 'home.reminderEvening' : 'home.reminderMorning', {
+    time: formatTime(reminder.hour, reminder.minute),
+  });
 
-  const header = (
-    <Stack.Screen
-      options={{
-        headerRight: () => (
-          <Link href="/settings" asChild>
-            <Pressable accessibilityLabel={t('home.settings')} hitSlop={12}>
-              <Ionicons name="settings-outline" size={24} color={theme.text} />
-            </Pressable>
-          </Link>
-        ),
-      }}
-    />
-  );
-
-  if (!data) {
-    return (
-      <View style={styles.center}>
-        {header}
-        {error ? (
-          <>
-            <AppText muted style={styles.centerText}>
-              {t(`errors.${error}`)}
-            </AppText>
-            <Button title={t('common.retry')} onPress={refresh} />
-          </>
-        ) : (
-          <ActivityIndicator color={theme.primary} />
-        )}
-      </View>
-    );
+  // Group the remaining pickups by month for section headers.
+  const months: { key: string; label: string; items: Pickup[] }[] = [];
+  for (const pickup of rest) {
+    const key = pickup.date.slice(0, 7);
+    if (months.at(-1)?.key !== key) months.push({ key, label: date.month(pickup.date), items: [] });
+    months.at(-1)!.items.push(pickup);
   }
 
-  const [next, ...rest] = pickups;
-  const notes = areas.filter((area) => area.note && !area.dates.length);
-
   return (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={theme.primary} />}>
-      {header}
+    <View style={styles.screen}>
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm, paddingBottom: insets.bottom + spacing.xl }]}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={theme.primary} />}>
+        {/* Top bar: where you are, and settings */}
+        <View style={styles.topBar}>
+          <PressableScale
+            haptic="light"
+            onPress={() => router.push('/setup/location')}
+            accessibilityRole="button"
+            wrapperStyle={styles.placeWrapper}
+            style={[styles.placePill, { backgroundColor: theme.surface }]}>
+            <Ionicons name="location" size={16} color={theme.primary} />
+            <AppText variant="label" numberOfLines={1} style={styles.placeText}>
+              {placeName}
+            </AppText>
+            <Ionicons name="chevron-down" size={16} color={theme.textMuted} />
+          </PressableScale>
+          <IconButton icon="settings-outline" label={t('home.settings')} onPress={() => router.push('/settings')} />
+        </View>
 
-      {!notificationsOn && (
-        <Banner action={<Button variant="secondary" title={t('common.openSettings')} onPress={() => Linking.openSettings()} />}>
-          {t('home.notificationsOff')}
-        </Banner>
-      )}
-      {missing.map((kind) => (
-        <Banner
-          key={kind}
-          action={
-            <Button
-              variant="secondary"
-              title={t('settings.areas')}
-              onPress={() => router.push({ pathname: '/select/[kind]', params: { kind } })}
-            />
-          }>
-          {t('home.areaMissing', { kind: t(`kinds.${kind}`) })}
-        </Banner>
-      ))}
-      {notes.map((area) => (
-        <Banner key={area.id}>{t('home.noteOnly', { kind: t(`kinds.${area.kind}`), note: area.note })}</Banner>
-      ))}
-      {error && <Banner>{error === 'unsupported' ? t('errors.unsupported') : t('home.refreshFailed')}</Banner>}
-
-      {next ? (
-        <Card style={[styles.hero, { backgroundColor: theme.primary, borderColor: theme.primary }]}>
-          <AppText variant="caption" style={{ color: theme.onPrimary, opacity: 0.85 }}>
-            {t('home.nextPickup')}
-          </AppText>
-          <AppText variant="title" style={{ color: theme.onPrimary }}>
-            {relative(next.date)}
-          </AppText>
-          <AppText style={{ color: theme.onPrimary }}>{formatDate(next.date)}</AppText>
-          <Kinds pickup={next} />
-        </Card>
-      ) : (
-        <Card>
-          <AppText muted>{t('home.nothingUpcoming')}</AppText>
-        </Card>
-      )}
-
-      {rest.length > 0 && (
-        <>
-          <AppText variant="heading" style={styles.sectionTitle}>
-            {t('home.upcoming')}
-          </AppText>
-          <Card style={styles.list}>
-            {rest.map((pickup, index) => (
-              <View
-                key={pickup.date}
-                style={[styles.listItem, index > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
-                <View style={styles.listDate}>
-                  <AppText>{formatDate(pickup.date)}</AppText>
-                  <AppText variant="caption" muted>
-                    {relative(pickup.date)}
-                  </AppText>
-                </View>
-                <Kinds pickup={pickup} />
-              </View>
+        {!data ? (
+          <View style={styles.center}>
+            {error ? (
+              <>
+                <AppText muted style={styles.centerText}>
+                  {t(`errors.${error}`)}
+                </AppText>
+                <Button title={t('common.retry')} onPress={refresh} />
+              </>
+            ) : (
+              <ActivityIndicator color={theme.primary} />
+            )}
+          </View>
+        ) : (
+          <>
+            {/* Things that need attention */}
+            {!notificationsOn && (
+              <Notice action={<Button variant="secondary" title={t('common.openSettings')} onPress={() => Linking.openSettings()} />}>
+                {t('home.notificationsOff')}
+              </Notice>
+            )}
+            {pending.length > 0 && (
+              <Notice
+                action={
+                  <Button
+                    variant="secondary"
+                    title={t('common.continue')}
+                    onPress={() =>
+                      resolved.kinds[pending[0]].status === 'missing'
+                        ? router.push('/setup/location')
+                        : router.push({ pathname: '/setup/choose/[kind]', params: { kind: pending[0] } })
+                    }
+                  />
+                }>
+                {resolved.kinds[pending[0]].status === 'missing'
+                  ? t('home.placeMissing')
+                  : t('home.choosePending', { kind: t(`kinds.${pending[0]}`).toLowerCase() })}
+              </Notice>
+            )}
+            {notes.map((area) => (
+              <Notice key={area.id} tone="info">
+                {t('home.noteOnly', { kind: t(`kinds.${area.kind}`), note: area.note })}
+              </Notice>
             ))}
-          </Card>
-        </>
-      )}
+            {error && <Notice>{error === 'unsupported' ? t('errors.unsupported') : t('home.refreshFailed')}</Notice>}
 
-      <AppText variant="caption" muted style={styles.footer}>
-        {t('home.updated', {
-          date: new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }).format(new Date(data.generatedAt)),
-        })}
-      </AppText>
-    </ScrollView>
-  );
-}
+            {/* Hero: the next pickup */}
+            {next ? (
+              <Animated.View key={`${filter}-${next.date}`} entering={FadeIn.duration(350)}>
+                <LinearGradient
+                  colors={theme.dark ? ['#11402C', '#0A2A1D'] : ['#0F6B47', '#0A4A31']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.hero}>
+                  <View style={styles.heroGlow} />
+                  <AppText variant="overline" style={styles.heroEyebrow}>
+                    {t('home.nextPickup')}
+                  </AppText>
+                  <AppText variant="display" style={styles.heroTitle}>
+                    {date.relative(next.date)}
+                  </AppText>
+                  <AppText variant="heading" style={styles.heroDate}>
+                    {date.long(next.date)}
+                  </AppText>
+                  <View style={styles.heroKinds}>
+                    {next.kinds.map((kind) => (
+                      <KindBadge key={kind} kind={kind} label={t(`kinds.${kind}`)} />
+                    ))}
+                  </View>
+                  <View style={styles.heroFooter}>
+                    <Ionicons name={notificationsOn ? 'notifications' : 'notifications-off'} size={16} color="#C8F169" />
+                    <AppText variant="caption" style={styles.heroReminder}>
+                      {reminderText}
+                    </AppText>
+                  </View>
+                </LinearGradient>
+              </Animated.View>
+            ) : (
+              <View style={[styles.emptyCard, { backgroundColor: theme.surface }]}>
+                <AppText muted>
+                  {filter === 'all' ? t('home.nothingUpcoming') : t('home.nothingForKind', { kind: t(`kinds.${filter}`).toLowerCase() })}
+                </AppText>
+              </View>
+            )}
 
-function Kinds({ pickup }: { pickup: Pickup }) {
-  const { t } = useTranslation();
-  return (
-    <View style={styles.kinds}>
-      {pickup.kinds.map((kind) => (
-        <KindBadge key={kind} kind={kind} label={t(`kinds.${kind}`)} />
-      ))}
+            {/* Filter by waste type */}
+            {activeKinds.length > 1 && (
+              <KindFilter
+                kinds={activeKinds}
+                counts={Object.fromEntries(
+                  activeKinds.map((kind) => [kind, allPickups.filter((p) => p.kinds.includes(kind)).length]),
+                )}
+                value={filter}
+                onChange={setFilter}
+              />
+            )}
+
+            {/* Timeline */}
+            {months.map((month) => (
+              <Animated.View key={`${filter}-${month.key}`} layout={LinearTransition.springify()} style={styles.month}>
+                <AppText variant="overline" muted style={styles.monthTitle}>
+                  {month.label}
+                </AppText>
+                <View style={[styles.timeline, { backgroundColor: theme.surface }]}>
+                  {month.items.map((pickup, index) => (
+                    <Animated.View
+                      key={pickup.date}
+                      entering={FadeInDown.delay(Math.min(index, 8) * 35).duration(320)}
+                      style={[
+                        styles.item,
+                        index > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
+                      ]}>
+                      <View style={[styles.dateTile, { backgroundColor: theme.surfaceMuted }]}>
+                        <AppText style={styles.dateDay}>{date.day(pickup.date)}</AppText>
+                        <AppText variant="caption" muted style={styles.dateWeekday}>
+                          {date.weekday(pickup.date)}
+                        </AppText>
+                      </View>
+                      <View style={styles.itemBody}>
+                        <View style={styles.itemKinds}>
+                          {pickup.kinds.map((kind) => (
+                            <View key={kind} style={styles.itemKind}>
+                              <KindIcon kind={kind} size={26} />
+                              <AppText variant="label">{t(`kinds.${kind}`)}</AppText>
+                            </View>
+                          ))}
+                        </View>
+                        <AppText variant="caption" muted>
+                          {date.relative(pickup.date)}
+                        </AppText>
+                      </View>
+                    </Animated.View>
+                  ))}
+                </View>
+              </Animated.View>
+            ))}
+
+            <AppText variant="caption" muted style={styles.footer}>
+              {t('home.updated', {
+                date: new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }).format(new Date(data.generatedAt)),
+              })}
+            </AppText>
+          </>
+        )}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg, gap: spacing.md },
+  screen: { flex: 1 },
+  content: { paddingHorizontal: spacing.lg, gap: spacing.md },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md, marginBottom: spacing.sm },
+  placePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 44,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+  },
+  placeWrapper: { flexShrink: 1 },
+  placeText: { flexShrink: 1 },
+  center: { minHeight: 300, alignItems: 'center', justifyContent: 'center', gap: spacing.md },
   centerText: { textAlign: 'center' },
-  hero: { paddingVertical: spacing.lg, gap: spacing.xs },
-  sectionTitle: { marginTop: spacing.sm },
-  list: { paddingVertical: 0 },
-  listItem: { paddingVertical: spacing.md, gap: spacing.sm },
-  listDate: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: spacing.sm },
-  kinds: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.xs },
-  footer: { textAlign: 'center' },
+  hero: { borderRadius: radius.xl, padding: spacing.lg, paddingTop: spacing.lg + 4, gap: 6, overflow: 'hidden' },
+  heroGlow: {
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    right: -90,
+    top: -110,
+    backgroundColor: 'rgba(200,241,105,0.16)',
+  },
+  heroEyebrow: { color: '#C8F169' },
+  heroTitle: { color: '#FFFFFF', fontSize: 56, lineHeight: 60 },
+  heroDate: { color: 'rgba(255,255,255,0.85)', fontFamily: fonts.medium },
+  heroKinds: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md },
+  heroFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.18)',
+  },
+  heroReminder: { color: 'rgba(255,255,255,0.85)', fontFamily: fonts.medium },
+  emptyCard: { borderRadius: radius.lg, padding: spacing.lg },
+  month: { gap: spacing.sm },
+  monthTitle: { marginLeft: spacing.xs, marginTop: spacing.sm },
+  timeline: { borderRadius: radius.lg, paddingHorizontal: spacing.md },
+  item: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
+  dateTile: { width: 56, height: 60, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  dateDay: { fontFamily: fonts.heavy, fontSize: 24, lineHeight: 28 },
+  dateWeekday: { fontFamily: fonts.bold, fontSize: 12, lineHeight: 14 },
+  itemBody: { flex: 1, gap: 6 },
+  itemKinds: { gap: 6 },
+  itemKind: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  footer: { textAlign: 'center', marginTop: spacing.md },
 });

@@ -1,76 +1,55 @@
-import { Ionicons } from '@expo/vector-icons';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useDeferredValue, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 
-import { AppText, Button } from '@/components/ui';
+import { AppText, Button, KindIcon, ListRow, ScreenHeader, SearchField } from '@/components/ui';
 import { toIsoDate } from '@/lib/dates';
-import { requestNotificationPermission } from '@/lib/notifications';
 import { type Area, searchAreas, WASTE_KINDS, type WasteKind } from '@/lib/schedule';
 import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
-import { radius, spacing, useTheme } from '@/theme';
+import { spacing, useTheme } from '@/theme';
 
-export default function SelectArea() {
-  const { kind, flow } = useLocalSearchParams<{ kind: WasteKind; flow?: 'onboarding' }>();
+/**
+ * Fallback for places the automatic matching can't handle: pick each schedule's row by hand.
+ * With flow=manual it walks through all three waste types, then finishes setup.
+ */
+export default function SelectRow() {
+  const { kind, flow } = useLocalSearchParams<{ kind: WasteKind; flow?: 'manual' }>();
   const { t } = useTranslation();
   const theme = useTheme();
   const { data, error, refresh } = useSchedule();
-  const current = useSettings((s) => s.selections[kind]);
-  const select = useSettings((s) => s.select);
+  const current = useSettings((s) => s.place?.choices[kind]);
   const [query, setQuery] = useState('');
-  const deferredQuery = useDeferredValue(query);
+  const deferred = useDeferredValue(query);
 
   const results = useMemo(
-    () => (data ? searchAreas(data.areas, kind, deferredQuery, toIsoDate(new Date())) : []),
-    [data, kind, deferredQuery],
+    () => (data ? searchAreas(data.areas, kind, deferred, toIsoDate(new Date())) : []),
+    [data, kind, deferred],
   );
 
-  const finish = async (areaId: string | null) => {
-    select(kind, areaId);
-    if (flow !== 'onboarding') {
-      router.back();
-      return;
-    }
+  const answer = (areaId: string | null) => {
+    const settings = useSettings.getState();
+    // Picking rows by hand replaces any automatic location.
+    if (settings.place?.locationId) useSettings.setState({ place: { choices: {} } });
+    useSettings.getState().choose(kind, areaId);
+    if (flow !== 'manual') return router.back();
     const nextKind = WASTE_KINDS[WASTE_KINDS.indexOf(kind) + 1];
-    if (nextKind) {
-      router.push({ pathname: '/select/[kind]', params: { kind: nextKind, flow } });
-      return;
-    }
-    await requestNotificationPermission();
-    useSettings.getState().setOnboarded();
-    // Make home the only screen left, so it has no back arrow into the setup flow.
-    router.dismissAll();
-    router.replace('/');
+    if (nextKind) router.push({ pathname: '/select/[kind]', params: { kind: nextKind, flow } });
+    else router.push('/setup/done');
   };
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: t('select.title', { kind: t(`kinds.${kind}`) }) }} />
-      <View style={styles.header}>
-        <AppText variant="caption" muted>
-          {t('select.hint')}
-        </AppText>
-        <View style={[styles.search, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Ionicons name="search" size={18} color={theme.textMuted} />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder={t('select.searchPlaceholder')}
-            placeholderTextColor={theme.textMuted}
-            style={[styles.input, { color: theme.text }]}
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-          />
-        </View>
+      <ScreenHeader title={t('select.title', { kind: t(`kinds.${kind}`) })} subtitle={t('select.hint')} />
+      <View style={styles.search}>
+        <SearchField value={query} onChangeText={setQuery} placeholder={t('select.searchPlaceholder')} />
         {data && (
           <AppText variant="caption" muted>
             {t('select.count', { count: results.length })}
           </AppText>
         )}
       </View>
-
       {!data ? (
         <View style={styles.center}>
           {error ? <Button title={t('common.retry')} onPress={refresh} /> : <ActivityIndicator color={theme.primary} />}
@@ -83,74 +62,31 @@ export default function SelectArea() {
           contentContainerStyle={styles.list}
           ListEmptyComponent={<AppText muted>{t('select.noResults')}</AppText>}
           renderItem={({ item }) => (
-            <AreaRow area={item} selected={item.id === current} onPress={() => finish(item.id)} />
+            <ListRow
+              title={item.name}
+              subtitle={describe(item, t)}
+              icon={<KindIcon kind={kind} size={36} />}
+              selected={item.id === current}
+              onPress={() => answer(item.id)}
+            />
           )}
-          ListFooterComponent={
-            <Button variant="secondary" title={t('common.skip')} onPress={() => finish(null)} style={styles.skip} />
-          }
+          ListFooterComponent={<Button variant="secondary" title={t('common.skip')} onPress={() => answer(null)} style={styles.skip} />}
         />
       )}
     </View>
   );
 }
 
-function AreaRow({ area, selected, onPress }: { area: Area; selected: boolean; onPress: () => void }) {
-  const { t } = useTranslation();
-  const theme = useTheme();
+function describe(area: Area, t: (key: 'select.noDates', options: { note: string }) => string) {
   const meta = [area.district, area.group, area.weekday].filter(Boolean).join(' · ');
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      style={({ pressed }) => [
-        styles.row,
-        {
-          backgroundColor: theme.surface,
-          borderColor: selected ? theme.primary : theme.border,
-          opacity: pressed ? 0.7 : 1,
-        },
-      ]}>
-      <View style={styles.rowBody}>
-        <AppText>{area.name}</AppText>
-        {meta ? (
-          <AppText variant="caption" muted>
-            {meta}
-          </AppText>
-        ) : null}
-        {!area.dates.length && area.note ? (
-          <AppText variant="caption" style={{ color: theme.warning }}>
-            {t('select.noDates', { note: area.note })}
-          </AppText>
-        ) : null}
-      </View>
-      {selected && <Ionicons name="checkmark-circle" size={22} color={theme.primary} />}
-    </Pressable>
-  );
+  if (!area.dates.length && area.note) return [meta, t('select.noDates', { note: area.note })].filter(Boolean).join('\n');
+  return meta;
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  header: { padding: spacing.md, gap: spacing.sm },
-  search: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    borderWidth: 1,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-  },
-  input: { flex: 1, fontSize: 16, paddingVertical: 12 },
-  list: { paddingHorizontal: spacing.md, paddingBottom: spacing.xl, gap: spacing.sm },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    borderWidth: 1,
-    borderRadius: radius.md,
-    padding: spacing.md,
-  },
-  rowBody: { flex: 1, gap: 4 },
+  search: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md, gap: spacing.sm },
+  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   skip: { marginTop: spacing.md },
 });

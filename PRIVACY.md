@@ -28,6 +28,14 @@ This data never leaves your phone, except as part of device backups you enable y
 (for example iCloud or Google backup), which are governed by Apple's or Google's terms. It is
 deleted when you uninstall the app or clear its data.
 
+## Finding your address with GPS (optional)
+
+If you tap "Use my current location", the app asks for permission to read your position
+**once**. It then downloads the public list of addresses (`addresses.json`, the same file for
+every user) and finds the nearest address **on your phone**. Your position is never sent
+anywhere and is not stored; only the place you confirm is saved, as when you search by name.
+You can refuse the permission and search for your place instead.
+
 ## Reminders
 
 Reminders are scheduled **locally** by your phone's operating system. The app does not use
@@ -36,7 +44,8 @@ push notifications, so no device token or identifier is sent anywhere.
 ## Network connections
 
 The app connects to the internet only to download the public collection schedule
-(`schedule.json`) from GitHub Pages, a hosting service operated by GitHub, Inc. Like any
+(`schedule.json`) and, if you use GPS to find your address, the public address list
+(`addresses.json`) from GitHub Pages, a hosting service operated by GitHub, Inc. Like any
 website, GitHub's servers receive the technical information included in every internet request,
 such as your IP address and the app's user agent, and may keep it in server logs for security
 and operations. We have no access to those logs. See the
@@ -54,10 +63,11 @@ browser, and that website's own privacy policy applies.
 |---|---|
 | Notifications | To show your pickup reminders. You can turn this off at any time in the phone's settings. |
 | Internet | To download the public schedule. |
+| Location (optional, only while using the app) | To find your address when you tap "Use my current location". Read once, used only on the phone. |
 | Run at startup (Android) | To restore scheduled reminders after the phone restarts. |
 
-The app does not access your location, contacts, photos, camera, microphone or any other
-personal information.
+Apart from the optional one-time location lookup above, the app does not access your
+location, contacts, photos, camera, microphone or any other personal information.
 
 ## Children
 
@@ -107,6 +117,14 @@ Kad veiktų, programėlė **tik jūsų įrenginyje** išsaugo:
 „iCloud“ ar „Google“), kurioms taikomos „Apple“ ar „Google“ sąlygos. Ištrinus programėlę ar jos
 duomenis, jie pašalinami.
 
+## Adreso paieška pagal GPS (neprivaloma)
+
+Paspaudus „Naudoti mano buvimo vietą“, programėlė paprašo leidimo **vieną kartą** nustatyti
+jūsų buvimo vietą. Tada ji atsisiunčia viešą adresų sąrašą (`addresses.json`, visiems
+naudotojams tą patį failą) ir artimiausią adresą randa **jūsų telefone**. Jūsų buvimo vieta
+niekur nesiunčiama ir nesaugoma; išsaugoma tik jūsų patvirtinta vietovė, kaip ir ieškant
+pagal pavadinimą. Leidimo galite neduoti ir vietovę surasti paieškoje.
+
 ## Priminimai
 
 Priminimus suplanuoja **pati jūsų telefono operacinė sistema**. Programėlė nenaudoja „push“
@@ -133,10 +151,12 @@ atidaroma naršyklėje, ir taikoma tos svetainės privatumo politika.
 |---|---|
 | Pranešimai | Kad būtų rodomi išvežimo priminimai. Bet kada galite juos išjungti telefono nustatymuose. |
 | Internetas | Kad būtų atsisiųstas viešas grafikas. |
+| Buvimo vieta (neprivaloma, tik naudojant programėlę) | Kad paspaudus „Naudoti mano buvimo vietą“ būtų rastas jūsų adresas. Nustatoma vieną kartą, naudojama tik telefone. |
 | Paleidimas įjungus telefoną („Android“) | Kad perkrovus telefoną būtų atkurti suplanuoti priminimai. |
 
-Programėlė nenaudoja jūsų buvimo vietos, kontaktų, nuotraukų, kameros, mikrofono ar kitos
-asmeninės informacijos.
+Išskyrus aukščiau aprašytą neprivalomą vienkartinę buvimo vietos paiešką, programėlė
+nenaudoja jūsų buvimo vietos, kontaktų, nuotraukų, kameros, mikrofono ar kitos asmeninės
+informacijos.
 
 ## Vaikai
 
