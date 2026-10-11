@@ -7,7 +7,8 @@ import { ActivityIndicator, Linking, RefreshControl, ScrollView, StyleSheet, Vie
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppText, Button, Chip, IconButton, KindBadge, KindIcon, Notice, PressableScale } from '@/components/ui';
+import { KindFilter } from '@/components/kind-filter';
+import { AppText, Button, IconButton, KindBadge, KindIcon, Notice, PressableScale } from '@/components/ui';
 import { toIsoDate } from '@/lib/dates';
 import { formatTime, useDateFormat } from '@/lib/format';
 import { hasNotificationPermission } from '@/lib/notifications';
@@ -16,7 +17,7 @@ import { pendingKinds, resolvePlace } from '@/lib/resolve';
 import { WASTE_KINDS, type WasteKind } from '@/lib/schedule';
 import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
-import { fonts, kindPalette, radius, spacing, useTheme } from '@/theme';
+import { fonts, radius, spacing, useTheme } from '@/theme';
 
 type Filter = 'all' | WasteKind;
 
@@ -177,19 +178,14 @@ export default function Home() {
 
             {/* Filter by waste type */}
             {activeKinds.length > 1 && (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
-                <Chip label={t('home.filterAll')} selected={filter === 'all'} onPress={() => setFilter('all')} />
-                {activeKinds.map((kind) => (
-                  <Chip
-                    key={kind}
-                    label={t(`kinds.${kind}`)}
-                    color={kindPalette[kind].solid}
-                    count={allPickups.filter((p) => p.kinds.includes(kind)).length}
-                    selected={filter === kind}
-                    onPress={() => setFilter(filter === kind ? 'all' : kind)}
-                  />
-                ))}
-              </ScrollView>
+              <KindFilter
+                kinds={activeKinds}
+                counts={Object.fromEntries(
+                  activeKinds.map((kind) => [kind, allPickups.filter((p) => p.kinds.includes(kind)).length]),
+                )}
+                value={filter}
+                onChange={setFilter}
+              />
             )}
 
             {/* Timeline */}
@@ -285,7 +281,6 @@ const styles = StyleSheet.create({
   },
   heroReminder: { color: 'rgba(255,255,255,0.85)', fontFamily: fonts.medium },
   emptyCard: { borderRadius: radius.lg, padding: spacing.lg },
-  filters: { gap: spacing.sm, paddingVertical: spacing.xs },
   month: { gap: spacing.sm },
   monthTitle: { marginLeft: spacing.xs, marginTop: spacing.sm },
   timeline: { borderRadius: radius.lg, paddingHorizontal: spacing.md },

@@ -8,7 +8,10 @@
     "glass": "Стекло",
     "householdDescription": "Контейнер для смешанных бытовых отходов",
     "packagingDescription": "Бумажная, пластиковая и металлическая упаковка",
-    "glassDescription": "Стеклянная упаковка"
+    "glassDescription": "Стеклянная упаковка",
+    "householdShort": "Смешанные",
+    "packagingShort": "Упаковка",
+    "glassShort": "Стекло"
   },
   "common": {
     "retry": "Повторить",

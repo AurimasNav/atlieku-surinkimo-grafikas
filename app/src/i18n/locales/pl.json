@@ -8,7 +8,10 @@
     "glass": "Szkło",
     "householdDescription": "Pojemnik na zmieszane odpady komunalne",
     "packagingDescription": "Opakowania z papieru, plastiku i metalu",
-    "glassDescription": "Opakowania szklane"
+    "glassDescription": "Opakowania szklane",
+    "householdShort": "Zmieszane",
+    "packagingShort": "Opakowania",
+    "glassShort": "Szkło"
   },
   "common": {
     "retry": "Spróbuj ponownie",
