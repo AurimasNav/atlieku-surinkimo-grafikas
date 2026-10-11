@@ -9,9 +9,10 @@ from __future__ import annotations
 import json
 import re
 import unicodedata
-import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
+
+from . import http
 
 API = "https://get.data.gov.lt/datasets/gov/rc/ar"
 MUNICIPALITY = "Vilniaus rajono"
@@ -92,8 +93,7 @@ def _get_all(path: str, query: str) -> list[dict]:
     page = None
     while True:
         url = f"{API}/{path}?{query}" + (f"&page('{page}')" if page else "")
-        with urllib.request.urlopen(url, timeout=120) as response:
-            data = json.load(response)
+        data = json.loads(http.get(url))
         rows += data["_data"]
         page = data.get("_page", {}).get("next")
         if not page or not data["_data"]:
