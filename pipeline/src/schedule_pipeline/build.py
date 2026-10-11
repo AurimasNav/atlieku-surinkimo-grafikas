@@ -9,13 +9,18 @@ import sys
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
+from . import registry as address_register
+from .locations import build_locations
 from .model import SCHEMA_VERSION, Area, Kind, ParseResult, SourceFile
 from .pdf_parser import parse_pdf
+from .registry import Registry
 from .scrape import PAGE_URL, fetch, find_schedule_files
 from .xlsx_parser import DEFAULT_GROUP, parse_xlsx
 
 # Fewer areas than this means the format changed and the parser missed rows.
 MIN_AREAS: dict[Kind, int] = {"household": 100, "packaging": 10, "glass": 10}
+# Share of household rows that must link to a register settlement; below it, matching broke.
+MIN_LINKED_HOUSEHOLD = 0.85
 
 
 class ValidationError(Exception):
@@ -75,7 +80,7 @@ def coverage(areas: list[Area]) -> dict[str, dict[str, str]]:
 
 
 def build_dataset(
-    sources: list[tuple[SourceFile, bytes]], today: date, keep_days: int
+    sources: list[tuple[SourceFile, bytes]], registry: Registry, today: date, keep_days: int
 ) -> tuple[dict, list[str]]:
     areas: list[Area] = []
     warnings: list[str] = []
@@ -97,13 +102,28 @@ def build_dataset(
         )
     )
 
+    # Only rows that still matter take part in matching, so old periods can't create ambiguity.
+    current = [a for a in areas if a.note or (a.dates and max(a.dates) >= today)]
+    locations, report = build_locations(registry, current)
+    household = [a for a in current if a.kind == "household"]
+    unmatched_household = sum(1 for u in report["unmatched"] if u.startswith("household:"))
+    if household and 1 - unmatched_household / len(household) < MIN_LINKED_HOUSEHOLD:
+        raise ValidationError(
+            f"only {len(household) - unmatched_household}/{len(household)} household rows "
+            "matched an Address Register settlement"
+        )
+    warnings += [f"not linked to any settlement: {u}" for u in report["unmatched"]]
+
     dataset = {
         "schemaVersion": SCHEMA_VERSION,
         "generatedAt": datetime.now(UTC).isoformat(timespec="seconds"),
         "source": PAGE_URL,
+        "addressSource": address_register.ATTRIBUTION,
         "files": [{"kind": f.kind, "name": f.file_name, "url": f.url} for f in files],
         "coverage": coverage(areas),
+        "matching": report["stats"],
         "areas": [a.to_json() for a in areas],
+        "locations": locations,
     }
     return dataset, warnings
 
@@ -116,6 +136,14 @@ def write_summary(dataset: dict, warnings: list[str]) -> None:
     for kind, count in counts.items():
         span = dataset["coverage"].get(kind, {})
         lines.append(f"- **{kind}**: {count} areas, {span.get('from')} → {span.get('to')}")
+    stats = dataset["matching"]
+    lines += ["", f"### Locations ({stats['locations']} settlements)", ""]
+    lines += ["| | single row | by street | ask user | not in schedule |", "|---|---|---|---|---|"]
+    for kind in MIN_AREAS:
+        cells = [
+            str(stats.get(f"{kind}.{s}", 0)) for s in ("single", "byStreet", "ambiguous", "none")
+        ]
+        lines.append(f"| {kind} | " + " | ".join(cells) + " |")
     if warnings:
         lines += ["", f"### {len(warnings)} warnings", ""]
         lines += [f"- {w}" for w in warnings]
@@ -141,8 +169,9 @@ def main(argv: list[str] | None = None) -> int:
     html = fetch(PAGE_URL).decode("utf-8", errors="replace")
     files = find_schedule_files(html)
     sources = [(f, fetch(f.url)) for f in files]
+    registry = address_register.fetch()
     try:
-        dataset, warnings = build_dataset(sources, date.today(), args.keep_days)
+        dataset, warnings = build_dataset(sources, registry, date.today(), args.keep_days)
     except ValidationError as error:
         print(f"Validation failed: {error}", file=sys.stderr)
         return 1

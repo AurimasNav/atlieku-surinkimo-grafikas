@@ -8,6 +8,8 @@ from typing import Literal
 
 Kind = Literal["household", "packaging", "glass"]
 
+# Bump only for breaking changes: installed apps refuse data newer than they understand.
+# Additive fields (like `locations`) keep the version.
 SCHEMA_VERSION = 1
 
 
