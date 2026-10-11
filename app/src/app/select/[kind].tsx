@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppText, Button } from '@/components/ui';
+import { toIsoDate } from '@/lib/dates';
 import { requestNotificationPermission } from '@/lib/notifications';
 import { type Area, searchAreas, WASTE_KINDS, type WasteKind } from '@/lib/schedule';
 import { useSchedule } from '@/store/schedule';
@@ -22,7 +23,7 @@ export default function SelectArea() {
   const deferredQuery = useDeferredValue(query);
 
   const results = useMemo(
-    () => (data ? searchAreas(data.areas, kind, deferredQuery) : []),
+    () => (data ? searchAreas(data.areas, kind, deferredQuery, toIsoDate(new Date())) : []),
     [data, kind, deferredQuery],
   );
 
@@ -39,7 +40,9 @@ export default function SelectArea() {
     }
     await requestNotificationPermission();
     useSettings.getState().setOnboarded();
-    router.dismissTo('/');
+    // Make home the only screen left, so it has no back arrow into the setup flow.
+    router.dismissAll();
+    router.replace('/');
   };
 
   return (
