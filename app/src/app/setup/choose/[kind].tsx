@@ -14,18 +14,24 @@ import { radius, spacing, useTheme } from '@/theme';
 
 /** Asks which row applies when a location matches several: house vs apartment, or a list. */
 export default function ChooseRow() {
-  const { kind } = useLocalSearchParams<{ kind: WasteKind }>();
+  const { kind, from } = useLocalSearchParams<{ kind: WasteKind; from?: 'manage' }>();
   const { t } = useTranslation();
   const data = useSchedule((s) => s.data);
   const place = useSettings((s) => s.place);
-  const resolved = resolvePlace(data, place, toIsoDate(new Date()));
+  // Ignore an earlier answer for this kind, so the choice can be made again from Settings.
+  const resolved = resolvePlace(
+    data,
+    place && { ...place, choices: { ...place.choices, [kind]: undefined } },
+    toIsoDate(new Date()),
+  );
   const status = resolved.kinds[kind];
   const candidates = status?.status === 'choose' ? status.candidates : [];
   const placeName = resolved.location?.name ?? '';
 
   const answer = (areaId: string | null) => {
     useSettings.getState().choose(kind, areaId);
-    router.push(nextSetupStep(data, useSettings.getState().place));
+    if (from === 'manage') router.back();
+    else router.push(nextSetupStep(data, useSettings.getState().place));
   };
 
   if (isHousingChoice(candidates)) {

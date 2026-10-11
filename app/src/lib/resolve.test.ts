@@ -128,3 +128,23 @@ describe('search', () => {
     expect(searchAreas(areas, 'glass', '', today).map((a) => a.id)).toEqual(['g-1']);
   });
 });
+
+describe('custom schedules', () => {
+  it('override the official row for that waste type only', () => {
+    const r = resolvePlace(
+      data,
+      { locationId: 'g1', choices: {}, custom: { packaging: { start: '2026-10-14', every: 4, unit: 'week' } } },
+      today,
+    );
+    expect(ids(r)).toEqual(['h-house', 'custom-packaging', 'g-1']);
+    expect(r.kinds.packaging).toMatchObject({ status: 'ok', custom: true });
+    if (r.kinds.packaging.status === 'ok') expect(r.kinds.packaging.area.dates.slice(0, 2)).toEqual(['2026-10-14', '2026-11-11']);
+  });
+
+  it('work without any official location', () => {
+    const r = resolvePlace(data, { choices: {}, custom: { household: { start: '2026-10-15', every: 2, unit: 'week' } } }, today);
+    expect(ids(r)).toEqual(['custom-household']);
+    expect(r.kinds.glass).toEqual({ status: 'none' });
+    expect(pendingKinds(r)).toEqual([]);
+  });
+});
