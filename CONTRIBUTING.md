@@ -124,6 +124,10 @@ Lithuanian, as published, and are not translated.
 
 ## Pull requests
 
+You're welcome to use AI tools when contributing; you are responsible for understanding,
+testing and standing behind what you submit. The project-wide disclosure in the README
+covers AI assistance, so there's no need for AI attribution lines in commits or PRs.
+
 - Keep each PR focused on one change. Describe what changed and how you tested it.
 - CI must pass: `npm run check` for the app, `pytest` and `ruff` for the pipeline.
 - For UI changes, add before/after screenshots.
