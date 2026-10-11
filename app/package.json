@@ -53,8 +53,10 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "i18n:check": "node scripts/check-i18n.mjs check",
-    "check": "npm run i18n:check && npm run typecheck && npm run lint && npm test",
-    "i18n:accept": "node scripts/check-i18n.mjs accept"
+    "check": "npm run i18n:check && npm run issue-forms:check && npm run typecheck && npm run lint && npm test",
+    "i18n:accept": "node scripts/check-i18n.mjs accept",
+    "issue-forms": "node scripts/issue-forms.mjs",
+    "issue-forms:check": "node scripts/issue-forms.mjs check"
   },
   "private": true,
   "license": "Apache-2.0",

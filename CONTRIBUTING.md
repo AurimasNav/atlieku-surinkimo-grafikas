@@ -23,9 +23,12 @@ the last good data.
 
 ## Reporting a problem
 
-The app's "Help & feedback" buttons open the issue forms in `.github/ISSUE_TEMPLATE/` with
-fields prefilled by `app/src/lib/feedback.ts`. **If you rename a form or a field `id`, update
-`feedback.ts` too**, or the prefill silently stops working.
+The app's "Help & feedback" buttons open the issue forms in `.github/ISSUE_TEMPLATE/`, in the
+app's language, with fields prefilled by `app/src/lib/feedback.ts`. GitHub can't translate a
+form, so there is one per language (`lt-bug_report.yml`, `en-bug_report.yml`, …). They are
+**generated**: edit `app/scripts/issue-forms.mjs` (all languages side by side), then run
+`npm run issue-forms` in `app/` and commit the result. CI fails if the two differ. **If you rename
+a form or a field `id`, update `feedback.ts` too**, or the prefill silently stops working.
 
 - **Wrong or missing dates:** open an issue with your area (as shown in the app), the date you
   expected, and a link to the official schedule file.

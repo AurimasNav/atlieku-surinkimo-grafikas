@@ -29,7 +29,7 @@ installCrashRecorder(formatError, appVersion());
 
 /** Shown instead of a screen that crashed while rendering. */
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
-  const { t, i18n: translation } = useTranslation();
+  const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   return (
@@ -48,7 +48,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
           variant="secondary"
           icon="logo-github"
           title={t('crash.report')}
-          onPress={() => openIssue('crash_report', { error: formatError(error), language: translation.language })}
+          onPress={() => openIssue('crash_report', { error: formatError(error) })}
         />
       </View>
     </View>
