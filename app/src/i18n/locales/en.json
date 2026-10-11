@@ -133,5 +133,21 @@
   "errors": {
     "loadFailed": "Couldn't load the schedule. Check your internet connection.",
     "unsupported": "The schedule format has changed. Please update the app."
+  },
+  "feedback": {
+    "title": "Help & feedback",
+    "bug": "Report a problem",
+    "schedule": "Wrong dates or address",
+    "idea": "Suggest an idea",
+    "githubNote": "Opens a form on GitHub (a free account is needed). Nothing is sent until you submit it.",
+    "wrongDates": "Dates look wrong? Let us know"
+  },
+  "crash": {
+    "title": "Something went wrong",
+    "body": "The app ran into an unexpected error. Try again, or report it so we can fix it.",
+    "retry": "Try again",
+    "report": "Report this problem",
+    "lastTitle": "The app closed unexpectedly last time. Would you like to report it? The report contains technical details only.",
+    "dismiss": "Dismiss"
   }
 }
