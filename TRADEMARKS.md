@@ -2,7 +2,8 @@
 
 The source code of this project is open source under the [Apache License 2.0](LICENSE).
 That license covers the code only. It does **not** grant any rights to the project's
-name, logo, app icon or other branding (see Section 6 of the license).
+name, **Šiukšliavežė**, or to its logo, app icon or other branding (see Section 6 of the
+license).
 
 ## What you can do without asking
 

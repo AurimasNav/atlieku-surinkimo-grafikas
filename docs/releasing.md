@@ -57,8 +57,18 @@ Do these once, in order. Steps 1–5 are done on your computer, not in CI.
 2. **Link the project to EAS.** In `app/`: `npx eas-cli@latest login`, then
    `npx eas-cli@latest init`. This adds `extra.eas.projectId` to `app.json`; commit that in a PR.
 3. **Create the store app.** Play Console → *Create app*, package
-   `com.aurimasnav.atliekugrafikas`. The name, icon and package name should be final before
-   this step; see [store-privacy.md](store-privacy.md).
+   `io.github.aurimasnav.siuksliaveze` (from the GitHub Pages address `aurimasnav.github.io`;
+   it can never change after the first upload). App name **Šiukšliavežė**. Store titles, at most
+   30 characters each (*Store presence → Main store listing*, per language):
+
+   | Language | Title |
+   |---|---|
+   | lt | Šiukšliavežė: atliekų grafikas |
+   | en | Šiukšliavežė: waste pickup |
+   | ru | Šiukšliavežė: вывоз отходов |
+   | pl | Šiukšliavežė: wywóz odpadów |
+
+   The icon and listing should be final before this step; see [store-privacy.md](store-privacy.md).
 4. **First build, run locally**, so EAS can create the Android signing key (keystore):
    ```sh
    npx eas-cli@latest build --platform android --profile production
@@ -90,7 +100,7 @@ Do these once, in order. Steps 1–5 are done on your computer, not in CI.
 Everything in the app already supports iOS, and developers can test on an iPhone with Expo Go
 for free. Publishing needs the Apple Developer Program ($99/year). When that's in place:
 
-1. App Store Connect → *Apps → +*, bundle ID `com.aurimasnav.atliekugrafikas`. Put the app's
+1. App Store Connect → *Apps → +*, bundle ID `io.github.aurimasnav.siuksliaveze`. Put the app's
    **Apple ID** (a number) in `app/eas.json` → `submit.production.ios.ascAppId`.
 2. Run the first iOS build locally so EAS creates the certificate and provisioning profile:
    `npx eas-cli@latest build --platform ios --profile production`.

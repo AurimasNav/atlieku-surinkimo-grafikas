@@ -1,4 +1,4 @@
-# Atliekų grafikas
+# Šiukšliavežė
 
 Android app that reminds you when household, packaging and glass waste is
 collected at your address in Vilnius district, based on the schedules published by
@@ -6,8 +6,8 @@ collected at your address in Vilnius district, based on the schedules published 
 
 Available in Lithuanian, English, Russian and Polish.
 
-> Work in progress. "Atliekų grafikas" is a working name. The code also supports iOS, but it
-> isn't published on the App Store yet (Apple charges $99/year).
+> Work in progress. The code also supports iOS, but the app isn't published on the App Store
+> yet (Apple charges $99/year).
 
 ## How it works
 
