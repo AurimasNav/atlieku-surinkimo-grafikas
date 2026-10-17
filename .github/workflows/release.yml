@@ -35,8 +35,24 @@ jobs:
       - run: npm ci
       - run: npm run check
 
-  build-and-submit:
+  version:
     needs: checks
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.gitversion.outputs.majorMinorPatch }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # GitVersion needs the full history and tags
+      - uses: gittools/actions/gitversion/setup@v4.7.0
+        with:
+          versionSpec: 6.8.x
+      - id: gitversion
+        uses: gittools/actions/gitversion/execute@v4.7.0
+      - run: echo "Releasing version ${{ steps.gitversion.outputs.majorMinorPatch }}" >> "$GITHUB_STEP_SUMMARY"
+
+  build-and-submit:
+    needs: version
     runs-on: ubuntu-latest
     environment: testers
     strategy:
@@ -60,6 +76,17 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
       - run: npm ci
+      # Not committed: EAS uploads the working tree, so the build picks up the calculated version.
+      - name: Set the app version to ${{ needs.version.outputs.version }}
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          node -e '
+            const fs = require("fs");
+            const config = JSON.parse(fs.readFileSync("app.json", "utf8"));
+            config.expo.version = process.env.VERSION;
+            fs.writeFileSync("app.json", JSON.stringify(config, null, 2) + "\n");
+          '
       # Waits for the build so failures show up here. Public repos don't pay for Actions minutes.
       - name: Build on EAS and submit to testers
         run: >
@@ -68,3 +95,19 @@ jobs:
           --profile production
           --auto-submit
           --non-interactive
+
+  # Marks the released commit, so the next release gets the next version. Only after every
+  # platform succeeded: a failed release is retried with the same version.
+  tag:
+    needs: [version, build-and-submit]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Tag v${{ needs.version.outputs.version }}
+        env:
+          TAG: v${{ needs.version.outputs.version }}
+        run: |
+          git tag "$TAG"
+          git push origin "$TAG"

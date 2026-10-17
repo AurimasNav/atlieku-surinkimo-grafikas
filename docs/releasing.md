@@ -24,9 +24,21 @@ feature branch ──PR──▶ main ──▶ Release workflow (GitHub Actions
 4. **Promote to the public** by hand (below). Changes outside `app/` (pipeline, docs) never
    start a release.
 
-Build numbers increase automatically (`appVersionSource: remote`, `autoIncrement`). The
-user-visible version (`expo.version` in `app/app.json`, e.g. `1.0.0`) is changed by hand in a
-PR: bump it after a version has been released to the public, before the next release.
+See [Versions](#versions) for how releases are numbered.
+
+## Versions
+
+- **The version people see** (e.g. `0.0.3`, shown in Settings and in bug reports) is
+  calculated by [GitVersion](https://gitversion.net) from the git history (`GitVersion.yml`).
+  The Release workflow writes it into the build; `expo.version` in `app/app.json` is only what
+  local development builds show.
+- **Every release is tagged** `v<version>` once it reaches the testers, so the next merge to
+  `main` that changes the app is released as the next patch version: `v0.0.1`, `v0.0.2`, ….
+  A failed release isn't tagged and is retried with the same number.
+- **For a bigger step**, add `+semver: minor` (`0.0.7` → `0.1.0`) or `+semver: major`
+  (→ `1.0.0`) on its own line in the PR's squash-merge commit message.
+- **Build numbers** (Android `versionCode`, which Google Play requires to increase) are
+  separate and counted by EAS (`appVersionSource: remote`, `autoIncrement`).
 
 ## Promoting a tested build to the public
 

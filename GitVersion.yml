@@ -1,0 +1,8 @@
+# Calculates the app version (expo.version: Android versionName, iOS CFBundleShortVersionString)
+# for each release. See docs/releasing.md, "Versions".
+#
+# Every release from main is tagged v<version> by the Release workflow, so the next merge to
+# main gets the next patch version. For a bigger step, put "+semver: minor" (or "+semver:
+# major") in a commit message, e.g. in the PR's squash-merge description.
+workflow: GitHubFlow/v1
+next-version: 0.0.1
