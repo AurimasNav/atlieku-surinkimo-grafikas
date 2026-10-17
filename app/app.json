@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "Atliekų grafikas",
-    "slug": "atlieku-grafikas",
+    "name": "Šiukšliavežė",
+    "slug": "siuksliaveze",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "atliekugrafikas",
+    "scheme": "siuksliaveze",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.aurimasnav.atliekugrafikas",
+      "bundleIdentifier": "io.github.aurimasnav.siuksliaveze",
       "supportsTablet": true,
       "config": {
         "usesNonExemptEncryption": false
@@ -36,7 +36,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.aurimasnav.atliekugrafikas",
+      "package": "io.github.aurimasnav.siuksliaveze",
       "permissions": [],
       "blockedPermissions": [
         "android.permission.SYSTEM_ALERT_WINDOW",
