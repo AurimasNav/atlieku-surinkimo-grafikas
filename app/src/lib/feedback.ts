@@ -2,9 +2,14 @@ import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 
+import i18n, { LANGUAGES, type Language } from '@/i18n';
+
 import { REPOSITORY_URL } from './config';
 
-/** Issue forms in .github/ISSUE_TEMPLATE; field ids must match the `id`s there. */
+/**
+ * Issue forms in .github/ISSUE_TEMPLATE, one per language (`lt-bug_report.yml`, …), generated
+ * by scripts/issue-forms.mjs. Field ids must match the `id`s there.
+ */
 export type IssueTemplate = 'bug_report' | 'crash_report' | 'schedule_problem' | 'feature_request';
 
 /** Browsers and GitHub reject very long URLs; keep well under the ~8k practical limit. */
@@ -23,8 +28,13 @@ export function deviceDescription(): string {
   return `${Platform.OS} ${Platform.Version}`;
 }
 
-export function issueUrl(template: IssueTemplate, fields: Record<string, string | undefined> = {}): string {
-  const params = new URLSearchParams({ template: `${template}.yml` });
+export function issueUrl(
+  template: IssueTemplate,
+  language: string,
+  fields: Record<string, string | undefined> = {},
+): string {
+  const formLanguage: Language = LANGUAGES.includes(language as Language) ? (language as Language) : 'en';
+  const params = new URLSearchParams({ template: `${formLanguage}-${template}.yml` });
   for (const [key, value] of Object.entries(fields)) {
     if (!value) continue;
     params.set(key, value.length > MAX_FIELD_LENGTH ? `${value.slice(0, MAX_FIELD_LENGTH)}\n…(truncated)` : value);
@@ -33,12 +43,17 @@ export function issueUrl(template: IssueTemplate, fields: Record<string, string 
 }
 
 /**
- * Opens a prefilled GitHub issue form. Nothing is sent until the user reviews the form and
+ * Opens a prefilled GitHub issue form in the app's language. Nothing is sent until the user reviews the form and
  * submits it on GitHub (which needs a GitHub account).
  */
 export function openIssue(template: IssueTemplate, fields: Record<string, string | undefined> = {}) {
   return WebBrowser.openBrowserAsync(
-    issueUrl(template, { 'app-version': appVersion(), device: deviceDescription(), ...fields }),
+    issueUrl(template, i18n.language, {
+      'app-version': appVersion(),
+      device: deviceDescription(),
+      language: i18n.language,
+      ...fields,
+    }),
   );
 }
 

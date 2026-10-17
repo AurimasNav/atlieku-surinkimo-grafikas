@@ -121,7 +121,7 @@ export default function Home() {
                       icon="logo-github"
                       title={t('crash.report')}
                       onPress={() => {
-                        openIssue('crash_report', { error: crash.error, 'app-version': crash.version, language: i18n.language });
+                        openIssue('crash_report', { error: crash.error, 'app-version': crash.version });
                         clearLastCrash();
                         setCrash(null);
                       }}

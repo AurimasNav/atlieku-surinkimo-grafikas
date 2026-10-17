@@ -20,7 +20,7 @@ import { useSettings } from '@/store/settings';
 import { radius, spacing, useTheme } from '@/theme';
 
 export default function Settings() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { place, language, setLanguage } = useSettings();
@@ -105,7 +105,7 @@ export default function Settings() {
             <ListRow
               icon={<Ionicons name="bug" size={22} color={theme.primary} />}
               title={t('feedback.bug')}
-              onPress={() => openIssue('bug_report', { language: i18n.language })}
+              onPress={() => openIssue('bug_report')}
             />
             <ListRow
               icon={<Ionicons name="calendar-clear" size={22} color={theme.primary} />}
