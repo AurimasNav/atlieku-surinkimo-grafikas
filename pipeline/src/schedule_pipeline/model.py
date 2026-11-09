@@ -32,6 +32,9 @@ class Area:
     # Free-text rule from the source when it can't be turned into exact dates.
     note: str | None = None
     dates: set[date] = field(default_factory=set)
+    # Part of the newest published schedule for its kind, even if its dates have passed (glass
+    # is collected once a quarter, so most rows are between pickups most of the time).
+    current: bool = False
 
     @property
     def id(self) -> str:
@@ -46,6 +49,8 @@ class Area:
             if getattr(self, key):
                 data[key] = getattr(self, key)
         data["dates"] = [d.isoformat() for d in sorted(self.dates)]
+        if self.current:
+            data["current"] = True
         return data
 
 

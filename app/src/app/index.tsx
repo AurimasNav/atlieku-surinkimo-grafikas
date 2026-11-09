@@ -62,6 +62,9 @@ export default function Home() {
     resolved.location?.name ??
     (place?.custom && Object.keys(place.custom).length ? t('custom.title') : t('home.choosePlace'));
   const notes = resolved.areas.filter((area) => area.note && !area.dates.length);
+  // Served, but the last pickup has passed and the next schedule isn't published yet.
+  const today = toIsoDate(new Date());
+  const waiting = resolved.areas.filter((area) => !area.note && (area.dates.at(-1) ?? today) < today);
   const reminderText = t(reminder.daysBefore === 1 ? 'home.reminderEvening' : 'home.reminderMorning', {
     time: formatTime(reminder.hour, reminder.minute),
   });
@@ -165,6 +168,11 @@ export default function Home() {
             {notes.map((area) => (
               <Notice key={area.id} tone="info">
                 {t('home.noteOnly', { kind: t(`kinds.${area.kind}`), note: area.note })}
+              </Notice>
+            ))}
+            {waiting.map((area) => (
+              <Notice key={area.id} tone="info">
+                {t('home.nextNotAnnounced', { kind: t(`kinds.${area.kind}`), date: date.dayMonth(area.dates.at(-1)!) })}
               </Notice>
             ))}
             {error && <Notice>{error === 'unsupported' ? t('errors.unsupported') : t('home.refreshFailed')}</Notice>}
