@@ -8,7 +8,6 @@
     "scheme": "siuksliaveze",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
       "bundleIdentifier": "io.github.aurimasnav.siuksliaveze",
       "supportsTablet": true,
       "config": {
@@ -82,6 +81,12 @@
     "experiments": {
       "reactCompiler": true
     },
-    "description": "Reminders for household, packaging and glass waste collection days in Vilnius district."
+    "description": "Reminders for household, packaging and glass waste collection days in Vilnius district.",
+    "extra": {
+      "eas": {
+        "projectId": "c9ff811e-9c9a-4cf9-8db1-0b58830d1bfe"
+      }
+    },
+    "owner": "complexxl9"
   }
 }
