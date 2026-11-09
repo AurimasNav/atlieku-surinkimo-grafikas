@@ -74,11 +74,11 @@ Put this at the end of the description in both stores (and in the other language
 
 ## Before the first submission
 
-- [ ] Pick the final app name and replace the Expo placeholder icon and splash
+- [x] Pick the final app name and replace the Expo placeholder icon and splash
       (`app/assets/`), see [TRADEMARKS.md](../TRADEMARKS.md).
-- [ ] Confirm the bundle ID / package (`io.github.aurimasnav.siuksliaveze` in `app/app.json`).
+- [x] Confirm the bundle ID / package (`io.github.aurimasnav.siuksliaveze` in `app/app.json`).
       **It can't be changed after the first upload.**
-- [ ] GitHub Pages is enabled (Settings → Pages → Source: GitHub Actions) and the privacy URL
+- [x] GitHub Pages is enabled (Settings → Pages → Source: GitHub Actions) and the privacy URL
       loads.
-- [ ] Google Play developer account ($25 once). Apple Developer Program ($99/year) only when
+- [x] Google Play developer account ($25 once). Apple Developer Program ($99/year) only when
       adding iOS.
