@@ -26,14 +26,20 @@ class _LinkCollector(HTMLParser):
 
 
 def classify(url: str) -> Kind | None:
-    """Uses the upload folder name to tell the schedules apart, since file names change."""
-    folder = unquote(PurePosixPath(urlparse(url).path).parent.name).casefold()
-    # Check glass first: its folder is "Stiklo pakuotės", which also contains "pakuot".
-    if "stikl" in folder:
+    """Tells the schedules apart by their upload folder, since file names change. Falls back
+    to the file name for files uploaded to an unrelated folder (it has happened)."""
+    path = PurePosixPath(unquote(urlparse(url).path))
+    return _kind_of(path.parent.name) or _kind_of(path.name)
+
+
+def _kind_of(name: str) -> Kind | None:
+    name = name.casefold()
+    # Check glass first: "Stiklo pakuotės" also contains "pakuo".
+    if "stikl" in name:
         return "glass"
-    if "pakuo" in folder:
+    if "pakuo" in name:
         return "packaging"
-    if "buitin" in folder:
+    if "buitin" in name:
         return "household"
     return None
 
