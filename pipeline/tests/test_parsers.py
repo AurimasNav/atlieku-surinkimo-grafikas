@@ -1,6 +1,8 @@
+import io
 from datetime import date
 from pathlib import Path
 
+import openpyxl
 import pytest
 
 from schedule_pipeline.build import ValidationError, build_dataset
@@ -67,6 +69,19 @@ def test_glass_folder_is_not_packaging():
     assert classify(url) == "glass"
 
 
+def test_file_in_an_unrelated_folder_is_classified_by_name():
+    # In November 2026 the household schedule was uploaded to the water pricing folder.
+    url = (
+        "https://www.nemenkom.lt/uploads/failai/vanduo_kainodara/"
+        "2026%20m-%20bir%C5%BEelis-gruodis%20m%C4%97n%20%20Buitini%C5%B3%20atliek%C5%B3"
+        "%20surinkimo%20grafikasP.xlsx"
+    )
+    assert classify(url) == "household"
+    other = "https://www.nemenkom.lt/uploads/failai/vanduo_kainodara/"
+    assert classify(other + "Stiklo%20pakuo%C4%8Di%C5%B3.pdf") == "glass"
+    assert classify(other + "kainos.pdf") is None
+
+
 # --- household xlsx ----------------------------------------------------------
 
 
@@ -104,6 +119,32 @@ def test_household_skips_notes_and_empty_rows(household):
     names = [a.name for a in household.areas]
     assert not any("DĖMESIUI" in n or "Parengė" in n for n in names)
     assert len(household.areas) > 650
+
+
+def test_household_without_street_column():
+    # The November 2026 version dropped the empty "Gatvė" column, shifting the others left.
+    name = "2026 m- birželis-gruodis mėn  Buitinių atliekų surinkimo grafikasP.xlsx"
+    result = parse_xlsx(fixture("household-2026-11-09.xlsx"), "household", name)
+    area = by_name(result.areas, "Aleksandravas")
+    assert area.name == "Aleksandravas"
+    assert area.weekday == "Ketvirtadienis"
+    assert date(2026, 10, 29) in area.dates
+    apartments = [a for a in result.areas if a.group == "Daugiabučiai namai"]
+    assert by_name(apartments, "Buivydiškės").dates
+    assert len(result.areas) > 650
+    # Every row's dates fall on its weekday, so no column was read from the wrong place.
+    assert not [w for w in result.warnings if "other weekdays" in w]
+
+
+def test_household_without_weekday_header_fails():
+    workbook = openpyxl.Workbook()
+    workbook.active.title = "2026 m"
+    workbook.active.append(["Seniūnija", "Kaimai", "Diena", "Birželis"])
+    workbook.active.append(["Avižienių", "Aleksandravas", "Ketvirtadienis", "11 d."])
+    buffer = io.BytesIO()
+    workbook.save(buffer)
+    with pytest.raises(ValueError, match="Savaitės diena"):
+        parse_xlsx(buffer.getvalue(), "household", "x.xlsx")
 
 
 # --- packaging / glass pdf ---------------------------------------------------

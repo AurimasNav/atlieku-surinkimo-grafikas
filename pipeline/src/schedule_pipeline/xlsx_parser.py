@@ -5,6 +5,10 @@ Layout (one sheet, several sections):
     Seniūnija | Kaimai | Gatvė | Savaitės diena | Birželis | Liepa | ...
     Avižienių |        | Aleksandravas | Ketvirtadienis | 11 d., 25 d. | 9d., 23d., | ...
 
+Columns are found by their headers, as the layout changes between versions: in November 2026
+the empty "Gatvė" column was dropped. Everything between "Seniūnija" and "Savaitės diena" is
+the place name.
+
 The first section (individual houses) lists exact days per month. A later section
 (apartment buildings) has no month columns and describes the schedule as a rule,
 e.g. "kiekvienas mėnesio pirmadienis, penktadienis".
@@ -50,6 +54,7 @@ def parse_xlsx(content: bytes, kind: Kind, file_name: str = "") -> ParseResult:
         # Months of the main section; rule-based sections reuse them as their date range.
         period: tuple[date, date] | None = None
         month_cols: list[tuple[int, int, int]] = []  # (column, year, month)
+        weekday_col = 0
         group = DEFAULT_GROUP
         district = ""
         last_text = ""
@@ -61,6 +66,11 @@ def parse_xlsx(content: bytes, kind: Kind, file_name: str = "") -> ParseResult:
                 in_table = True
                 district = ""
                 group = _group_for_title(last_text)
+                weekday_col = next(
+                    (i for i, h in enumerate(row) if "savaitės diena" in h.casefold()), 0
+                )
+                if weekday_col < 2:
+                    raise ValueError(f"{file_name} row {line_no}: no 'Savaitės diena' column")
                 months = [(i, parse_month(h)) for i, h in enumerate(row) if parse_month(h)]
                 if months:
                     years = assign_years([m for _, m in months], year)
@@ -87,8 +97,8 @@ def parse_xlsx(content: bytes, kind: Kind, file_name: str = "") -> ParseResult:
 
             if first:
                 district = first
-            name = " ".join(c for c in (row[1], row[2]) if c)
-            weekday_text = row[3] if len(row) > 3 else ""
+            name = " ".join(c for c in row[1:weekday_col] if c)
+            weekday_text = row[weekday_col] if len(row) > weekday_col else ""
             if not name:
                 continue
             if "nėra objektų" in weekday_text.casefold():
