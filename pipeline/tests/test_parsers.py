@@ -208,3 +208,44 @@ def test_identical_rows_from_two_quarters_are_merged():
     q4 = parse_pdf(fixture("packaging-2026-q4.pdf"), "packaging").areas
     shared = {a.id for a in q3} & {a.id for a in q4}
     assert shared, "expected some areas with unchanged text across quarters"
+
+
+# --- rows between pickups ------------------------------------------------------
+
+
+def glass_link(dataset, name):
+    location = next(loc for loc in dataset["locations"] if loc["name"] == name)
+    return (location.get("schedule") or {}).get("glass")
+
+
+def test_places_keep_their_glass_row_between_pickups():
+    # Glass is collected once a quarter. On 9 November Arvydai's October pickup has passed, but
+    # that row still serves it until the next quarter's schedule is published.
+    october, _ = build_dataset(all_sources(), REGISTRY, today=date(2026, 10, 11), keep_days=31)
+    november, _ = build_dataset(all_sources(), REGISTRY, today=date(2026, 11, 9), keep_days=31)
+    assert glass_link(october, "Arvydai")
+    assert glass_link(november, "Arvydai") == glass_link(october, "Arvydai")
+    assert november["matching"]["glass.none"] == october["matching"]["glass.none"]
+
+
+def test_only_the_newest_quarter_is_current():
+    dataset, _ = build_dataset(all_sources(), REGISTRY, today=date(2026, 10, 11), keep_days=31)
+    q4 = parse_pdf(fixture("glass-2026-q4.pdf"), "glass", "2026 m- spalio.pdf").areas
+    glass = [a for a in dataset["areas"] if a["kind"] == "glass"]
+    assert {a["id"] for a in glass if a.get("current")} == {a.id for a in q4}
+    # Rows of the previous quarter that end after the cutoff are kept, but not current.
+    assert any(not a.get("current") for a in glass)
+
+
+def test_current_rows_keep_their_last_date_after_the_cutoff():
+    # 20 December: the 16 October pickup is older than keep_days, but its row is still current.
+    dataset, _ = build_dataset(all_sources(), REGISTRY, today=date(2026, 12, 20), keep_days=31)
+    row = next(a for a in dataset["areas"] if a.get("current") and "Ąžuolynės" in a["name"])
+    assert row["kind"] == "glass"
+    assert row["dates"] == ["2026-10-16"]
+
+
+def test_latest_schedule_stays_current_until_the_next_is_published():
+    dataset, _ = build_dataset(all_sources(), REGISTRY, today=date(2027, 1, 15), keep_days=31)
+    assert glass_link(dataset, "Arvydai")
+    assert all(a.get("current") for a in dataset["areas"] if a["kind"] == "household")

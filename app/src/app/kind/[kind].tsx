@@ -61,10 +61,18 @@ export default function ManageKind() {
           <AppText variant="label" numberOfLines={4}>
             {statusText}
           </AppText>
-          {next && (
+          {next ? (
             <AppText variant="caption" muted>
               {t('setup.nextOn', { date: date.long(next) })}
             </AppText>
+          ) : (
+            status.status === 'ok' &&
+            !isCustom &&
+            !status.area.note && (
+              <AppText variant="caption" muted>
+                {t('setup.nextNotAnnounced')}
+              </AppText>
+            )
           )}
         </Card>
 

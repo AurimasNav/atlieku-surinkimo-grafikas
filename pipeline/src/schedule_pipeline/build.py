@@ -52,10 +52,32 @@ def merge_areas(areas: list[Area]) -> list[Area]:
     return list(merged.values())
 
 
-def drop_old_dates(areas: list[Area], cutoff: date) -> list[Area]:
+def current_rows(parsed: list[tuple[SourceFile, ParseResult]], today: date) -> set[str]:
+    """Ids of the rows in the newest schedule of each kind: the files that still run past today,
+    or, between the end of one period and the publication of the next, the latest ones."""
+    ends: dict[Kind, list[tuple[date, ParseResult]]] = {}
+    for source, result in parsed:
+        dates = [d for a in result.areas for d in a.dates]
+        if dates:
+            ends.setdefault(source.kind, []).append((max(dates), result))
+    ids: set[str] = set()
+    for files in ends.values():
+        latest = max(end for end, _ in files)
+        for end, result in files:
+            if end >= today or end == latest:
+                ids |= {a.id for a in result.areas}
+    return ids
+
+
+def drop_old_dates(areas: list[Area], cutoff: date, keep: set[str] = frozenset()) -> list[Area]:
+    """Drops dates before `cutoff`. Rows in `keep` stay with at least their last date, so the
+    app can tell their place is served and when the last pickup was."""
     result = []
     for area in areas:
-        area.dates = {d for d in area.dates if d >= cutoff}
+        recent = {d for d in area.dates if d >= cutoff}
+        if not recent and area.id in keep and area.dates:
+            recent = {max(area.dates)}
+        area.dates = recent
         if area.dates or area.note:
             result.append(area)
     return result
@@ -86,14 +108,14 @@ def coverage(areas: list[Area]) -> dict[str, dict[str, str]]:
 def build_dataset(
     sources: list[tuple[SourceFile, bytes]], registry: Registry, today: date, keep_days: int
 ) -> tuple[dict, list[str]]:
-    areas: list[Area] = []
-    warnings: list[str] = []
-    for source, content in sources:
-        result = parse_file(source, content)
-        areas.extend(result.areas)
-        warnings.extend(result.warnings)
+    parsed = [(source, parse_file(source, content)) for source, content in sources]
+    areas = [area for _, result in parsed for area in result.areas]
+    warnings = [warning for _, result in parsed for warning in result.warnings]
 
-    areas = drop_old_dates(merge_areas(areas), today - timedelta(days=keep_days))
+    current_ids = current_rows(parsed, today)
+    areas = drop_old_dates(merge_areas(areas), today - timedelta(days=keep_days), current_ids)
+    for area in areas:
+        area.current = area.id in current_ids
     files = [source for source, _ in sources]
     validate(areas, files)
     # Individual houses first: most users live in one, and the picker shows rows in this order.
@@ -106,8 +128,9 @@ def build_dataset(
         )
     )
 
-    # Only rows that still matter take part in matching, so old periods can't create ambiguity.
-    current = [a for a in areas if a.note or (a.dates and max(a.dates) >= today)]
+    # Only rows of the newest schedules take part in matching, so old periods can't create
+    # ambiguity, and places stay linked between two pickups.
+    current = [a for a in areas if a.current]
     locations, report = build_locations(registry, current)
     household = [a for a in current if a.kind == "household"]
     unmatched_household = sum(1 for u in report["unmatched"] if u.startswith("household:"))

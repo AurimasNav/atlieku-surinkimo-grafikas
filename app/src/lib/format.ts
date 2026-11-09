@@ -33,6 +33,8 @@ export function useDateFormat() {
   return {
     /** "Thursday, October 15" */
     long: (iso: string) => capitalize(format(iso, { weekday: 'long', month: 'long', day: 'numeric' })),
+    /** "October 15" */
+    dayMonth: (iso: string) => format(iso, { month: 'long', day: 'numeric' }),
     /** "Oct 15" */
     short: (iso: string) => format(iso, { month: 'short', day: 'numeric' }),
     /** "Thu" */
