@@ -163,10 +163,10 @@ export default function ChooseLocation() {
               <AppText muted style={styles.empty}>
                 {t('setup.locationNone')}
               </AppText>
-            ) : null
+            ) : undefined
           }
           ListFooterComponent={
-            found ? null : (
+            found ? undefined : (
               <View style={styles.manual}>
                 <Button
                   variant="secondary"
