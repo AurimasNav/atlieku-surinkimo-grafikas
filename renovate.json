@@ -4,9 +4,9 @@
   "timezone": "Europe/Vilnius",
   "packageRules": [
     {
-      "description": "Pinned by the Expo SDK: they change together with an SDK upgrade (npx expo install expo@<next> --fix, see app/AGENTS.md), never one by one; a lone update fails the App check. Listed on the Dependency Dashboard so you can see what is newer.",
+      "description": "Pinned by the Expo SDK, or limited by what its tooling supports (ESLint 10 breaks eslint-config-expo 58's React plugin): they change together with an SDK upgrade (npx expo install expo@<next> --fix, see app/AGENTS.md), never one by one; a lone update fails the App check. Listed on the Dependency Dashboard so you can see what is newer.",
       "matchFileNames": ["app/package.json"],
-      "matchPackageNames": ["react", "react-dom", "react-native", "react-native-*", "@types/react", "typescript", "jest", "@types/jest"],
+      "matchPackageNames": ["react", "react-dom", "react-native", "react-native-*", "@types/react", "typescript", "jest", "@types/jest", "eslint"],
       "dependencyDashboardApproval": true
     },
     {
