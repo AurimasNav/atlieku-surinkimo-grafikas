@@ -81,7 +81,15 @@ export default function Home() {
     <View style={styles.screen}>
       <ScrollView
         contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm, paddingBottom: insets.bottom + spacing.xl }]}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={theme.primary} />}>
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={async () => {
+              await refresh();
+            }}
+            tintColor={theme.primary}
+          />
+        }>
         {/* Top bar: where you are, and settings */}
         <View style={styles.topBar}>
           <PressableScale
