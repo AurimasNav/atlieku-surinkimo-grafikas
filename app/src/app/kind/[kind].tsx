@@ -63,7 +63,7 @@ export default function ManageKind() {
           </AppText>
           {next ? (
             <AppText variant="caption" muted>
-              {t('setup.nextOn', { date: date.long(next) })}
+              {t('setup.nextOn', { date: date.longInSentence(next) })}
             </AppText>
           ) : (
             status.status === 'ok' &&

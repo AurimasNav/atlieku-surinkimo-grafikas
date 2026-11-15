@@ -33,7 +33,7 @@ export default function CustomSetup() {
                 key={kind}
                 icon={<KindIcon kind={kind} size={44} />}
                 title={t(`kinds.${kind}`)}
-                subtitle={next ? t('setup.nextOn', { date: date.long(next) }) : t('custom.notSet')}
+                subtitle={next ? t('setup.nextOn', { date: date.longInSentence(next) }) : t('custom.notSet')}
                 trailing={
                   schedule ? (
                     <Ionicons name="checkmark-circle" size={24} color={theme.primary} />

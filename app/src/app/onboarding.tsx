@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, useIsFocused } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +27,9 @@ export default function Welcome() {
   const setLanguage = useSettings((s) => s.setLanguage);
   const [languagesOpen, setLanguagesOpen] = useState(false);
   const options: (Language | 'system')[] = ['system', ...LANGUAGES];
+  // This screen stays mounted under the setup screens, where white status bar icons would be
+  // invisible on the light background; unmounting the StatusBar restores the app's default.
+  const focused = useIsFocused();
 
   return (
     <LinearGradient
@@ -34,7 +37,7 @@ export default function Welcome() {
       start={{ x: 0, y: 0 }}
       end={{ x: 0.6, y: 1 }}
       style={[styles.screen, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
-      <StatusBar style="light" />
+      {focused && <StatusBar style="light" />}
 
       {/* Language before anything else: the phone may be in a language the user doesn't prefer. */}
       <View style={[styles.languageBar, { top: insets.top + spacing.sm }]}>

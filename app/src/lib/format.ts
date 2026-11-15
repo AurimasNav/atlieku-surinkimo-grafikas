@@ -21,7 +21,14 @@ export const REMINDER_TIMES: Record<ReminderSettings['daysBefore'], [number, num
 
 export const formatTime = (hour: number, minute: number) => `${hour}:${String(minute).padStart(2, '0')}`;
 
-const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase() + text.slice(1);
+export const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase() + text.slice(1);
+
+/**
+ * Weekday, month and day as the language writes them inside a sentence: "Thursday, October 15",
+ * "spalio 15 d., ketvirtadienis", "четверг, 15 октября".
+ */
+export const longDate = (lang: string, iso: string) =>
+  new Intl.DateTimeFormat(lang, { weekday: 'long', month: 'long', day: 'numeric' }).format(parseIsoDate(iso));
 
 /** Locale-aware date helpers bound to the current app language. */
 export function useDateFormat() {
@@ -31,8 +38,10 @@ export function useDateFormat() {
     new Intl.DateTimeFormat(lang, options).format(parseIsoDate(iso));
 
   return {
-    /** "Thursday, October 15" */
-    long: (iso: string) => capitalize(format(iso, { weekday: 'long', month: 'long', day: 'numeric' })),
+    /** "Thursday, October 15", capitalised to stand on its own, e.g. under "Tomorrow" */
+    long: (iso: string) => capitalize(longDate(lang, iso)),
+    /** The same inside a sentence, e.g. after "Next:" ("Kitas: spalio 15 d., ketvirtadienis") */
+    longInSentence: (iso: string) => longDate(lang, iso),
     /** "October 15" */
     dayMonth: (iso: string) => format(iso, { month: 'long', day: 'numeric' }),
     /** "Oct 15" */
