@@ -90,7 +90,7 @@ checks, builds and signs the bundle and attaches it to the run, but doesn't uplo
    builds with it. Google Play signs the published app with its own key (Play App Signing), so
    a lost or leaked upload key can be reset: *Test and release → App integrity → App signing →
    Request upload key reset*.
-3. **Google Play access for GitHub** (a service account):
+3. **Google Play access for GitHub** (done), a service account:
    1. [Google Cloud](https://console.cloud.google.com/projectcreate): create a project (any
       name), then *IAM & Admin →
       [Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) → Create
@@ -105,13 +105,23 @@ checks, builds and signs the bundle and attaches it to the run, but doesn't uplo
       lists; Manage store presence.
    5. GitHub → *Settings → Secrets and variables → Actions*: new repository secret
       `PLAY_SERVICE_ACCOUNT_JSON` with the contents of the JSON file. Then delete the file.
-4. **Turn releases on:** same page, *Variables* tab, add `RELEASE_ENABLED` = `true`. Until it
-   exists, merges don't start the Release workflow.
-5. **Testers.** Play Console → *Internal testing → Testers*: create an email list, then send
-   the opt-in link to the testers.
+4. **Testers and the first build** (done, 0.0.1 (28)). Google Play's API can't upload a new
+   app's first build, so that one is uploaded by hand:
+   1. Run the Release workflow as a dry run (above) and download the bundle from the run's
+      *Artifacts*.
+   2. Play Console → *Test and release → Testing → Internal testing*. On *Testers*, create an
+      email list. Then *Create new release*, keep the Google-generated app signing key, upload
+      the `.aab`, *Save and publish*.
+   3. Testers open the opt-in link (*Testers → How testers join your test → Copy link*) on
+      their phone, signed in with the listed Gmail, accept, and install from Google Play.
+5. **Turn releases on** (done): GitHub → *Settings → Secrets and variables → Actions →
+   Variables*, add `RELEASE_ENABLED` = `true`. Until it exists, merges don't start the Release
+   workflow.
 
 ### Troubleshooting
 
+- **"Package not found"**: the app has no build on Google Play yet; upload the first one by
+  hand (step 4).
 - **"Only releases with status draft may be created on draft app"**: Google Play refuses
   finished releases for an app that has never been published. Add the variable
   `PLAY_RELEASE_STATUS` = `draft`; each upload then waits in *Internal testing* until you click
