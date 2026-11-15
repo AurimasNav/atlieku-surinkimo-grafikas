@@ -4,6 +4,7 @@
 // what Google Play accepts) and the status bar to a fixed demo state; both are reset at the end.
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { back, screenshot, shell, sleep, tap, tapAt, type } from './adb.mjs';
 import { languages, rawShots, strings } from './shared.mjs';
@@ -16,7 +17,7 @@ const languageNames = { lt: 'Lietuvių', en: 'English', ru: 'Русский', pl
 const demo = (command, extras = '') =>
   shell(`am broadcast -a com.android.systemui.demo -e command ${command} ${extras}`);
 
-function setUp() {
+export function setUp() {
   shell('wm size 1080x1920');
   shell('wm density 420');
   shell('settings put global sysui_demo_allowed 1');
@@ -27,13 +28,14 @@ function setUp() {
   demo('notifications', '-e visible false');
 }
 
-function tearDown() {
+export function tearDown() {
   demo('exit');
   shell('wm size reset');
   shell('wm density reset');
 }
 
-function capture(lang) {
+/** Goes through the app from a fresh start in one language, saving the screens to raw/<lang>/. */
+export function capture(lang) {
   const s = strings(lang);
   const out = join(rawShots, lang);
   mkdirSync(out, { recursive: true });
@@ -85,10 +87,13 @@ function capture(lang) {
   shot('4-custom');
 }
 
-const wanted = process.argv.slice(2);
-setUp();
-try {
-  for (const lang of wanted.length ? wanted : Object.keys(languages)) capture(lang);
-} finally {
-  tearDown();
+// Run directly (npm run capture), not when smoke.mjs imports it.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const wanted = process.argv.slice(2);
+  setUp();
+  try {
+    for (const lang of wanted.length ? wanted : Object.keys(languages)) capture(lang);
+  } finally {
+    tearDown();
+  }
 }

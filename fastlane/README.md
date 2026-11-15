@@ -55,4 +55,8 @@ languages stay consistent. Run `npm ci` in `app/` (for the font) and in `fastlan
 
 Retake the screenshots when a screen in them changes. To install a release build on the
 emulator, download the APK from the pull request's **App Android build** run (*Artifacts*) and
-`adb install` it.
+`adb install` it. That run also has the raw screens of its smoke test.
+
+`npm run smoke` goes through the same screens as `capture` and then fails if the app crashed
+or logged a JavaScript error. Pull requests run it on an emulator in CI
+(`.github/workflows/app-android.yml`).

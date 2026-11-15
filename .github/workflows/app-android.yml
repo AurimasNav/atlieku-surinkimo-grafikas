@@ -1,13 +1,15 @@
 name: App Android build
 
 # Builds the Android release app for every pull request that changes the app, the same way the
-# Release workflow does, so native breakage (dependency updates, Expo SDK upgrades, config
-# plugins, code shrinking) shows up before the merge instead of in the release.
+# Release workflow does, then runs it on an emulator, so native breakage (dependency updates,
+# Expo SDK upgrades, config plugins, code shrinking) shows up before the merge instead of on
+# testers' phones.
 # The APK is signed with the debug key and attached to the run for testing on a phone or
-# emulator (uninstall a Google Play copy first: the signatures differ).
+# emulator (uninstall a Google Play copy first: the signatures differ), together with the
+# screens the smoke test went through.
 on:
   pull_request:
-    paths: ["app/**", ".github/workflows/app-android.yml"]
+    paths: ["app/**", "fastlane/tools/**", ".github/workflows/app-android.yml"]
   workflow_dispatch:
 
 permissions:
@@ -16,6 +18,9 @@ permissions:
 concurrency:
   group: android-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  APK_ARTIFACT: siuksliaveze-${{ github.event.pull_request.number || github.ref_name }}-apk
 
 jobs:
   android:
@@ -43,6 +48,48 @@ jobs:
         run: ./gradlew assembleRelease
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: siuksliaveze-${{ github.event.pull_request.number || github.ref_name }}-apk
+          name: ${{ env.APK_ARTIFACT }}
           path: app/android/app/build/outputs/apk/release/app-release.apk
           retention-days: 14
+
+  # Installs the APK on an Android emulator and goes through the main screens in every language
+  # (fastlane/tools/smoke.mjs). Fails on a crash, a JavaScript error or a screen that doesn't
+  # show up, e.g. a release build that builds fine and then crashes on start.
+  smoke:
+    needs: android
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: fastlane/tools/package-lock.json
+      - run: npm ci
+        working-directory: fastlane/tools
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ env.APK_ARTIFACT }}
+          path: apk
+      - name: Enable hardware acceleration for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Go through the app on an emulator
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: adb install apk/app-release.apk && cd fastlane/tools && node smoke.mjs
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: siuksliaveze-${{ github.event.pull_request.number || github.ref_name }}-screens
+          path: fastlane/tools/raw
+          retention-days: 14
+          if-no-files-found: ignore
