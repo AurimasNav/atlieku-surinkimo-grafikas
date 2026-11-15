@@ -6,6 +6,7 @@
   "scripts": {
     "graphics": "node graphics.mjs",
     "capture": "node capture.mjs",
+    "smoke": "node smoke.mjs",
     "frame": "node frame.mjs"
   },
   "dependencies": {

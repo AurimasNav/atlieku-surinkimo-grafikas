@@ -16,10 +16,20 @@ feature branch ──PR──▶ main ──▶ Release workflow (GitHub Actions
 ```
 
 1. Work on a branch and open a PR against `main`. CI (`App / check`, `Schedule data / build`)
-   must pass before merging; `main` can't be pushed to directly. PRs that change `app/` also
-   get **App Android build** (about 20 minutes): the release build without the upload key, so
-   native problems show up before the merge. Wait for it too. Its APK (run → *Artifacts*)
-   installs on a phone or emulator; uninstall the Google Play copy first, the signatures differ.
+   must pass before merging; `main` can't be pushed to directly. Depending on what a PR
+   changes, more checks run; wait for them too (they aren't required checks, because a
+   required check that doesn't run would block every other PR):
+
+   | PR changes | Check | What it does |
+   |---|---|---|
+   | `app/`, `fastlane/tools/` | **App Android build** (about 30 minutes) | Builds the release APK without the upload key, installs it on an Android emulator and goes through the main screens in all four languages (`fastlane/tools/smoke.mjs`); fails on a crash or a JavaScript error. The APK and the screens are under the run's *Artifacts*. The APK installs on a phone too; uninstall the Google Play copy first, the signatures differ. |
+   | `.github/workflows/release.yml` | **Release** (dry run) | The whole release, built and signed, without uploading or tagging. |
+   | `pipeline/` | **Schedule data live build** | Builds `schedule.json` from today's files on nemenkom.lt and compares it with the published data; fails if much less is parsed. Nothing is deployed. |
+   | `fastlane/tools/` | **Store tools** | Renders the store graphics again. |
+
+   These also cover Renovate's dependency updates. Packages pinned by the Expo SDK only change
+   with an SDK upgrade (`npx expo install expo@<next> --fix`); Renovate lists their new
+   versions on its *Dependency Dashboard* issue instead of opening PRs.
 2. Merging a PR that changes `app/` starts the **Release** workflow. It runs the checks again,
    builds and signs the Android App Bundle on GitHub Actions (about 20 minutes) and uploads it
    to the **Google Play *Internal testing* track**. Only the testers on your list get it,

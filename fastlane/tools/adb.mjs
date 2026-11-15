@@ -27,15 +27,23 @@ export function elements() {
   return found;
 }
 
-/** Taps the nth element whose text or accessibility label is `text`. */
-export function tap(text, nth = 0) {
+/**
+ * Taps the nth element whose text or accessibility label is `text`, waiting up to `timeout` ms
+ * for it to appear (slower machines and emulators take longer to show a screen).
+ */
+export function tap(text, nth = 0, timeout = 20000) {
   const want = text.toLowerCase();
-  const hit = elements().filter((e) => e.text.toLowerCase() === want || e.label.toLowerCase() === want)[nth];
-  if (!hit) throw new Error(`Not on screen: ${text}`);
-  tapAt(hit.x, hit.y);
+  const until = Date.now() + timeout;
+  for (;;) {
+    const hit = elements().filter((e) => e.text.toLowerCase() === want || e.label.toLowerCase() === want)[nth];
+    if (hit) return tapAt(hit.x, hit.y);
+    if (Date.now() > until) throw new Error(`Not on screen after ${timeout / 1000} s: ${text}`);
+    sleep(500);
+  }
 }
 
 export const tapAt = (x, y) => shell(`input tap ${x} ${y}`);
+export const logcat = (...args) => run('logcat', ...args).toString();
 export const type = (ascii) => shell(`input text ${ascii.replace(/ /g, '%s')}`);
 export const back = () => shell('input keyevent 4');
 export const screenshot = (file) => writeFileSync(file, run('exec-out', 'screencap', '-p'));

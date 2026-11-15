@@ -1,0 +1,40 @@
+name: Store tools
+
+# Pull requests that change fastlane/tools (code or dependencies, e.g. a Renovate update of
+# resvg) render the store icon and feature graphics again. Fails if rendering breaks; a
+# rendering change is only reported, since it may be harmless.
+on:
+  pull_request:
+    paths: ["fastlane/tools/**", ".github/workflows/store-tools.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  graphics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: |
+            app/package-lock.json
+            fastlane/tools/package-lock.json
+      - name: Install the app's font
+        working-directory: app
+        run: npm ci --ignore-scripts
+      - run: npm ci
+        working-directory: fastlane/tools
+      - run: npm run graphics
+        working-directory: fastlane/tools
+      - name: Report rendering changes
+        run: |
+          if git diff --quiet -- fastlane; then
+            echo "The graphics render exactly as committed." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::The store graphics render differently with this change; check them before the next store update."
+            git diff --stat -- fastlane >> "$GITHUB_STEP_SUMMARY"
+          fi

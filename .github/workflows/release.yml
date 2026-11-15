@@ -5,11 +5,14 @@ name: Release
 # tested build to the public is a manual step in Play Console (docs/releasing.md).
 #
 # Run it by hand (Actions → Release → Run workflow) to test a build from any branch: with
-# "dry run" ticked, it builds and signs but doesn't upload or tag.
+# "dry run" ticked, it builds and signs but doesn't upload or tag. Pull requests that change
+# this workflow (e.g. Renovate updating its actions) get the same dry run.
 on:
   push:
     branches: [main]
     paths: ["app/**", ".github/workflows/release.yml"]
+  pull_request:
+    paths: [".github/workflows/release.yml"]
   workflow_dispatch:
     inputs:
       dry_run:
@@ -20,20 +23,21 @@ on:
 permissions:
   contents: read
 
-# Never run two releases at once; a newer merge waits for the running one.
+# Never run two releases at once; a newer merge waits for the running one. Pull request dry
+# runs get a queue per PR, and a newer push replaces an older run.
 concurrency:
-  group: release
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('release-pr-{0}', github.ref) || 'release' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   PACKAGE_NAME: io.github.aurimasnav.siuksliaveze
-  # A real release uploads and tags; a dry run only builds.
-  PUBLISH: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+  # Only merges to main and runs by hand without "dry run" upload and tag.
+  PUBLISH: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run) }}
 
 jobs:
   checks:
     # Merges release only once Google Play access is set up (docs/releasing.md, one-time setup).
-    if: vars.RELEASE_ENABLED == 'true' || github.event_name == 'workflow_dispatch'
+    if: vars.RELEASE_ENABLED == 'true' || github.event_name != 'push'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -160,7 +164,8 @@ jobs:
   # succeeded: a failed release is retried with the same version.
   tag:
     needs: [version, android]
-    if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+    # Same condition as PUBLISH (the env context isn't available here).
+    if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
