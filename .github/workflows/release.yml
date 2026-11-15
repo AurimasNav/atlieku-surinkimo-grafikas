@@ -5,8 +5,8 @@ name: Release
 # tested build to the public is a manual step in Play Console (docs/releasing.md).
 #
 # Run it by hand (Actions → Release → Run workflow) to test a build from any branch: with
-# "dry run" ticked, it builds and signs but doesn't upload or tag. Pull requests that change
-# this workflow (e.g. Renovate updating its actions) get the same dry run.
+# "dry run" ticked, it builds and signs but doesn't upload. Pull requests that change this
+# workflow (e.g. Renovate updating its actions) get the same dry run.
 on:
   push:
     branches: [main]
@@ -16,22 +16,23 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: Dry run (build and sign only; don't upload to Google Play or tag)
+        description: Dry run (build and sign only; don't upload to Google Play)
         type: boolean
         default: true
 
 permissions:
   contents: read
 
-# Never run two releases at once; a newer merge waits for the running one. Pull request dry
-# runs get a queue per PR, and a newer push replaces an older run.
+# Never run two releases at once; a newer merge waits for the running one (and replaces an older
+# waiting one: testers only need the newest build). Pull request dry runs get a queue per PR,
+# and a newer push replaces an older run.
 concurrency:
   group: ${{ github.event_name == 'pull_request' && format('release-pr-{0}', github.ref) || 'release' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   PACKAGE_NAME: io.github.aurimasnav.siuksliaveze
-  # Only merges to main and runs by hand without "dry run" upload and tag.
+  # Only merges to main and runs by hand without "dry run" upload.
   PUBLISH: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run) }}
 
 jobs:
@@ -52,6 +53,10 @@ jobs:
       - run: npm ci
       - run: npm run check
 
+  # GitVersion counts the commits on main from the first one (GitVersion.yml): every commit gets
+  # the next version by itself, so nothing is tagged. Tagging after the upload made a waiting
+  # release's tag push fail once a later merge had changed a workflow file, and the next
+  # release then reused 0.0.6.
   version:
     needs: checks
     runs-on: ubuntu-latest
@@ -64,7 +69,8 @@ jobs:
           fetch-depth: 0 # GitVersion needs the full history and tags
       - uses: gittools/actions/gitversion/setup@7417b1089e2c7de93510f1901d656ddf60bb024f # v4.7.0
         with:
-          versionSpec: 6.8.x
+          # Exact: trunk-based is still a preview workflow in GitVersion 6, checked with 6.8.2.
+          versionSpec: 6.8.2
       - id: gitversion
         uses: gittools/actions/gitversion/execute@7417b1089e2c7de93510f1901d656ddf60bb024f # v4.7.0
       # Google Play needs a higher version code for every upload. The number of commits on main
@@ -73,7 +79,7 @@ jobs:
         run: echo "code=$(git rev-list --count HEAD)" >> "$GITHUB_OUTPUT"
       - run: |
           echo "Version ${{ steps.gitversion.outputs.majorMinorPatch }}, version code ${{ steps.code.outputs.code }}" >> "$GITHUB_STEP_SUMMARY"
-          [ "$PUBLISH" = true ] || echo "Dry run: nothing is uploaded or tagged." >> "$GITHUB_STEP_SUMMARY"
+          [ "$PUBLISH" = true ] || echo "Dry run: nothing is uploaded." >> "$GITHUB_STEP_SUMMARY"
 
   # iOS isn't released yet (docs/releasing.md, "Adding iOS later"); it would be a second job
   # on a macOS runner.
@@ -159,21 +165,3 @@ jobs:
           # "draft" while Google Play refuses completed releases for an app that was never
           # published (docs/releasing.md, troubleshooting); otherwise testers get it right away.
           status: ${{ vars.PLAY_RELEASE_STATUS || 'completed' }}
-
-  # Marks the released commit, so the next release gets the next version. Only after the upload
-  # succeeded: a failed release is retried with the same version.
-  tag:
-    needs: [version, android]
-    # Same condition as PUBLISH (the env context isn't available here).
-    if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run) }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Tag v${{ needs.version.outputs.version }}
-        env:
-          TAG: v${{ needs.version.outputs.version }}
-        run: |
-          git tag "$TAG"
-          git push origin "$TAG"
