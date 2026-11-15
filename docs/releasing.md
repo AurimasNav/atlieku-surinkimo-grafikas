@@ -23,7 +23,7 @@ feature branch ──PR──▶ main ──▶ Release workflow (GitHub Actions
    | PR changes | Check | What it does |
    |---|---|---|
    | `app/`, `fastlane/tools/` | **App Android build** (about 30 minutes) | Builds the release APK without the upload key, installs it on an Android emulator and goes through the main screens in all four languages (`fastlane/tools/smoke.mjs`); fails on a crash or a JavaScript error. The APK and the screens are under the run's *Artifacts*. The APK installs on a phone too; uninstall the Google Play copy first, the signatures differ. |
-   | `.github/workflows/release.yml` | **Release** (dry run) | The whole release, built and signed, without uploading or tagging. |
+   | `.github/workflows/release.yml` | **Release** (dry run) | The whole release, built and signed, without uploading. |
    | `pipeline/` | **Schedule data live build** | Builds `schedule.json` from today's files on nemenkom.lt and compares it with the published data; fails if much less is parsed. Nothing is deployed. |
    | `fastlane/tools/` | **Store tools** | Renders the store graphics again. |
 
@@ -47,11 +47,21 @@ See [Versions](#versions) for how releases are numbered.
   calculated by [GitVersion](https://gitversion.net) from the git history (`GitVersion.yml`).
   The Release workflow writes it into the build; `expo.version` in `app/app.json` is only what
   local development builds show.
-- **Every release is tagged** `v<version>` once it reaches the testers, so the next merge to
-  `main` that changes the app is released as the next patch version: `v0.0.1`, `v0.0.2`, ….
-  A failed release isn't tagged and is retried with the same number.
-- **For a bigger step**, add `+semver: minor` (`0.0.7` → `0.1.0`) or `+semver: major`
-  (→ `1.0.0`) on its own line in the PR's squash-merge commit message.
+- **GitVersion counts by itself** (trunk-based): every commit on `main` gets the next patch
+  version, so every build has its own version without tagging anything. Numbers skip (e.g.
+  `0.0.7` → `0.0.10`), because each commit of a merged PR counts and merges that don't change
+  the app count too. Re-running a release of the same commit gives the same version.
+- **Keep the tags `v0.0.1` to `v0.0.7`.** They were made while releases were still tagged, and
+  the counting starts from them; without tags GitVersion would start again at `1.0.0`.
+  Releases no longer tag: GitHub's workflow token couldn't push a tag for a release that had
+  waited behind another one while a later merge changed a workflow file, and the next release
+  then reused 0.0.6.
+- **For a bigger step**, add `+semver: minor` (`0.0.13` → `0.1.0`) or `+semver: major`
+  (→ `1.0.0`) on its own line in the PR's merge commit message.
+- **Releases upload one at a time.** If several merges are waiting, the newest one replaces the
+  older waiting ones; testers only need the newest build.
+- To see the version of the current commit: `gitversion /showvariable MajorMinorPatch`
+  (Windows: `winget install GitTools.GitVersion`).
 - **Version codes** (Android `versionCode`, which Google Play requires to increase with every
   upload) are the number of commits on `main`, which only grows. Don't rewrite `main`'s
   history once releases exist.
@@ -80,7 +90,7 @@ In Google Play Console:
 ## Testing a build without releasing
 
 *Actions → Release → Run workflow*, pick a branch, keep **Dry run** ticked. It runs the
-checks, builds and signs the bundle and attaches it to the run, but doesn't upload or tag.
+checks, builds and signs the bundle and attaches it to the run, but doesn't upload.
 
 ## One-time setup
 
