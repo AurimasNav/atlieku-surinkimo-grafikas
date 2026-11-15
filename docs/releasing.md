@@ -7,7 +7,7 @@ see [Adding iOS later](#adding-ios-later).
 
 ```
 feature branch ──PR──▶ main ──▶ Release workflow (GitHub Actions)
-  CI: App / check        │        └─ android: EAS Build → Google Play "Internal testing"
+  CI: App / check        │        └─ android: build + sign → Google Play "Internal testing"
   CI: Schedule data      │                                        │ testers only
                          │                                        ▼
                          │        you promote by hand, after testing ──▶ public
@@ -18,8 +18,10 @@ feature branch ──PR──▶ main ──▶ Release workflow (GitHub Actions
 1. Work on a branch and open a PR against `main`. CI (`App / check`, `Schedule data / build`)
    must pass before merging; `main` can't be pushed to directly.
 2. Merging a PR that changes `app/` starts the **Release** workflow. It runs the checks again,
-   builds the Android app on EAS and submits it to the **Google Play *Internal testing*
-   track**. Only the testers on your list get it, usually within minutes, with no Google review.
+   builds and signs the Android App Bundle on GitHub Actions (about 20 minutes) and uploads it
+   to the **Google Play *Internal testing* track**. Only the testers on your list get it,
+   usually within minutes, with no Google review. The bundle is also kept for 30 days as an
+   artifact of the workflow run.
 3. Test on the testers' phones.
 4. **Promote to the public** by hand (below). Changes outside `app/` (pipeline, docs) never
    start a release.
@@ -37,8 +39,9 @@ See [Versions](#versions) for how releases are numbered.
   A failed release isn't tagged and is retried with the same number.
 - **For a bigger step**, add `+semver: minor` (`0.0.7` → `0.1.0`) or `+semver: major`
   (→ `1.0.0`) on its own line in the PR's squash-merge commit message.
-- **Build numbers** (Android `versionCode`, which Google Play requires to increase) are
-  separate and counted by EAS (`appVersionSource: remote`, `autoIncrement`).
+- **Version codes** (Android `versionCode`, which Google Play requires to increase with every
+  upload) are the number of commits on `main`, which only grows. Don't rewrite `main`'s
+  history once releases exist.
 
 ## Promoting a tested build to the public
 
@@ -61,14 +64,14 @@ In Google Play Console:
   14 days before they can publish to production. Check *Dashboard* in Play Console. If it
   applies, add a closed testing track and send builds there in addition to internal testing.
 
+## Testing a build without releasing
+
+*Actions → Release → Run workflow*, pick a branch, keep **Dry run** ticked. It runs the
+checks, builds and signs the bundle and attaches it to the run, but doesn't upload or tag.
+
 ## One-time setup
 
-Do these once, in order. Steps 1–5 are done on your computer, not in CI.
-
-1. **Accounts.** Expo account (free) and Google Play developer account ($25 once).
-2. **Link the project to EAS.** In `app/`: `npx eas-cli@latest login`, then
-   `npx eas-cli@latest init`. This adds `extra.eas.projectId` to `app.json`; commit that in a PR.
-3. **Create the store app.** Play Console → *Create app*, package
+1. **Create the store app** (done). Play Console → *Create app*, package
    `io.github.aurimasnav.siuksliaveze` (from the GitHub Pages address `aurimasnav.github.io`;
    it can never change after the first upload). App name **Šiukšliavežė**. Store titles, at most
    30 characters each (*Store presence → Main store listing*, per language):
@@ -80,31 +83,47 @@ Do these once, in order. Steps 1–5 are done on your computer, not in CI.
    | ru | Šiukšliavežė: вывоз отходов |
    | pl | Šiukšliavežė: wywóz odpadów |
 
-   The icon and listing should be final before this step; see [store-privacy.md](store-privacy.md).
-4. **First build, run locally**, so EAS can create the Android signing key (keystore):
-   ```sh
-   npx eas-cli@latest build --platform android --profile production
-   ```
-   EAS keeps the key on its servers; CI reuses it. You can download a backup with
-   `npx eas-cli@latest credentials --platform android`.
-5. **Submission key, stored on EAS** (so no key files live in GitHub): create a Google service
-   account with release permissions in Play Console, then
-   `npx eas-cli@latest credentials --platform android` → *Google Service Account* → upload the
-   JSON key. Run `npx eas-cli@latest submit --platform android --latest` once to submit the
-   build from step 4 and confirm it works.
-6. **Connect GitHub.**
-   - expo.dev → *Account settings → Access tokens* → create a token. Add it on GitHub:
-     *Settings → Secrets and variables → Actions → New repository secret* `EXPO_TOKEN`.
-   - Same page, *Variables* tab: add `RELEASE_ENABLED` = `true`. Until this exists, the
-     Release workflow is skipped, so merges don't fail before the setup is done.
-7. **Testers.** Play Console → *Internal testing → Testers*: create an email list, then send
+2. **Upload key** (done). A PKCS12 keystore, alias `upload`, made with `keytool` and kept
+   outside the repository, with a backup. GitHub has it as the secrets
+   `ANDROID_UPLOAD_KEYSTORE_BASE64` (the file, base64) and `ANDROID_UPLOAD_KEYSTORE_PASSWORD`
+   (password of the keystore and the key). `app/plugins/with-release-signing.js` signs release
+   builds with it. Google Play signs the published app with its own key (Play App Signing), so
+   a lost or leaked upload key can be reset: *Test and release → App integrity → App signing →
+   Request upload key reset*.
+3. **Google Play access for GitHub** (a service account):
+   1. [Google Cloud](https://console.cloud.google.com/projectcreate): create a project (any
+      name), then *IAM & Admin →
+      [Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) → Create
+      service account*. It needs no Google Cloud role. Copy its email address.
+   2. On the service account: *Keys → Add key → Create new key → JSON*. Keep the file private.
+   3. Enable the
+      [Google Play Android Developer API](https://console.cloud.google.com/apis/library/androidpublisher.googleapis.com).
+   4. Play Console → [Users and permissions](https://play.google.com/console/users-and-permissions)
+      → *Invite new users*, paste the email. On *App permissions*, add the app with: View app
+      information; Edit and delete draft apps; Release to production, exclude devices, and use
+      Play App Signing; Release apps to testing tracks; Manage testing tracks and edit tester
+      lists; Manage store presence.
+   5. GitHub → *Settings → Secrets and variables → Actions*: new repository secret
+      `PLAY_SERVICE_ACCOUNT_JSON` with the contents of the JSON file. Then delete the file.
+4. **Turn releases on:** same page, *Variables* tab, add `RELEASE_ENABLED` = `true`. Until it
+   exists, merges don't start the Release workflow.
+5. **Testers.** Play Console → *Internal testing → Testers*: create an email list, then send
    the opt-in link to the testers.
+
+### Troubleshooting
+
+- **"Only releases with status draft may be created on draft app"**: Google Play refuses
+  finished releases for an app that has never been published. Add the variable
+  `PLAY_RELEASE_STATUS` = `draft`; each upload then waits in *Internal testing* until you click
+  *Review release → Start rollout*. Delete the variable once the app is published.
+- **"APK specifies a version code that has already been used"**: that commit was already
+  uploaded; release a newer commit instead.
+- **"The caller does not have permission"**: check the service account's app permissions
+  (step 3.4). New permissions can take a few minutes to apply.
 
 ## Costs
 
 - Google Play: $25 once.
-- EAS: the free plan includes a limited number of builds per month, with lower queue
-  priority. Each release uses one Android build. Check <https://expo.dev/pricing>.
 - GitHub Actions and GitHub Pages: free for public repositories.
 
 ## Adding iOS later
@@ -112,16 +131,14 @@ Do these once, in order. Steps 1–5 are done on your computer, not in CI.
 Everything in the app already supports iOS, and developers can test on an iPhone with Expo Go
 for free. Publishing needs the Apple Developer Program ($99/year). When that's in place:
 
-1. App Store Connect → *Apps → +*, bundle ID `io.github.aurimasnav.siuksliaveze`. Put the app's
-   **Apple ID** (a number) in `app/eas.json` → `submit.production.ios.ascAppId`.
-2. Run the first iOS build locally so EAS creates the certificate and provisioning profile:
-   `npx eas-cli@latest build --platform ios --profile production`.
-3. `npx eas-cli@latest credentials --platform ios` → *App Store Connect API Key* → let EAS
-   create one.
-4. Add `ios` to the `platform` matrix in `.github/workflows/release.yml`. Merges then build
-   both platforms in parallel and send iOS builds to **TestFlight**.
-5. App Store Connect → *TestFlight → Internal Testing*: create a group, add up to 100 testers
+1. App Store Connect → *Apps → +*, bundle ID `io.github.aurimasnav.siuksliaveze`.
+2. Add an `ios` job to `.github/workflows/release.yml`, next to `android`, on a `macos-latest`
+   runner (free for public repositories): `npx expo prebuild --platform ios`, then build and
+   sign with Xcode. The signing certificate, provisioning profile and an App Store Connect API
+   key become GitHub secrets; fastlane (`match`, `pilot`) is the usual tool to sign and upload
+   to **TestFlight**. Expo's paid EAS service can do this instead, if that's simpler by then.
+3. App Store Connect → *TestFlight → Internal Testing*: create a group, add up to 100 testers
    and turn on automatic distribution.
-6. To go public: in App Store Connect, attach the tested build to a new App Store version,
+4. To go public: in App Store Connect, attach the tested build to a new App Store version,
    choose **phased release**, and submit for review.
-7. Fill in the Apple privacy answers in [store-privacy.md](store-privacy.md).
+5. Fill in the Apple privacy answers in [store-privacy.md](store-privacy.md).

@@ -76,7 +76,8 @@
           "isAndroidBackgroundLocationEnabled": false,
           "isAndroidForegroundServiceEnabled": false
         }
-      ]
+      ],
+      "./plugins/with-release-signing"
     ],
     "experiments": {
       "reactCompiler": true
