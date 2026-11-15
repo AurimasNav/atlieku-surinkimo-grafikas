@@ -1,0 +1,22 @@
+Šiukšliavežė primins vakare prieš atvažiuojant šiukšliavežei, kad daugiau nepraleistumėte atliekų išvežimo. Programėlė rodo mišrių atliekų, pakuočių ir stiklo išvežimo dienas daugiau nei 650 Vilniaus rajono kaimų ir miestelių, kuriuos aptarnauja UAB „Nemenčinės komunalininkas“: Nemenčinėje, Riešėje, Avižieniuose, Maišiagaloje, Pagiriuose, Bezdonyse, Sudervėje ir kitur.
+
+Kaip tai veikia
+• Vieną kartą pasirinkite savo kaimą ar miestelį arba leiskite programėlei surasti jūsų adresą. Jei išvežimo dienos priklauso nuo gatvės ar namo tipo, programėlė paklaus ir to.
+• Visi išvežimai vienoje vietoje: artimiausias, kiek dienų liko ir tolesnės datos.
+• Priminimas vakare prieš išvežimą arba tą rytą, jūsų pasirinktu laiku.
+• Nauji grafikai įkeliami automatiškai, todėl priminimai visada aktualūs.
+• Jūsų vietovės nėra sąraše arba konteineris ištuštinamas kitomis dienomis? Nustatykite savo grafiką: kas 1–4 savaites arba kas 1–3 mėnesius.
+• Neturite stiklo ar pakuočių konteinerio? Išjunkite jo priminimus.
+• Lietuvių, anglų, rusų ir lenkų kalbomis.
+
+Privatumas
+• Jokios paskyros, reklamos ar sekimo.
+• Viskas, ką pasirenkate, lieka jūsų telefone, o priminimus suplanuoja pats telefonas.
+• „Naudoti mano buvimo vietą“ veikia telefone; jūsų buvimo vieta niekur nesiunčiama.
+
+Nemokama ir atvirojo kodo
+Programėlė nemokama, o jos išeitinis kodas atviras (Apache 2.0) ir skelbiamas GitHub: github.com/AurimasNav/atlieku-surinkimo-grafikas. Pastebėjote klaidingas datas ar trūksta adreso? Praneškite tiesiai iš programėlės.
+
+Grafikai imami iš nemenkom.lt skelbiamų failų, kurie tikrinami kasdien. Gyvenviečių ir gatvių pavadinimai paimti iš VĮ Registrų centro Adresų registro (atvirieji duomenys).
+
+Neoficiali savanorių sukurta programėlė, nesusijusi su UAB „Nemenčinės komunalininkas“. Datos paimtos iš jų skelbiamų grafikų nemenkom.lt ir gali turėti klaidų; kilus abejonių, pasitikrinkite oficialų grafiką. Teikiama nemokamai, be jokių garantijų.

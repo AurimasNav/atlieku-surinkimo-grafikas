@@ -17,3 +17,7 @@ Thumbs.db
 
 # Local copy of pipeline output for testing the app
 .local-site/
+
+# Store graphics tools: dependencies and raw emulator screenshots
+fastlane/tools/node_modules/
+fastlane/tools/raw/
