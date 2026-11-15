@@ -9,6 +9,7 @@ import { AppText, Button, ListRow, PressableScale, ScreenHeader, SearchField } f
 import { type GeolocateResult, locateHome } from '@/lib/geolocate';
 import { searchLocations } from '@/lib/schedule';
 import { nextSetupStep } from '@/lib/setup-flow';
+import { useMotion } from '@/lib/motion';
 import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
 import { fonts, radius, spacing, useTheme } from '@/theme';
@@ -16,6 +17,7 @@ import { fonts, radius, spacing, useTheme } from '@/theme';
 const MAX_RESULTS = 50;
 
 export default function ChooseLocation() {
+  const motion = useMotion();
   const { t } = useTranslation();
   const theme = useTheme();
   const { data, error, refresh } = useSchedule();
@@ -56,7 +58,7 @@ export default function ChooseLocation() {
   const gpsCard = (
     <View style={styles.gps}>
       {found && foundLocation ? (
-        <Animated.View entering={FadeInDown.duration(300)} style={[styles.found, { backgroundColor: theme.surface, borderColor: theme.primary }]}>
+        <Animated.View entering={motion(FadeInDown.duration(300))} style={[styles.found, { backgroundColor: theme.surface, borderColor: theme.primary }]}>
           <AppText variant="overline" style={{ color: theme.primary }}>
             {t('setup.foundTitle')}
           </AppText>
@@ -101,7 +103,7 @@ export default function ChooseLocation() {
         </PressableScale>
       )}
       {gps && !gps.ok && (
-        <Animated.View entering={FadeIn.duration(200)}>
+        <Animated.View entering={motion(FadeIn.duration(200))}>
           <AppText variant="caption" style={{ color: theme.warning, fontFamily: fonts.medium }}>
             {
               {
@@ -144,7 +146,7 @@ export default function ChooseLocation() {
             </View>
           }
           renderItem={({ item }) => (
-            <Animated.View entering={FadeIn.duration(180)}>
+            <Animated.View entering={motion(FadeIn.duration(180))}>
               <ListRow
                 title={item.name}
                 subtitle={`${item.district} sen. · ${item.type}`}

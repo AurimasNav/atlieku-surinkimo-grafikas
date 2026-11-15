@@ -16,6 +16,7 @@ import { formatTime, useDateFormat } from '@/lib/format';
 import { hasNotificationPermission } from '@/lib/notifications';
 import { type Pickup, upcomingPickups } from '@/lib/reminders';
 import { pendingKinds, resolvePlace } from '@/lib/resolve';
+import { useMotion } from '@/lib/motion';
 import { WASTE_KINDS, type WasteKind } from '@/lib/schedule';
 import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
@@ -26,6 +27,7 @@ type Filter = 'all' | WasteKind;
 const UPCOMING_LIMIT = 30;
 
 export default function Home() {
+  const motion = useMotion();
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -187,7 +189,7 @@ export default function Home() {
 
             {/* Hero: the next pickup */}
             {next ? (
-              <Animated.View key={`${filter}-${next.date}`} entering={FadeIn.duration(350)}>
+              <Animated.View key={`${filter}-${next.date}`} entering={motion(FadeIn.duration(350))}>
                 <LinearGradient
                   colors={theme.dark ? ['#11402C', '#0A2A1D'] : ['#0F6B47', '#0A4A31']}
                   start={{ x: 0, y: 0 }}
@@ -240,7 +242,7 @@ export default function Home() {
 
             {/* Timeline */}
             {months.map((month) => (
-              <Animated.View key={`${filter}-${month.key}`} layout={LinearTransition.springify()} style={styles.month}>
+              <Animated.View key={`${filter}-${month.key}`} layout={motion(LinearTransition.springify())} style={styles.month}>
                 <AppText variant="overline" muted style={styles.monthTitle}>
                   {month.label}
                 </AppText>
@@ -248,7 +250,7 @@ export default function Home() {
                   {month.items.map((pickup, index) => (
                     <Animated.View
                       key={pickup.date}
-                      entering={FadeInDown.delay(Math.min(index, 8) * 35).duration(320)}
+                      entering={motion(FadeInDown.delay(Math.min(index, 8) * 35).duration(320))}
                       style={[
                         styles.item,
                         index > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },

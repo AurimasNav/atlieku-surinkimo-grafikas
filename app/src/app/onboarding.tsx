@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText, Button } from '@/components/ui';
 import { LANGUAGE_NAMES, LANGUAGES, type Language, resolveLanguage } from '@/i18n';
+import { useMotion } from '@/lib/motion';
 import { WASTE_KINDS } from '@/lib/schedule';
 import { useSettings } from '@/store/settings';
 import { fonts, kindIcons, kindPalette, radius, spacing } from '@/theme';
@@ -21,6 +22,7 @@ const FEATURES = [
 ] as const;
 
 export default function Welcome() {
+  const motion = useMotion();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const language = useSettings((s) => s.language);
@@ -51,7 +53,7 @@ export default function Welcome() {
           <Ionicons name={languagesOpen ? 'chevron-up' : 'chevron-down'} size={14} color="#FFFFFF" />
         </Pressable>
         {languagesOpen && (
-          <Animated.View entering={FadeInDown.duration(200)} style={styles.languageList}>
+          <Animated.View entering={motion(FadeInDown.duration(200))} style={styles.languageList}>
             {options.map((code) => {
               const selected = code === language;
               return (
@@ -75,7 +77,7 @@ export default function Welcome() {
       </View>
 
       {/* Three container tiles: a playful nod to the three bins the app tracks. */}
-      <Animated.View entering={FadeInDown.duration(500)} style={styles.tiles}>
+      <Animated.View entering={motion(FadeInDown.duration(500))} style={styles.tiles}>
         {WASTE_KINDS.map((kind, i) => (
           <View
             key={kind}
@@ -89,7 +91,7 @@ export default function Welcome() {
       </Animated.View>
 
       <View style={styles.body}>
-        <Animated.View entering={FadeInDown.delay(120).duration(500)}>
+        <Animated.View entering={motion(FadeInDown.delay(120).duration(500))}>
           <AppText variant="display" style={styles.title}>
             {t('onboarding.title')}
           </AppText>
@@ -98,7 +100,7 @@ export default function Welcome() {
 
         <View style={styles.features}>
           {FEATURES.map(([icon, key], i) => (
-            <Animated.View key={key} entering={FadeInDown.delay(240 + i * 80).duration(450)} style={styles.feature}>
+            <Animated.View key={key} entering={motion(FadeInDown.delay(240 + i * 80).duration(450))} style={styles.feature}>
               <View style={styles.featureIcon}>
                 <Ionicons name={icon} size={18} color="#C8F169" />
               </View>
@@ -110,7 +112,7 @@ export default function Welcome() {
         </View>
       </View>
 
-      <Animated.View entering={FadeInDown.delay(520).duration(450)} style={styles.footer}>
+      <Animated.View entering={motion(FadeInDown.delay(520).duration(450))} style={styles.footer}>
         <Button variant="inverse" title={t('onboarding.start')} icon="arrow-forward" onPress={() => router.push('/setup/location')} />
         <AppText variant="caption" style={styles.disclaimer}>
           {t('onboarding.disclaimer')}
