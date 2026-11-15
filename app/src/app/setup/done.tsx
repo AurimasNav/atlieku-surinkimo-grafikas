@@ -11,12 +11,14 @@ import { toIsoDate } from '@/lib/dates';
 import { useDateFormat } from '@/lib/format';
 import { requestNotificationPermission } from '@/lib/notifications';
 import { type KindStatus, resolvePlace } from '@/lib/resolve';
+import { useMotion } from '@/lib/motion';
 import { WASTE_KINDS } from '@/lib/schedule';
 import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
 import { spacing, useTheme } from '@/theme';
 
 export default function SetupDone() {
+  const motion = useMotion();
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -54,7 +56,7 @@ export default function SetupDone() {
               const status = resolved.kinds[kind];
               const active = status.status === 'ok';
               return (
-                <Animated.View key={kind} entering={FadeInDown.delay(i * 90).duration(400)}>
+                <Animated.View key={kind} entering={motion(FadeInDown.delay(i * 90).duration(400))}>
                   <PressableScale
                     haptic="select"
                     accessibilityRole="button"
