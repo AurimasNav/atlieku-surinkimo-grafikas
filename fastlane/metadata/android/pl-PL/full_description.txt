@@ -1,0 +1,22 @@
+Šiukšliavežė przypomni wieczorem dzień wcześniej, że przyjedzie śmieciarka, więc już nie przegapisz odbioru odpadów. Aplikacja pokazuje dni odbioru odpadów zmieszanych, opakowań i szkła w ponad 650 wsiach i miasteczkach rejonu wileńskiego obsługiwanych przez UAB „Nemenčinės komunalininkas“, m.in. w Niemenczynie, Rzeszy, Awiżeniach, Mejszagole, Bezdanach, Suderwie i Podbrzeziu. W aplikacji miejscowości mają oficjalne litewskie nazwy (np. Nemenčinė, Riešė).
+
+Jak to działa
+• Raz wybierz swoją wieś lub miasteczko albo pozwól aplikacji znaleźć Twój adres. Jeśli dni odbioru zależą od ulicy lub rodzaju domu, aplikacja o to zapyta.
+• Wszystkie odbiory w jednym miejscu: najbliższy, ile dni zostało i kolejne daty.
+• Przypomnienie wieczorem dzień wcześniej albo rano w dniu odbioru, o wybranej godzinie.
+• Nowe harmonogramy wczytują się automatycznie, więc przypomnienia są zawsze aktualne.
+• Nie ma Twojej miejscowości albo pojemnik jest opróżniany w inne dni? Ustaw własny harmonogram: co 1–4 tygodnie lub co 1–3 miesiące.
+• Nie masz pojemnika na szkło lub opakowania? Wyłącz jego przypomnienia.
+• Po litewsku, angielsku, rosyjsku i polsku.
+
+Prywatność
+• Bez konta, reklam i śledzenia.
+• Wszystko, co wybierzesz, zostaje na telefonie, a przypomnienia planuje sam telefon.
+• „Użyj mojej lokalizacji” działa na telefonie; Twoja lokalizacja nigdzie nie jest wysyłana.
+
+Bezpłatna i open source
+Aplikacja jest bezpłatna, a jej kod źródłowy jest otwarty (Apache 2.0) i dostępny na GitHubie: github.com/AurimasNav/atlieku-surinkimo-grafikas. Widzisz błędne daty albo brakuje adresu? Zgłoś to prosto z aplikacji.
+
+Harmonogramy pochodzą z plików publikowanych na nemenkom.lt, które są sprawdzane codziennie. Nazwy miejscowości i ulic pochodzą z Rejestru Adresów VĮ Registrų centras (otwarte dane).
+
+Nieoficjalna aplikacja stworzona przez wolontariuszy, niepowiązana z UAB „Nemenčinės komunalininkas“. Daty pochodzą z harmonogramów publikowanych na nemenkom.lt i mogą zawierać błędy; w razie wątpliwości sprawdź oficjalny harmonogram. Udostępniana bezpłatnie, bez żadnych gwarancji.

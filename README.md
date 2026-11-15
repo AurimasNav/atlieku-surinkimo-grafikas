@@ -25,6 +25,7 @@ Available in Lithuanian, English, Russian and Polish.
 | [`pipeline/`](pipeline) | Python scraper and parsers that produce `schedule.json` |
 | [`site/`](site) | Static GitHub Pages site (data, privacy policy) |
 | [`docs/`](docs) | [Release process](docs/releasing.md), app store privacy answers |
+| [`fastlane/`](fastlane) | Google Play store listing: texts and graphics in every language |
 
 ## AI-assisted development
 
