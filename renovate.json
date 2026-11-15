@@ -1,0 +1,20 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "timezone": "Europe/Vilnius",
+  "packageRules": [
+    {
+      "description": "Pinned by the Expo SDK: they change together with an SDK upgrade (npx expo install expo@<next> --fix, see app/AGENTS.md), never one by one; a lone update fails the App check. Listed on the Dependency Dashboard so you can see what is newer.",
+      "matchFileNames": ["app/package.json"],
+      "matchPackageNames": ["react", "react-dom", "react-native", "react-native-*", "@types/react", "typescript", "jest", "@types/jest"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "A new Expo SDK (major version) is an upgrade done by hand. Patch releases within the SDK come as normal pull requests.",
+      "matchFileNames": ["app/package.json"],
+      "matchPackageNames": ["expo", "expo-*", "@expo/*", "jest-expo", "eslint-config-expo"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}
