@@ -19,9 +19,11 @@ on:
 permissions:
   contents: read
 
+# Deploys queue one at a time. PR checks get a queue per PR (a newer push replaces an older
+# check), so they can't cancel each other or wait for a deploy.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
