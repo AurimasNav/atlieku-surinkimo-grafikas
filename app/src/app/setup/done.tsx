@@ -32,7 +32,8 @@ export default function SetupDone() {
     if (status.status !== 'ok')
       return status.status === 'none' && status.skipped ? t('setup.skipped') : t('setup.notCollected');
     const next = status.area.dates.find((d) => d >= today);
-    return next ? t('setup.nextOn', { date: date.long(next) }) : t('setup.noDates');
+    if (next) return t('setup.nextOn', { date: date.long(next) });
+    return status.area.note ? t('setup.noDates') : t('setup.nextNotAnnounced');
   };
 
   const finish = async () => {

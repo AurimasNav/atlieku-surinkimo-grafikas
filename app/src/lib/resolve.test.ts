@@ -22,6 +22,8 @@ const areas = [
   area('p-2', 'packaging'),
   area('g-old', 'glass', { dates: ['2026-09-29'] }),
   area('g-1', 'glass'),
+  // Newest quarter, but this place's pickup has already happened.
+  area('g-between', 'glass', { dates: ['2026-10-05'], current: true }),
 ];
 
 const locations: Location[] = [
@@ -52,6 +54,13 @@ const locations: Location[] = [
     type: 'mstl.',
     district: 'Maišiagalos',
     schedule: { household: { candidates: ['h-house', 'h-flat'] }, glass: { area: 'g-old' } },
+  },
+  {
+    id: 'g4',
+    name: 'Arvydai',
+    type: 'k.',
+    district: 'Bezdonių',
+    schedule: { glass: { area: 'g-between' } },
   },
 ];
 
@@ -100,6 +109,12 @@ describe('resolvePlace', () => {
     expect(r.kinds.glass).toEqual({ status: 'none' });
   });
 
+  it('keeps a current row between pickups', () => {
+    const r = resolvePlace(data, { locationId: 'g4', choices: {} }, today);
+    expect(r.kinds.glass).toMatchObject({ status: 'ok', area: { id: 'g-between' } });
+    expect(pendingKinds(r)).toEqual([]);
+  });
+
   it('respects "I don\'t have this container"', () => {
     const r = resolvePlace(data, { locationId: 'g1', choices: { packaging: null } }, today);
     expect(r.kinds.packaging).toEqual({ status: 'none', skipped: true });
@@ -125,7 +140,7 @@ describe('search', () => {
   });
 
   it('hides outdated rows in the manual row picker', () => {
-    expect(searchAreas(areas, 'glass', '', today).map((a) => a.id)).toEqual(['g-1']);
+    expect(searchAreas(areas, 'glass', '', today).map((a) => a.id)).toEqual(['g-1', 'g-between']);
   });
 });
 

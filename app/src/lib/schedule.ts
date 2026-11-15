@@ -15,6 +15,11 @@ export type Area = {
   note?: string;
   /** ISO dates, YYYY-MM-DD, sorted. */
   dates: string[];
+  /**
+   * Part of the newest published schedule for its kind, even when its dates have passed: glass
+   * is collected once a quarter, so between pickups the next date isn't known yet.
+   */
+  current?: boolean;
 };
 
 /** How one schedule covers a location. See pipeline/src/schedule_pipeline/locations.py. */
@@ -83,7 +88,7 @@ export function normalizeForSearch(text: string): string {
  * Rows from an earlier schedule period stay in the data for a while but shouldn't be offered.
  */
 export function isCurrent(area: Area, today: string): boolean {
-  return Boolean(area.note) || (area.dates.at(-1) ?? '') >= today;
+  return Boolean(area.note) || Boolean(area.current) || (area.dates.at(-1) ?? '') >= today;
 }
 
 function queryWords(query: string): string[] {
