@@ -53,10 +53,10 @@ jobs:
       - run: npm ci
       - run: npm run check
 
-  # GitVersion counts the version from the history (GitVersion.yml, trunk-based): every commit
-  # on main gets the next one by itself, so nothing is tagged. Tagging after the upload made a
-  # waiting release's tag push fail once a later merge had changed a workflow file, and the
-  # next release then reused 0.0.6.
+  # GitVersion counts the commits on main from the first one (GitVersion.yml): every commit gets
+  # the next version by itself, so nothing is tagged. Tagging after the upload made a waiting
+  # release's tag push fail once a later merge had changed a workflow file, and the next
+  # release then reused 0.0.6.
   version:
     needs: checks
     runs-on: ubuntu-latest

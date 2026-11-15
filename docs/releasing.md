@@ -47,17 +47,17 @@ See [Versions](#versions) for how releases are numbered.
   calculated by [GitVersion](https://gitversion.net) from the git history (`GitVersion.yml`).
   The Release workflow writes it into the build; `expo.version` in `app/app.json` is only what
   local development builds show.
-- **GitVersion counts by itself** (trunk-based): every commit on `main` gets the next patch
-  version, so every build has its own version without tagging anything. Numbers skip (e.g.
-  `0.0.7` → `0.0.10`), because each commit of a merged PR counts and merges that don't change
-  the app count too. Re-running a release of the same commit gives the same version.
-- **Keep the tags `v0.0.1` to `v0.0.7`.** They were made while releases were still tagged, and
-  the counting starts from them; without tags GitVersion would start again at `1.0.0`.
-  Releases no longer tag: GitHub's workflow token couldn't push a tag for a release that had
-  waited behind another one while a later merge changed a workflow file, and the next release
-  then reused 0.0.6.
-- **For a bigger step**, add `+semver: minor` (`0.0.13` → `0.1.0`) or `+semver: major`
-  (→ `1.0.0`) on its own line in the PR's merge commit message.
+- **GitVersion counts the commits** on `main` from the first one (trunk-based): every commit
+  gets the next patch version, so every build has its own version. Numbers skip, because each
+  commit of a merged PR counts and merges that don't change the app count too. Re-running a
+  release of the same commit gives the same version.
+- **No tags.** Releases used to be tagged and the next version counted on from the tag; a tag
+  GitHub's workflow token couldn't push (a release that had waited behind another one while a
+  later merge changed a workflow file) made two builds share 0.0.6. The old tags were deleted,
+  and a new `v…` tag would change the counting, so don't create any.
+- **For a bigger step**, put `+semver: minor` (`0.0.38` → `0.1.0`) or `+semver: major`
+  (→ `1.0.0`) on its own line in the **merge commit message** when merging the PR (GitHub's
+  *Merge pull request* → edit the message). Only merge commit messages are read.
 - **Releases upload one at a time.** If several merges are waiting, the newest one replaces the
   older waiting ones; testers only need the newest build.
 - To see the version of the current commit: `gitversion /showvariable MajorMinorPatch`
