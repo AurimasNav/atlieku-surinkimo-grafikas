@@ -25,6 +25,13 @@ jobs:
           cache: npm
           cache-dependency-path: app/package-lock.json
       - run: npm ci
+      # Native packages must match the installed Expo SDK; a lone react-native or reanimated
+      # bump would build and then crash. Offline, so a new Expo patch release doesn't fail
+      # unrelated pull requests.
+      - name: Check native package versions against the Expo SDK
+        run: npx expo install --check
+        env:
+          EXPO_OFFLINE: "1"
       - run: npm run i18n:check
       - run: npm run issue-forms:check
       - run: npm run typecheck

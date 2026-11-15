@@ -1,0 +1,48 @@
+name: App Android build
+
+# Builds the Android release app for every pull request that changes the app, the same way the
+# Release workflow does, so native breakage (dependency updates, Expo SDK upgrades, config
+# plugins, code shrinking) shows up before the merge instead of in the release.
+# The APK is signed with the debug key and attached to the run for testing on a phone or
+# emulator (uninstall a Google Play copy first: the signatures differ).
+on:
+  pull_request:
+    paths: ["app/**", ".github/workflows/app-android.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v6
+      - run: npm ci
+      - name: Generate the Android project
+        run: npx expo prebuild --platform android --no-install
+      - name: Build the release APK
+        working-directory: app/android
+        run: ./gradlew assembleRelease
+      - uses: actions/upload-artifact@v7
+        with:
+          name: siuksliaveze-${{ github.event.pull_request.number || github.ref_name }}-apk
+          path: app/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 14

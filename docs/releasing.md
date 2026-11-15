@@ -16,7 +16,10 @@ feature branch ──PR──▶ main ──▶ Release workflow (GitHub Actions
 ```
 
 1. Work on a branch and open a PR against `main`. CI (`App / check`, `Schedule data / build`)
-   must pass before merging; `main` can't be pushed to directly.
+   must pass before merging; `main` can't be pushed to directly. PRs that change `app/` also
+   get **App Android build** (about 20 minutes): the release build without the upload key, so
+   native problems show up before the merge. Wait for it too. Its APK (run → *Artifacts*)
+   installs on a phone or emulator; uninstall the Google Play copy first, the signatures differ.
 2. Merging a PR that changes `app/` starts the **Release** workflow. It runs the checks again,
    builds and signs the Android App Bundle on GitHub Actions (about 20 minutes) and uploads it
    to the **Google Play *Internal testing* track**. Only the testers on your list get it,

@@ -54,6 +54,5 @@ languages stay consistent. Run `npm ci` in `app/` (for the font) and in `fastlan
   `images/phoneScreenshots/`.
 
 Retake the screenshots when a screen in them changes. To install a release build on the
-emulator, turn the bundle from the Release workflow's artifacts into an APK with
-[bundletool](https://github.com/google/bundletool)
-(`build-apks --mode=universal`, signed with any throwaway key) and `adb install` it.
+emulator, download the APK from the pull request's **App Android build** run (*Artifacts*) and
+`adb install` it.
