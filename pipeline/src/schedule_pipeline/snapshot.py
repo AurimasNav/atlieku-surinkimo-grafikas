@@ -24,6 +24,10 @@ from .registry import Registry
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 REGISTRY_FILE = DATA_DIR / "registry-vilniaus-r.json"
 ADDRESSES_FILE = DATA_DIR / "address-points-vilniaus-r.json"
+# Kauno r. (schedule_pipeline.svara): only used to give its addresses coordinates.
+KAUNO_MUNICIPALITY = ("Kauno rajono", 52)
+KAUNO_REGISTRY_FILE = DATA_DIR / "registry-kauno-r.json"
+KAUNO_ADDRESSES_FILE = DATA_DIR / "address-points-kauno-r.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -35,11 +39,16 @@ def _write(path: Path, payload: dict) -> None:
     )
 
 
-def save(registry: Registry, points: list[AddressPoint]) -> None:
+def save(
+    registry: Registry,
+    points: list[AddressPoint],
+    registry_file: Path = REGISTRY_FILE,
+    addresses_file: Path = ADDRESSES_FILE,
+) -> None:
     taken = datetime.now(UTC).date().isoformat()
-    _write(REGISTRY_FILE, {"takenAt": taken, **registry.to_json()})
+    _write(registry_file, {"takenAt": taken, **registry.to_json()})
     _write(
-        ADDRESSES_FILE,
+        addresses_file,
         {
             "takenAt": taken,
             # [settlement code, street code or 0, house number, lat * 1e6, lon * 1e6]
@@ -74,7 +83,12 @@ def main() -> int:
     points = address_points.fetch()
     save(registry, points)
     count = f"{len(registry.settlements)} settlements and {len(points)} address points"
-    print(f"Saved {count} to {DATA_DIR}")
+    print(f"Vilniaus r.: saved {count} to {DATA_DIR}")
+    name, code = KAUNO_MUNICIPALITY
+    registry, points = address_register.fetch(name), address_points.fetch(code)
+    save(registry, points, KAUNO_REGISTRY_FILE, KAUNO_ADDRESSES_FILE)
+    count = f"{len(registry.settlements)} settlements and {len(points)} address points"
+    print(f"Kauno r.: saved {count} to {DATA_DIR}")
     return 0
 
 

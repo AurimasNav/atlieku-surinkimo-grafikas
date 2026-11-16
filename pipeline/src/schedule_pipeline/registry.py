@@ -100,12 +100,13 @@ def _get_all(path: str, query: str) -> list[dict]:
             return rows
 
 
-def fetch() -> Registry:
-    """Downloads the current settlements and streets of Vilnius district (a few seconds)."""
+def fetch(municipality_name: str = MUNICIPALITY) -> Registry:
+    """Downloads the current settlements and streets of a municipality (Vilnius district by
+    default; a few seconds)."""
     municipality = next(
         m
         for m in _get_all("savivaldybe/Savivaldybe", "select(_id,pavadinimas)&limit(1000)")
-        if m["pavadinimas"] == MUNICIPALITY
+        if m["pavadinimas"] == municipality_name
     )
     by_municipality = f"savivaldybe._id=%22{municipality['_id']}%22&limit(10000)"
     districts = {
