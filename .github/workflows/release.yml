@@ -151,7 +151,10 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: siuksliaveze-${{ env.VERSION }}-${{ env.VERSION_CODE }}
-          path: app/android/app/build/outputs/bundle/release/app-release.aab
+          # The mapping file turns R8's shortened names in stack traces back into readable ones.
+          path: |
+            app/android/app/build/outputs/bundle/release/app-release.aab
+            app/android/app/build/outputs/mapping/release/mapping.txt
           retention-days: 30
       - name: Upload to Google Play (internal testing)
         if: env.PUBLISH == 'true'
@@ -160,6 +163,8 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ env.PACKAGE_NAME }}
           releaseFiles: app/android/app/build/outputs/bundle/release/app-release.aab
+          # So crash reports in Play Console show readable stack traces despite R8.
+          mappingFile: app/android/app/build/outputs/mapping/release/mapping.txt
           releaseName: ${{ env.VERSION }} (${{ env.VERSION_CODE }})
           track: internal
           # "draft" while Google Play refuses completed releases for an app that was never
