@@ -19,7 +19,6 @@ from .registry import ATTRIBUTION, Registry
 
 FILES = "https://www.registrucentras.lt/aduomenys/?byla="
 MUNICIPALITY_CODE = 41  # Vilniaus rajono savivaldybė
-POINTS_FILE = f"adr_gra_{MUNICIPALITY_CODE}.json"
 NUMBERS_FILE = "adr_stat_lr.csv"  # whole country; filtered to the municipality while reading
 
 
@@ -37,11 +36,13 @@ def _download(name: str) -> bytes:
     return http.get(FILES + name, timeout=300, user_agent="Mozilla/5.0")
 
 
-def parse(points_geojson: bytes, numbers_csv: bytes) -> list[AddressPoint]:
+def parse(
+    points_geojson: bytes, numbers_csv: bytes, municipality_code: int = MUNICIPALITY_CODE
+) -> list[AddressPoint]:
     numbers: dict[int, str] = {}
     reader = csv.DictReader(io.StringIO(numbers_csv.decode("utf-8")), delimiter="|")
     for row in reader:
-        if row["SAV_KODAS"] != str(MUNICIPALITY_CODE):
+        if row["SAV_KODAS"] != str(municipality_code):
             continue
         number = row["NR"] + (f"-{row['KORPUSO_NR']}" if row["KORPUSO_NR"] else "")
         numbers[int(row["AOB_KODAS"])] = number
@@ -63,8 +64,9 @@ def parse(points_geojson: bytes, numbers_csv: bytes) -> list[AddressPoint]:
     return points
 
 
-def fetch() -> list[AddressPoint]:
-    return parse(_download(POINTS_FILE), _download(NUMBERS_FILE))
+def fetch(municipality_code: int = MUNICIPALITY_CODE) -> list[AddressPoint]:
+    points = _download(f"adr_gra_{municipality_code}.json")
+    return parse(points, _download(NUMBERS_FILE), municipality_code)
 
 
 def build_addresses(
