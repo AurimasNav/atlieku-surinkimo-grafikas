@@ -41,7 +41,8 @@ class Clause:
     """One row's statement about one settlement."""
 
     area_id: str
-    streets: set[str] | None  # street keys this row covers; None = the whole settlement
+    # Street keys this row covers; None = the whole settlement; empty = some streets, unrecognised.
+    streets: set[str] | None
     fallback: bool = False  # from "<X> sen. kaimai": less specific than a named settlement
 
 
@@ -131,9 +132,17 @@ def variant_key(label: str) -> str:
 
 
 def streets_in(text: str, settlement: Settlement) -> set[str]:
-    """Official street names of `settlement` that appear in `text`."""
+    """Official street names of `settlement` that appear in `text`, also when the schedule
+    shortens a first name to its initial: "J.Bulhako g." is "Jano Bulhako g."."""
     folded = f" {fold(text)} "
-    return {street_key(t) for t in settlement.streets if f" {fold(t.name)} " in folded}
+
+    def mentioned(name: str) -> bool:
+        words = fold(name).split()
+        if f" {' '.join(words)} " in folded:
+            return True
+        return len(words) > 1 and f" {words[0][0]} {' '.join(words[1:])} " in folded
+
+    return {street_key(t) for t in settlement.streets if mentioned(t.name)}
 
 
 def household_clauses(
@@ -207,7 +216,12 @@ def listed_clauses(index: Index, area: Area) -> tuple[list[tuple[Settlement, Cla
             end = next((s for s in starts if s > m.start()), len(text))
             tail = text[m.end() : end]
             streets = streets_in(tail, settlement)
-            clauses.append((settlement, Clause(area.id, streets or None)))
+            # "X k. tik <streets we don't recognise>" still covers only part of X: an empty set,
+            # so it can't pass for the row of the whole settlement.
+            restricted = bool(re.search(r"\btik\b", tail, re.I))
+            clauses.append(
+                (settlement, Clause(area.id, streets or (set() if restricted else None)))
+            )
     return clauses, whole_districts
 
 
@@ -222,6 +236,8 @@ def resolve(clauses: list[Clause]) -> dict | None:
         for key in c.streets or ():
             by_street[key].add(c.area_id)
     fallback = sorted({c.area_id for c in clauses if c.fallback})
+    # Rows limited to streets we couldn't recognise: better than nothing if no other row applies.
+    unknown = sorted({c.area_id for c in named if c.streets is not None and not c.streets})
 
     result: dict = {}
     if by_street:
@@ -234,6 +250,10 @@ def resolve(clauses: list[Clause]) -> dict | None:
         result["area"] = fallback[0]
     elif len(fallback) > 1:
         result["candidates"] = fallback
+    elif not by_street and len(unknown) == 1:
+        result["area"] = unknown[0]
+    elif not by_street and len(unknown) > 1:
+        result["candidates"] = unknown
     return result or None
 
 
