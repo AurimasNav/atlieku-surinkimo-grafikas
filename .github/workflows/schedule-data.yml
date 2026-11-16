@@ -57,6 +57,7 @@ jobs:
             for id in $(python3 -c "import json, sys; print(' '.join(e['id'] for e in json.load(open(sys.argv[1], encoding='utf-8'))['elderships']))" "$out/schedule.json"); do
               curl -fsS "$base/addresses/$id.json" -o "$out/addresses/$id.json"
             done
+            curl -fsS "$base/points.json" -o "$out/points.json" || true
             echo "::warning::The Kauno r. build failed; yesterday's published data is kept."
           else
             rm -rf "$out"
