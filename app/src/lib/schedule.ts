@@ -95,6 +95,15 @@ function queryWords(query: string): string[] {
   return normalizeForSearch(query).split(/\s+/).filter(Boolean);
 }
 
+/**
+ * Search results in Lithuanian alphabetical order (Š after S, Ž last), the names that start with
+ * the first query word first: "riese" -> "Riešė" before "Didžioji Riešė".
+ */
+function byName<T extends { name: string }>(firstWord: string | undefined) {
+  const startsWith = (item: T) => (firstWord ? normalizeForSearch(item.name).startsWith(firstWord) : false);
+  return (a: T, b: T) => Number(startsWith(b)) - Number(startsWith(a)) || a.name.localeCompare(b.name, 'lt');
+}
+
 export function searchLocations(locations: Location[], query: string): Location[] {
   const words = queryWords(query);
   if (!words.length) return [];
@@ -102,21 +111,17 @@ export function searchLocations(locations: Location[], query: string): Location[
     const haystack = normalizeForSearch(`${loc.name} ${loc.district}`);
     return words.every((word) => haystack.includes(word));
   });
-  // Names that start with the query first: "riese" -> "Riešė" before "Didžioji Riešė".
-  const first = words[0];
-  return matches.sort(
-    (a, b) =>
-      Number(!normalizeForSearch(a.name).startsWith(first)) - Number(!normalizeForSearch(b.name).startsWith(first)) ||
-      a.name.localeCompare(b.name, 'lt'),
-  );
+  return matches.sort(byName(words[0]));
 }
 
+/** Rows for the manual row picker: current rows of one kind, alphabetical like the place search. */
 export function searchAreas(areas: Area[], kind: WasteKind, query: string, today: string): Area[] {
   const words = queryWords(query);
-  return areas.filter((area) => {
+  const matches = areas.filter((area) => {
     if (area.kind !== kind || !isCurrent(area, today)) return false;
     if (!words.length) return true;
     const haystack = normalizeForSearch(`${area.district ?? ''} ${area.name}`);
     return words.every((word) => haystack.includes(word));
   });
+  return matches.sort(byName(words[0]));
 }
