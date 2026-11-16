@@ -40,6 +40,28 @@ jobs:
       - name: Build schedule.json from the live website
         if: github.event_name != 'pull_request'
         run: uv run python -m schedule_pipeline --out ../site/schedule.json
+      # A second provider with its own source: its failure must not hold back the Nemenčinė
+      # data, so on failure the files published yesterday are kept instead.
+      - name: Build the Kauno r. schedule (Kauno švara)
+        id: kauno
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: uv run python -m schedule_pipeline.svara --out ../site/kauno-r
+      - name: Keep the published Kauno r. data if today's build failed
+        if: steps.kauno.outcome == 'failure'
+        run: |
+          base=https://aurimasnav.github.io/atlieku-surinkimo-grafikas/kauno-r
+          out=../site/kauno-r
+          rm -rf "$out" && mkdir -p "$out/addresses"
+          if curl -fsS "$base/schedule.json" -o "$out/schedule.json"; then
+            for id in $(python3 -c "import json, sys; print(' '.join(e['id'] for e in json.load(open(sys.argv[1], encoding='utf-8'))['elderships']))" "$out/schedule.json"); do
+              curl -fsS "$base/addresses/$id.json" -o "$out/addresses/$id.json"
+            done
+            echo "::warning::The Kauno r. build failed; yesterday's published data is kept."
+          else
+            rm -rf "$out"
+            echo "::warning::The Kauno r. build failed and there is no published data to keep."
+          fi
       - name: Render privacy policy
         if: github.event_name != 'pull_request'
         run: uv run python -m schedule_pipeline.site ../PRIVACY.md --out ../site/privacy/index.html --title "Privacy Policy / Privatumo politika"

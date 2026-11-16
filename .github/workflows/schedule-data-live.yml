@@ -28,6 +28,8 @@ jobs:
       - run: uv sync --locked
       - name: Build schedule.json from the live website
         run: uv run python -m schedule_pipeline --out "$RUNNER_TEMP/site/schedule.json"
+      - name: Build the Kauno r. schedule from Kauno švara's open-data file
+        run: uv run python -m schedule_pipeline.svara --out "$RUNNER_TEMP/site/kauno-r"
       - name: Compare with the published data
         run: |
           curl -fsSL https://aurimasnav.github.io/atlieku-surinkimo-grafikas/schedule.json -o "$RUNNER_TEMP/published.json"
