@@ -24,7 +24,7 @@ Available in Lithuanian, English, Russian and Polish.
 | [`app/`](app) | Expo / React Native app (TypeScript, Expo Router, i18next) |
 | [`pipeline/`](pipeline) | Python scraper and parsers that produce `schedule.json` |
 | [`site/`](site) | Static GitHub Pages site (data, privacy policy) |
-| [`docs/`](docs) | [Release process](docs/releasing.md), app store privacy answers |
+| [`docs/`](docs) | [Release process](docs/releasing.md), app store privacy answers, [monitoring the data](docs/monitoring.md) |
 | [`fastlane/`](fastlane) | Google Play store listing: texts and graphics in every language |
 
 ## AI-assisted development

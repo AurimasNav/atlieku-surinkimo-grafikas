@@ -2,6 +2,8 @@
 site/schedule.json
 site/addresses.json
 site/kauno-r/
+site/status.json
+site/metrics.txt
 site/privacy/
 
 # Python

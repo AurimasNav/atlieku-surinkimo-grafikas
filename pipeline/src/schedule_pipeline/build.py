@@ -212,6 +212,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Validation failed: {error}", file=sys.stderr)
         return 1
 
+    notes = [n for n in (registry_note, points_note) if n]
+    # For monitoring (status.py): a growing number usually means a new typo in the source.
+    dataset["warnings"] = len(warnings)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
         json.dumps(dataset, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
@@ -220,7 +223,7 @@ def main(argv: list[str] | None = None) -> int:
     (args.out.parent / "addresses.json").write_text(
         json.dumps(addresses, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
     )
-    write_summary(dataset, [n for n in (registry_note, points_note) if n] + warnings)
+    write_summary(dataset, notes + warnings)
     return 0
 
 

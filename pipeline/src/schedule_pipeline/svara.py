@@ -288,6 +288,8 @@ def build(content: bytes, today: date) -> tuple[dict, dict[str, dict], list[str]
             "towns": sum(len(t) for t in index.values()),
             "areas": dict(sorted(counts.items())),
         },
+        # For monitoring (status.py).
+        "warnings": len(warnings),
         "areas": [s.to_json(start, end) for s in ordered],
         "elderships": elderships,
     }
