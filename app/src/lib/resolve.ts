@@ -1,5 +1,6 @@
 import { customDates, type CustomSchedule } from './custom-schedule';
 import { parseIsoDate } from './dates';
+import { type KaunoAddress, kaunoKey } from './kauno';
 import { type Area, isCurrent, type Location, type ScheduleData, WASTE_KINDS, type WasteKind } from './schedule';
 
 /** What the user picked, stored on the phone. */
@@ -8,11 +9,17 @@ export type Place = {
   locationId?: string;
   /** Street key; absent if the location has no streets or the street isn't listed. */
   street?: string;
+  /** An address in Kauno r. (UAB „Kauno švara“) instead of a location from schedule.json. */
+  kauno?: KaunoAddress;
   /** Per-kind answers: an area id, or null for "I don't have this container". */
   choices: Partial<Record<WasteKind, string | null>>;
   /** Schedules the user set up themselves; they take priority over the official data. */
   custom?: Partial<Record<WasteKind, CustomSchedule>>;
 };
+
+/** The waste types of Nemenčinė's schedules, and of Kauno švara's in Kauno r. */
+const BASE_KINDS: WasteKind[] = ['household', 'packaging', 'glass'];
+const KAUNO_KINDS: WasteKind[] = ['household', 'food', 'green'];
 
 /** Id of the synthetic area a custom schedule turns into (stable, for reminders). */
 export const customAreaId = (kind: WasteKind) => `custom-${kind}`;
@@ -55,6 +62,9 @@ export function resolvePlace(data: ScheduleData | null, place: Place | null, tod
     const area = byId.get(id);
     return area && isCurrent(area, today) ? area : undefined;
   };
+  // The schedules of a Kauno r. address, if the saved ones belong to this address.
+  const personal =
+    place?.kauno && data?.personal?.key === kaunoKey(place.kauno) ? data.personal.areas : undefined;
 
   for (const kind of WASTE_KINDS) {
     const custom = place?.custom?.[kind];
@@ -66,6 +76,16 @@ export function resolvePlace(data: ScheduleData | null, place: Place | null, tod
     const choice = place?.choices[kind];
     if (choice === null) {
       kinds[kind] = { status: 'none', skipped: true };
+      continue;
+    }
+    if (place?.kauno) {
+      const area = personal?.find((a) => a.kind === kind);
+      kinds[kind] = area ? { status: 'ok', area } : { status: 'none' };
+      continue;
+    }
+    // Food and green waste only have schedules in Kauno r.: nothing to ask about elsewhere.
+    if (!BASE_KINDS.includes(kind)) {
+      kinds[kind] = { status: 'none' };
       continue;
     }
     const chosen = choice ? current(choice) : undefined;
@@ -101,4 +121,30 @@ export function pendingKinds(resolved: Resolved): WasteKind[] {
 export function isHousingChoice(candidates: Area[]): boolean {
   const groups = new Set(candidates.map((a) => a.group));
   return groups.size === 2 && groups.has('Individualūs namai') && groups.has('Daugiabučiai namai');
+}
+
+
+/**
+ * The waste types to show for a place: its provider's, plus any other the place has a schedule
+ * for (a few Kauno r. addresses have glass; own schedules can be set for any type).
+ */
+export function visibleKinds(place: Place | null, resolved: Resolved): WasteKind[] {
+  const usual = place?.kauno ? KAUNO_KINDS : BASE_KINDS;
+  return WASTE_KINDS.filter((kind) => usual.includes(kind) || resolved.kinds[kind].status === 'ok');
+}
+
+/** Name and detail line of the place, for headings: "Ganyklų g. 2" / "Karkiškių k. · Ringaudų sen.". */
+export function placeLabel(place: Place | null, resolved: Resolved): { name?: string; detail?: string } {
+  if (place?.kauno) {
+    const { town, street, house, eldershipName } = place.kauno;
+    const address = [street, house].filter(Boolean).join(' ');
+    return {
+      name: address || town,
+      detail: [address ? town : '', eldershipName].filter(Boolean).join(' · '),
+    };
+  }
+  const location = resolved.location;
+  if (!location) return {};
+  const street = location.streets?.find(([key]) => key === place?.street)?.[1];
+  return { name: location.name, detail: [street, `${location.district} sen.`].filter(Boolean).join(' · ') };
 }

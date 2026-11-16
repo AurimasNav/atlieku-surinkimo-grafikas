@@ -10,11 +10,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ReminderPicker } from '@/components/reminder-picker';
 import { AppText, Button, Card, Chip, KindIcon, ListRow, PressableScale, ScreenHeader } from '@/components/ui';
 import { LANGUAGE_NAMES, LANGUAGES, type Language } from '@/i18n';
-import { PRIVACY_URL, REPOSITORY_URL, SOURCE_PAGE_URL } from '@/lib/config';
+import { KAUNO_SOURCE_PAGE_URL, PRIVACY_URL, REPOSITORY_URL, SOURCE_PAGE_URL } from '@/lib/config';
 import { toIsoDate } from '@/lib/dates';
 import { openIssue } from '@/lib/feedback';
-import { resolvePlace } from '@/lib/resolve';
-import { WASTE_KINDS } from '@/lib/schedule';
+import { placeLabel, resolvePlace, visibleKinds } from '@/lib/resolve';
 import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
 import { radius, spacing, useTheme } from '@/theme';
@@ -26,11 +25,8 @@ export default function Settings() {
   const { place, language, setLanguage } = useSettings();
   const data = useSchedule((s) => s.data);
   const resolved = resolvePlace(data, place, toIsoDate(new Date()));
-  const location = resolved.location;
-  const street =
-    place?.street === ''
-      ? t('settings.streetNotListed')
-      : location?.streets?.find(([key]) => key === place?.street)?.[1];
+  const label = placeLabel(place, resolved);
+  const detail = [place?.street === '' && t('settings.streetNotListed'), label.detail].filter(Boolean).join(' · ');
 
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + spacing.xl }}>
@@ -44,16 +40,16 @@ export default function Settings() {
               </View>
               <View style={styles.placeText}>
                 <AppText variant="heading">
-                  {location?.name ??
+                  {label.name ??
                     (place?.custom && Object.keys(place.custom).length ? t('custom.title') : t('settings.notSelected'))}
                 </AppText>
                 <AppText variant="caption" muted>
-                  {[street, location && `${location.district} sen.`].filter(Boolean).join(' · ')}
+                  {detail}
                 </AppText>
               </View>
             </View>
             <View style={styles.kinds}>
-              {WASTE_KINDS.map((kind) => {
+              {visibleKinds(place, resolved).map((kind) => {
                 const status = resolved.kinds[kind];
                 const label =
                   status.status === 'ok'
@@ -112,7 +108,7 @@ export default function Settings() {
               title={t('feedback.schedule')}
               onPress={() =>
                 openIssue('schedule_problem', {
-                  place: [location?.name, street].filter(Boolean).join(', '),
+                  place: [label.name, detail].filter(Boolean).join(', '),
                   'data-date': data?.generatedAt.slice(0, 10),
                 })
               }
@@ -138,7 +134,7 @@ export default function Settings() {
             <ListRow
               icon={<Ionicons name="calendar" size={22} color={theme.primary} />}
               title={t('settings.source')}
-              onPress={() => WebBrowser.openBrowserAsync(SOURCE_PAGE_URL)}
+              onPress={() => WebBrowser.openBrowserAsync(place?.kauno ? KAUNO_SOURCE_PAGE_URL : SOURCE_PAGE_URL)}
             />
             <ListRow
               icon={<Ionicons name="logo-github" size={22} color={theme.primary} />}

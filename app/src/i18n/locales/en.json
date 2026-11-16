@@ -6,12 +6,18 @@
     "household": "Mixed waste",
     "packaging": "Packaging",
     "glass": "Glass",
+    "food": "Food waste",
+    "green": "Green waste",
     "householdDescription": "Mixed household waste container",
     "packagingDescription": "Paper, plastic and metal packaging",
     "glassDescription": "Glass packaging",
+    "foodDescription": "Food and kitchen waste container",
+    "greenDescription": "Garden waste: grass, leaves, branches",
     "householdShort": "Mixed",
     "packagingShort": "Packaging",
-    "glassShort": "Glass"
+    "glassShort": "Glass",
+    "foodShort": "Food",
+    "greenShort": "Green"
   },
   "common": {
     "retry": "Try again",
@@ -69,7 +75,13 @@
     "locationOffline": "Couldn't download the address list. Check your internet connection.",
     "locationFar": "There's no address served by UAB „Nemenčinės komunalininkas“ near you. If you're not at home, search for your place below.",
     "orSearch": "or search",
-    "locationServicesOff": "Location is turned off on your phone. Turn it on and try again, or search for your place below."
+    "locationServicesOff": "Location is turned off on your phone. Turn it on and try again, or search for your place below.",
+    "addressHint": "Pickup days in {{place}} depend on the address.",
+    "houseTitle": "Which house number?",
+    "housePlaceholder": "Search numbers",
+    "noStreet": "No street name",
+    "noHouse": "No house number",
+    "addressesFailed": "Couldn't download the addresses. Check your internet connection."
   },
   "select": {
     "title": "{{kind}}: your area",

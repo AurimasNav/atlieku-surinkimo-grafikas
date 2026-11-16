@@ -1,6 +1,7 @@
 import { SCHEDULE_URL, SUPPORTED_SCHEMA_VERSION } from './config';
 
-export const WASTE_KINDS = ['household', 'packaging', 'glass'] as const;
+/** Food and green waste are collected separately in Kauno r. only. */
+export const WASTE_KINDS = ['household', 'packaging', 'glass', 'food', 'green'] as const;
 export type WasteKind = (typeof WASTE_KINDS)[number];
 
 /** One row of the published schedule: a group of addresses with the same pickup dates. */
@@ -54,6 +55,11 @@ export type ScheduleData = {
   areas: Area[];
   /** Added later without a schema bump, so older data may not have it. */
   locations?: Location[];
+  /**
+   * Not part of the download: the schedules of the user's own address in Kauno r., kept by the
+   * app next to the data (see lib/kauno.ts). `key` says which address they belong to.
+   */
+  personal?: { key: string; areas: Area[] };
 };
 
 export class UnsupportedScheduleError extends Error {}

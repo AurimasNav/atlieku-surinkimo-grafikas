@@ -40,11 +40,16 @@ export function useTheme(): Theme {
   return { ...(isDark ? dark : light), dark: isDark };
 }
 
-/** Container colours used in Lithuania: graphite (mixed), yellow (packaging), green (glass). */
+/**
+ * Container colours used in Lithuania: graphite (mixed), yellow (packaging), green (glass),
+ * brown (food); olive for green (garden) waste, to tell it from glass.
+ */
 export const kindPalette: Record<WasteKind, { solid: string; onSolid: string; soft: string; softDark: string }> = {
   household: { solid: '#2E3440', onSolid: '#FFFFFF', soft: '#E6E8ED', softDark: '#262B33' },
   packaging: { solid: '#FFC53D', onSolid: '#3B2A00', soft: '#FFF2CC', softDark: '#3A2F10' },
   glass: { solid: '#1FAF6E', onSolid: '#FFFFFF', soft: '#D9F4E6', softDark: '#123726' },
+  food: { solid: '#8A5A3C', onSolid: '#FFFFFF', soft: '#F1E4DA', softDark: '#33251B' },
+  green: { solid: '#6E8F1F', onSolid: '#FFFFFF', soft: '#E8F0D2', softDark: '#2A3312' },
 };
 
 /**
@@ -55,6 +60,8 @@ export const kindIcons = {
   household: 'sack',
   packaging: 'cube',
   glass: 'glass-wine',
+  food: 'food-apple',
+  green: 'leaf',
 } as const satisfies Record<WasteKind, keyof typeof MaterialCommunityIcons.glyphMap>;
 
 export const fonts = {
