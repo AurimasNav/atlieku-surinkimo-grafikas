@@ -6,12 +6,18 @@
     "household": "Odpady zmieszane",
     "packaging": "Opakowania",
     "glass": "Szkło",
+    "food": "Odpady spożywcze",
+    "green": "Odpady zielone",
     "householdDescription": "Pojemnik na zmieszane odpady komunalne",
     "packagingDescription": "Opakowania z papieru, plastiku i metalu",
     "glassDescription": "Opakowania szklane",
+    "foodDescription": "Pojemnik na odpady spożywcze i kuchenne",
+    "greenDescription": "Odpady ogrodowe: trawa, liście, gałęzie",
     "householdShort": "Zmieszane",
     "packagingShort": "Opakowania",
-    "glassShort": "Szkło"
+    "glassShort": "Szkło",
+    "foodShort": "Spożywcze",
+    "greenShort": "Zielone"
   },
   "common": {
     "retry": "Spróbuj ponownie",
@@ -69,7 +75,13 @@
     "locationOffline": "Nie udało się pobrać listy adresów. Sprawdź połączenie z internetem.",
     "locationFar": "W pobliżu nie ma adresów obsługiwanych przez UAB „Nemenčinės komunalininkas“. Jeśli nie jesteś w domu, wyszukaj miejscowość poniżej.",
     "orSearch": "lub wyszukaj",
-    "locationServicesOff": "Lokalizacja w telefonie jest wyłączona. Włącz ją i spróbuj ponownie lub wyszukaj miejscowość poniżej."
+    "locationServicesOff": "Lokalizacja w telefonie jest wyłączona. Włącz ją i spróbuj ponownie lub wyszukaj miejscowość poniżej.",
+    "addressHint": "Dni odbioru w {{place}} zależą od adresu.",
+    "houseTitle": "Jaki numer domu?",
+    "housePlaceholder": "Szukaj numeru",
+    "noStreet": "Bez nazwy ulicy",
+    "noHouse": "Bez numeru domu",
+    "addressesFailed": "Nie udało się pobrać adresów. Sprawdź połączenie z internetem."
   },
   "select": {
     "title": "{{kind}}: Twoja miejscowość",

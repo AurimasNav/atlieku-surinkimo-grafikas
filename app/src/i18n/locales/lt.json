@@ -6,12 +6,18 @@
     "household": "Mišrios atliekos",
     "packaging": "Pakuotės",
     "glass": "Stiklas",
+    "food": "Maisto atliekos",
+    "green": "Žaliosios atliekos",
     "householdDescription": "Mišrių komunalinių atliekų konteineris",
     "packagingDescription": "Popieriaus, plastiko ir metalo pakuotės",
     "glassDescription": "Stiklo pakuotės",
+    "foodDescription": "Maisto ir virtuvės atliekų konteineris",
+    "greenDescription": "Sodo atliekos: žolė, lapai, šakos",
     "householdShort": "Mišrios",
     "packagingShort": "Pakuotės",
-    "glassShort": "Stiklas"
+    "glassShort": "Stiklas",
+    "foodShort": "Maisto",
+    "greenShort": "Žaliosios"
   },
   "common": {
     "retry": "Bandyti dar kartą",
@@ -69,7 +75,13 @@
     "locationOffline": "Nepavyko atsisiųsti adresų sąrašo. Patikrinkite interneto ryšį.",
     "locationFar": "Šalia jūsų nėra UAB „Nemenčinės komunalininkas“ aptarnaujamų adresų. Jei esate ne namuose, raskite vietovę paieškoje žemiau.",
     "orSearch": "arba ieškokite",
-    "locationServicesOff": "Telefone išjungta buvimo vieta. Įjunkite ją ir bandykite dar kartą arba raskite vietovę paieškoje žemiau."
+    "locationServicesOff": "Telefone išjungta buvimo vieta. Įjunkite ją ir bandykite dar kartą arba raskite vietovę paieškoje žemiau.",
+    "addressHint": "Išvežimo dienos {{place}} priklauso nuo adreso.",
+    "houseTitle": "Koks namo numeris?",
+    "housePlaceholder": "Ieškoti numerio",
+    "noStreet": "Be gatvės pavadinimo",
+    "noHouse": "Be namo numerio",
+    "addressesFailed": "Nepavyko atsisiųsti adresų. Patikrinkite interneto ryšį."
   },
   "select": {
     "title": "{{kind}}: jūsų vietovė",

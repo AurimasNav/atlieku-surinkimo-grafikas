@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import type { Language } from '@/i18n';
 import type { CustomSchedule } from '@/lib/custom-schedule';
+import type { KaunoAddress } from '@/lib/kauno';
 import type { ReminderSettings } from '@/lib/reminders';
 import type { Place } from '@/lib/resolve';
 import type { WasteKind } from '@/lib/schedule';
@@ -17,6 +18,8 @@ type SettingsState = {
   setLanguage: (language: Language | 'system') => void;
   /** Starts over with a new location; earlier per-kind answers no longer apply. */
   setLocation: (locationId: string, street?: string) => void;
+  /** Starts over with an address in Kauno r.; its schedules are kept by the schedule store. */
+  setKaunoAddress: (address: KaunoAddress) => void;
   /** Answers one waste type: an area id, or null for "I don't have this container". */
   choose: (kind: WasteKind, areaId: string | null) => void;
   /** Sets (or with undefined removes) the user's own schedule for one waste type. */
@@ -40,6 +43,7 @@ export const useSettings = create<SettingsState>()(
       // Own schedules are personal choices, so they survive a change of location.
       setLocation: (locationId, street) =>
         set((state) => ({ place: { locationId, street, choices: {}, custom: state.place?.custom } })),
+      setKaunoAddress: (kauno) => set((state) => ({ place: { kauno, choices: {}, custom: state.place?.custom } })),
       choose: (kind, areaId) =>
         set((state) => {
           const custom = { ...state.place?.custom };

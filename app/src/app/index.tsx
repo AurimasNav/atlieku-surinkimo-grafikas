@@ -15,9 +15,9 @@ import { openIssue } from '@/lib/feedback';
 import { formatTime, useDateFormat } from '@/lib/format';
 import { hasNotificationPermission } from '@/lib/notifications';
 import { type Pickup, upcomingPickups } from '@/lib/reminders';
-import { pendingKinds, resolvePlace } from '@/lib/resolve';
+import { pendingKinds, placeLabel, resolvePlace, visibleKinds } from '@/lib/resolve';
 import { useMotion } from '@/lib/motion';
-import { WASTE_KINDS, type WasteKind } from '@/lib/schedule';
+import type { WasteKind } from '@/lib/schedule';
 import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
 import { fonts, radius, spacing, useTheme } from '@/theme';
@@ -45,7 +45,9 @@ export default function Home() {
   }, [data]);
 
   const resolved = useMemo(() => resolvePlace(data, place, toIsoDate(new Date())), [data, place]);
-  const activeKinds = WASTE_KINDS.filter((kind) => resolved.kinds[kind].status === 'ok');
+  const shownKinds = visibleKinds(place, resolved);
+  const activeKinds = shownKinds.filter((kind) => resolved.kinds[kind].status === 'ok');
+  const label = placeLabel(place, resolved);
   const allPickups = useMemo(() => upcomingPickups(resolved.areas, new Date()), [resolved]);
   const pickups = useMemo(
     () =>
@@ -61,7 +63,7 @@ export default function Home() {
   const [next, ...rest] = pickups;
   const pending = pendingKinds(resolved);
   const placeName =
-    resolved.location?.name ??
+    label.name ??
     (place?.custom && Object.keys(place.custom).length ? t('custom.title') : t('home.choosePlace'));
   const notes = resolved.areas.filter((area) => area.note && !area.dates.length);
   // Served, but the last pickup has passed and the next schedule isn't published yet.
@@ -230,7 +232,7 @@ export default function Home() {
             {activeKinds.length > 0 && (
               <KindFilter
                 kinds={activeKinds}
-                inactive={WASTE_KINDS.filter((kind) => !activeKinds.includes(kind))}
+                inactive={shownKinds.filter((kind) => !activeKinds.includes(kind))}
                 onInactivePress={(kind) => router.push({ pathname: '/kind/[kind]', params: { kind } })}
                 counts={Object.fromEntries(
                   activeKinds.map((kind) => [kind, allPickups.filter((p) => p.kinds.includes(kind)).length]),
@@ -286,9 +288,7 @@ export default function Home() {
               title={t('feedback.wrongDates')}
               onPress={() =>
                 openIssue('schedule_problem', {
-                  place: [resolved.location?.name, resolved.location?.streets?.find(([key]) => key === place?.street)?.[1]]
-                    .filter(Boolean)
-                    .join(', '),
+                  place: [label.name, label.detail].filter(Boolean).join(', '),
                   'data-date': data.generatedAt.slice(0, 10),
                 })
               }

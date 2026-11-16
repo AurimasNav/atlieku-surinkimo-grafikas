@@ -17,7 +17,8 @@ import Animated, {
 
 import { AppText, Button, ListRow, PressableScale, ScreenHeader, SearchField } from '@/components/ui';
 import { type GeolocateResult, locateHome } from '@/lib/geolocate';
-import { searchLocations } from '@/lib/schedule';
+import { fetchKaunoIndex, type KaunoTown, kaunoTowns, searchKaunoTowns } from '@/lib/kauno';
+import { type Location, searchLocations } from '@/lib/schedule';
 import { nextSetupStep } from '@/lib/setup-flow';
 import { useMotion } from '@/lib/motion';
 import { useSchedule } from '@/store/schedule';
@@ -25,6 +26,9 @@ import { useSettings } from '@/store/settings';
 import { fonts, radius, spacing, useTheme } from '@/theme';
 
 const MAX_RESULTS = 50;
+
+/** A settlement of schedule.json, or a town of Kauno r. whose address is asked next. */
+type Result = { key: string; location?: Location; kauno?: KaunoTown };
 
 export default function ChooseLocation() {
   const motion = useMotion();
@@ -37,9 +41,21 @@ export default function ChooseLocation() {
   const [locating, setLocating] = useState(false);
   const [gps, setGps] = useState<GeolocateResult | null>(null);
 
-  const results = useMemo(
-    () => searchLocations(data?.locations ?? [], deferred).slice(0, MAX_RESULTS),
-    [data, deferred],
+  // Kauno r. is a separate, small download; without it the search just covers less.
+  const [kauno, setKauno] = useState<KaunoTown[]>([]);
+  useEffect(() => {
+    fetchKaunoIndex()
+      .then((index) => setKauno(kaunoTowns(index)))
+      .catch(() => {});
+  }, []);
+
+  const results = useMemo<Result[]>(
+    () =>
+      [
+        ...searchLocations(data?.locations ?? [], deferred).map((location) => ({ key: location.id, location })),
+        ...searchKaunoTowns(kauno, deferred).map((town) => ({ key: `kauno|${town.eldership}|${town.town}`, kauno: town })),
+      ].slice(0, MAX_RESULTS),
+    [data, kauno, deferred],
   );
 
   const pick = (locationId: string, street?: string) => {
@@ -154,7 +170,7 @@ export default function ChooseLocation() {
       ) : (
         <FlatList
           data={found ? [] : results}
-          keyExtractor={(loc) => loc.id}
+          keyExtractor={(item) => item.key}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.list}
           ListHeaderComponent={
@@ -166,10 +182,18 @@ export default function ChooseLocation() {
           renderItem={({ item }) => (
             <Animated.View entering={motion(FadeIn.duration(180))}>
               <ListRow
-                title={item.name}
-                subtitle={`${item.district} sen. · ${item.type}`}
-                selected={item.id === current}
-                onPress={() => pick(item.id)}
+                title={item.location?.name ?? item.kauno?.town ?? ''}
+                subtitle={
+                  item.location
+                    ? `${item.location.district} sen. · ${item.location.type}`
+                    : `${item.kauno?.eldershipName} · Kauno r.`
+                }
+                selected={item.location ? item.location.id === current : false}
+                onPress={() =>
+                  item.location
+                    ? pick(item.location.id)
+                    : router.push({ pathname: '/setup/address', params: { ...item.kauno } })
+                }
                 icon={
                   <View style={[styles.pin, { backgroundColor: theme.surfaceMuted }]}>
                     <Ionicons name="location" size={18} color={theme.primary} />

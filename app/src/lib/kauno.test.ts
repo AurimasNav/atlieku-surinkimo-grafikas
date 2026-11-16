@@ -1,0 +1,92 @@
+import { type KaunoAddress, type KaunoAddresses, kaunoAreas, type KaunoIndex, kaunoKey, kaunoTowns, searchKaunoTowns } from './kauno';
+import { placeLabel, resolvePlace, visibleKinds } from './resolve';
+import type { ScheduleData } from './schedule';
+
+const index: KaunoIndex = {
+  schemaVersion: 1,
+  generatedAt: '',
+  areas: [
+    { id: 'kh-a', kind: 'household', rule: 'kas 14 dienų', dates: ['2026-11-25', '2026-12-09'] },
+    { id: 'kh-b', kind: 'household', rule: 'kas 14 dienų', dates: ['2026-11-18', '2026-12-02'] },
+    { id: 'kf-a', kind: 'food', rule: 'kas 7 dienas', dates: ['2026-11-20', '2026-11-27'] },
+  ],
+  elderships: [
+    { id: 'ringaudu', name: 'Ringaudų sen.', towns: ['Karkiškių k.', 'Ringaudų k.'] },
+    { id: 'uzliedziu', name: 'Užliedžių sen.', towns: ['Sausinės k.'] },
+  ],
+};
+const addresses: KaunoAddresses = {
+  eldership: 'Ringaudų sen.',
+  towns: { 'Karkiškių k.': { 'Ganyklų g.': { '2': [0, 2], '4': [0, 1] } } },
+};
+const address: KaunoAddress = {
+  eldership: 'ringaudu',
+  eldershipName: 'Ringaudų sen.',
+  town: 'Karkiškių k.',
+  street: 'Ganyklų g.',
+  house: '2',
+};
+const today = '2026-11-16';
+
+describe('Kauno r. addresses', () => {
+  it('finds towns without diacritics, by town or eldership', () => {
+    const towns = kaunoTowns(index);
+    expect(searchKaunoTowns(towns, 'karkisk').map((t) => t.town)).toEqual(['Karkiškių k.']);
+    expect(searchKaunoTowns(towns, 'ringaud').map((t) => t.town)).toEqual(['Ringaudų k.', 'Karkiškių k.']);
+    expect(searchKaunoTowns(towns, '')).toEqual([]);
+  });
+
+  it('gives one schedule per waste type', () => {
+    expect(kaunoAreas(index, addresses, address)).toEqual([
+      { id: 'kauno-household', kind: 'household', name: 'kas 14 dienų', dates: ['2026-11-25', '2026-12-09'], current: true },
+      { id: 'kauno-food', kind: 'food', name: 'kas 7 dienas', dates: ['2026-11-20', '2026-11-27'], current: true },
+    ]);
+  });
+
+  it('joins the dates of two containers of one type', () => {
+    const areas = kaunoAreas(index, addresses, { ...address, house: '4' });
+    expect(areas?.map((a) => a.kind)).toEqual(['household']);
+    expect(areas?.[0].dates).toEqual(['2026-11-18', '2026-11-25', '2026-12-02', '2026-12-09']);
+  });
+
+  it('reports an address that is no longer listed', () => {
+    expect(kaunoAreas(index, addresses, { ...address, house: '99' })).toBeUndefined();
+  });
+});
+
+describe('a place in Kauno r.', () => {
+  const data: ScheduleData = {
+    schemaVersion: 1,
+    generatedAt: '',
+    source: '',
+    coverage: {},
+    areas: [],
+    locations: [],
+    personal: { key: kaunoKey(address), areas: kaunoAreas(index, addresses, address)! },
+  };
+  const place = { kauno: address, choices: {} };
+
+  it('uses the schedules kept for that address', () => {
+    const r = resolvePlace(data, place, today);
+    expect(r.areas.map((a) => a.id)).toEqual(['kauno-household', 'kauno-food']);
+    expect(r.kinds.green).toEqual({ status: 'none' });
+    expect(visibleKinds(place, r)).toEqual(['household', 'food', 'green']);
+    expect(placeLabel(place, r)).toEqual({ name: 'Ganyklų g. 2', detail: 'Karkiškių k. · Ringaudų sen.' });
+  });
+
+  it('ignores schedules kept for another address', () => {
+    const r = resolvePlace(data, { kauno: { ...address, house: '4' }, choices: {} }, today);
+    expect(r.areas).toEqual([]);
+  });
+
+  it('lets an own schedule replace one type', () => {
+    const custom = { household: { start: '2026-11-17', every: 1, unit: 'week' as const } };
+    const r = resolvePlace(data, { ...place, custom }, today);
+    expect(r.areas.map((a) => a.id)).toEqual(['custom-household', 'kauno-food']);
+  });
+
+  it('keeps showing mixed, packaging and glass elsewhere', () => {
+    const r = resolvePlace(data, { locationId: 'x', choices: {} }, today);
+    expect(visibleKinds({ locationId: 'x', choices: {} }, r)).toEqual(['household', 'packaging', 'glass']);
+  });
+});

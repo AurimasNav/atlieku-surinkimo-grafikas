@@ -10,9 +10,8 @@ import { AppText, Button, Card, KindIcon, PressableScale, ScreenHeader } from '@
 import { toIsoDate } from '@/lib/dates';
 import { useDateFormat } from '@/lib/format';
 import { requestNotificationPermission } from '@/lib/notifications';
-import { type KindStatus, resolvePlace } from '@/lib/resolve';
+import { type KindStatus, placeLabel, resolvePlace, visibleKinds } from '@/lib/resolve';
 import { useMotion } from '@/lib/motion';
-import { WASTE_KINDS } from '@/lib/schedule';
 import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
 import { spacing, useTheme } from '@/theme';
@@ -27,8 +26,11 @@ export default function SetupDone() {
   const place = useSettings((s) => s.place);
   const today = toIsoDate(new Date());
   const resolved = resolvePlace(data, place, today);
+  const label = placeLabel(place, resolved);
   const street = resolved.location?.streets?.find(([key]) => key === place?.street)?.[1];
-  const placeName = [resolved.location?.name, street].filter(Boolean).join(', ') || t('custom.title');
+  const placeName =
+    (place?.kauno ? [label.name, place.kauno.town] : [label.name, street]).filter(Boolean).join(', ') ||
+    t('custom.title');
 
   const describe = (status: KindStatus) => {
     if (status.status !== 'ok')
@@ -52,7 +54,7 @@ export default function SetupDone() {
         <ScreenHeader eyebrow={placeName} title={t('setup.doneTitle')} subtitle={t('setup.doneHint')} />
         <View style={styles.content}>
           <Card style={styles.summary}>
-            {WASTE_KINDS.map((kind, i) => {
+            {visibleKinds(place, resolved).map((kind, i) => {
               const status = resolved.kinds[kind];
               const active = status.status === 'ok';
               return (
