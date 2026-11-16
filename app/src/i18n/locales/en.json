@@ -73,7 +73,7 @@
     "locationDenied": "Location access is off. Search for your place below, or allow location in the phone's settings.",
     "locationUnavailable": "Couldn't get your location. Search for your place below.",
     "locationOffline": "Couldn't download the address list. Check your internet connection.",
-    "locationFar": "Your location only finds addresses served by UAB „Nemenčinės komunalininkas“ in Vilnius district, and there is none near you. In Kaunas district, or if you're not at home, search for your place below.",
+    "locationFar": "There's no address served by UAB „Nemenčinės komunalininkas“ or UAB „Kauno švara“ near you. If you're not at home, search for your place below.",
     "orSearch": "or search",
     "locationServicesOff": "Location is turned off on your phone. Turn it on and try again, or search for your place below.",
     "addressHint": "Pickup days in {{place}} depend on the address.",

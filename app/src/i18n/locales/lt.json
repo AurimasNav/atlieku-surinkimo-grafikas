@@ -73,7 +73,7 @@
     "locationDenied": "Prieiga prie buvimo vietos išjungta. Raskite vietovę paieškoje žemiau arba leiskite naudoti buvimo vietą telefono nustatymuose.",
     "locationUnavailable": "Nepavyko nustatyti buvimo vietos. Raskite vietovę paieškoje žemiau.",
     "locationOffline": "Nepavyko atsisiųsti adresų sąrašo. Patikrinkite interneto ryšį.",
-    "locationFar": "Pagal buvimo vietą randami tik UAB „Nemenčinės komunalininkas“ aptarnaujami adresai Vilniaus rajone, o šalia jūsų tokių nėra. Jei gyvenate Kauno rajone arba esate ne namuose, raskite vietovę paieškoje žemiau.",
+    "locationFar": "Šalia jūsų nėra UAB „Nemenčinės komunalininkas“ ar UAB „Kauno švara“ aptarnaujamų adresų. Jei esate ne namuose, raskite vietovę paieškoje žemiau.",
     "orSearch": "arba ieškokite",
     "locationServicesOff": "Telefone išjungta buvimo vieta. Įjunkite ją ir bandykite dar kartą arba raskite vietovę paieškoje žemiau.",
     "addressHint": "Išvežimo dienos {{place}} priklauso nuo adreso.",

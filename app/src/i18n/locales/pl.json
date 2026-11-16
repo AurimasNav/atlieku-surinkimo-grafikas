@@ -73,7 +73,7 @@
     "locationDenied": "Dostęp do lokalizacji jest wyłączony. Wyszukaj miejscowość poniżej lub zezwól na lokalizację w ustawieniach telefonu.",
     "locationUnavailable": "Nie udało się ustalić lokalizacji. Wyszukaj miejscowość poniżej.",
     "locationOffline": "Nie udało się pobrać listy adresów. Sprawdź połączenie z internetem.",
-    "locationFar": "Lokalizacja znajduje tylko adresy w rejonie wileńskim obsługiwane przez UAB „Nemenčinės komunalininkas“, a w pobliżu takich nie ma. Jeśli mieszkasz w rejonie kowieńskim albo nie jesteś w domu, wyszukaj miejscowość poniżej.",
+    "locationFar": "W pobliżu nie ma adresów obsługiwanych przez UAB „Nemenčinės komunalininkas“ ani UAB „Kauno švara“. Jeśli nie jesteś w domu, wyszukaj miejscowość poniżej.",
     "orSearch": "lub wyszukaj",
     "locationServicesOff": "Lokalizacja w telefonie jest wyłączona. Włącz ją i spróbuj ponownie lub wyszukaj miejscowość poniżej.",
     "addressHint": "Dni odbioru w {{place}} zależą od adresu.",
