@@ -1,7 +1,9 @@
 // Takes the raw store screenshots on a running emulator with the app installed, in every
 // language (or the ones given): npm run capture [-- lt en]
 // Saves them to raw/<language>/ for frame.mjs. The screen is switched to 1080 x 1920 (9:16,
-// what Google Play accepts) and the status bar to a fixed demo state; both are reset at the end.
+// what Google Play accepts), the status bar to a fixed demo state and animations off (as in CI:
+// the location option's pulsing ring never lets uiautomator see an idle screen); all three are
+// reset at the end.
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,7 +19,12 @@ const languageNames = { lt: 'Lietuvių', en: 'English', ru: 'Русский', pl
 const demo = (command, extras = '') =>
   shell(`am broadcast -a com.android.systemui.demo -e command ${command} ${extras}`);
 
+const animationScales = ['window_animation_scale', 'transition_animation_scale', 'animator_duration_scale'];
+let savedScales = {};
+
 export function setUp() {
+  savedScales = Object.fromEntries(animationScales.map((name) => [name, shell(`settings get global ${name}`).trim()]));
+  for (const name of animationScales) shell(`settings put global ${name} 0`);
   shell('wm size 1080x1920');
   shell('wm density 420');
   shell('settings put global sysui_demo_allowed 1');
@@ -32,6 +39,9 @@ export function tearDown() {
   demo('exit');
   shell('wm size reset');
   shell('wm density reset');
+  for (const [name, value] of Object.entries(savedScales)) {
+    shell(value === 'null' || value === '' ? `settings delete global ${name}` : `settings put global ${name} ${value}`);
+  }
 }
 
 /** Goes through the app from a fresh start in one language, saving the screens to raw/<lang>/. */

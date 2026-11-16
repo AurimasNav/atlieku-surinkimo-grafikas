@@ -32,7 +32,7 @@
   },
   "setup": {
     "locationTitle": "Kur gyvenate?",
-    "locationHint": "Įveskite savo kaimo ar miesto pavadinimą.",
+    "locationHint": "Leiskite rasti jūsų vietą arba ieškokite kaimo ar miesto.",
     "locationPlaceholder": "pvz. Riešė",
     "locationNone": "Nieko nerasta. Rodomos tik UAB „Nemenčinės komunalininkas“ aptarnaujamos vietovės.",
     "manualLink": "Neradote? Pasirinkite grafiko eilutes patys",

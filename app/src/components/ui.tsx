@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
@@ -118,7 +118,7 @@ export function KindBadge({ kind, label, size = 'md' }: { kind: WasteKind; label
   const small = size === 'sm';
   return (
     <View style={[styles.badge, small && styles.badgeSmall, { backgroundColor: palette.solid }]}>
-      <Ionicons name={kindIcons[kind]} size={small ? 12 : 14} color={palette.onSolid} />
+      <MaterialCommunityIcons name={kindIcons[kind]} size={small ? 12 : 14} color={palette.onSolid} />
       <Text style={[variants.label, { color: palette.onSolid, fontSize: small ? 12 : 13 }]}>{label}</Text>
     </View>
   );
@@ -136,7 +136,7 @@ export function KindIcon({ kind, size = 44 }: { kind: WasteKind; size?: number }
         alignItems: 'center',
         justifyContent: 'center',
       }}>
-      <Ionicons name={kindIcons[kind]} size={size * 0.48} color={palette.onSolid} />
+      <MaterialCommunityIcons name={kindIcons[kind]} size={size * 0.48} color={palette.onSolid} />
     </View>
   );
 }

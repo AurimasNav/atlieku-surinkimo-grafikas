@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useIsFocused } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -85,7 +85,7 @@ export default function Welcome() {
               styles.tile,
               { backgroundColor: kindPalette[kind].solid, transform: [{ rotate: `${(i - 1) * 8}deg` }, { translateY: i === 1 ? -10 : 0 }] },
             ]}>
-            <Ionicons name={kindIcons[kind]} size={30} color={kindPalette[kind].onSolid} />
+            <MaterialCommunityIcons name={kindIcons[kind]} size={30} color={kindPalette[kind].onSolid} />
           </View>
         ))}
       </Animated.View>

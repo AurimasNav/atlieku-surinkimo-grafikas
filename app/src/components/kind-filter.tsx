@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -57,7 +57,7 @@ export function KindFilter({
               </View>
             ) : (
               <View style={[styles.icon, { backgroundColor: kindPalette[option].solid }]}>
-                <Ionicons name={kindIcons[option]} size={15} color={kindPalette[option].onSolid} />
+                <MaterialCommunityIcons name={kindIcons[option]} size={15} color={kindPalette[option].onSolid} />
               </View>
             )}
             <Text
