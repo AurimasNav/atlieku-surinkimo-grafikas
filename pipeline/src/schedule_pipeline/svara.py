@@ -36,8 +36,11 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
+from . import snapshot
+from .addresses import AddressPoint
 from .http import ATTEMPTS, USER_AGENT
 from .model import SCHEMA_VERSION, clean_text
+from .registry import ATTRIBUTION, Registry, fold
 
 # The anonymous sharing link of the file, and the download address of the same document.
 SHARE_URL = (
@@ -291,6 +294,75 @@ def build(content: bytes, today: date) -> tuple[dict, dict[str, dict], list[str]
     return dataset, files, warnings
 
 
+def _house(number: str) -> str:
+    return re.sub(r"\s+", "", number).casefold()
+
+
+def locate_table(
+    files: dict[str, dict], registry: Registry, points: list[AddressPoint], generated_at: str
+) -> tuple[dict, int]:
+    """Coordinates for "use my location": the addresses of `files` found in the Address
+    Register. `places` are [eldership file, eldership, town, street]; each point is
+    [lat * 1e5, lon * 1e5, place index, house number]. Also returns how many addresses
+    weren't found (they can still be picked by hand)."""
+    settlements: dict[str, list] = {}
+    for settlement in registry.settlements:
+        settlements.setdefault(fold(f"{settlement.genitive} {settlement.abbr}"), []).append(
+            settlement
+        )
+    by_settlement: dict[int, dict[tuple[int | None, str], AddressPoint]] = {}
+    for point in points:
+        by_settlement.setdefault(point.settlement, {})[(point.street, _house(point.number))] = point
+
+    def street_code(settlement, street: str) -> int | None:
+        wanted = fold(street)
+        for candidate in settlement.streets:
+            words = fold(f"{candidate.name} {candidate.abbr}").split()
+            # "J. Biliūno g." in the file is "Jono Biliūno g." in the register.
+            if wanted in (" ".join(words), " ".join([words[0][0], *words[1:]])):
+                return candidate.code
+        return None
+
+    places: list[list[str]] = []
+    rows = []
+    missing = 0
+    for file_name, data in files.items():
+        for town, streets in data["towns"].items():
+            candidates = settlements.get(fold(town), [])
+            # Two villages of one name: the one in this eldership.
+            same = [
+                c
+                for c in candidates
+                if fold(c.district) and fold(c.district) in fold(data["eldership"])
+            ]
+            for street, houses in streets.items():
+                place = None
+                for house in houses:
+                    found = None
+                    for settlement in same or candidates:
+                        code = street_code(settlement, street) if street else None
+                        if street and code is None:
+                            continue
+                        known = by_settlement.get(settlement.code, {})
+                        # "10-2" may be a flat or a building of house 10.
+                        base = re.match(r"\d+[a-z]?", _house(house))
+                        found = known.get((code, _house(house))) or (
+                            known.get((code, base.group())) if base else None
+                        )
+                        if found:
+                            break
+                    if not found:
+                        missing += 1
+                        continue
+                    if place is None:
+                        place = len(places)
+                        places.append([file_name, data["eldership"], town, street])
+                    rows.append([round(found.lat * 1e5), round(found.lon * 1e5), place, house])
+    rows.sort()
+    table = {"generatedAt": generated_at, "source": ATTRIBUTION, "places": places, "points": rows}
+    return table, missing
+
+
 def fetch(sleep=time.sleep) -> bytes:
     """Downloads the CSV: opening the sharing link sets an anonymous cookie, which the download
     address then accepts."""
@@ -340,6 +412,21 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     write(args.out, dataset, files)
 
+    # Coordinates come from a snapshot of the Address Register (see snapshot.py); without it the
+    # app still works, only "use my location" doesn't find Kauno r. addresses.
+    located = ""
+    if snapshot.KAUNO_REGISTRY_FILE.exists() and snapshot.KAUNO_ADDRESSES_FILE.exists():
+        registry, _ = snapshot.load_registry(snapshot.KAUNO_REGISTRY_FILE)
+        points, taken_at = snapshot.load_points(snapshot.KAUNO_ADDRESSES_FILE)
+        table, missing = locate_table(files, registry, points, dataset["generatedAt"])
+        (args.out / "points.json").write_text(
+            json.dumps(table, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
+        )
+        located = (
+            f'- {len(table["points"])} addresses with coordinates for "use my location" '
+            f"({missing} not found in the Address Register snapshot of {taken_at})"
+        )
+
     stats = dataset["stats"]
     sizes = sorted((args.out / "addresses").glob("*.json"), key=lambda p: p.stat().st_size)
     lines = [
@@ -350,6 +437,7 @@ def main(argv: list[str] | None = None) -> int:
         f"- {len(files)} address files, largest {sizes[-1].stat().st_size // 1024} KB"
         f" ({sizes[-1].name})",
     ]
+    lines += [located] if located else []
     lines += [f"- warning: {w}" for w in warnings]
     text = "\n".join(lines) + "\n"
     print(text)

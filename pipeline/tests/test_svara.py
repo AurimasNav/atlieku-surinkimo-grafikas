@@ -115,3 +115,37 @@ def test_ids_stay_the_same_the_next_day(monkeypatch):
 def test_too_little_data_fails():
     with pytest.raises(svara.ValidationError, match="only 9 rows"):
         svara.build(CSV.encode("utf-8"), TODAY)
+
+
+def test_addresses_get_coordinates_from_the_register(built):
+    from schedule_pipeline.addresses import AddressPoint
+    from schedule_pipeline.registry import Registry, Settlement, Street
+
+    _, files, _ = built
+    registry = Registry(
+        [
+            Settlement(
+                1, "Karkiškės", "Karkiškių", "k.", "Ringaudų", [Street(10, "Ganyklų", "g.")]
+            ),
+            Settlement(
+                2, "Sausinė", "Sausinės", "k.", "Užliedžių", [Street(20, "Vanagynės", "g.")]
+            ),
+        ]
+    )
+    points = [
+        AddressPoint(1, 10, "2", 54.85, 23.75),
+        AddressPoint(1, 10, "2A", 54.851, 23.751),
+        AddressPoint(2, 20, "1", 54.95, 23.85),
+    ]
+    table, missing = svara.locate_table(files, registry, points, "now")
+    assert table["places"] == [
+        ["ringaudu", "Ringaudų sen.", "Karkiškių k.", "Ganyklų g."],
+        ["uzliedziu", "Užliedžių sen.", "Sausinės k.", "Vanagynės g."],
+    ]
+    assert table["points"] == [
+        [5485000, 2375000, 0, "2"],
+        [5485100, 2375100, 0, "2A"],
+        [5495000, 2385000, 1, "1"],
+    ]
+    # Ganyklų g. 10, Parko g. (no number) and Vanagynės g. 5 aren't in this register.
+    assert missing == 3
