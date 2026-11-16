@@ -29,18 +29,18 @@
   },
   "onboarding": {
     "title": "Konteineriai.\nLaiku.",
-    "body": "Atliekų išvežimo priminimai jūsų adresui Vilniaus rajone.",
+    "body": "Atliekų išvežimo priminimai jūsų adresui Vilniaus ir Kauno rajonuose.",
     "featurePlace": "Vietą pasirenkate vieną kartą",
     "featureReminder": "Priminimas vakare prieš išvežimą",
     "featurePrivate": "Visi duomenys lieka telefone",
-    "disclaimer": "Neoficiali savanorių sukurta programėlė. Datos paimtos iš UAB „Nemenčinės komunalininkas“ skelbiamų grafikų ir gali turėti klaidų.",
+    "disclaimer": "Neoficiali savanorių sukurta programėlė. Datos paimtos iš UAB „Nemenčinės komunalininkas“ ir UAB „Kauno švara“ skelbiamų grafikų ir gali turėti klaidų.",
     "start": "Pradėti"
   },
   "setup": {
     "locationTitle": "Kur gyvenate?",
     "locationHint": "Leiskite rasti jūsų vietą arba ieškokite kaimo ar miesto.",
     "locationPlaceholder": "pvz. Riešė",
-    "locationNone": "Nieko nerasta. Rodomos tik UAB „Nemenčinės komunalininkas“ aptarnaujamos vietovės.",
+    "locationNone": "Nieko nerasta. Rodomos tik UAB „Nemenčinės komunalininkas“ (Vilniaus r.) ir UAB „Kauno švara“ (Kauno r.) aptarnaujamos vietovės.",
     "manualLink": "Neradote? Pasirinkite grafiko eilutes patys",
     "streetTitle": "Kurioje gatvėje?",
     "streetHint": "Vietovėje {{place}} išvežimo dienos priklauso nuo gatvės.",
@@ -73,7 +73,7 @@
     "locationDenied": "Prieiga prie buvimo vietos išjungta. Raskite vietovę paieškoje žemiau arba leiskite naudoti buvimo vietą telefono nustatymuose.",
     "locationUnavailable": "Nepavyko nustatyti buvimo vietos. Raskite vietovę paieškoje žemiau.",
     "locationOffline": "Nepavyko atsisiųsti adresų sąrašo. Patikrinkite interneto ryšį.",
-    "locationFar": "Šalia jūsų nėra UAB „Nemenčinės komunalininkas“ aptarnaujamų adresų. Jei esate ne namuose, raskite vietovę paieškoje žemiau.",
+    "locationFar": "Pagal buvimo vietą randami tik UAB „Nemenčinės komunalininkas“ aptarnaujami adresai Vilniaus rajone, o šalia jūsų tokių nėra. Jei gyvenate Kauno rajone arba esate ne namuose, raskite vietovę paieškoje žemiau.",
     "orSearch": "arba ieškokite",
     "locationServicesOff": "Telefone išjungta buvimo vieta. Įjunkite ją ir bandykite dar kartą arba raskite vietovę paieškoje žemiau.",
     "addressHint": "Išvežimo dienos {{place}} priklauso nuo adreso.",
@@ -137,7 +137,7 @@
     "sourceCode": "Programos kodas",
     "addressSource": "Adresai: {{source}}",
     "disclaimerTitle": "Jokių garantijų",
-    "disclaimer": "Programėlė teikiama nemokamai, tokia, kokia yra, be jokių garantijų. Autoriai neatsako už praleistus ar klaidingus priminimus ir jokias pasekmes, kylančias juos naudojant. Programėlė nesusijusi su UAB „Nemenčinės komunalininkas“.",
+    "disclaimer": "Programėlė teikiama nemokamai, tokia, kokia yra, be jokių garantijų. Autoriai neatsako už praleistus ar klaidingus priminimus ir jokias pasekmes, kylančias juos naudojant. Programėlė nesusijusi su UAB „Nemenčinės komunalininkas“ ir UAB „Kauno švara“.",
     "version": "Versija {{version}}"
   },
   "notifications": {

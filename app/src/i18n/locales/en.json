@@ -29,18 +29,18 @@
   },
   "onboarding": {
     "title": "Bins out.\nOn time.",
-    "body": "Pickup reminders for your address in Vilnius district.",
+    "body": "Pickup reminders for your address in Vilnius and Kaunas districts.",
     "featurePlace": "Choose your place once",
     "featureReminder": "Get a reminder the evening before",
     "featurePrivate": "Everything stays on your phone",
-    "disclaimer": "Unofficial app made by volunteers. Dates come from the schedules published by UAB „Nemenčinės komunalininkas“ and may contain mistakes.",
+    "disclaimer": "Unofficial app made by volunteers. Dates come from the schedules published by UAB „Nemenčinės komunalininkas“ and UAB „Kauno švara“ and may contain mistakes.",
     "start": "Get started"
   },
   "setup": {
     "locationTitle": "Where do you live?",
     "locationHint": "Let us find your place, or search for your village or town.",
     "locationPlaceholder": "e.g. Riešė",
-    "locationNone": "Nothing found. Only places served by UAB „Nemenčinės komunalininkas“ are listed.",
+    "locationNone": "Nothing found. Only places served by UAB „Nemenčinės komunalininkas“ (Vilnius district) and UAB „Kauno švara“ (Kaunas district) are listed.",
     "manualLink": "Can't find it? Pick schedule rows by hand",
     "streetTitle": "Which street?",
     "streetHint": "Pickup days in {{place}} depend on the street.",
@@ -73,7 +73,7 @@
     "locationDenied": "Location access is off. Search for your place below, or allow location in the phone's settings.",
     "locationUnavailable": "Couldn't get your location. Search for your place below.",
     "locationOffline": "Couldn't download the address list. Check your internet connection.",
-    "locationFar": "There's no address served by UAB „Nemenčinės komunalininkas“ near you. If you're not at home, search for your place below.",
+    "locationFar": "Your location only finds addresses served by UAB „Nemenčinės komunalininkas“ in Vilnius district, and there is none near you. In Kaunas district, or if you're not at home, search for your place below.",
     "orSearch": "or search",
     "locationServicesOff": "Location is turned off on your phone. Turn it on and try again, or search for your place below.",
     "addressHint": "Pickup days in {{place}} depend on the address.",
@@ -133,7 +133,7 @@
     "sourceCode": "Source code",
     "addressSource": "Addresses: {{source}}",
     "disclaimerTitle": "No guarantees",
-    "disclaimer": "This app is provided free of charge, as is, without any warranty. The authors are not responsible for missed or wrong reminders, or for any consequences of relying on them. It is not affiliated with UAB „Nemenčinės komunalininkas“.",
+    "disclaimer": "This app is provided free of charge, as is, without any warranty. The authors are not responsible for missed or wrong reminders, or for any consequences of relying on them. It is not affiliated with UAB „Nemenčinės komunalininkas“ or UAB „Kauno švara“.",
     "version": "Version {{version}}"
   },
   "notifications": {
