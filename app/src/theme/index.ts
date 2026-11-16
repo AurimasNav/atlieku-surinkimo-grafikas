@@ -1,3 +1,4 @@
+import type { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 
 import type { WasteKind } from '@/lib/schedule';
@@ -46,11 +47,15 @@ export const kindPalette: Record<WasteKind, { solid: string; onSolid: string; so
   glass: { solid: '#1FAF6E', onSolid: '#FFFFFF', soft: '#D9F4E6', softDark: '#123726' },
 };
 
+/**
+ * MaterialCommunityIcons names. Mixed waste is a tied garbage bag: a trash can reads as a
+ * "delete" button, especially next to list rows.
+ */
 export const kindIcons = {
-  household: 'trash',
+  household: 'sack',
   packaging: 'cube',
-  glass: 'wine',
-} as const satisfies Record<WasteKind, string>;
+  glass: 'glass-wine',
+} as const satisfies Record<WasteKind, keyof typeof MaterialCommunityIcons.glyphMap>;
 
 export const fonts = {
   regular: 'Manrope_500Medium',

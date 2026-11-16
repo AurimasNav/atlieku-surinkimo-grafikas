@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
-import { AppText, Button, ListRow, PressableScale, ScreenHeader, SearchField } from '@/components/ui';
+import { AppText, Button, ListRow, ScreenHeader, SearchField } from '@/components/ui';
 import { type GeolocateResult, locateHome } from '@/lib/geolocate';
 import { searchLocations } from '@/lib/schedule';
 import { nextSetupStep } from '@/lib/setup-flow';
@@ -79,28 +79,20 @@ export default function ChooseLocation() {
           </View>
         </Animated.View>
       ) : (
-        <PressableScale
-          haptic="light"
-          onPress={locate}
-          disabled={locating}
-          accessibilityRole="button"
-          style={[styles.locate, { backgroundColor: theme.primary }]}>
-          <View style={styles.locateIcon}>
-            {locating ? (
-              <ActivityIndicator color={theme.onPrimary} />
-            ) : (
-              <Ionicons name="navigate" size={22} color={theme.onPrimary} />
-            )}
-          </View>
-          <View style={styles.locateText}>
-            <AppText variant="label" style={{ color: theme.onPrimary, fontSize: 16 }}>
-              {locating ? t('setup.locating') : t('setup.useLocation')}
-            </AppText>
-            <AppText variant="caption" style={{ color: theme.onPrimary, opacity: 0.8 }}>
-              {t('setup.useLocationHint')}
-            </AppText>
-          </View>
-        </PressableScale>
+        // A plain button like the app's other actions: as a large card with text, testers read it
+        // as a banner and went straight to the search field.
+        <View style={styles.locate}>
+          <Button
+            icon="navigate"
+            title={locating ? t('setup.locating') : t('setup.useLocation')}
+            onPress={locate}
+            disabled={locating}
+            style={locating && styles.locating}
+          />
+          <AppText variant="caption" muted style={styles.locateHint}>
+            {t('setup.useLocationHint')}
+          </AppText>
+        </View>
       )}
       {gps && !gps.ok && (
         <Animated.View entering={motion(FadeIn.duration(200))}>
@@ -197,22 +189,9 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   header: { gap: spacing.md, marginBottom: spacing.xs },
   gps: { gap: spacing.sm + 2 },
-  locate: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.md,
-    borderRadius: radius.lg,
-  },
-  locateIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    backgroundColor: 'rgba(255,255,255,0.16)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  locateText: { flex: 1, gap: 2 },
+  locate: { gap: spacing.xs },
+  locating: { opacity: 0.7 },
+  locateHint: { textAlign: 'center', paddingHorizontal: spacing.md },
   found: { gap: spacing.xs, padding: spacing.lg, borderRadius: radius.lg, borderWidth: 2 },
   foundActions: { gap: spacing.xs, marginTop: spacing.md },
   or: { textAlign: 'center', marginTop: spacing.xs },
