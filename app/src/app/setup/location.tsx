@@ -17,7 +17,7 @@ import Animated, {
 
 import { AppText, Button, ListRow, PressableScale, ScreenHeader, SearchField } from '@/components/ui';
 import { type GeolocateResult, locateHome } from '@/lib/geolocate';
-import { fetchKaunoIndex, type KaunoTown, kaunoTowns, searchKaunoTowns } from '@/lib/kauno';
+import { fetchKaunoIndex, type KaunoTown, kaunoTowns, loadKaunoAddress, searchKaunoTowns } from '@/lib/kauno';
 import { type Location, searchLocations } from '@/lib/schedule';
 import { nextSetupStep } from '@/lib/setup-flow';
 import { useMotion } from '@/lib/motion';
@@ -74,25 +74,47 @@ export default function ChooseLocation() {
   };
 
   const found = gps?.ok ? gps : null;
-  const foundLocation = found && data?.locations?.find((loc) => loc.id === found.address.locationId);
-  const confirmFound = () => {
+  const foundLocation = found?.address && data?.locations?.find((loc) => loc.id === found.address.locationId);
+  const [confirming, setConfirming] = useState(false);
+  const confirmFound = async () => {
     if (!found) return;
+    if (!found.address) {
+      // Kauno r.: with a trusted position take the address as it is, otherwise ask for it.
+      const { kauno } = found;
+      const askAddress = () =>
+        router.push({
+          pathname: '/setup/address',
+          params: { eldership: kauno.eldership, eldershipName: kauno.eldershipName, town: kauno.town },
+        });
+      if (!found.streetConfident) return askAddress();
+      setConfirming(true);
+      const personal = await loadKaunoAddress(kauno).catch(() => undefined);
+      setConfirming(false);
+      if (!personal) return askAddress();
+      useSettings.getState().setKaunoAddress(kauno);
+      useSchedule.getState().setPersonal(personal);
+      return router.push('/setup/done');
+    }
     // Only pass the street when we trust it; otherwise the street step asks.
     pick(found.address.locationId, found.streetConfident ? found.address.street : undefined);
   };
 
   const gpsCard = (
     <View style={styles.gps}>
-      {found && foundLocation ? (
+      {found && (foundLocation || !found.address) ? (
         <Animated.View entering={motion(FadeInDown.duration(300))} style={[styles.found, { backgroundColor: theme.surface, borderColor: theme.primary }]}>
           <AppText variant="overline" style={{ color: theme.primary }}>
             {t('setup.foundTitle')}
           </AppText>
           <AppText variant="title">
-            {[found.address.streetLabel, found.address.number].filter(Boolean).join(' ') || foundLocation.name}
+            {found.address
+              ? [found.address.streetLabel, found.address.number].filter(Boolean).join(' ') || foundLocation?.name
+              : [found.kauno.street, found.kauno.house].filter(Boolean).join(' ') || found.kauno.town}
           </AppText>
           <AppText muted>
-            {foundLocation.name}, {foundLocation.district} sen.
+            {found.address
+              ? `${foundLocation?.name}, ${foundLocation?.district} sen.`
+              : `${found.kauno.town}, ${found.kauno.eldershipName} · Kauno r.`}
           </AppText>
           {!found.streetConfident && (
             <AppText variant="caption" muted>
@@ -100,7 +122,7 @@ export default function ChooseLocation() {
             </AppText>
           )}
           <View style={styles.foundActions}>
-            <Button icon="checkmark" title={t('setup.confirmHome')} onPress={confirmFound} />
+            <Button icon="checkmark" title={t('setup.confirmHome')} onPress={confirmFound} disabled={confirming} />
             <Button variant="ghost" title={t('setup.notHome')} onPress={() => setGps(null)} />
           </View>
         </Animated.View>

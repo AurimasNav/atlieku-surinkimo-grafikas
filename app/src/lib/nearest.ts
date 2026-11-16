@@ -25,11 +25,24 @@ const METRES_PER_DEGREE = 111_320;
  * anywhere. A linear scan over ~50k points takes a few milliseconds.
  */
 export function findNearest(table: AddressTable, lat: number, lon: number): NearestAddress | null {
+  const nearest = nearestPoint(table.points, lat, lon);
+  if (!nearest) return null;
+  const [, , placeIndex, number] = table.points[nearest.index];
+  const [locationId, street, streetLabel] = table.places[placeIndex];
+  return { locationId, street: street || undefined, streetLabel, number, distance: nearest.distance };
+}
+
+/** The closest of `points` ([lat * 1e5, lon * 1e5, ...]) and its distance in metres. */
+export function nearestPoint(
+  points: readonly (readonly [number, number, ...unknown[]])[],
+  lat: number,
+  lon: number,
+): { index: number; distance: number } | null {
   const cosLat = Math.cos((lat * Math.PI) / 180);
   let best = -1;
   let bestSq = Infinity;
-  for (let i = 0; i < table.points.length; i++) {
-    const [pLat, pLon] = table.points[i];
+  for (let i = 0; i < points.length; i++) {
+    const [pLat, pLon] = points[i];
     const dy = pLat / 1e5 - lat;
     const dx = (pLon / 1e5 - lon) * cosLat;
     const sq = dx * dx + dy * dy;
@@ -38,14 +51,5 @@ export function findNearest(table: AddressTable, lat: number, lon: number): Near
       best = i;
     }
   }
-  if (best < 0) return null;
-  const [, , placeIndex, number] = table.points[best];
-  const [locationId, street, streetLabel] = table.places[placeIndex];
-  return {
-    locationId,
-    street: street || undefined,
-    streetLabel,
-    number,
-    distance: Math.sqrt(bestSq) * METRES_PER_DEGREE,
-  };
+  return best < 0 ? null : { index: best, distance: Math.sqrt(bestSq) * METRES_PER_DEGREE };
 }

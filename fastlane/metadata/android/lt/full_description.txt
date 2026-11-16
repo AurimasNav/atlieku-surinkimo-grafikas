@@ -1,4 +1,7 @@
-Šiukšliavežė primins vakare prieš atvažiuojant šiukšliavežei, kad daugiau nepraleistumėte atliekų išvežimo. Programėlė rodo mišrių atliekų, pakuočių ir stiklo išvežimo dienas daugiau nei 650 Vilniaus rajono kaimų ir miestelių, kuriuos aptarnauja UAB „Nemenčinės komunalininkas“: Nemenčinėje, Riešėje, Avižieniuose, Maišiagaloje, Pagiriuose, Bezdonyse, Sudervėje ir kitur.
+Šiukšliavežė primins vakare prieš atvažiuojant šiukšliavežei, kad daugiau nepraleistumėte atliekų išvežimo. Programėlė veikia dviejuose rajonuose.
+
+• Vilniaus rajonas: mišrios atliekos, pakuotės ir stiklas daugiau nei 650 kaimų ir miestelių, kuriuos aptarnauja UAB „Nemenčinės komunalininkas“: Nemenčinėje, Riešėje, Avižieniuose, Maišiagaloje, Pagiriuose, Bezdonyse, Sudervėje ir kitur.
+• Kauno rajonas: mišrios, maisto ir žaliosios atliekos maždaug 39 000 adresų, kuriuos aptarnauja UAB „Kauno švara“: Garliavoje, Domeikavoje, Ringauduose, Raudondvaryje, Užliedžiuose, Akademijoje ir kitur.
 
 Kaip tai veikia
 • Vieną kartą pasirinkite savo kaimą ar miestelį arba leiskite programėlei surasti jūsų adresą. Jei išvežimo dienos priklauso nuo gatvės ar namo tipo, programėlė paklaus ir to.
@@ -17,6 +20,6 @@ Privatumas
 Nemokama ir atvirojo kodo
 Programėlė nemokama, o jos išeitinis kodas atviras (Apache 2.0) ir skelbiamas GitHub: github.com/AurimasNav/atlieku-surinkimo-grafikas. Pastebėjote klaidingas datas ar trūksta adreso? Praneškite tiesiai iš programėlės.
 
-Grafikai imami iš nemenkom.lt skelbiamų failų, kurie tikrinami kasdien. Gyvenviečių ir gatvių pavadinimai paimti iš VĮ Registrų centro Adresų registro (atvirieji duomenys).
+Grafikai imami iš nemenkom.lt skelbiamų failų ir iš UAB „Kauno švara“ atvirųjų duomenų; jie tikrinami kasdien. Gyvenviečių ir gatvių pavadinimai paimti iš VĮ Registrų centro Adresų registro (atvirieji duomenys).
 
-Neoficiali savanorių sukurta programėlė, nesusijusi su UAB „Nemenčinės komunalininkas“. Datos paimtos iš jų skelbiamų grafikų nemenkom.lt ir gali turėti klaidų; kilus abejonių, pasitikrinkite oficialų grafiką. Teikiama nemokamai, be jokių garantijų.
+Neoficiali savanorių sukurta programėlė, nesusijusi su UAB „Nemenčinės komunalininkas“ ir UAB „Kauno švara“. Datos paimtos iš jų skelbiamų grafikų ir gali turėti klaidų; kilus abejonių, pasitikrinkite oficialų grafiką. Teikiama nemokamai, be jokių garantijų.

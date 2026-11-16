@@ -20,7 +20,7 @@ Only needed once the app is released on iOS; see [releasing.md](releasing.md#add
 | Tracking (App Tracking Transparency) | Not used. `NSPrivacyTracking` is `false`. |
 | Privacy manifest | Set in `app/app.json` → `ios.privacyManifests`: no collected data types; `UserDefaults` declared with reason `CA92.1` (app's own settings). Expo packages ship their own manifests. If Apple emails about a missing "required reason" API after an upload, add it there. |
 | Export compliance | Uses only standard HTTPS, which is exempt. `ITSAppUsesNonExemptEncryption` is `false` (set via `ios.config.usesNonExemptEncryption`), so Apple won't ask on each build. |
-| Third-party content | The app shows public schedule data published by UAB „Nemenčinės komunalininkas“, with attribution and a link to the source. |
+| Third-party content | The app shows public schedule data published by UAB „Nemenčinės komunalininkas“ and UAB „Kauno švara“, with attribution and a link to the source. |
 | Age rating | Answer "None" to every content question; the result is 4+. |
 
 **Location:** the optional "Use my current location" reads the position once, while the app is
@@ -66,13 +66,14 @@ is asked for; we don't receive or store that either, and PRIVACY.md says so.
 
 Put this at the end of the description in both stores (and in the other languages you list):
 
-> Unofficial app made by volunteers, not affiliated with UAB „Nemenčinės komunalininkas“.
-> Dates come from the schedules they publish at nemenkom.lt and may contain mistakes; always
-> check the official schedule if in doubt. Provided free of charge, without any warranty.
+> Unofficial app made by volunteers, not affiliated with UAB „Nemenčinės komunalininkas“ or
+> UAB „Kauno švara“. Dates come from the schedules they publish and may contain mistakes;
+> always check the official schedule if in doubt. Provided free of charge, without any
+> warranty.
 
-> Neoficiali savanorių sukurta programėlė, nesusijusi su UAB „Nemenčinės komunalininkas“.
-> Datos paimtos iš jų skelbiamų grafikų nemenkom.lt ir gali turėti klaidų; kilus abejonių,
-> pasitikrinkite oficialų grafiką. Teikiama nemokamai, be jokių garantijų.
+> Neoficiali savanorių sukurta programėlė, nesusijusi su UAB „Nemenčinės komunalininkas“ ir
+> UAB „Kauno švara“. Datos paimtos iš jų skelbiamų grafikų ir gali turėti klaidų; kilus
+> abejonių, pasitikrinkite oficialų grafiką. Teikiama nemokamai, be jokių garantijų.
 
 ## Before the first submission
 
