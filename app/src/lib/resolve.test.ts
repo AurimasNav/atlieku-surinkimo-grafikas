@@ -142,6 +142,16 @@ describe('search', () => {
   it('hides outdated rows in the manual row picker', () => {
     expect(searchAreas(areas, 'glass', '', today).map((a) => a.id)).toEqual(['g-1', 'g-between']);
   });
+
+  it('lists the manual row picker in Lithuanian alphabetical order', () => {
+    const named = ['Žvyriškių k.', 'S/B Beržas', 'Akmentiltis', 'Šumskas', 'Zujūnai', 'Čekoniškės'].map((name, i) =>
+      area(`p-${i}`, 'packaging', { name }),
+    );
+    const names = (query: string) => searchAreas(named, 'packaging', query, today).map((a) => a.name);
+    expect(names('')).toEqual(['Akmentiltis', 'Čekoniškės', 'S/B Beržas', 'Šumskas', 'Zujūnai', 'Žvyriškių k.']);
+    // While searching, names that start with the query come first.
+    expect(names('s')).toEqual(['S/B Beržas', 'Šumskas', 'Akmentiltis', 'Čekoniškės', 'Žvyriškių k.']);
+  });
 });
 
 describe('custom schedules', () => {
