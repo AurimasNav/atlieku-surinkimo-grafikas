@@ -63,6 +63,10 @@ jobs:
             rm -rf "$out"
             echo "::warning::The Kauno r. build failed and there is no published data to keep."
           fi
+      # status.json and metrics.txt for monitoring (docs/monitoring.md).
+      - name: Publish the state of the data
+        if: github.event_name != 'pull_request'
+        run: uv run python -m schedule_pipeline.status --site ../site
       - name: Render privacy policy
         if: github.event_name != 'pull_request'
         run: uv run python -m schedule_pipeline.site ../PRIVACY.md --out ../site/privacy/index.html --title "Privacy Policy / Privatumo politika"
