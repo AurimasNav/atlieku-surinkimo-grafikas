@@ -31,8 +31,9 @@ deleted when you uninstall the app or clear its data.
 ## Finding your address with GPS (optional)
 
 If you tap "Use my current location", the app asks for permission to read your position
-**once**. It then downloads the public list of addresses (`addresses.json`, the same file for
-every user) and finds the nearest address **on your phone**. Your position is never sent
+**once**. It then downloads the public lists of addresses (`addresses.json` and
+`kauno-r/points.json`, the same files for every user) and finds the nearest address **on your
+phone**. Your position is never sent
 anywhere and is not stored; only the place you confirm is saved, as when you search by name.
 You can refuse the permission and search for your place instead.
 
@@ -64,8 +65,13 @@ such as your IP address and the app's user agent, and may keep it in server logs
 and operations. We have no access to those logs. See the
 [GitHub General Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
-The request contains nothing about your selected areas or settings: every user downloads the
-same file.
+The requests contain nothing about your address or settings, and every user downloads the same
+files, with one exception. In Kaunas district the schedules are published per address, so the
+app downloads the address list of your **eldership** (seniūnija, for example
+`kauno-r/addresses/ringaudu.json`): when you choose your address and each time the schedule
+is refreshed. GitHub's servers can therefore see which eldership a request is for, together
+with the technical information above. Your town, street and house number are looked up on
+your phone and are never sent.
 
 If you tap a link in the app (privacy policy, official schedule, source code), it opens in your
 browser, and that website's own privacy policy applies.
@@ -133,8 +139,9 @@ duomenis, jie pašalinami.
 ## Adreso paieška pagal GPS (neprivaloma)
 
 Paspaudus „Naudoti mano buvimo vietą“, programėlė paprašo leidimo **vieną kartą** nustatyti
-jūsų buvimo vietą. Tada ji atsisiunčia viešą adresų sąrašą (`addresses.json`, visiems
-naudotojams tą patį failą) ir artimiausią adresą randa **jūsų telefone**. Jūsų buvimo vieta
+jūsų buvimo vietą. Tada ji atsisiunčia viešus adresų sąrašus (`addresses.json` ir
+`kauno-r/points.json`, visiems naudotojams tuos pačius failus) ir artimiausią adresą randa
+**jūsų telefone**. Jūsų buvimo vieta
 niekur nesiunčiama ir nesaugoma; išsaugoma tik jūsų patvirtinta vietovė, kaip ir ieškant
 pagal pavadinimą. Leidimo galite neduoti ir vietovę surasti paieškoje.
 
@@ -166,8 +173,13 @@ informaciją, pvz., jūsų IP adresą, ir gali ją saugoti serverio žurnaluose 
 prie šių žurnalų prieigos neturime. Žr.
 [„GitHub“ privatumo pareiškimą](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
-Užklausoje nėra jokios informacijos apie jūsų pasirinktas vietoves ar nustatymus – visi
-naudotojai atsisiunčia tą patį failą.
+Užklausose nėra jokios informacijos apie jūsų adresą ar nustatymus, ir visi naudotojai
+atsisiunčia tuos pačius failus, išskyrus vieną atvejį. Kauno rajone grafikai skelbiami
+kiekvienam adresui atskirai, todėl programėlė atsisiunčia jūsų **seniūnijos** adresų sąrašą
+(pvz., `kauno-r/addresses/ringaudu.json`): kai pasirenkate adresą ir kaskart atnaujinant
+grafiką. Taigi „GitHub“ serveriai gali matyti, kurios seniūnijos failo prašoma, kartu su
+aukščiau minėta technine informacija. Jūsų gyvenvietė, gatvė ir namo numeris surandami
+jūsų telefone ir niekur nesiunčiami.
 
 Paspaudus nuorodą programėlėje (privatumo politika, oficialus grafikas, programos kodas), ji
 atidaroma naršyklėje, ir taikoma tos svetainės privatumo politika.
