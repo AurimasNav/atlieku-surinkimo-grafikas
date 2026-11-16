@@ -1,11 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useDeferredValue, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated, {
+  cancelAnimation,
+  Easing,
+  FadeIn,
+  FadeInDown,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 
-import { AppText, Button, ListRow, ScreenHeader, SearchField } from '@/components/ui';
+import { AppText, Button, ListRow, PressableScale, ScreenHeader, SearchField } from '@/components/ui';
 import { type GeolocateResult, locateHome } from '@/lib/geolocate';
 import { searchLocations } from '@/lib/schedule';
 import { nextSetupStep } from '@/lib/setup-flow';
@@ -79,20 +89,36 @@ export default function ChooseLocation() {
           </View>
         </Animated.View>
       ) : (
-        // A plain button like the app's other actions: as a large card with text, testers read it
-        // as a banner and went straight to the search field.
-        <View style={styles.locate}>
-          <Button
-            icon="navigate"
-            title={locating ? t('setup.locating') : t('setup.useLocation')}
-            onPress={locate}
-            disabled={locating}
-            style={locating && styles.locating}
-          />
-          <AppText variant="caption" muted style={styles.locateHint}>
-            {t('setup.useLocationHint')}
-          </AppText>
-        </View>
+        // Testers read the solid green card (the colour of the app's banners) as information and
+        // went straight to the search field. A white row with a green border, a pulsing icon and
+        // a chevron looks like the tappable rows on this screen, but stands out from them.
+        <PressableScale
+          haptic="light"
+          onPress={locate}
+          disabled={locating}
+          accessibilityRole="button"
+          accessibilityLabel={t('setup.useLocation')}
+          style={[styles.locate, { backgroundColor: theme.surface, borderColor: theme.primary }]}>
+          <View style={styles.locateIcon}>
+            {!locating && <Pulse color={theme.primary} />}
+            <View style={[styles.locateCircle, { backgroundColor: theme.primary }]}>
+              {locating ? (
+                <ActivityIndicator color={theme.onPrimary} />
+              ) : (
+                <Ionicons name="navigate" size={20} color={theme.onPrimary} />
+              )}
+            </View>
+          </View>
+          <View style={styles.locateText}>
+            <AppText variant="label" style={{ fontSize: 16 }}>
+              {locating ? t('setup.locating') : t('setup.useLocation')}
+            </AppText>
+            <AppText variant="caption" muted>
+              {t('setup.useLocationHint')}
+            </AppText>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={theme.primary} />
+        </PressableScale>
       )}
       {gps && !gps.ok && (
         <Animated.View entering={motion(FadeIn.duration(200))}>
@@ -185,13 +211,42 @@ export default function ChooseLocation() {
   );
 }
 
+/**
+ * A ring that keeps growing out of the location icon and fading, to draw the eye to the button.
+ * None when the phone's animations are off.
+ */
+function Pulse({ color }: { color: string }) {
+  const reduced = useReducedMotion();
+  const progress = useSharedValue(0);
+  useEffect(() => {
+    if (reduced) return;
+    progress.value = withRepeat(withTiming(1, { duration: 1600, easing: Easing.out(Easing.quad) }), -1, false);
+    return () => cancelAnimation(progress);
+  }, [reduced, progress]);
+  const style = useAnimatedStyle(() => ({
+    opacity: 0.45 * (1 - progress.value),
+    transform: [{ scale: 1 + progress.value * 0.7 }],
+  }));
+  if (reduced) return null;
+  return <Animated.View pointerEvents="none" style={[styles.pulse, { backgroundColor: color }, style]} />;
+}
+
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   header: { gap: spacing.md, marginBottom: spacing.xs },
   gps: { gap: spacing.sm + 2 },
-  locate: { gap: spacing.xs },
-  locating: { opacity: 0.7 },
-  locateHint: { textAlign: 'center', paddingHorizontal: spacing.md },
+  locate: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 2,
+  },
+  locateIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  locateCircle: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  locateText: { flex: 1, gap: 2 },
+  pulse: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 22 },
   found: { gap: spacing.xs, padding: spacing.lg, borderRadius: radius.lg, borderWidth: 2 },
   foundActions: { gap: spacing.xs, marginTop: spacing.md },
   or: { textAlign: 'center', marginTop: spacing.xs },

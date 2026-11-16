@@ -32,7 +32,7 @@
   },
   "setup": {
     "locationTitle": "Gdzie mieszkasz?",
-    "locationHint": "Wpisz nazwę swojej wsi lub miasta.",
+    "locationHint": "Pozwól nam znaleźć Twoją miejscowość albo wyszukaj wieś lub miasto.",
     "locationPlaceholder": "np. Riešė",
     "locationNone": "Nic nie znaleziono. Wyświetlamy tylko miejscowości obsługiwane przez UAB „Nemenčinės komunalininkas“.",
     "manualLink": "Nie możesz znaleźć? Wybierz wiersze harmonogramu ręcznie",
