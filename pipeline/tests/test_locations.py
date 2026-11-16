@@ -104,3 +104,25 @@ def test_district_spellings():
 )
 def test_near_names(a, b, expected):
     assert _near(fold(a), fold(b)) is expected
+
+
+def test_street_written_with_an_initial():
+    from schedule_pipeline.locations import street_key, streets_in
+    from schedule_pipeline.registry import Settlement, Street
+
+    bulhako, tijunu = Street(1, "Jano Bulhako", "g."), Street(2, "Tijūnų", "g.")
+    village = Settlement(9, "Buivydiškės", "Buivydiškių", "k.", "Zujūnų", [bulhako, tijunu])
+    assert streets_in("tik J.Bulhako g.", village) == {street_key(bulhako)}
+    assert streets_in("tik J. Bulhako g., Tijūnų g.", village) == {
+        street_key(bulhako),
+        street_key(tijunu),
+    }
+
+
+def test_a_row_for_some_streets_is_not_the_row_of_the_whole_village():
+    from schedule_pipeline.locations import Clause, resolve
+
+    # "Buivydiškių k." in one row, "Buivydiškių k. tik <unrecognised street>" in another.
+    assert resolve([Clause("whole", None), Clause("part", set())]) == {"area": "whole"}
+    # Alone, the partial row is still the best guess.
+    assert resolve([Clause("part", set())]) == {"area": "part"}
