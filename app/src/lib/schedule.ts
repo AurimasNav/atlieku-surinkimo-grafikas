@@ -21,6 +21,8 @@ export type Area = {
    * is collected once a quarter, so between pickups the next date isn't known yet.
    */
   current?: boolean;
+  /** Id of the company whose schedule this row is from; absent for Nemenčinės komunalininkas. */
+  provider?: string;
 };
 
 /** How one schedule covers a location. See pipeline/src/schedule_pipeline/locations.py. */
@@ -45,6 +47,16 @@ export type Location = {
   streets?: [string, string][];
   /** Missing kind = that waste type isn't collected here according to the schedules. */
   schedule?: Partial<Record<WasteKind, LocationSchedule>>;
+  /** Id of the company that serves the location; absent for Nemenčinės komunalininkas. */
+  provider?: string;
+};
+
+/** A company whose schedules are in the data. */
+export type Provider = {
+  id: string;
+  name: string;
+  /** The company's official schedule page. */
+  url: string;
 };
 
 export type ScheduleData = {
@@ -55,6 +67,8 @@ export type ScheduleData = {
   areas: Area[];
   /** Added later without a schema bump, so older data may not have it. */
   locations?: Location[];
+  /** Added with a second company in Vilniaus r.; older data has only Nemenčinės komunalininkas. */
+  providers?: Provider[];
   /**
    * Not part of the download: the schedules of the user's own address in Kauno r., kept by the
    * app next to the data (see lib/kauno.ts). `key` says which address they belong to.

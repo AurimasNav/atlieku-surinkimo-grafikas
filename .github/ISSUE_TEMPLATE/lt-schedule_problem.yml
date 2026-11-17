@@ -7,8 +7,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        Programėlė oficialius UAB „Nemenčinės komunalininkas“ grafikus perskaito automatiškai, todėl galimos klaidos. Palyginkite su oficialiu grafiku:
-        https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/
+        Programėlė oficialius atliekų vežėjų grafikus perskaito automatiškai, todėl galimos klaidos. Palyginkite su oficialiu grafiku:
+        - UAB „Nemenčinės komunalininkas“: https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/
+        - UAB „Nemėžio komunalininkas“: https://www.nkom.lt/kita.html
+        - UAB „Kauno švara“: https://grafikai.svara.lt/
   - type: dropdown
     id: problem
     attributes:

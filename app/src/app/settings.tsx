@@ -10,10 +10,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ReminderPicker } from '@/components/reminder-picker';
 import { AppText, Button, Card, Chip, KindIcon, ListRow, PressableScale, ScreenHeader } from '@/components/ui';
 import { LANGUAGE_NAMES, LANGUAGES, type Language } from '@/i18n';
-import { KAUNO_SOURCE_PAGE_URL, PRIVACY_URL, REPOSITORY_URL, SOURCE_PAGE_URL } from '@/lib/config';
+import { PRIVACY_URL, REPOSITORY_URL } from '@/lib/config';
 import { toIsoDate } from '@/lib/dates';
 import { openIssue } from '@/lib/feedback';
-import { placeLabel, resolvePlace, visibleKinds } from '@/lib/resolve';
+import { placeLabel, resolvePlace, sourcePageUrl, visibleKinds } from '@/lib/resolve';
 import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
 import { radius, spacing, useTheme } from '@/theme';
@@ -134,7 +134,7 @@ export default function Settings() {
             <ListRow
               icon={<Ionicons name="calendar" size={22} color={theme.primary} />}
               title={t('settings.source')}
-              onPress={() => WebBrowser.openBrowserAsync(place?.kauno ? KAUNO_SOURCE_PAGE_URL : SOURCE_PAGE_URL)}
+              onPress={() => WebBrowser.openBrowserAsync(sourcePageUrl(data, place, resolved))}
             />
             <ListRow
               icon={<Ionicons name="logo-github" size={22} color={theme.primary} />}

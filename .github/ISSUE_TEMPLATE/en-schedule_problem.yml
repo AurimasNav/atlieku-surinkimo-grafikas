@@ -7,8 +7,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        The app converts the official schedules of UAB „Nemenčinės komunalininkas“ automatically, so mistakes are possible. Please compare with the official schedule:
-        https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/
+        The app converts the official schedules of the waste companies automatically, so mistakes are possible. Please compare with the official schedule:
+        - UAB „Nemenčinės komunalininkas“: https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/
+        - UAB „Nemėžio komunalininkas“: https://www.nkom.lt/kita.html
+        - UAB „Kauno švara“: https://grafikai.svara.lt/
   - type: dropdown
     id: problem
     attributes:

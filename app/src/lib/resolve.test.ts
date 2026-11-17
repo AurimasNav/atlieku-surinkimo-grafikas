@@ -1,4 +1,5 @@
-import { isHousingChoice, pendingKinds, resolvePlace } from './resolve';
+import { KAUNO_SOURCE_PAGE_URL, SOURCE_PAGE_URL } from './config';
+import { isHousingChoice, pendingKinds, type Place, resolvePlace, sourcePageUrl } from './resolve';
 import type { Area, Location, ScheduleData } from './schedule';
 import { searchAreas, searchLocations } from './schedule';
 
@@ -171,5 +172,44 @@ describe('custom schedules', () => {
     expect(ids(r)).toEqual(['custom-household']);
     expect(r.kinds.glass).toEqual({ status: 'none' });
     expect(pendingKinds(r)).toEqual([]);
+  });
+});
+
+describe('official schedule link', () => {
+  const nkom = 'https://www.nkom.lt/kita.html';
+  const twoCompanies: ScheduleData = {
+    ...data,
+    areas: [...areas, area('n-1', 'household', { provider: 'nemezio' })],
+    locations: [
+      ...locations,
+      { id: 'n1', name: 'Nemėžis', type: 'k.', district: 'Nemėžio', provider: 'nemezio', schedule: { household: { area: 'n-1' } } },
+    ],
+    providers: [
+      { id: 'nemencine', name: 'UAB „Nemenčinės komunalininkas“', url: SOURCE_PAGE_URL },
+      { id: 'nemezio', name: 'UAB „Nemėžio komunalininkas“', url: nkom },
+    ],
+  };
+  const link = (d: ScheduleData | null, place: Place | null) => sourcePageUrl(d, place, resolvePlace(d, place, today));
+
+  it("opens the page of the place's company", () => {
+    expect(link(twoCompanies, { locationId: 'n1', choices: {} })).toBe(nkom);
+    expect(link(twoCompanies, { locationId: 'g1', choices: {} })).toBe(SOURCE_PAGE_URL);
+  });
+
+  it('follows a row picked by hand', () => {
+    expect(link(twoCompanies, { choices: { household: 'n-1' } })).toBe(nkom);
+  });
+
+  it('opens Nemenčinė for data and places without companies', () => {
+    expect(link(data, { locationId: 'g1', choices: {} })).toBe(SOURCE_PAGE_URL);
+    expect(link(twoCompanies, null)).toBe(SOURCE_PAGE_URL);
+    expect(link(null, { locationId: 'n1', choices: {} })).toBe(SOURCE_PAGE_URL);
+    const unknown = { ...twoCompanies, providers: [] };
+    expect(link(unknown, { locationId: 'n1', choices: {} })).toBe(SOURCE_PAGE_URL);
+  });
+
+  it('opens Kauno švara for a Kauno r. address', () => {
+    const kauno = { eldership: 'ringaudu', eldershipName: 'Ringaudų', town: 'Ringaudai', street: '', house: '' };
+    expect(link(twoCompanies, { kauno, choices: {} })).toBe(KAUNO_SOURCE_PAGE_URL);
   });
 });

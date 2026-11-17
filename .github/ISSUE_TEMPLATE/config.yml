@@ -6,3 +6,9 @@ contact_links:
   - name: Official schedule (UAB „Nemenčinės komunalininkas“)
     url: https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/
     about: Questions about the collection service itself go to the waste company, not this project.
+  - name: Official schedule (UAB „Nemėžio komunalininkas“)
+    url: https://www.nkom.lt/kita.html
+    about: Questions about the collection service itself go to the waste company, not this project.
+  - name: Official schedule (UAB „Kauno švara“)
+    url: https://grafikai.svara.lt/
+    about: Questions about the collection service itself go to the waste company, not this project.

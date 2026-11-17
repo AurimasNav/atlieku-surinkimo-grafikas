@@ -14,7 +14,14 @@ const outDir = join(import.meta.dirname, '..', '..', '.github', 'ISSUE_TEMPLATE'
 const LANGUAGES = readdirSync(join(import.meta.dirname, '..', 'src', 'i18n', 'locales')).map((file) =>
   file.replace(/\.json$/, ''),
 );
-const OFFICIAL_SCHEDULE = 'https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/';
+// The official schedule page of each company, as a Markdown list.
+const OFFICIAL_SCHEDULES = [
+  'UAB „Nemenčinės komunalininkas“: https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/',
+  'UAB „Nemėžio komunalininkas“: https://www.nkom.lt/kita.html',
+  'UAB „Kauno švara“: https://grafikai.svara.lt/',
+]
+  .map((line) => `- ${line}`)
+  .join('\n');
 
 const appVersion = {
   type: 'input',
@@ -189,10 +196,10 @@ const FORMS = {
       pl: 'Błędne daty odbioru albo adresu nie można znaleźć lub przypisano go do złego harmonogramu.',
     },
     intro: {
-      en: `The app converts the official schedules of UAB „Nemenčinės komunalininkas“ automatically, so mistakes are possible. Please compare with the official schedule:\n${OFFICIAL_SCHEDULE}`,
-      lt: `Programėlė oficialius UAB „Nemenčinės komunalininkas“ grafikus perskaito automatiškai, todėl galimos klaidos. Palyginkite su oficialiu grafiku:\n${OFFICIAL_SCHEDULE}`,
-      ru: `Приложение автоматически обрабатывает официальные графики UAB „Nemenčinės komunalininkas“, поэтому возможны ошибки. Сравните с официальным графиком:\n${OFFICIAL_SCHEDULE}`,
-      pl: `Aplikacja automatycznie przetwarza oficjalne harmonogramy UAB „Nemenčinės komunalininkas”, więc możliwe są błędy. Porównaj z oficjalnym harmonogramem:\n${OFFICIAL_SCHEDULE}`,
+      en: `The app converts the official schedules of the waste companies automatically, so mistakes are possible. Please compare with the official schedule:\n${OFFICIAL_SCHEDULES}`,
+      lt: `Programėlė oficialius atliekų vežėjų grafikus perskaito automatiškai, todėl galimos klaidos. Palyginkite su oficialiu grafiku:\n${OFFICIAL_SCHEDULES}`,
+      ru: `Приложение автоматически обрабатывает официальные графики компаний по вывозу отходов, поэтому возможны ошибки. Сравните с официальным графиком:\n${OFFICIAL_SCHEDULES}`,
+      pl: `Aplikacja automatycznie przetwarza oficjalne harmonogramy firm wywożących odpady, więc możliwe są błędy. Porównaj z oficjalnym harmonogramem:\n${OFFICIAL_SCHEDULES}`,
     },
     fields: [
       {
