@@ -28,6 +28,10 @@ ADDRESSES_FILE = DATA_DIR / "address-points-vilniaus-r.json"
 KAUNO_MUNICIPALITY = ("Kauno rajono", 52)
 KAUNO_REGISTRY_FILE = DATA_DIR / "registry-kauno-r.json"
 KAUNO_ADDRESSES_FILE = DATA_DIR / "address-points-kauno-r.json"
+# Mažeikių r. (schedule_pipeline.tratc).
+MAZEIKIAI_MUNICIPALITY = ("Mažeikių rajono", 61)
+MAZEIKIAI_REGISTRY_FILE = DATA_DIR / "registry-mazeikiu-r.json"
+MAZEIKIAI_ADDRESSES_FILE = DATA_DIR / "address-points-mazeikiu-r.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -84,11 +88,14 @@ def main() -> int:
     save(registry, points)
     count = f"{len(registry.settlements)} settlements and {len(points)} address points"
     print(f"Vilniaus r.: saved {count} to {DATA_DIR}")
-    name, code = KAUNO_MUNICIPALITY
-    registry, points = address_register.fetch(name), address_points.fetch(code)
-    save(registry, points, KAUNO_REGISTRY_FILE, KAUNO_ADDRESSES_FILE)
-    count = f"{len(registry.settlements)} settlements and {len(points)} address points"
-    print(f"Kauno r.: saved {count} to {DATA_DIR}")
+    for label, (name, code), registry_file, addresses_file in (
+        ("Kauno r.", KAUNO_MUNICIPALITY, KAUNO_REGISTRY_FILE, KAUNO_ADDRESSES_FILE),
+        ("Mažeikių r.", MAZEIKIAI_MUNICIPALITY, MAZEIKIAI_REGISTRY_FILE, MAZEIKIAI_ADDRESSES_FILE),
+    ):
+        registry, points = address_register.fetch(name), address_points.fetch(code)
+        save(registry, points, registry_file, addresses_file)
+        count = f"{len(registry.settlements)} settlements and {len(points)} address points"
+        print(f"{label}: saved {count} to {DATA_DIR}")
     return 0
 
 

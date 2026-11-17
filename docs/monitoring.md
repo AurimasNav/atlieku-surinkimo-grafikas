@@ -6,13 +6,14 @@ source fails **and yesterday's data stays published**, so nothing breaks for use
 GitHub emails the repository owner about the failed run, but the reliable signal is the data
 itself: it stops getting newer.
 
-There are three sources, each built on its own:
+There are four sources, each built on its own:
 
 | `source` | Company | Published in |
 |---|---|---|
 | `nemencine` | UAB „Nemenčinės komunalininkas“, 12 elderships of Vilniaus r. | `schedule.json` (rows and places without a `provider` field) |
 | `nemezio` | UAB „Nemėžio komunalininkas“, the other 11 elderships of Vilniaus r. | `schedule.json` (`provider: "nemezio"`) |
 | `kauno` | UAB „Kauno švara“, Kauno r. | `kauno-r/` |
+| `mazeikiai` | UAB „Telšių regiono atliekų tvarkymo centras“, Mažeikių r. | `mazeikiu-r/` |
 
 The two Vilniaus r. companies share one `schedule.json`, so the app needs one download. When
 one of them fails, its part of yesterday's file is kept (its `providers[].generatedAt` stays

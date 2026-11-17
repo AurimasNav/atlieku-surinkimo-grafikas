@@ -18,7 +18,7 @@ def test_falls_back_to_snapshot_when_blocked():
     def blocked():
         raise HTTPError("https://get.data.gov.lt", 500, "Internal Server Error", {}, None)
 
-    data, note = build._live_or_snapshot(
+    data, note = build.live_or_snapshot(
         "Address Register", blocked, lambda: ("snapshot", "2026-10-11")
     )
     assert data == "snapshot"
@@ -35,5 +35,5 @@ def test_old_snapshot_asks_for_refresh(monkeypatch):
             return date(2027, 1, 1)
 
     monkeypatch.setattr(build, "date", Later)
-    _, note = build._live_or_snapshot("Address points", blocked, lambda: ([], "2026-10-11"))
+    _, note = build.live_or_snapshot("Address points", blocked, lambda: ([], "2026-10-11"))
     assert "please refresh" in note

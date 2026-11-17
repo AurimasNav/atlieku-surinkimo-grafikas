@@ -31,7 +31,7 @@ from .xlsx_parser import DEFAULT_GROUP, parse_xlsx
 
 # Fewer areas than this means the format changed and the parser missed rows.
 MIN_AREAS: dict[Kind, int] = {"household": 100, "packaging": 10, "glass": 10}
-KINDS: tuple[Kind, ...] = ("household", "packaging", "glass")
+KINDS: tuple[Kind, ...] = ("household", "packaging", "glass", "food")
 # Share of household rows that must link to a register settlement; below it, matching broke.
 MIN_LINKED_HOUSEHOLD = 0.85
 # Served settlements had ~50k addresses in 2026; far fewer means the download went wrong.
@@ -72,6 +72,11 @@ class Source:
     min_household_places: int = 0
     # Kinds of schedule in a file of each kind, where a file has more than one.
     file_kinds: dict[Kind, tuple[Kind, ...]] = field(default_factory=dict)
+    # Joins the parsed files' rows in place before they are merged (tratc.combine: this year's
+    # routes and the next's); returns warnings.
+    combine: Callable[[list[tuple[SourceFile, ParseResult]], Registry, date], list[str]] | None = (
+        None
+    )
 
 
 NEMENCINE = Source(scrape.PROVIDER, download_nemencine, parse_file, MIN_AREAS)
@@ -176,6 +181,9 @@ def build_dataset(
     parsed = [(file, source.parse(file, content)) for file, content in sources]
     areas = [area for _, result in parsed for area in result.areas]
     warnings = [warning for _, result in parsed for warning in result.warnings]
+    if source.combine:
+        warnings += source.combine(parsed, registry, today)
+        areas = [area for _, result in parsed for area in result.areas]
 
     current_ids = current_rows(parsed, today)
     areas = drop_old_dates(merge_areas(areas), today - timedelta(days=keep_days), current_ids)
@@ -203,7 +211,8 @@ def build_dataset(
             f"(expected at least {source.min_household_places})"
         )
     warnings += [f"not linked to any settlement: {u}" for u in report["unmatched"]]
-    warnings += [f"not a settlement of the eldership: {u}" for u in report.get("unknownPlaces", [])]
+    unknown = "a settlement or a street" if provider.route_town else "a settlement of the eldership"
+    warnings += [f"not {unknown}: {u}" for u in report.get("unknownPlaces", [])]
 
     rows = sorted((a.to_json() for a in areas), key=_area_order)
     dataset = {
@@ -259,7 +268,7 @@ def published_part(published: dict, provider: Provider) -> dict | None:
     }
 
 
-def merge_parts(parts: list[tuple[Provider, dict]]) -> dict:
+def merge_parts(parts: list[tuple[Provider, dict]], source: str = PAGE_URL) -> dict:
     """schedule.json from the providers' parts. `source`, `files`, `coverage` and `matching`
     keep their meaning for the first provider's data; `providers` has each part's own."""
     providers = [
@@ -285,7 +294,7 @@ def merge_parts(parts: list[tuple[Provider, dict]]) -> dict:
     return {
         "schemaVersion": SCHEMA_VERSION,
         "generatedAt": datetime.now(UTC).isoformat(timespec="seconds"),
-        "source": PAGE_URL,
+        "source": source,
         "addressSource": address_register.ATTRIBUTION,
         "providers": providers,
         "files": [f for _, part in parts for f in part["files"]],
@@ -350,14 +359,20 @@ def load_published(base_url: str) -> Callable[[], dict]:
     return load
 
 
-def write_summary(dataset: dict, results: list[PartResult], notes: list[str]) -> None:
-    lines = ["## Schedule data", ""]
+def write_summary(
+    dataset: dict,
+    results: list[PartResult],
+    notes: list[str],
+    title: str = "Schedule data",
+    file_name: str = "schedule.json",
+) -> None:
+    lines = [f"## {title}", ""]
     for result in results:
         lines += _part_summary(result)
     if notes:
         lines += ["### Notes", ""] + [f"- {n}" for n in notes] + [""]
     lines.append(
-        f"schedule.json: {len(dataset['locations'])} settlements, {len(dataset['areas'])} rows"
+        f"{file_name}: {len(dataset['locations'])} settlements, {len(dataset['areas'])} rows"
     )
     text = "\n".join(lines) + "\n"
     print(text)
@@ -384,7 +399,7 @@ def _part_summary(result: PartResult) -> list[str]:
     stats = part["matching"]
     lines += ["", f"#### Locations ({stats.get('locations', 0)} settlements)", ""]
     lines += ["| | single row | by street | ask user | not in schedule |", "|---|---|---|---|---|"]
-    for kind in KINDS:
+    for kind in provider.kinds:
         cells = [
             str(stats.get(f"{kind}.{s}", 0)) for s in ("single", "byStreet", "ambiguous", "none")
         ]
@@ -416,10 +431,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    registry, registry_note = _live_or_snapshot(
+    registry, registry_note = live_or_snapshot(
         "Address Register", address_register.fetch, snapshot.load_registry
     )
-    points, points_note = _live_or_snapshot(
+    points, points_note = live_or_snapshot(
         "Address points", address_points.fetch, snapshot.load_points
     )
     loader = None if args.strict else load_published(args.published)
@@ -457,7 +472,7 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
-def _live_or_snapshot(name, fetch_live, load_snapshot):
+def live_or_snapshot(name, fetch_live, load_snapshot):
     """Live data if the source answers; otherwise the committed snapshot (the register's sites
     block cloud servers such as GitHub Actions). Returns (data, note for the job summary)."""
     try:

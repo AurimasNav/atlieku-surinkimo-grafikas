@@ -1,6 +1,6 @@
 name: Schedule data
 
-# Scrapes nemenkom.lt, nkom.lt and Kauno švara daily and publishes schedule.json + the privacy
+# Scrapes nemenkom.lt, nkom.lt, Kauno švara and tratc.lt daily and publishes the data + the privacy
 # policy to GitHub Pages. If parsing or validation fails, nothing is deployed and the last good
 # data stays live; a provider whose build fails keeps its part of yesterday's data instead.
 on:
@@ -65,6 +65,25 @@ jobs:
           else
             rm -rf "$out"
             echo "::warning::The Kauno r. build failed and there is no published data to keep."
+          fi
+      # Mažeikių r., from the files of the regional waste centre (site/mazeikiu-r): the same
+      # rule, yesterday's files are kept if today's build fails.
+      - name: Build the Mažeikių r. schedule (TRATC)
+        id: mazeikiai
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: uv run python -m schedule_pipeline.tratc --out ../site/mazeikiu-r
+      - name: Keep the published Mažeikių r. data if today's build failed
+        if: steps.mazeikiai.outcome == 'failure'
+        run: |
+          base=https://aurimasnav.github.io/atlieku-surinkimo-grafikas/mazeikiu-r
+          out=../site/mazeikiu-r
+          rm -rf "$out" && mkdir -p "$out"
+          if curl -fsS "$base/schedule.json" -o "$out/schedule.json" && curl -fsS "$base/addresses.json" -o "$out/addresses.json"; then
+            echo "::warning::The Mažeikių r. build failed; yesterday's published data is kept."
+          else
+            rm -rf "$out"
+            echo "::warning::The Mažeikių r. build failed and there is no published data to keep."
           fi
       # status.json and metrics.txt for monitoring (docs/monitoring.md).
       - name: Publish the state of the data
