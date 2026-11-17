@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { EkonovusLink } from '@/components/ekonovus-link';
 import { ReminderPicker } from '@/components/reminder-picker';
 import { AppText, Button, Card, KindIcon, PressableScale, ScreenHeader } from '@/components/ui';
 import { toIsoDate } from '@/lib/dates';
@@ -80,6 +81,7 @@ export default function SetupDone() {
                 </Animated.View>
               );
             })}
+            {place?.kauno && <EkonovusLink />}
           </Card>
 
           <View style={styles.section}>

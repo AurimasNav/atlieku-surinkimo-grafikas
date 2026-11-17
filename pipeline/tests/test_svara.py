@@ -149,3 +149,193 @@ def test_addresses_get_coordinates_from_the_register(built):
     ]
     # Ganyklų g. 10, Parko g. (no number) and Vanagynės g. 5 aren't in this register.
     assert missing == 3
+
+
+# Spellings of one place, as Kauno švara's file has them (2026-11). Each row: eldership, town,
+# street, house, waste type.
+SPELLINGS = [
+    ("Akademijos sen.", "Akademijos mstl.", "Forto g.", "8", "Maistinės atliekos"),
+    ("Akademijos sen.", "Akademijos mstl.", "Forto g.", "8-1", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "Forto g.", "8-2", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "Vynuogyno g.", "9", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "Vynuogyno g.", "11", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "Vynuogyno", "13", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademija", "Vynuogyno g.", "9", "Žaliosios atliekos"),
+    ("Akademijos sen.", "Akademijos mstl.", "S. Žukausko g.", "1", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "S. Žukausko g.", "3", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "Silvestro Žukausko g.", "5", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "Darbininkų g.", "1", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "Darbininkų skg.", "1", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "Kadagių g.", "3A", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "Kadagių g.", "3a", "Maistinės atliekos"),
+    # Not in the register: merged only by name.
+    ("Akademijos sen.", "Akademijos mstl.", "Kaštonų g.", "1", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "Kaštonų g.", "2", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "Kaštonų g", "4", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "Beržų g.", "1", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "Beržų al.", "1", "Mišrios komunalinės"),
+    ("Akademijos sen.", "Akademijos mstl.", "Beržų", "2", "Mišrios komunalinės"),
+    # Under the wrong eldership: Domeikavos k. is in Domeikavos sen.
+    ("Vandžiogalos sen.", "Domeikavos k.", "Rugio g.", "1", "Mišrios komunalinės"),
+    ("Domeikavos sen.", "Domeikavos k.", "Rugio g.", "2", "Mišrios komunalinės"),
+    # Two settlements of that name: stays where it is.
+    ("Domeikavos sen.", "Jonučių k.", "Bičiulių g.", "1", "Mišrios komunalinės"),
+]
+REGISTRY_FOR_SPELLINGS = [
+    (1, "Akademija", "Akademijos", "mstl.", "Akademijos", [
+        (11, "Forto", "g."),
+        (12, "Vynuogyno", "g."),
+        (13, "Silvestro Žukausko", "g."),
+        (14, "Darbininkų", "g."),
+        (15, "Darbininkų", "skg."),
+        (16, "Kadagių", "g."),
+    ]),
+    (2, "Domeikava", "Domeikavos", "k.", "Domeikavos", [(21, "Rugio", "g.")]),
+    (3, "Jonučiai", "Jonučių", "k.", "Alšėnų", [(31, "Bičiulių", "g.")]),
+    (4, "Jonučiai", "Jonučių", "k.", "Garliavos apylinkių", [(41, "Bičiulių", "g.")]),
+]  # fmt: skip
+
+
+def build_spellings(monkeypatch, registry=True):
+    from schedule_pipeline.registry import Registry, Settlement, Street
+
+    monkeypatch.setattr(svara, "MIN_ROWS", 1)
+    monkeypatch.setattr(svara, "MIN_ADDRESSES", 1)
+    frequency = {"Maistinės atliekos": "kas 7 dienas"}
+    rows = [
+        f"Kauno r. sav.;{e};{t};{s};{h};C-{n};2026-11-20;{frequency.get(w, 'kas 14 dienų')};{w}"
+        for n, (e, t, s, h, w) in enumerate(SPELLINGS)
+    ]
+    settlements = [
+        Settlement(code, name, genitive, abbr, district, [Street(*s) for s in streets])
+        for code, name, genitive, abbr, district, streets in REGISTRY_FOR_SPELLINGS
+    ]
+    return svara.build(
+        "\n".join(rows).encode("utf-8"), TODAY, Registry(settlements) if registry else None
+    )
+
+
+def kinds(dataset, ids):
+    return sorted(dataset["areas"][i]["kind"] for i in ids)
+
+
+def test_a_town_written_two_ways_is_listed_once(monkeypatch):
+    dataset, files, _ = build_spellings(monkeypatch)
+    akademija = next(e for e in dataset["elderships"] if e["name"] == "Akademijos sen.")
+    assert akademija["towns"] == ["Akademijos mstl."]
+    # The one "Akademija" row had only a green waste bin of Vynuogyno g. 9; now it is one
+    # address with everything the town has there.
+    town = files["akademijos"]["towns"]["Akademijos mstl."]
+    assert kinds(dataset, town["Vynuogyno g."]["9"]) == ["green", "household"]
+    assert "Forto g." in town
+    # Phones that saved "Akademija" find their address again.
+    aliases = files["akademijos"]["aliases"]
+    assert aliases["Akademija"]["Vynuogyno g."]["9"] == [
+        "akademijos",
+        "Akademijos mstl.",
+        "Vynuogyno g.",
+        "9",
+    ]
+    assert dataset["stats"]["merged"]["towns"] == 1
+
+
+def test_street_spellings_with_one_register_code_are_merged(monkeypatch):
+    dataset, files, _ = build_spellings(monkeypatch)
+    town = files["akademijos"]["towns"]["Akademijos mstl."]
+    # The spelling with the most addresses stays, not the register's full name.
+    assert list(town["S. Žukausko g."]) == ["1", "3", "5"]
+    assert "Silvestro Žukausko g." not in town
+    assert list(town["Vynuogyno g."]) == ["9", "11", "13"]
+    assert "Vynuogyno" not in town
+    aliases = files["akademijos"]["aliases"]["Akademijos mstl."]
+    assert aliases["Silvestro Žukausko g."]["5"][2:] == ["S. Žukausko g.", "5"]
+    assert aliases["Vynuogyno"]["13"][2:] == ["Vynuogyno g.", "13"]
+    # "3a" and "3A" are one house.
+    assert list(town["Kadagių g."]) == ["3A"]
+    assert kinds(dataset, town["Kadagių g."]["3A"]) == ["food", "household"]
+
+
+def test_streets_of_different_types_stay_apart(monkeypatch):
+    for registry in (True, False):
+        _, files, _ = build_spellings(monkeypatch, registry)
+        town = files["akademijos"]["towns"]["Akademijos mstl."]
+        assert {"Darbininkų g.", "Darbininkų skg."} <= set(town)
+        # Not in the register: "Beržų" could be either of them, so it stays as it is.
+        assert {"Beržų g.", "Beržų al.", "Beržų"} <= set(town)
+
+
+def test_streets_not_in_the_register_merge_by_name(monkeypatch):
+    for registry in (True, False):
+        _, files, _ = build_spellings(monkeypatch, registry)
+        town = files["akademijos"]["towns"]["Akademijos mstl."]
+        assert list(town["Kaštonų g."]) == ["1", "2", "4"]
+        assert "Kaštonų g" not in town
+
+
+def test_without_the_register_only_names_are_merged(monkeypatch):
+    dataset, files, _ = build_spellings(monkeypatch, registry=False)
+    akademija = next(e for e in dataset["elderships"] if e["name"] == "Akademijos sen.")
+    assert akademija["towns"] == ["Akademija", "Akademijos mstl."]
+    town = files["akademijos"]["towns"]["Akademijos mstl."]
+    assert {"S. Žukausko g.", "Silvestro Žukausko g."} <= set(town)
+    assert list(town["Vynuogyno g."]) == ["9", "11", "13"]
+
+
+def test_a_town_moves_to_its_eldership_only_if_certain(monkeypatch):
+    dataset, files, _ = build_spellings(monkeypatch)
+    assert list(files["domeikavos"]["towns"]["Domeikavos k."]["Rugio g."]) == ["1", "2"]
+    # Its old place keeps the alias, though no town is listed there any more.
+    assert files["vandziogalos"]["towns"] == {}
+    assert files["vandziogalos"]["aliases"]["Domeikavos k."]["Rugio g."]["1"] == [
+        "domeikavos",
+        "Domeikavos k.",
+        "Rugio g.",
+        "1",
+    ]
+    vandziogala = next(e for e in dataset["elderships"] if e["name"] == "Vandžiogalos sen.")
+    assert vandziogala["towns"] == []
+    # Two Jonučiai elsewhere, none in Domeikavos sen.: left where it is, and counted.
+    assert "Jonučių k." in files["domeikavos"]["towns"]
+    merged = dataset["stats"]["merged"]
+    assert (merged["townsMovedToTheirEldership"], merged["townsInAnotherEldership"]) == (1, 1)
+
+
+def test_every_house_number_gets_the_waste_types_of_its_building(monkeypatch):
+    dataset, files, warnings = build_spellings(monkeypatch)
+    forto = files["akademijos"]["towns"]["Akademijos mstl."]["Forto g."]
+    # The food bin was listed under 8, the mixed waste bins under 8-1 and 8-2.
+    for house in ("8", "8-1", "8-2"):
+        assert kinds(dataset, forto[house]) == ["food", "household"]
+    assert dataset["stats"]["merged"]["filledFromBuilding"] == 3
+    # Counted in the stats, not as warnings.
+    assert not any("merged" in w for w in warnings)
+
+
+def test_fill_buildings_keeps_what_a_house_number_has():
+    index = {
+        "E": {
+            "T": {
+                "S": {
+                    "8": {"food-a"},
+                    "8-1": {"mixed-a"},
+                    "8-2": {"mixed-a"},
+                    "8-3": {"mixed-b", "food-b"},
+                    "10-1": {"mixed-a"},
+                    "10-2": {"mixed-b"},
+                    "12": {"mixed-a"},
+                }
+            }
+        }
+    }
+    kind_of = {"food-a": "food", "food-b": "food", "mixed-a": "household", "mixed-b": "household"}
+    assert svara.fill_buildings(index, kind_of) == 3
+    houses = index["E"]["T"]["S"]
+    # 8 has no mixed waste of its own: it gets what most of its flats have.
+    assert houses["8"] == {"food-a", "mixed-a"}
+    # Food comes from the house; a flat that has its own keeps it.
+    assert houses["8-1"] == houses["8-2"] == {"food-a", "mixed-a"}
+    assert houses["8-3"] == {"mixed-b", "food-b"}
+    # Without the house and without a majority, nothing is added to what they have.
+    assert houses["10-1"] == {"mixed-a"}
+    assert houses["10-2"] == {"mixed-b"}
+    assert houses["12"] == {"mixed-a"}

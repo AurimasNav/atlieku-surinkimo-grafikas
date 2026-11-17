@@ -7,6 +7,7 @@ import { ActivityIndicator, Linking, RefreshControl, ScrollView, StyleSheet, Vie
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { EkonovusLink } from '@/components/ekonovus-link';
 import { KindFilter } from '@/components/kind-filter';
 import { AppText, Button, IconButton, KindBadge, KindIcon, Notice, PressableScale } from '@/components/ui';
 import { clearLastCrash, lastCrash } from '@/lib/crash';
@@ -282,6 +283,13 @@ export default function Home() {
               </Animated.View>
             ))}
 
+            {/* Kauno r.: glass and packaging are another company's (UAB „Ekonovus“) */}
+            {place?.kauno && (
+              <View style={[styles.ekonovus, { backgroundColor: theme.surface }]}>
+                <EkonovusLink size={36} />
+              </View>
+            )}
+
             <Button
               variant="ghost"
               icon="flag-outline"
@@ -347,6 +355,7 @@ const styles = StyleSheet.create({
   },
   heroReminder: { color: 'rgba(255,255,255,0.85)', fontFamily: fonts.medium },
   emptyCard: { borderRadius: radius.lg, padding: spacing.lg },
+  ekonovus: { borderRadius: radius.lg, padding: spacing.md },
   month: { gap: spacing.sm },
   monthTitle: { marginLeft: spacing.xs, marginTop: spacing.sm },
   timeline: { borderRadius: radius.lg, paddingHorizontal: spacing.md },

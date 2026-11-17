@@ -68,6 +68,7 @@
     "locating": "Finding your address…",
     "foundTitle": "Is this your home?",
     "foundStreetUnsure": "Your location is approximate, so you'll confirm the street next.",
+    "foundStreetFar": "The nearest address we know is more than 100 m away, so you'll pick the street next.",
     "confirmHome": "Yes, that's my home",
     "notHome": "No, search instead",
     "locationDenied": "Location access is off. Search for your place below, or allow location in the phone's settings.",
@@ -133,7 +134,7 @@
     "sourceCode": "Source code",
     "addressSource": "Addresses: {{source}}",
     "disclaimerTitle": "No guarantees",
-    "disclaimer": "This app is provided free of charge, as is, without any warranty. The authors are not responsible for missed or wrong reminders, or for any consequences of relying on them. It is not affiliated with UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“ or UAB „Kauno švara“.",
+    "disclaimer": "This app is provided free of charge, as is, without any warranty. The authors are not responsible for missed or wrong reminders, or for any consequences of relying on them. It is not affiliated with UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“ or UAB „Ekonovus“.",
     "version": "Version {{version}}"
   },
   "notifications": {
@@ -197,5 +198,9 @@
     "statusSkipped": "You don't have this container",
     "statusPending": "Several schedule rows match your place",
     "hint": "Changes apply to your reminders right away."
+  },
+  "kauno": {
+    "glassPackaging": "Glass and packaging",
+    "ekonovus": "Collected by UAB „Ekonovus“: see its schedule"
   }
 }

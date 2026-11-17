@@ -20,6 +20,28 @@ export type NearestAddress = {
 
 const METRES_PER_DEGREE = 111_320;
 
+/** Worse than this, the street may be wrong: keep the settlement but ask for the street. */
+export const MAX_STREET_ACCURACY_M = 75;
+/**
+ * Further than this from the nearest address, it may be on another street: a house far from the
+ * road, a new house not in the data yet, or a field. Keep the settlement but ask for the street.
+ */
+export const MAX_STREET_DISTANCE_M = 100;
+
+/**
+ * Whether the street of the nearest address can be suggested: 'approximate' if the position
+ * isn't precise enough, 'far' if the nearest address is too far away to be the user's.
+ */
+export function streetConfidence(position: {
+  approximate: boolean;
+  accuracy: number;
+  distance: number;
+}): 'ok' | 'approximate' | 'far' {
+  if (position.approximate || position.accuracy > MAX_STREET_ACCURACY_M) return 'approximate';
+  if (position.distance > MAX_STREET_DISTANCE_M) return 'far';
+  return 'ok';
+}
+
 /**
  * Finds the closest address to a position. Runs on the phone: the position is never sent
  * anywhere. A linear scan over ~50k points takes a few milliseconds.

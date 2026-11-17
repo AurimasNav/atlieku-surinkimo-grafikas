@@ -86,17 +86,17 @@ export default function ChooseLocation() {
           pathname: '/setup/address',
           params: { eldership: kauno.eldership, eldershipName: kauno.eldershipName, town: kauno.town },
         });
-      if (!found.streetConfident) return askAddress();
+      if (found.street !== 'ok') return askAddress();
       setConfirming(true);
       const personal = await loadKaunoAddress(kauno).catch(() => undefined);
       setConfirming(false);
       if (!personal) return askAddress();
-      useSettings.getState().setKaunoAddress(kauno);
-      useSchedule.getState().setPersonal(personal);
+      useSettings.getState().setKaunoAddress(personal.address);
+      useSchedule.getState().setPersonal({ key: personal.key, areas: personal.areas });
       return router.push('/setup/done');
     }
     // Only pass the street when we trust it; otherwise the street step asks.
-    pick(found.address.locationId, found.streetConfident ? found.address.street : undefined);
+    pick(found.address.locationId, found.street === 'ok' ? found.address.street : undefined);
   };
 
   const gpsCard = (
@@ -106,19 +106,23 @@ export default function ChooseLocation() {
           <AppText variant="overline" style={{ color: theme.primary }}>
             {t('setup.foundTitle')}
           </AppText>
+          {/* The nearest address is far: it is probably on another street, so only the
+              settlement is suggested. */}
           <AppText variant="title">
             {found.address
-              ? [found.address.streetLabel, found.address.number].filter(Boolean).join(' ') || foundLocation?.name
-              : [found.kauno.street, found.kauno.house].filter(Boolean).join(' ') || found.kauno.town}
+              ? (found.street !== 'far' && [found.address.streetLabel, found.address.number].filter(Boolean).join(' ')) ||
+                foundLocation?.name
+              : (found.street !== 'far' && [found.kauno.street, found.kauno.house].filter(Boolean).join(' ')) ||
+                found.kauno.town}
           </AppText>
           <AppText muted>
             {found.address
-              ? `${foundLocation?.name}, ${foundLocation?.district} sen.`
-              : `${found.kauno.town}, ${found.kauno.eldershipName} · Kauno r.`}
+              ? [found.street !== 'far' && foundLocation?.name, `${foundLocation?.district} sen.`].filter(Boolean).join(', ')
+              : [found.street !== 'far' && found.kauno.town, `${found.kauno.eldershipName} · Kauno r.`].filter(Boolean).join(', ')}
           </AppText>
-          {!found.streetConfident && (
+          {found.street !== 'ok' && (
             <AppText variant="caption" muted>
-              {t('setup.foundStreetUnsure')}
+              {found.street === 'far' ? t('setup.foundStreetFar') : t('setup.foundStreetUnsure')}
             </AppText>
           )}
           <View style={styles.foundActions}>

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { loadKaunoAddress } from '@/lib/kauno';
+import { kaunoKey, loadKaunoAddress } from '@/lib/kauno';
 import { type Area, fetchSchedule, type ScheduleData, UnsupportedScheduleError } from '@/lib/schedule';
 import { useSettings } from '@/store/settings';
 import { storage } from '@/lib/storage';
@@ -36,7 +36,10 @@ export const useSchedule = create<ScheduleState>()(
         try {
           // A Kauno r. address has its own, smaller download; a failure keeps the saved dates.
           const kauno = useSettings.getState().place?.kauno;
-          const personal = kauno ? await loadKaunoAddress(kauno).catch(() => undefined) : undefined;
+          const found = kauno ? await loadKaunoAddress(kauno).catch(() => undefined) : undefined;
+          // The saved spelling of the address was merged into another one: save that instead.
+          if (kauno && found && found.key !== kaunoKey(kauno)) useSettings.getState().moveKaunoAddress(found.address);
+          const personal = found && { key: found.key, areas: found.areas };
           const keep = (data: ScheduleData): ScheduleData => ({ ...data, personal: personal ?? get().data?.personal });
           // Only send the ETag when we actually have the data it refers to.
           const result = await fetchSchedule(get().data ? get().etag : undefined);

@@ -1,4 +1,14 @@
-import { type KaunoAddress, type KaunoAddresses, kaunoAreas, type KaunoIndex, kaunoKey, kaunoTowns, searchKaunoTowns } from './kauno';
+import {
+  type KaunoAddress,
+  type KaunoAddresses,
+  kaunoAlias,
+  kaunoAreas,
+  type KaunoIndex,
+  kaunoKey,
+  kaunoTowns,
+  loadKaunoAddress,
+  searchKaunoTowns,
+} from './kauno';
 import { placeLabel, resolvePlace, visibleKinds } from './resolve';
 import type { ScheduleData } from './schedule';
 
@@ -88,5 +98,86 @@ describe('a place in Kauno r.', () => {
   it('keeps showing mixed, packaging and glass elsewhere', () => {
     const r = resolvePlace(data, { locationId: 'x', choices: {} }, today);
     expect(visibleKinds({ locationId: 'x', choices: {} }, r)).toEqual(['household', 'packaging', 'glass']);
+  });
+});
+
+describe('an address saved with a spelling that was merged', () => {
+  // "Akademija" was one stray row of "Akademijos mstl."; "Domeikavos k." was also listed under
+  // Vandžiogalos sen. Both now point to the address as the data writes it.
+  const akademijos: KaunoAddresses = {
+    eldership: 'Akademijos sen.',
+    towns: { 'Akademijos mstl.': { 'Vynuogyno g.': { '9': [0, 2] } } },
+    aliases: { Akademija: { 'Vynuogyno g.': { '9': ['akademijos', 'Akademijos mstl.', 'Vynuogyno g.', '9'] } } },
+  };
+  const vandziogalos: KaunoAddresses = {
+    eldership: 'Vandžiogalos sen.',
+    towns: {},
+    aliases: { 'Domeikavos k.': { 'Rugio g.': { '1': ['domeikavos', 'Domeikavos k.', 'Rugio g.', '1'] } } },
+  };
+  const domeikavos: KaunoAddresses = {
+    eldership: 'Domeikavos sen.',
+    towns: { 'Domeikavos k.': { 'Rugio g.': { '1': [1] } } },
+  };
+  const merged: KaunoIndex = {
+    ...index,
+    elderships: [
+      { id: 'akademijos', name: 'Akademijos sen.', towns: ['Akademijos mstl.'] },
+      { id: 'domeikavos', name: 'Domeikavos sen.', towns: ['Domeikavos k.'] },
+      { id: 'vandziogalos', name: 'Vandžiogalos sen.', towns: [] },
+    ],
+  };
+  const files: Record<string, KaunoAddresses> = { akademijos, vandziogalos, domeikavos };
+  const saved: KaunoAddress = {
+    eldership: 'akademijos',
+    eldershipName: 'Akademijos sen.',
+    town: 'Akademija',
+    street: 'Vynuogyno g.',
+    house: '9',
+  };
+
+  beforeEach(() => {
+    globalThis.fetch = jest.fn(async (url: string) => {
+      const name = String(url).match(/addresses\/(\w+)\.json$/)?.[1];
+      return { ok: true, json: async () => (name ? files[name] : merged) };
+    }) as unknown as typeof fetch;
+  });
+
+  it('is not listed, but leads to the address now', () => {
+    expect(kaunoAreas(merged, akademijos, saved)).toBeUndefined();
+    expect(kaunoAlias(merged, akademijos, saved)).toEqual({ ...saved, town: 'Akademijos mstl.' });
+  });
+
+  it('gets the schedules of the address now', async () => {
+    const found = await loadKaunoAddress(saved);
+    expect(found?.address).toEqual({ ...saved, town: 'Akademijos mstl.' });
+    expect(found?.key).toBe('akademijos|Akademijos mstl.|Vynuogyno g.|9');
+    expect(found?.areas.map((a) => a.kind)).toEqual(['household', 'food']);
+  });
+
+  it('follows a town into another eldership', async () => {
+    const found = await loadKaunoAddress({
+      eldership: 'vandziogalos',
+      eldershipName: 'Vandžiogalos sen.',
+      town: 'Domeikavos k.',
+      street: 'Rugio g.',
+      house: '1',
+    });
+    expect(found?.address).toEqual({
+      eldership: 'domeikavos',
+      eldershipName: 'Domeikavos sen.',
+      town: 'Domeikavos k.',
+      street: 'Rugio g.',
+      house: '1',
+    });
+    expect(found?.areas.map((a) => a.kind)).toEqual(['household']);
+  });
+
+  it('keeps an address that is still listed as it is', async () => {
+    const address = { ...saved, town: 'Akademijos mstl.' };
+    expect((await loadKaunoAddress(address))?.address).toBe(address);
+  });
+
+  it('is still gone if no alias leads anywhere', async () => {
+    expect(await loadKaunoAddress({ ...saved, house: '99' })).toBeUndefined();
   });
 });

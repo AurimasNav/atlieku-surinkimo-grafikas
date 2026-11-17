@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { EkonovusLink } from '@/components/ekonovus-link';
 import { ReminderPicker } from '@/components/reminder-picker';
 import { AppText, Button, Card, Chip, KindIcon, ListRow, PressableScale, ScreenHeader } from '@/components/ui';
 import { LANGUAGE_NAMES, LANGUAGES, type Language } from '@/i18n';
@@ -74,6 +75,7 @@ export default function Settings() {
                   </PressableScale>
                 );
               })}
+              {place?.kauno && <EkonovusLink size={28} variant="compact" />}
             </View>
             <Button variant="secondary" icon="swap-horizontal" title={t('settings.changeLocation')} onPress={() => router.push('/setup/location')} />
           </Card>
