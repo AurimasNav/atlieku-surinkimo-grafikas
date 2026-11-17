@@ -74,13 +74,16 @@ groups:
         labels: { severity: info }
         annotations:
           summary: "{{ $labels.source }}: more build warnings than yesterday (new typo or renamed place?)"
-      # A source that was published in the last 3 days is gone (its build failed and there was
-      # nothing to keep): ScheduleDataStale can't fire for a series that no longer exists.
+      # A source that was in metrics.txt in the last 3 days is gone while the file itself is
+      # fetched fine (its build failed and there was nothing to keep): ScheduleDataStale can't
+      # fire for a series that no longer exists.
       - alert: ScheduleDataSourceMissing
         expr: |-
-          group by (source) (last_over_time(siuksliaveze_data_generated_timestamp_seconds[3d]))
-            unless on (source) group by (source) (siuksliaveze_data_generated_timestamp_seconds)
-            and on () (up{job="siuksliaveze-data"} == 1)
+          group by (source) (last_over_time(siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data"}[3d]))
+            unless on (source)
+          group by (source) (siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data"})
+            and on ()
+          (up{job="siuksliaveze-data"} == 1)
         for: 30m
         labels: { severity: warning }
         annotations:
