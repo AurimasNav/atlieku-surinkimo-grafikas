@@ -7,8 +7,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        Приложение автоматически обрабатывает официальные графики UAB „Nemenčinės komunalininkas“, поэтому возможны ошибки. Сравните с официальным графиком:
-        https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/
+        Приложение автоматически обрабатывает официальные графики компаний по вывозу отходов, поэтому возможны ошибки. Сравните с официальным графиком:
+        - UAB „Nemenčinės komunalininkas“: https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/
+        - UAB „Nemėžio komunalininkas“: https://www.nkom.lt/kita.html
+        - UAB „Kauno švara“: https://grafikai.svara.lt/
   - type: dropdown
     id: problem
     attributes:

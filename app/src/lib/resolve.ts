@@ -1,3 +1,4 @@
+import { KAUNO_SOURCE_PAGE_URL, SOURCE_PAGE_URL } from './config';
 import { customDates, type CustomSchedule } from './custom-schedule';
 import { parseIsoDate } from './dates';
 import { type KaunoAddress, kaunoKey } from './kauno';
@@ -147,4 +148,16 @@ export function placeLabel(place: Place | null, resolved: Resolved): { name?: st
   if (!location) return {};
   const street = location.streets?.find(([key]) => key === place?.street)?.[1];
   return { name: location.name, detail: [street, `${location.district} sen.`].filter(Boolean).join(' · ') };
+}
+
+/**
+ * The official schedule page of the company that serves the place: Kauno švara for a Kauno r.
+ * address, otherwise the `provider` of the location (or of a row picked by hand) as listed in
+ * the data. Places without one are Nemenčinės komunalininkas', as in data published before.
+ */
+export function sourcePageUrl(data: ScheduleData | null, place: Place | null, resolved: Resolved): string {
+  if (place?.kauno) return KAUNO_SOURCE_PAGE_URL;
+  const id = resolved.location?.provider ?? resolved.areas.find((area) => !isCustomArea(area))?.provider;
+  const url = data?.providers?.find((provider) => provider.id === id)?.url;
+  return url?.startsWith('https://') ? url : SOURCE_PAGE_URL;
 }

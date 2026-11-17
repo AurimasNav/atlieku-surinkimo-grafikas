@@ -7,8 +7,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        Aplikacja automatycznie przetwarza oficjalne harmonogramy UAB „Nemenčinės komunalininkas”, więc możliwe są błędy. Porównaj z oficjalnym harmonogramem:
-        https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/
+        Aplikacja automatycznie przetwarza oficjalne harmonogramy firm wywożących odpady, więc możliwe są błędy. Porównaj z oficjalnym harmonogramem:
+        - UAB „Nemenčinės komunalininkas“: https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/
+        - UAB „Nemėžio komunalininkas“: https://www.nkom.lt/kita.html
+        - UAB „Kauno švara“: https://grafikai.svara.lt/
   - type: dropdown
     id: problem
     attributes:

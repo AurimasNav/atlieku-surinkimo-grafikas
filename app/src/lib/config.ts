@@ -12,6 +12,10 @@ export const KAUNO_POINTS_URL = `${KAUNO_URL}/points.json`;
 export const KAUNO_SOURCE_PAGE_URL = 'https://grafikai.svara.lt/';
 export const PRIVACY_URL = `${SITE_URL}/privacy/`;
 export const REPOSITORY_URL = 'https://github.com/AurimasNav/atlieku-surinkimo-grafikas';
+/**
+ * UAB „Nemenčinės komunalininkas“: places in schedule.json without a `provider`. The pages of the
+ * other companies come with the data (`providers`).
+ */
 export const SOURCE_PAGE_URL =
   'https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/';
 
