@@ -138,7 +138,7 @@
     "sourceCode": "Kod źródłowy",
     "addressSource": "Adresy: {{source}}",
     "disclaimerTitle": "Bez gwarancji",
-    "disclaimer": "Aplikacja jest udostępniana bezpłatnie, w stanie „takim, jaka jest”, bez żadnych gwarancji. Autorzy nie ponoszą odpowiedzialności za pominięte lub błędne przypomnienia ani za żadne skutki polegania na nich. Aplikacja nie jest powiązana z UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“ ani UAB „Kauno švara“.",
+    "disclaimer": "Aplikacja jest udostępniana bezpłatnie, w stanie „takim, jaka jest”, bez żadnych gwarancji. Autorzy nie ponoszą odpowiedzialności za pominięte lub błędne przypomnienia ani za żadne skutki polegania na nich. Aplikacja nie jest powiązana z UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“ ani UAB „Ekonovus“.",
     "version": "Wersja {{version}}"
   },
   "notifications": {

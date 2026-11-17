@@ -134,7 +134,7 @@
     "sourceCode": "Source code",
     "addressSource": "Addresses: {{source}}",
     "disclaimerTitle": "No guarantees",
-    "disclaimer": "This app is provided free of charge, as is, without any warranty. The authors are not responsible for missed or wrong reminders, or for any consequences of relying on them. It is not affiliated with UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“ or UAB „Kauno švara“.",
+    "disclaimer": "This app is provided free of charge, as is, without any warranty. The authors are not responsible for missed or wrong reminders, or for any consequences of relying on them. It is not affiliated with UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“ or UAB „Ekonovus“.",
     "version": "Version {{version}}"
   },
   "notifications": {

@@ -1,7 +1,7 @@
 Šiukšliavežė primins vakare prieš atvažiuojant šiukšliavežei, kad daugiau nepraleistumėte atliekų išvežimo. Programėlė veikia dviejuose rajonuose.
 
 • Vilniaus rajonas: mišrios atliekos, pakuotės ir stiklas daugiau nei 1 000 kaimų ir miestelių, kuriuos aptarnauja UAB „Nemenčinės komunalininkas“ ir UAB „Nemėžio komunalininkas“: Nemenčinėje, Riešėje, Avižieniuose, Maišiagaloje, Nemėžyje, Pagiriuose, Juodšiliuose, Mickūnuose, Rudaminoje ir kitur.
-• Kauno rajonas: mišrios, maisto ir žaliosios atliekos maždaug 39 000 adresų, kuriuos aptarnauja UAB „Kauno švara“: Garliavoje, Domeikavoje, Ringauduose, Raudondvaryje, Užliedžiuose, Akademijoje ir kitur.
+• Kauno rajonas: mišrios, maisto ir žaliosios atliekos maždaug 39 000 adresų, kuriuos aptarnauja UAB „Kauno švara“: Garliavoje, Domeikavoje, Ringauduose, Raudondvaryje, Užliedžiuose, Akademijoje ir kitur. Stiklą ir pakuotes ten išveža UAB „Ekonovus“; programėlėje yra nuoroda į jos grafikus.
 
 Kaip tai veikia
 • Vieną kartą pasirinkite savo kaimą ar miestelį arba leiskite programėlei surasti jūsų adresą. Jei išvežimo dienos priklauso nuo gatvės ar namo tipo, programėlė paklaus ir to.
@@ -22,4 +22,4 @@ Programėlė nemokama, o jos išeitinis kodas atviras (Apache 2.0) ir skelbiamas
 
 Grafikai imami iš nemenkom.lt ir nkom.lt skelbiamų failų ir iš UAB „Kauno švara“ atvirųjų duomenų; jie tikrinami kasdien. Gyvenviečių ir gatvių pavadinimai paimti iš VĮ Registrų centro Adresų registro (atvirieji duomenys).
 
-Neoficiali savanorių sukurta programėlė, nesusijusi su UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“ ir UAB „Kauno švara“. Datos paimtos iš jų skelbiamų grafikų ir gali turėti klaidų; kilus abejonių, pasitikrinkite oficialų grafiką. Teikiama nemokamai, be jokių garantijų.
+Neoficiali savanorių sukurta programėlė, nesusijusi su UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“ ir UAB „Ekonovus“. Datos paimtos iš jų skelbiamų grafikų ir gali turėti klaidų; kilus abejonių, pasitikrinkite oficialų grafiką. Teikiama nemokamai, be jokių garantijų.

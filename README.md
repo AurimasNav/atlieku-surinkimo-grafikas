@@ -58,7 +58,7 @@ your own build, rename and rebrand it. See [TRADEMARKS.md](TRADEMARKS.md).
 ## Disclaimer
 
 This is an unofficial project, not affiliated with or endorsed by UAB "Nemenčinės
-komunalininkas", UAB "Nemėžio komunalininkas" or UAB "Kauno švara". The schedule data belongs to its publishers. Settlement and street names
+komunalininkas", UAB "Nemėžio komunalininkas", UAB "Kauno švara" or UAB "Ekonovus". The schedule data belongs to its publishers. Settlement and street names
 come from the Address Register (Adresų registras) of VĮ Registrų centras, published as open
 data at [get.data.gov.lt](https://get.data.gov.lt/datasets/gov/rc/ar/:ns). Dates are converted
 automatically and may contain mistakes; always check the official schedule if in doubt.

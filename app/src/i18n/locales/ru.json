@@ -138,7 +138,7 @@
     "sourceCode": "Исходный код",
     "addressSource": "Адреса: {{source}}",
     "disclaimerTitle": "Без гарантий",
-    "disclaimer": "Приложение предоставляется бесплатно, «как есть», без каких-либо гарантий. Авторы не несут ответственности за пропущенные или ошибочные напоминания и любые последствия их использования. Приложение не связано с UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“ и UAB „Kauno švara“.",
+    "disclaimer": "Приложение предоставляется бесплатно, «как есть», без каких-либо гарантий. Авторы не несут ответственности за пропущенные или ошибочные напоминания и любые последствия их использования. Приложение не связано с UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“ и UAB „Ekonovus“.",
     "version": "Версия {{version}}"
   },
   "notifications": {

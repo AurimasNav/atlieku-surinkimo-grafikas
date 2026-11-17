@@ -30,7 +30,8 @@ Before you distribute your build (for example in the App Store or Google Play):
 ## Not affiliated with the waste service
 
 This project is independent. It is not made, endorsed or operated by
-UAB "Nemenčinės komunalininkas", UAB "Nemėžio komunalininkas" or UAB "Kauno švara". Their
+UAB "Nemenčinės komunalininkas", UAB "Nemėžio komunalininkas", UAB "Kauno švara" or
+UAB "Ekonovus" (whose glass and packaging schedules for Kaunas district the app links to). Their
 names and the schedule data they publish belong to them.
 
 ## Questions
