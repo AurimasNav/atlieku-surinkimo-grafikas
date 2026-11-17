@@ -2,12 +2,10 @@ import * as Location from 'expo-location';
 
 import { ADDRESSES_URL, KAUNO_POINTS_URL } from './config';
 import type { KaunoAddress } from './kauno';
-import { type AddressTable, findNearest, type NearestAddress, nearestPoint } from './nearest';
+import { type AddressTable, findNearest, type NearestAddress, nearestPoint, streetConfidence } from './nearest';
 
 /** Further than this from any served address: probably not at home, or not served here. */
 const MAX_DISTANCE_M = 400;
-/** Worse than this, the street may be wrong: keep the settlement but ask for the street. */
-const MAX_STREET_ACCURACY_M = 75;
 
 /** kauno-r/points.json: the addresses of Kauno r. with coordinates. */
 type KaunoPoints = {
@@ -17,10 +15,13 @@ type KaunoPoints = {
   points: [number, number, number, string][];
 };
 
+/** Whether to suggest the street of the nearest address (see streetConfidence). */
+export type StreetConfidence = ReturnType<typeof streetConfidence>;
+
 export type GeolocateResult =
-  | { ok: true; address: NearestAddress; streetConfident: boolean }
+  | { ok: true; address: NearestAddress; street: StreetConfidence }
   /** The nearest address is in Kauno r. (UAB „Kauno švara“). */
-  | { ok: true; address?: undefined; kauno: KaunoAddress; streetConfident: boolean }
+  | { ok: true; address?: undefined; kauno: KaunoAddress; street: StreetConfidence }
   | { ok: false; reason: 'denied' | 'servicesOff' | 'unavailable' | 'offline' | 'far' };
 
 let cached: AddressTable | null = null;
@@ -83,13 +84,15 @@ export async function locateHome(): Promise<GeolocateResult> {
   const distance = Math.min(address?.distance ?? Infinity, kauno?.distance ?? Infinity);
   if (distance > MAX_DISTANCE_M) return { ok: false, reason: 'far' };
 
-  const approximate = permission.android?.accuracy === 'coarse' || permission.ios?.accuracy === 'reduced';
-  const accuracy = position.coords.accuracy ?? Infinity;
-  const streetConfident = !approximate && accuracy <= MAX_STREET_ACCURACY_M;
+  const street = streetConfidence({
+    approximate: permission.android?.accuracy === 'coarse' || permission.ios?.accuracy === 'reduced',
+    accuracy: position.coords.accuracy ?? Infinity,
+    distance,
+  });
   if (kaunoPoints && kauno && kauno.distance === distance) {
     const [, , placeIndex, house] = kaunoPoints.points[kauno.index];
-    const [eldership, eldershipName, town, street] = kaunoPoints.places[placeIndex];
-    return { ok: true, kauno: { eldership, eldershipName, town, street, house }, streetConfident };
+    const [eldership, eldershipName, town, streetName] = kaunoPoints.places[placeIndex];
+    return { ok: true, kauno: { eldership, eldershipName, town, street: streetName, house }, street };
   }
-  return { ok: true, address: address!, streetConfident };
+  return { ok: true, address: address!, street };
 }

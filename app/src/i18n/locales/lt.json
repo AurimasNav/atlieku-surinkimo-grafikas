@@ -68,6 +68,7 @@
     "locating": "Ieškome jūsų adreso…",
     "foundTitle": "Ar tai jūsų namai?",
     "foundStreetUnsure": "Jūsų buvimo vieta apytikslė, todėl toliau patvirtinsite gatvę.",
+    "foundStreetFar": "Artimiausias žinomas adresas yra toliau nei 100 m, todėl toliau pasirinksite gatvę.",
     "confirmHome": "Taip, čia mano namai",
     "notHome": "Ne, ieškosiu pats",
     "locationDenied": "Prieiga prie buvimo vietos išjungta. Raskite vietovę paieškoje žemiau arba leiskite naudoti buvimo vietą telefono nustatymuose.",
@@ -201,5 +202,9 @@
     "statusSkipped": "Tokio konteinerio neturite",
     "statusPending": "Jūsų vietovei tinka kelios grafiko eilutės",
     "hint": "Pakeitimai priminimams taikomi iš karto."
+  },
+  "kauno": {
+    "glassPackaging": "Stiklas ir pakuotės",
+    "ekonovus": "Išveža UAB „Ekonovus“: žiūrėti jos grafiką"
   }
 }

@@ -73,8 +73,9 @@ is refreshed. GitHub's servers can therefore see which eldership a request is fo
 with the technical information above. Your town, street and house number are looked up on
 your phone and are never sent.
 
-If you tap a link in the app (privacy policy, official schedule, source code), it opens in your
-browser, and that website's own privacy policy applies.
+If you tap a link in the app (privacy policy, official schedule, the glass and packaging schedules
+of UAB „Ekonovus“ in Kaunas district, source code), it opens in your browser, and that website's
+own privacy policy applies.
 
 ## Permissions
 
@@ -181,8 +182,9 @@ grafiką. Taigi „GitHub“ serveriai gali matyti, kurios seniūnijos failo pra
 aukščiau minėta technine informacija. Jūsų gyvenvietė, gatvė ir namo numeris surandami
 jūsų telefone ir niekur nesiunčiami.
 
-Paspaudus nuorodą programėlėje (privatumo politika, oficialus grafikas, programos kodas), ji
-atidaroma naršyklėje, ir taikoma tos svetainės privatumo politika.
+Paspaudus nuorodą programėlėje (privatumo politika, oficialus grafikas, UAB „Ekonovus“ stiklo ir
+pakuočių grafikai Kauno rajone, programos kodas), ji atidaroma naršyklėje, ir taikoma tos svetainės
+privatumo politika.
 
 ## Leidimai
 

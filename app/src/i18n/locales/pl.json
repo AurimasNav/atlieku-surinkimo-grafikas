@@ -68,6 +68,7 @@
     "locating": "Szukamy Twojego adresu…",
     "foundTitle": "Czy to Twój dom?",
     "foundStreetUnsure": "Lokalizacja jest przybliżona, więc za chwilę potwierdzisz ulicę.",
+    "foundStreetFar": "Najbliższy znany adres jest dalej niż 100 m, więc za chwilę wybierzesz ulicę.",
     "confirmHome": "Tak, to mój dom",
     "notHome": "Nie, wyszukam sam",
     "locationDenied": "Dostęp do lokalizacji jest wyłączony. Wyszukaj miejscowość poniżej lub zezwól na lokalizację w ustawieniach telefonu.",
@@ -201,5 +202,9 @@
     "statusSkipped": "Nie masz takiego pojemnika",
     "statusPending": "Do Twojej miejscowości pasuje kilka wierszy harmonogramu",
     "hint": "Zmiany od razu obowiązują dla przypomnień."
+  },
+  "kauno": {
+    "glassPackaging": "Szkło i opakowania",
+    "ekonovus": "Odbiera UAB „Ekonovus“: zobacz jej harmonogram"
   }
 }

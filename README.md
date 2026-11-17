@@ -8,7 +8,9 @@ schedules the waste companies publish:
   and [UAB "Nemėžio komunalininkas"](https://www.nkom.lt/kita.html), each serving its own
   elderships.
 - **Kaunas district**: mixed, food and green waste, from the open-data file of
-  [UAB "Kauno švara"](https://grafikai.svara.lt/).
+  [UAB "Kauno švara"](https://grafikai.svara.lt/). Glass and packaging there are collected by
+  UAB "Ekonovus", which doesn't publish its schedules as data; the app links to
+  [its schedules](https://www.ekonovus.lt/aptarnavimo-grafikai/).
 
 Available in Lithuanian, English, Russian and Polish.
 
