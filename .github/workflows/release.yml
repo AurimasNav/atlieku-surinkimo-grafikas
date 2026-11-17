@@ -113,6 +113,12 @@ jobs:
           distribution: temurin
           java-version: 25
       - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
+      # Compiled C++ of the native libraries, shared with the App Android build's PR builds
+      # (same key); pinned to a commit like every action here, since this job signs the app.
+      - uses: hendrikmuhs/ccache-action@dbeefd73e8e2ffc1bbc412570072735eb4db3607 # v1.2.25
+        with:
+          key: android
+          max-size: 2G
       - run: npm ci
       # Not committed: the generated Android project picks these up from app.json.
       - name: Set the version to ${{ env.VERSION }} (${{ env.VERSION_CODE }})
@@ -142,7 +148,11 @@ jobs:
           ANDROID_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
           ANDROID_UPLOAD_KEY_ALIAS: upload
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
-        run: ./gradlew bundleRelease
+          CMAKE_C_COMPILER_LAUNCHER: ccache
+          CMAKE_CXX_COMPILER_LAUNCHER: ccache
+        # All four architectures (Google Play serves each phone its own). --build-cache reuses
+        # compiled Java and Kotlin from earlier builds; Gradle gets 4 of the runner's 16 GB.
+        run: ./gradlew bundleRelease --build-cache "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g"
       - name: Check the bundle is signed with the upload key
         if: env.ANDROID_UPLOAD_STORE_FILE != ''
         run: |
