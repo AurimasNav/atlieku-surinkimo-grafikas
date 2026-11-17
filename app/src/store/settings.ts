@@ -20,6 +20,8 @@ type SettingsState = {
   setLocation: (locationId: string, street?: string) => void;
   /** Starts over with an address in Kauno r.; its schedules are kept by the schedule store. */
   setKaunoAddress: (address: KaunoAddress) => void;
+  /** The same Kauno r. address, written as the data writes it now: keeps every answer. */
+  moveKaunoAddress: (address: KaunoAddress) => void;
   /** Answers one waste type: an area id, or null for "I don't have this container". */
   choose: (kind: WasteKind, areaId: string | null) => void;
   /** Sets (or with undefined removes) the user's own schedule for one waste type. */
@@ -44,6 +46,7 @@ export const useSettings = create<SettingsState>()(
       setLocation: (locationId, street) =>
         set((state) => ({ place: { locationId, street, choices: {}, custom: state.place?.custom } })),
       setKaunoAddress: (kauno) => set((state) => ({ place: { kauno, choices: {}, custom: state.place?.custom } })),
+      moveKaunoAddress: (kauno) => set((state) => (state.place?.kauno ? { place: { ...state.place, kauno } } : {})),
       choose: (kind, areaId) =>
         set((state) => {
           const custom = { ...state.place?.custom };

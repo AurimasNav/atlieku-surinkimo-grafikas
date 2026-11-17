@@ -21,6 +21,12 @@ export type KaunoIndex = {
 export type KaunoAddresses = {
   eldership: string;
   towns: Record<string, Record<string, Record<string, number[]>>>;
+  /**
+   * Spellings that were merged into another one ("Akademija" into "Akademijos mstl."):
+   * town -> street -> house number -> [eldership file, town, street, house number] of the
+   * address now. Not shown in the lists; they keep addresses saved with these spellings working.
+   */
+  aliases?: Record<string, Record<string, Record<string, [string, string, string, string]>>>;
 };
 
 /** The address the user picked; '' for a missing street or house number. */
@@ -88,9 +94,29 @@ export function kaunoAreas(index: KaunoIndex, addresses: KaunoAddresses, address
   }));
 }
 
-/** Downloads what is needed for one address and returns its schedules. */
-export async function loadKaunoAddress(address: KaunoAddress): Promise<{ key: string; areas: Area[] } | undefined> {
+/** Where an address saved with a spelling that was merged into another one is now. */
+export function kaunoAlias(index: KaunoIndex, addresses: KaunoAddresses, address: KaunoAddress): KaunoAddress | undefined {
+  const target = addresses.aliases?.[address.town]?.[address.street]?.[address.house];
+  if (!target) return undefined;
+  const [eldership, town, street, house] = target;
+  const eldershipName = index.elderships.find((e) => e.id === eldership)?.name ?? address.eldershipName;
+  return { eldership, eldershipName, town, street, house };
+}
+
+/**
+ * Downloads what is needed for one address and returns its schedules, with the address as the
+ * data now writes it (`address`), which differs from the given one if its spelling was merged.
+ */
+export async function loadKaunoAddress(
+  address: KaunoAddress,
+): Promise<{ key: string; areas: Area[]; address: KaunoAddress } | undefined> {
   const [index, addresses] = await Promise.all([fetchKaunoIndex(), fetchKaunoAddresses(address.eldership)]);
-  const areas = kaunoAreas(index, addresses, address);
-  return areas && { key: kaunoKey(address), areas };
+  const alias = addresses.towns[address.town]?.[address.street]?.[address.house] ? undefined : kaunoAlias(index, addresses, address);
+  if (!alias) {
+    const areas = kaunoAreas(index, addresses, address);
+    return areas && { key: kaunoKey(address), areas, address };
+  }
+  const file = alias.eldership === address.eldership ? addresses : await fetchKaunoAddresses(alias.eldership);
+  const areas = kaunoAreas(index, file, alias);
+  return areas && { key: kaunoKey(alias), areas, address: alias };
 }
