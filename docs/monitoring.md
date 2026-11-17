@@ -76,10 +76,12 @@ groups:
         labels: { severity: info }
         annotations:
           summary: "{{ $labels.source }}: more build warnings than yesterday (new typo or renamed place?)"
-      # The publisher hasn't posted the next period (TRATC: next year's file), or the job
-      # no longer recognises it: the reminders stop after the last date.
+      # Mažeikių r. gets one file per year and waste type. If next year's isn't posted, or the
+      # job no longer recognises it, the build stays green while the reminders stop after the
+      # last date. Only this source: the quarterly files of the Vilniaus r. companies come
+      # close to their last date every quarter.
       - alert: ScheduleDataRunsOut
-        expr: siuksliaveze_data_last_date_timestamp_seconds - time() < 7 * 86400
+        expr: siuksliaveze_data_last_date_timestamp_seconds{source="mazeikiai"} - time() < 7 * 86400
         for: 1h
         labels: { severity: warning }
         annotations:
