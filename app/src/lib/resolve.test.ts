@@ -1,5 +1,5 @@
 import { KAUNO_SOURCE_PAGE_URL, SOURCE_PAGE_URL } from './config';
-import { isHousingChoice, pendingKinds, type Place, resolvePlace, sourcePageUrl } from './resolve';
+import { isHousingChoice, pendingKinds, type Place, resolvePlace, sourcePageUrl, visibleKinds } from './resolve';
 import type { Area, Location, ScheduleData } from './schedule';
 import { searchAreas, searchLocations } from './schedule';
 
@@ -125,6 +125,42 @@ describe('resolvePlace', () => {
   it('reports a location that disappeared from newer data', () => {
     const r = resolvePlace(data, { locationId: 'gone', choices: {} }, today);
     expect(pendingKinds(r)).toEqual(['household', 'packaging', 'glass']);
+  });
+
+  it('adds food waste where the place has a schedule for it (Mažeikiai)', () => {
+    const town: Location = {
+      id: 'g9',
+      name: 'Mažeikiai',
+      type: 'm.',
+      district: 'Mažeikių',
+      provider: 'mazeikiai',
+      streets: [
+        ['s1', 'Žemaitės g.'],
+        ['s2', 'Draugystės g.'],
+      ],
+      schedule: { household: { streets: { s1: ['h-house'] } }, food: { streets: { s1: ['f-1'] } } },
+    };
+    const withFood = { ...data, areas: [...areas, area('f-1', 'food')], locations: [...locations, town] };
+    const r = resolvePlace(withFood, { locationId: 'g9', street: 's1', choices: {} }, today);
+    expect(ids(r)).toEqual(['h-house', 'f-1']);
+    expect(visibleKinds({ locationId: 'g9', choices: {} }, r)).toEqual(['household', 'packaging', 'glass', 'food']);
+    // A street with an empty list has no pickups: nothing to choose from (apartment buildings).
+    const flats = resolvePlace(
+      { ...withFood, locations: [...locations, { ...town, schedule: { household: { streets: { s1: ['h-house'], s2: [] } } } }] },
+      { locationId: 'g9', street: 's2', choices: {} },
+      today,
+    );
+    expect(flats.kinds.household).toEqual({ status: 'none' });
+    expect(pendingKinds(flats)).toEqual([]);
+    // Without a street, the rows of the town are offered as before.
+    const noStreet = resolvePlace(withFood, { locationId: 'g9', choices: {} }, today);
+    expect(noStreet.kinds.food).toMatchObject({ status: 'ok', area: { id: 'f-1' } });
+    // A food row picked by hand, without a location.
+    expect(ids(resolvePlace(withFood, { choices: { food: 'f-1' } }, today))).toEqual(['f-1']);
+    // Places without one aren't asked about it and don't show it.
+    const village = resolvePlace(withFood, { locationId: 'g1', choices: {} }, today);
+    expect(village.kinds.food).toEqual({ status: 'none' });
+    expect(visibleKinds({ locationId: 'g1', choices: {} }, village)).toEqual(['household', 'packaging', 'glass']);
   });
 
   it('supports rows picked by hand without a location', () => {

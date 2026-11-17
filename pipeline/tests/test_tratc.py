@@ -70,6 +70,7 @@ def test_finds_the_spreadsheets_on_the_page():
         (HOUSEHOLD_2026, "household"),
         (HOUSEHOLD_2027, "household"),
         ("2027-MKA-Plunge-exel.xlsx", "household"),
+        ("2028_MKA_grafikas_MAZEIKIAI.xlsx", "household"),
         (FOOD_2026, "food"),
         (FOOD_2027, "food"),
         (PACKAGING_2026, "packaging"),
@@ -82,6 +83,23 @@ def test_finds_the_spreadsheets_on_the_page():
 )
 def test_classifies_by_file_name(name, kind):
     assert tratc.classify(name) == kind
+
+
+def test_unknown_spreadsheets_are_reported(monkeypatch):
+    html = fixture("tratc/page.html").decode("utf-8")
+    html += '<a href="/wp-content/uploads/2027/10/2028-komunaliniu-atlieku-grafikas.xlsx">x</a>'
+    unknown = []
+    assert len(tratc.find_files(html, unknown=unknown)) == 5
+    # Bulky waste is known and left out on purpose.
+    assert unknown == ["2028-komunaliniu-atlieku-grafikas.xlsx"]
+
+    monkeypatch.setattr(
+        tratc.http, "get", lambda url, timeout=0: html.encode() if url == tratc.PAGE_URL else b""
+    )
+    _, warnings = tratc.download(TODAY, 31)
+    assert warnings == [
+        "2028-komunaliniu-atlieku-grafikas.xlsx: a spreadsheet of no kind we know; not read"
+    ]
 
 
 def test_year_from_the_file_name():
@@ -100,6 +118,18 @@ def test_reads_this_year_and_later():
     files, warnings = tratc.select_files(page_files(), date(2027, 1, 5))
     assert {f.file_name for f in files} == {HOUSEHOLD_2027, FOOD_2027, PACKAGING_2026}
     assert warnings == ["no packaging schedule for 2027 on the page"]
+
+
+def test_a_corrected_file_replaces_the_original():
+    base = "https://tratc.lt/wp-content/uploads"
+    old = SourceFile("household", f"{base}/2025/10/misriu-2026.xlsx", "misriu-2026.xlsx")
+    new = SourceFile("household", f"{base}/2026/04/misriu-2026-1.xlsx", "misriu-2026-1.xlsx")
+    for linked in ([old, new], [new, old]):
+        files, warnings = tratc.select_files(linked, TODAY)
+        assert files == [new]
+        assert warnings == [
+            "misriu-2026.xlsx: not read, misriu-2026-1.xlsx is a newer household schedule for 2026"
+        ]
 
 
 # --- the spreadsheets ----------------------------------------------------------
@@ -182,6 +212,28 @@ def test_hidden_columns_are_not_read():
     assert result.areas[0].dates == {date(2027, 3, 9), date(2027, 3, 23)}
 
 
+def test_hidden_rows_are_not_read():
+    book = openpyxl.Workbook()
+    sheet = book.active
+    for cells in (["Nr.", "Maršrutas", *MONTHS], [1, "Viekšniai", 5], [2, "Seda", 6]):
+        sheet.append(cells)
+    sheet.title = "2027"
+    sheet.row_dimensions[3].hidden = True
+    buffer = io.BytesIO()
+    book.save(buffer)
+    result = tratc.parse_file(TEST_FILE, buffer.getvalue())
+    assert [a.name for a in result.areas] == ["Viekšniai"]
+
+
+def test_year_in_the_sheet_must_be_the_year_of_the_file():
+    # A date above the table ("SUDERINTA 2026-09-15") must not turn 2027 into 2026.
+    content = workbook(
+        [["SUDERINTA 2026-09-15"], ["Nr.", "Maršrutas", *MONTHS], [1, "Viekšniai", 5]]
+    )
+    with pytest.raises(ValueError, match="the file name says 2027"):
+        tratc.parse_file(TEST_FILE, content)
+
+
 def test_unreadable_cell_fails_loudly():
     content = workbook([["Nr.", "Maršrutas", *MONTHS], [1, "Viekšniai", "kas savaitę"]])
     with pytest.raises(ValueError, match="row 2: unrecognised day list"):
@@ -223,13 +275,17 @@ def test_town_is_split_by_street(part):
     assert {"2026-11-10", "2026-11-24"} <= set(first["dates"])
     # A street written with a typo ("Zastaičių g."), and one with a full first name in the
     # register ("K. Kavecko g." is "Konrado Kavecko g.").
-    assert streets["Zastaučių g."] in household
-    assert streets["Konrado Kavecko g."] in household
+    assert household[streets["Zastaučių g."]]
+    assert household[streets["Konrado Kavecko g."]]
     # Another route on another street.
     other = row(data, household[streets["Vilniaus g."]][0])
     assert other["id"] != first["id"]
+    # A street no route names (apartment buildings with shared containers) has no pickups,
+    # instead of a choice between all the routes of the town.
+    assert household[streets["Draugystės g."]] == []
+    assert town["schedule"]["food"]["streets"][streets["Rasos 3-ioji g."]] == []
     # All four kinds of waste for a street of private houses.
-    assert all(streets["Žemaitės g."] in town["schedule"][k]["streets"] for k in tratc.MIN_AREAS)
+    assert all(town["schedule"][k]["streets"][streets["Žemaitės g."]] for k in tratc.MIN_AREAS)
 
 
 def test_garden_communities_are_choices_of_the_town(part):
@@ -297,7 +353,35 @@ def test_next_year_continues_the_same_routes(part):
     assert all(a["current"] for a in data["areas"])
 
 
-def test_a_changed_route_waits_for_its_year():
+def routes(*rows):
+    return ParseResult(
+        [Area("household", name, dates={day}, provider="mazeikiai") for name, day in rows]
+    )
+
+
+def test_two_routes_never_continue_one(monkeypatch):
+    monkeypatch.setattr(tratc, "MIN_AREAS", {})
+    this_year = routes(("Viekšniai", date(2026, 12, 7)), ("Seda", date(2026, 12, 8)))
+    # A route split in two with wording that reads as the same places.
+    next_year = routes(("Viekšniai", date(2027, 1, 4)), ("Viekšniai (dalis)", date(2027, 1, 11)))
+    file = SourceFile("household", "https://x/h.xlsx", "h.xlsx")
+    warnings = tratc.combine([(file, this_year), (file, next_year)], REGISTRY, date(2026, 12, 1))
+    assert this_year.areas[0].dates == {date(2026, 12, 7)}
+    assert sum("doesn't match one 2026 route" in w for w in warnings) == 2
+    # Routes of this year that end with it are named too.
+    assert sum("has no dates for 2027" in w for w in warnings) == 2
+
+
+def test_next_year_is_checked_when_it_appears():
+    this_year = routes(("Viekšniai", date(2026, 12, 7)))
+    next_year = routes(("Viekšniai", date(2027, 1, 4)))
+    file = SourceFile("household", "https://x/h.xlsx", "h.xlsx")
+    with pytest.raises(ValueError, match="only 1 household routes in the 2027 file"):
+        tratc.combine([(file, this_year), (file, next_year)], REGISTRY, date(2026, 12, 1))
+
+
+def test_a_changed_route_waits_for_its_year(monkeypatch):
+    monkeypatch.setattr(tratc, "MIN_AREAS", {})
     this_year = ParseResult(
         [
             Area("household", "Viekšniai", dates={date(2026, 12, 7)}, provider="mazeikiai"),
@@ -315,7 +399,8 @@ def test_a_changed_route_waits_for_its_year():
     assert this_year.areas[0].dates == {date(2026, 12, 7), date(2027, 1, 4)}
     assert this_year.areas[1].dates == {date(2026, 12, 8)}
     assert next_year.areas == []
-    assert len(warnings) == 1 and "the 2027 route 'Seda'" in warnings[0]
+    assert len(warnings) == 2 and "the 2027 route 'Seda'" in warnings[0]
+    assert "the 2026 route 'Seda, Užežerė' has no dates for 2027" in warnings[1]
 
 
 def test_january_without_the_new_packaging_file():
@@ -349,4 +434,8 @@ def test_published_file_and_its_metrics(part, tmp_path):
     assert status.main(["--site", str(tmp_path)]) == 0
     text = (tmp_path / "metrics.txt").read_text(encoding="utf-8")
     assert 'siuksliaveze_data_areas{source="mazeikiai",kind="food"} 4' in text
-    assert 'siuksliaveze_data_places{source="mazeikiai"} 190' in text
+    # Settlements with a schedule, not all 190 of the municipality.
+    assert 'siuksliaveze_data_places{source="mazeikiai"} 157' in text
+    # 2027-12-31: the last mixed waste pickup published.
+    last = 'siuksliaveze_data_last_date_timestamp_seconds{source="mazeikiai",kind="household"}'
+    assert f"{last} 1830211200" in text

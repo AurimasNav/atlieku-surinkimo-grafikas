@@ -27,9 +27,10 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
-| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` was built |
+| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `mazeikiai` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
-| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`) or addresses (`kauno`) covered |
+| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai` those with a schedule) or addresses (`kauno`) covered |
+| `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno`, whose dates are calculated ahead) |
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
 
@@ -75,6 +76,14 @@ groups:
         labels: { severity: info }
         annotations:
           summary: "{{ $labels.source }}: more build warnings than yesterday (new typo or renamed place?)"
+      # The publisher hasn't posted the next period (TRATC: next year's file), or the job
+      # no longer recognises it: the reminders stop after the last date.
+      - alert: ScheduleDataRunsOut
+        expr: siuksliaveze_data_last_date_timestamp_seconds - time() < 7 * 86400
+        for: 1h
+        labels: { severity: warning }
+        annotations:
+          summary: "{{ $labels.source }}: the {{ $labels.kind }} schedule ends within a week"
       # A source that was in metrics.txt in the last 3 days is gone while the file itself is
       # fetched fine (its build failed and there was nothing to keep): ScheduleDataStale can't
       # fire for a series that no longer exists.
@@ -101,5 +110,5 @@ groups:
 
 Add the [Infinity](https://grafana.com/grafana/plugins/yesoreyeram-infinity-datasource/) data
 source, query `status.json` (type JSON, URL above) and alert when
-`sources.nemencine.generatedAt`, `sources.nemezio.generatedAt` or `sources.kauno.generatedAt`
-is older than 30 hours.
+`sources.nemencine.generatedAt`, `sources.nemezio.generatedAt`, `sources.kauno.generatedAt` or
+`sources.mazeikiai.generatedAt` is older than 30 hours.

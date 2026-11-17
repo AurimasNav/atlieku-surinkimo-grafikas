@@ -816,6 +816,16 @@ def build_locations(
 
         simplify = place_lists or bool(routes)
         schedule = {kind: r for kind in kinds if (r := resolve(clauses.get(kind, []), simplify))}
+        if routes:
+            # A route names every street it serves, so a street no route names has no pickup
+            # (apartment buildings with shared containers, gardens without food waste). An
+            # empty list says so; without it the app would offer every row of the town.
+            every = [street_key(t) for t in settlement.streets] + sorted(variants[settlement.code])
+            for r in schedule.values():
+                if set(r) == {"streets"}:
+                    r["streets"] = dict(
+                        sorted({**dict.fromkeys(every, []), **r["streets"]}.items())
+                    )
         street_keys = {k for r in schedule.values() for k in r.get("streets", {})}
         location: dict = {
             "id": f"g{settlement.code}",

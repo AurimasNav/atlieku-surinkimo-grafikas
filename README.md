@@ -11,6 +11,10 @@ schedules the waste companies publish:
   [UAB "Kauno švara"](https://grafikai.svara.lt/). Glass and packaging there are collected by
   UAB "Ekonovus", which doesn't publish its schedules as data; the app links to
   [its schedules](https://www.ekonovus.lt/aptarnavimo-grafikai/).
+- **Mažeikiai district**: mixed waste, packaging and glass, and food waste in Mažeikiai town,
+  from the spreadsheets of the regional waste centre,
+  [UAB "Telšių regiono atliekų tvarkymo centras"](https://tratc.lt/atlieku-surinkimo-grafikai/atlieku-surinkimo-grafikai-mazeikiai/).
+  The waste is collected by UAB "Ecoservice" and UAB "Virginijus ir Ko".
 
 Available in Lithuanian, English, Russian and Polish.
 
@@ -58,7 +62,8 @@ your own build, rename and rebrand it. See [TRADEMARKS.md](TRADEMARKS.md).
 ## Disclaimer
 
 This is an unofficial project, not affiliated with or endorsed by UAB "Nemenčinės
-komunalininkas", UAB "Nemėžio komunalininkas", UAB "Kauno švara" or UAB "Ekonovus". The schedule data belongs to its publishers. Settlement and street names
+komunalininkas", UAB "Nemėžio komunalininkas", UAB "Kauno švara", UAB "Ekonovus", UAB "Telšių
+regiono atliekų tvarkymo centras", UAB "Ecoservice" or UAB "Virginijus ir Ko". The schedule data belongs to its publishers. Settlement and street names
 come from the Address Register (Adresų registras) of VĮ Registrų centras, published as open
 data at [get.data.gov.lt](https://get.data.gov.lt/datasets/gov/rc/ar/:ns). Dates are converted
 automatically and may contain mistakes; always check the official schedule if in doubt.

@@ -34,7 +34,7 @@ import io
 import json
 import re
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import date, datetime
 from functools import partial
 from html.parser import HTMLParser
@@ -100,12 +100,21 @@ class _Links(HTMLParser):
             self.links.append(href)
 
 
+def _name_words(name: str) -> tuple[str, list[str]]:
+    folded = fold(name.replace("_", " "))  # "2028_MKA_grafikas.xlsx"
+    return folded, folded.split()
+
+
+def is_bulky(name: str) -> bool:
+    """Bulky waste ("stambiagabaritės", "DGA") is collected by registration and isn't read."""
+    folded, words = _name_words(name)
+    return "stambiagabar" in folded or "dga" in words
+
+
 def classify(name: str) -> Kind | None:
-    """By file name. "MKA" is "mišrios komunalinės atliekos"; bulky waste ("stambiagabaritės",
-    "DGA") is collected by registration and isn't read."""
-    folded = fold(name)
-    words = folded.split()
-    if "stambiagabar" in folded or "dga" in words:
+    """By file name. "MKA" is "mišrios komunalinės atliekos"."""
+    folded, words = _name_words(name)
+    if is_bulky(name):
         return None
     if "pakuo" in folded or "stikl" in folded:
         return "packaging"
@@ -121,9 +130,12 @@ def file_year(name: str) -> int | None:
     return years.pop() if len(years) == 1 else None
 
 
-def find_files(html: str, page_url: str = PAGE_URL) -> list[SourceFile]:
+def find_files(
+    html: str, page_url: str = PAGE_URL, unknown: list[str] | None = None
+) -> list[SourceFile]:
     """The schedule spreadsheets linked from the page (the PDFs next to them are the same
-    tables, harder to read)."""
+    tables, harder to read). Names of spreadsheets that are no kind of schedule we know are
+    added to `unknown`: a new way of naming the files must not go unnoticed."""
     collector = _Links()
     collector.feed(html)
     files: list[SourceFile] = []
@@ -134,15 +146,27 @@ def find_files(html: str, page_url: str = PAGE_URL) -> list[SourceFile]:
         kind = classify(path.name)
         if path.suffix.lower() != ".xlsx" or "/uploads/" not in path.as_posix():
             continue
-        if kind is None or url in seen:
+        if url in seen:
             continue
         seen.add(url)
+        if kind is None:
+            if unknown is not None and not is_bulky(path.name):
+                unknown.append(path.name)
+            continue
         files.append(SourceFile(kind=kind, url=url, file_name=path.name))
     return files
 
 
+def _uploaded(file: SourceFile) -> str:
+    """ "2026/09" from ".../uploads/2026/09/name.xlsx": when the file was put on the site."""
+    match = re.search(r"/uploads/(\d{4}/\d{2})/", file.url)
+    return match.group(1) if match else ""
+
+
 def select_files(files: list[SourceFile], today: date) -> tuple[list[SourceFile], list[str]]:
-    """Per kind, the files of this year and later; if there are none, the newest one."""
+    """Per kind, the files of this year and later; if there are none, the newest one. Of two
+    files for the same year (a correction linked next to the original), the one uploaded
+    last, or linked last."""
     selected: list[SourceFile] = []
     warnings: list[str] = []
     for kind in sorted({f.kind for f in files}):
@@ -159,13 +183,23 @@ def select_files(files: list[SourceFile], today: date) -> tuple[list[SourceFile]
             running = [f for f in mine if years[f.url] == newest]
         if mine and today.year not in {years[f.url] for f in running}:
             warnings.append(f"no {kind} schedule for {today.year} on the page")
-        selected += running
+        for year in sorted({years[f.url] for f in running}):
+            same = [f for f in running if years[f.url] == year]
+            newest = max(enumerate(same), key=lambda item: (_uploaded(item[1]), item[0]))[1]
+            warnings += [
+                f"{f.file_name}: not read, {newest.file_name} is a newer {kind} schedule for {year}"
+                for f in same
+                if f is not newest
+            ]
+            selected.append(newest)
     return selected, warnings
 
 
 def download(today: date, keep_days: int) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
     html = http.get(PAGE_URL, timeout=60).decode("utf-8", errors="replace")
-    files, warnings = select_files(find_files(html), today)
+    unknown: list[str] = []
+    files, warnings = select_files(find_files(html, unknown=unknown), today)
+    warnings += [f"{name}: a spreadsheet of no kind we know; not read" for name in unknown]
     return [(f, http.get(f.url, timeout=60)) for f in files], warnings
 
 
@@ -196,15 +230,16 @@ def parse_days(value: object) -> list[int]:
 
 
 def _visible_rows(sheet) -> list[list[object]]:
-    """Cell values, with hidden columns emptied: the files of this publisher keep stale numbers
-    in columns hidden from the reader."""
+    """Cell values, with hidden columns and rows emptied: the files of this publisher keep
+    stale numbers in columns hidden from the reader."""
     hidden: set[int] = set()
     for dimension in sheet.column_dimensions.values():
         if dimension.hidden:
             hidden |= set(range(dimension.min or 0, (dimension.max or dimension.min or 0) + 1))
+    hidden_rows = {i for i, dimension in sheet.row_dimensions.items() if dimension.hidden}
     return [
-        [None if i in hidden else value for i, value in enumerate(row, start=1)]
-        for row in sheet.iter_rows(values_only=True)
+        [None if i in hidden or line in hidden_rows else value for i, value in enumerate(row, 1)]
+        for line, row in enumerate(sheet.iter_rows(values_only=True), start=1)
     ]
 
 
@@ -308,6 +343,13 @@ def parse_file(source: SourceFile, content: bytes) -> ParseResult:
         result.warnings += parsed.warnings
     if not result.areas:
         raise ValueError(f"{source.file_name}: no schedule table found")
+    # The year is read from the sheet; the file was chosen by the year in its name.
+    expected = file_year(source.file_name)
+    found = {d.year for area in result.areas for d in area.dates}
+    if expected and found != {expected}:
+        raise ValueError(
+            f"{source.file_name}: the dates are of {sorted(found)}, the file name says {expected}"
+        )
     return result
 
 
@@ -322,7 +364,10 @@ def combine(
     A place has one row per waste type, with all its dates. Next year's file words and numbers
     the routes differently, so its rows are other rows: one that covers exactly the same streets
     and settlements as a row of this year gives that row its dates. The rest is left out, with
-    a warning, until its year starts and it becomes the schedule in force."""
+    a warning, until its year starts and it becomes the schedule in force.
+
+    Next year's file is checked now, not on 1 January when it takes over: too few routes in
+    it raise ValueError."""
     reader = RouteList(Index(registry), PROVIDER, defaultdict(dict))
     warnings: list[str] = []
     by_kind: dict[Kind, dict[int, list[tuple[ParseResult, Area]]]] = defaultdict(
@@ -340,16 +385,34 @@ def combine(
         for year in sorted(years):
             if year == base:
                 continue
+            if year > base and len(years[year]) < MIN_AREAS.get(kind, 0):
+                raise ValueError(
+                    f"only {len(years[year])} {kind} routes in the {year} file "
+                    f"(expected at least {MIN_AREAS[kind]})"
+                )
+            signatures = {id(area): reader.signature(area) for _, area in years[year]}
+            times = Counter(signatures.values())
+            continued: set[int] = set()
             for result, area in years[year]:
-                same = current.get(reader.signature(area), [])
-                if year > base and len(same) == 1:
+                signature = signatures[id(area)]
+                same = current.get(signature, [])
+                # One route of each year, and places we recognise: anything else could give
+                # a place the dates of another route.
+                if year > base and signature and len(same) == 1 and times[signature] == 1:
                     same[0].dates |= area.dates
+                    continued.add(id(same[0]))
                 elif year > base:
                     warnings.append(
-                        f"{kind}: the {year} route {area.name[:60]!r} covers other places than "
-                        f"any {base} route; its dates are left out until {year}"
+                        f"{kind}: the {year} route {area.name[:60]!r} doesn't match one "
+                        f"{base} route; its dates are left out until {year}"
                     )
                 result.areas.remove(area)
+            if year > base:
+                warnings += [
+                    f"{kind}: the {base} route {area.name[:60]!r} has no dates for {year}"
+                    for _, area in years[base]
+                    if id(area) not in continued
+                ]
     return warnings
 
 

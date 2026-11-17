@@ -12,6 +12,12 @@ export const KAUNO_POINTS_URL = `${KAUNO_URL}/points.json`;
 export const KAUNO_SOURCE_PAGE_URL = 'https://grafikai.svara.lt/';
 /** Glass and packaging in Kauno r. are emptied by UAB „Ekonovus“; its schedules are only on its site. */
 export const EKONOVUS_SCHEDULES_URL = 'https://www.ekonovus.lt/aptarnavimo-grafikai/';
+/**
+ * Regions published as their own files in the format of schedule.json: <url>/schedule.json and,
+ * for "use my location", <url>/addresses.json. Mažeikių r., from the files of the regional
+ * waste centre (UAB „Telšių regiono atliekų tvarkymo centras“).
+ */
+export const REGION_URLS = [`${SITE_URL}/mazeikiu-r`];
 export const PRIVACY_URL = `${SITE_URL}/privacy/`;
 export const REPOSITORY_URL = 'https://github.com/AurimasNav/atlieku-surinkimo-grafikas';
 /**

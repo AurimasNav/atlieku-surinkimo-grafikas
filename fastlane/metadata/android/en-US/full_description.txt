@@ -1,7 +1,8 @@
-Šiukšliavežė reminds you the evening before the garbage truck comes, so you never miss a pickup again. It covers two districts.
+Šiukšliavežė reminds you the evening before the garbage truck comes, so you never miss a pickup again. It covers three districts.
 
 • Vilnius district: mixed waste, packaging and glass in more than 1,000 villages and towns served by UAB „Nemenčinės komunalininkas“ and UAB „Nemėžio komunalininkas“, including Nemenčinė, Riešė, Avižieniai, Maišiagala, Nemėžis, Pagiriai, Juodšiliai, Mickūnai and Rudamina.
 • Kaunas district: mixed, food and green waste at about 39,000 addresses served by UAB „Kauno švara“, including Garliava, Domeikava, Ringaudai, Raudondvaris, Užliedžiai and Akademija. Glass and packaging there are collected by UAB „Ekonovus“; the app links to its schedules.
+• Mažeikiai district: mixed waste, packaging and glass in Mažeikiai, Viekšniai, Seda, Tirkšliai, Židikai and about 150 villages, plus food waste in Mažeikiai town. The schedules are published by UAB „Telšių regiono atliekų tvarkymo centras“; the waste is collected by UAB „Ecoservice“ and UAB „Virginijus ir Ko“.
 
 How it works
 • Choose your village or town once, or let the app find your address. If pickup days in your place depend on the street or the kind of home, it asks about that too.
@@ -20,6 +21,6 @@ Private by design
 Free and open source
 The app is free, and its source code is open (Apache 2.0) on GitHub: github.com/AurimasNav/atlieku-surinkimo-grafikas. Wrong dates or a missing address? Report it right from the app.
 
-Schedules come from the files published at nemenkom.lt and nkom.lt and from the open data of UAB „Kauno švara“, all checked every day. Settlement and street names come from the Address Register of VĮ Registrų centras (open data).
+Schedules come from the files published at nemenkom.lt, nkom.lt and tratc.lt and from the open data of UAB „Kauno švara“, all checked every day. Settlement and street names come from the Address Register of VĮ Registrų centras (open data).
 
-Unofficial app made by volunteers, not affiliated with UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“ or UAB „Ekonovus“. Dates come from the schedules they publish and may contain mistakes; always check the official schedule if in doubt. Provided free of charge, without any warranty.
+Unofficial app made by volunteers, not affiliated with UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“ or UAB „Virginijus ir Ko“. Dates come from the schedules they publish and may contain mistakes; always check the official schedule if in doubt. Provided free of charge, without any warranty.

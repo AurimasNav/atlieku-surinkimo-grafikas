@@ -2,7 +2,16 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { kaunoKey, loadKaunoAddress } from '@/lib/kauno';
-import { type Area, fetchSchedule, type ScheduleData, UnsupportedScheduleError } from '@/lib/schedule';
+import { REGION_URLS } from '@/lib/config';
+import {
+  type Area,
+  fetchRegion,
+  fetchSchedule,
+  regionPart,
+  type ScheduleData,
+  UnsupportedScheduleError,
+  withRegion,
+} from '@/lib/schedule';
 import { useSettings } from '@/store/settings';
 import { storage } from '@/lib/storage';
 
@@ -11,6 +20,8 @@ export type RefreshError = 'loadFailed' | 'unsupported';
 type ScheduleState = {
   data: ScheduleData | null;
   etag?: string;
+  /** Other regions merged into `data` (config.REGION_URLS): the file's ETag and its companies. */
+  regions?: Record<string, { etag?: string; providers: string[] }>;
   lastChecked?: string;
   refreshing: boolean;
   error: RefreshError | null;
@@ -42,14 +53,33 @@ export const useSchedule = create<ScheduleState>()(
           const personal = found && { key: found.key, areas: found.areas };
           const keep = (data: ScheduleData): ScheduleData => ({ ...data, personal: personal ?? get().data?.personal });
           // Only send the ETag when we actually have the data it refers to.
-          const result = await fetchSchedule(get().data ? get().etag : undefined);
+          const previous = get().data;
+          const result = await fetchSchedule(previous ? get().etag : undefined);
           const lastChecked = new Date().toISOString();
-          if (!result) {
-            const data = get().data;
-            set({ refreshing: false, lastChecked, ...(data && personal ? { data: keep(data) } : {}) });
+          let data = result?.data ?? previous!;
+          let changed = Boolean(result);
+          // The other regions are merged in. One that can't be downloaded keeps the part saved
+          // before, and doesn't hold back the rest.
+          const regions = { ...get().regions };
+          for (const url of REGION_URLS) {
+            const known = regions[url];
+            let part = known && previous ? regionPart(previous, known.providers) : undefined;
+            const region = await fetchRegion(url, part?.areas.length ? known?.etag : undefined).catch(() => null);
+            const providers = (region?.data.providers ?? []).map((provider) => provider.id);
+            if (region && providers.length) {
+              part = regionPart(region.data, providers);
+              regions[url] = { etag: region.etag, providers };
+              changed = true;
+            }
+            // Also drop the rows of companies the file listed before, should it rename one.
+            const ids = [...new Set([...(known?.providers ?? []), ...(regions[url]?.providers ?? [])])];
+            if (part && regions[url]) data = withRegion(data, ids, part);
+          }
+          if (!changed) {
+            set({ refreshing: false, lastChecked, ...(personal ? { data: keep(data) } : {}) });
             return Boolean(personal);
           }
-          set({ data: keep(result.data), etag: result.etag, lastChecked, refreshing: false });
+          set({ data: keep(data), etag: result ? result.etag : get().etag, regions, lastChecked, refreshing: false });
           return true;
         } catch (error) {
           const code = error instanceof UnsupportedScheduleError ? 'unsupported' : 'loadFailed';
@@ -62,7 +92,7 @@ export const useSchedule = create<ScheduleState>()(
       name: 'schedule',
       version: 1,
       storage: createJSONStorage(() => storage),
-      partialize: ({ data, etag, lastChecked }) => ({ data, etag, lastChecked }),
+      partialize: ({ data, etag, regions, lastChecked }) => ({ data, etag, regions, lastChecked }),
     },
   ),
 );
