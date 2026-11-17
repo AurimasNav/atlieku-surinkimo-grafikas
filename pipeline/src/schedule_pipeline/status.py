@@ -35,6 +35,9 @@ def collect(site: Path) -> dict:
     for path in (site / "schedule.json", site / "mazeikiu-r" / "schedule.json"):
         if not path.exists():
             continue
+        # Mažeikių r. lists every settlement of the municipality: count those with a schedule,
+        # so the number moves when routes are lost.
+        served_only = path.parent != site
         data = json.loads(path.read_text(encoding="utf-8"))
         # Vilniaus r.: one file, a part per company (build.merge_parts). Rows and places of the
         # first company, Nemenčinė, have no `provider` field, nor has data from before there
@@ -53,8 +56,17 @@ def collect(site: Path) -> dict:
             sources[mine] = {
                 "generatedAt": provider["generatedAt"],
                 "areas": dict(sorted(Counter(a["kind"] for a in areas).items())),
-                "places": len(places),
+                "places": sum(1 for p in places if p.get("schedule") or not served_only),
                 "warnings": provider.get("warnings", 0),
+                # The last pickup date per waste type: the schedules run out when the
+                # publisher doesn't post the next period.
+                "lastDate": {
+                    kind: max(dates)
+                    for kind in sorted({a["kind"] for a in areas})
+                    if (
+                        dates := [d for a in areas if a["kind"] == kind for d in a.get("dates", [])]
+                    )
+                },
             }
     path = site / "kauno-r" / "schedule.json"
     if path.exists():
@@ -81,6 +93,14 @@ def metrics(status: dict) -> str:
                 ({"source": s, "kind": kind}, count)
                 for s, d in status["sources"].items()
                 for kind, count in d["areas"].items()
+            ],
+        ),
+        "siuksliaveze_data_last_date_timestamp_seconds": (
+            "The last pickup date the published schedules of a source have, per waste type.",
+            [
+                ({"source": s, "kind": kind}, _timestamp(f"{day}T00:00:00+00:00"))
+                for s, d in status["sources"].items()
+                for kind, day in d.get("lastDate", {}).items()
             ],
         ),
         "siuksliaveze_data_places": (

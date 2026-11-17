@@ -91,6 +91,58 @@ describe('other regions', () => {
     expect(useSchedule.getState().error).toBeNull();
   });
 
+  it('are only downloaded again when their file changed', async () => {
+    // A server that answers 304 to the ETag it gave.
+    const etags: Record<string, string> = { 'schedule.json': 'm1', 'mazeikiu-r/schedule.json': 'r1' };
+    const sent: Record<string, string | undefined> = {};
+    globalThis.fetch = jest.fn(async (url: string, init?: { headers?: Record<string, string> }) => {
+      const name = Object.keys(etags).find((file) => String(url).endsWith(`atlieku-surinkimo-grafikas/${file}`))!;
+      sent[name] = init?.headers?.['If-None-Match'];
+      const headers = { get: () => etags[name] };
+      return sent[name] === etags[name]
+        ? { ok: false, status: 304, headers }
+        : { ok: true, status: 200, headers, json: async () => files[name] };
+    }) as unknown as typeof fetch;
+
+    expect(await useSchedule.getState().refresh()).toBe(true);
+    expect(sent).toEqual({ 'schedule.json': undefined, 'mazeikiu-r/schedule.json': undefined });
+    // Nothing changed: both answer 304.
+    expect(await useSchedule.getState().refresh()).toBe(false);
+    expect(sent).toEqual({ 'schedule.json': 'm1', 'mazeikiu-r/schedule.json': 'r1' });
+    expect(ids()).toEqual(['h-1', 'f-1']);
+
+    // Only the region changed.
+    etags['mazeikiu-r/schedule.json'] = 'r2';
+    files['mazeikiu-r/schedule.json'] = region(['2026-12-08']);
+    expect(await useSchedule.getState().refresh()).toBe(true);
+    expect(useSchedule.getState().data?.areas.map((area) => area.dates[0])).toEqual(['2026-11-20', '2026-12-08']);
+    expect(useSchedule.getState().etag).toBe('m1');
+
+    // Only the main file changed: the region's saved part moves into the new data.
+    etags['schedule.json'] = 'm2';
+    files['schedule.json'] = { ...main, generatedAt: 'later' };
+    expect(await useSchedule.getState().refresh()).toBe(true);
+    expect(useSchedule.getState().data?.generatedAt).toBe('later');
+    expect(useSchedule.getState().data?.areas.map((area) => area.dates[0])).toEqual(['2026-11-20', '2026-12-08']);
+    expect(useSchedule.getState().regions).toEqual({
+      [Object.keys(useSchedule.getState().regions!)[0]]: { etag: 'r2', providers: ['mazeikiai'] },
+    });
+  });
+
+  it('drop the rows of a company their file no longer lists', async () => {
+    await useSchedule.getState().refresh();
+    const renamed = region(['2026-12-08']);
+    files['mazeikiu-r/schedule.json'] = {
+      ...renamed,
+      providers: [{ ...renamed.providers[0], id: 'tratc' }],
+      areas: renamed.areas.map((area) => ({ ...area, id: 'f-2', provider: 'tratc' })),
+      locations: renamed.locations.map((location) => ({ ...location, provider: 'tratc' })),
+    };
+    await useSchedule.getState().refresh();
+    expect(ids()).toEqual(['h-1', 'f-2']);
+    expect(useSchedule.getState().data?.providers?.map((provider) => provider.id)).toEqual(['tratc']);
+  });
+
   it('do not hold back the main data when they were never downloaded', async () => {
     delete files['mazeikiu-r/schedule.json'];
     expect(await useSchedule.getState().refresh()).toBe(true);

@@ -104,7 +104,10 @@ export async function locateHome(): Promise<GeolocateResult> {
     .reduce((best, found) => (found && (!best || found.distance < best.distance) ? found : best), null);
   const kauno = kaunoPoints && nearestPoint(kaunoPoints.points, latitude, longitude);
   const distance = Math.min(address?.distance ?? Infinity, kauno?.distance ?? Infinity);
-  if (distance > MAX_DISTANCE_M) return { ok: false, reason: 'far' };
+  // Without a region's table we can't tell "far from any address" from "not downloaded".
+  if (distance > MAX_DISTANCE_M) {
+    return { ok: false, reason: regions.length < REGION_URLS.length ? 'offline' : 'far' };
+  }
 
   const street = streetConfidence({
     approximate: permission.android?.accuracy === 'coarse' || permission.ios?.accuracy === 'reduced',

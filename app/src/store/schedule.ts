@@ -71,7 +71,9 @@ export const useSchedule = create<ScheduleState>()(
               regions[url] = { etag: region.etag, providers };
               changed = true;
             }
-            if (part && regions[url]) data = withRegion(data, regions[url].providers, part);
+            // Also drop the rows of companies the file listed before, should it rename one.
+            const ids = [...new Set([...(known?.providers ?? []), ...(regions[url]?.providers ?? [])])];
+            if (part && regions[url]) data = withRegion(data, ids, part);
           }
           if (!changed) {
             set({ refreshing: false, lastChecked, ...(personal ? { data: keep(data) } : {}) });

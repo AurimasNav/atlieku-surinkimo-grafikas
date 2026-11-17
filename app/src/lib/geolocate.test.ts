@@ -52,6 +52,21 @@ beforeEach(() => {
   })) as unknown as typeof fetch;
 });
 
+/**
+ * A copy of the module that hasn't downloaded anything yet (the address tables are kept for the
+ * life of the app), with its own mock of expo-location.
+ */
+function freshModule() {
+  jest.resetModules();
+  const fresh = jest.requireActual<typeof import('./geolocate')>('./geolocate');
+  const mock = jest.mocked(jest.requireMock<typeof Location>('expo-location'));
+  mock.requestForegroundPermissionsAsync.mockResolvedValue({ granted: true } as Location.LocationPermissionResponse);
+  mock.hasServicesEnabledAsync.mockResolvedValue(true);
+  const standAt = (coords: { latitude: number; longitude: number }) =>
+    mock.getCurrentPositionAsync.mockResolvedValue({ coords: { ...coords, accuracy: 10 } } as Location.LocationObject);
+  return { locateHome: fresh.locateHome, standAt };
+}
+
 describe('streetConfidence', () => {
   it('needs a precise position and an address within 100 m', () => {
     expect(streetConfidence({ approximate: false, accuracy: 20, distance: 30 })).toBe('ok');
@@ -92,6 +107,36 @@ describe('locateHome', () => {
       address: { locationId: 'g23467', street: 's1400123', streetLabel: 'Žemaitės g.', number: '2' },
       street: 'ok',
     });
+  });
+
+  it('takes the nearest address of all tables', async () => {
+    // 300 m from the Vilniaus r. address, with a Mažeikių r. address moved 100 m away.
+    const here = north(table.points[0], 300);
+    const near: AddressTable = {
+      ...mazeikiai,
+      points: [[Math.round(here.latitude * 1e5 + 90), table.points[0][1], 0, '2']],
+    };
+    globalThis.fetch = jest.fn(async (url: string) => ({
+      ok: true,
+      json: async () => (String(url).includes('mazeikiu-r') ? near : String(url).includes('kauno-r') ? kaunoPoints : table),
+    })) as unknown as typeof fetch;
+    const fresh = freshModule();
+    fresh.standAt(here);
+    expect(await fresh.locateHome()).toMatchObject({ ok: true, address: { locationId: 'g23467' } });
+  });
+
+  it("says the download failed when a region's table is missing and nothing is near", async () => {
+    globalThis.fetch = jest.fn(async (url: string) =>
+      String(url).includes('mazeikiu-r')
+        ? { ok: false, status: 500 }
+        : { ok: true, json: async () => (String(url).includes('kauno-r') ? kaunoPoints : table) },
+    ) as unknown as typeof fetch;
+    const fresh = freshModule();
+    fresh.standAt(north(mazeikiai.points[0], 40));
+    expect(await fresh.locateHome()).toEqual({ ok: false, reason: 'offline' });
+    // Addresses of the tables that did load are still found.
+    fresh.standAt(north(table.points[0], 40));
+    expect(await fresh.locateHome()).toMatchObject({ ok: true, address: { locationId: 'g10937' } });
   });
 
   it('asks for the street with a poor fix, even next to an address', async () => {

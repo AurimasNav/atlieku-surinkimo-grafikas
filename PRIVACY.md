@@ -58,8 +58,9 @@ push notifications, so no device token or identifier is sent anywhere.
 ## Network connections
 
 The app connects to the internet only to download the public collection schedules
-(`schedule.json` and `mazeikiu-r/schedule.json`) and, if you use GPS to find your address, the
-public address lists from GitHub Pages, a hosting service operated by GitHub, Inc. Like any
+(`schedule.json`, `mazeikiu-r/schedule.json` and, when you choose a place, the list of places of
+Kaunas district, `kauno-r/schedule.json`) and, if you use GPS to find your address, the public
+address lists from GitHub Pages, a hosting service operated by GitHub, Inc. Like any
 website, GitHub's servers receive the technical information included in every internet request,
 such as your IP address and the app's user agent, and may keep it in server logs for security
 and operations. We have no access to those logs. See the
@@ -168,7 +169,9 @@ pranešimų, todėl joks įrenginio identifikatorius niekur nesiunčiamas.
 ## Interneto ryšys
 
 Programėlė jungiasi prie interneto tik tam, kad atsisiųstų viešus išvežimo grafikus
-(`schedule.json` ir `mazeikiu-r/schedule.json`) iš „GitHub Pages“ – „GitHub, Inc.“ valdomos talpinimo paslaugos. Kaip ir bet
+(`schedule.json`, `mazeikiu-r/schedule.json` ir, kai renkatės vietovę, Kauno rajono vietovių
+sąrašą `kauno-r/schedule.json`) ir, jei adresą ieškote pagal buvimo vietą, viešus adresų sąrašus
+iš „GitHub Pages“ – „GitHub, Inc.“ valdomos talpinimo paslaugos. Kaip ir bet
 kuri svetainė, „GitHub“ serveriai gauna kiekvienoje interneto užklausoje esančią techninę
 informaciją, pvz., jūsų IP adresą, ir gali ją saugoti serverio žurnaluose saugumo tikslais. Mes
 prie šių žurnalų prieigos neturime. Žr.
