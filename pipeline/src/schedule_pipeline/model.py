@@ -35,12 +35,17 @@ class Area:
     # Part of the newest published schedule for its kind, even if its dates have passed (glass
     # is collected once a quarter, so most rows are between pickups most of the time).
     current: bool = False
+    # Provider.id of a company added after the first one (Nemenčinė, None), whose rows were
+    # published before providers existed: their ids must not change.
+    provider: str | None = None
 
     @property
     def id(self) -> str:
         # Stable across runs as long as the source text doesn't change, so the app can
         # keep the user's selection when a new period is published.
         key = "|".join([self.kind, self.group or "", self.district or "", self.name.casefold()])
+        if self.provider:
+            key += f"|{self.provider}"
         return f"{self.kind[0]}-{hashlib.sha1(key.encode()).hexdigest()[:10]}"
 
     def to_json(self) -> dict:
@@ -51,7 +56,27 @@ class Area:
         data["dates"] = [d.isoformat() for d in sorted(self.dates)]
         if self.current:
             data["current"] = True
+        if self.provider:
+            data["provider"] = self.provider
         return data
+
+
+@dataclass(frozen=True)
+class Provider:
+    """A waste company and the elderships (seniūnijos, register names) it serves."""
+
+    id: str
+    name: str
+    url: str  # the page with its official schedules
+    elderships: frozenset[str]
+    # Rows list many settlements, comma-separated (locations.PlaceList).
+    place_lists: bool = False
+    # The first provider, published before there were several: its rows, places and files carry
+    # no `provider` field, and its row ids stay as they were.
+    legacy: bool = False
+
+    def to_json(self) -> dict:
+        return {"id": self.id, "name": self.name, "url": self.url}
 
 
 @dataclass

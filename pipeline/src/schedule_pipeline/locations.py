@@ -6,6 +6,11 @@ The schedules describe their areas as free text in different shapes:
   packaging:  "Avižienių sen. kaimai : Bajorų k. tik Čiobrelių., Jurginų g. Bendorių k. ..."
   glass:      "Sužionių sen. kaimai iškyrus Pakryžės k., Veriškių k. Nemenčinės ..."
 
+and Nemėžio komunalininkas lists many settlements per row, comma-separated, each with its
+streets in brackets (see PlaceList):
+
+  "Mickūnų" | "Akmenynė, Mažeikiai (be Kairėnų ir Girios g.), Mickūnų mstl. (Gaidūnų g., ...)"
+
 Instead of parsing every street format, we find settlement mentions using the register's
 official names (nominative and genitive), then look for that settlement's official street
 names in the text that follows the mention. A row then covers either a whole settlement or
@@ -14,6 +19,9 @@ seniūnija apart from the settlements listed after "išskyrus".
 
 Only exact, unambiguous links are published as such. Anything else is published as a short
 list of candidate rows, and the app asks the user to choose.
+
+Each seniūnija is served by one company (model.Provider). A settlement is linked only to rows
+of its own company, so a village of the same name elsewhere can't pick up another's row.
 """
 
 from __future__ import annotations
@@ -23,7 +31,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 
-from .model import Area, Kind
+from .model import Area, Kind, Provider
 from .registry import Registry, Settlement, Street, fold
 
 KINDS: list[Kind] = ["household", "packaging", "glass"]
@@ -44,6 +52,9 @@ class Clause:
     # Street keys this row covers; None = the whole settlement; empty = some streets, unrecognised.
     streets: set[str] | None
     fallback: bool = False  # from "<X> sen. kaimai": less specific than a named settlement
+    # Only some houses of these streets ("Durpių g. 7, 10", a shared container site): one more
+    # choice for the street, next to the row that serves the rest of it.
+    extra: bool = False
 
 
 @dataclass
@@ -72,7 +83,8 @@ class Index:
                 best, best_len = district, common
         return best
 
-    def candidates(self, name: str, district: str | None) -> list[Settlement]:
+    def candidates(self, name: str, district: str | None, strict: bool = False) -> list[Settlement]:
+        """Settlements called `name`, preferring those in `district`; with `strict`, only those."""
         key = fold(name)
         hits = self.by_name.get(key, [])
         if district:
@@ -98,7 +110,7 @@ class Index:
                     if s.district == district
                     and any(_near(key, fold(form)) for form in (s.name, s.genitive))
                 ]
-            hits = in_district or hits
+            hits = in_district if strict else (in_district or hits)
         return list({s.code: s for s in hits}.values())
 
     def find(self, name: str, district: str | None) -> Settlement | None:
@@ -131,18 +143,39 @@ def variant_key(label: str) -> str:
     return "v" + hashlib.sha1(fold(label).encode()).hexdigest()[:8]
 
 
-def streets_in(text: str, settlement: Settlement) -> set[str]:
+def streets_in(text: str, settlement: Settlement, loose: bool = False) -> set[str]:
     """Official street names of `settlement` that appear in `text`, also when the schedule
-    shortens a first name to its initial: "J.Bulhako g." is "Jano Bulhako g."."""
+    shortens a first name to its initial: "J.Bulhako g." is "Jano Bulhako g.".
+
+    `loose` (Nemėžio's lists) also accepts several initials ("A. L. Bekiu" is "Augusto
+    Liudviko Bekiu"), the surname alone when no other street ends with it ("Morkūno g."), and
+    numbered streets in one go ("Tulpės 1,2,3,4-oji")."""
     folded = f" {fold(text)} "
+    last_words: dict[str, int] = defaultdict(int)
+    for street in settlement.streets:
+        last_words[fold(street.name).split()[-1]] += 1
 
     def mentioned(name: str) -> bool:
         words = fold(name).split()
-        if f" {' '.join(words)} " in folded:
-            return True
-        return len(words) > 1 and f" {words[0][0]} {' '.join(words[1:])} " in folded
+        forms = [words]
+        if len(words) > 1:
+            forms += [[w[0] for w in words[:k]] + words[k:] for k in range(1, len(words))]
+            if not loose:
+                forms = forms[:2]
+            elif all(w.isalpha() for w in words) and len(words[-1]) >= 5:
+                if last_words[words[-1]] == 1:
+                    forms.append(words[-1:])
+        return any(f" {' '.join(form)} " in folded for form in forms)
 
-    return {street_key(t) for t in settlement.streets if mentioned(t.name)}
+    found = {street_key(t) for t in settlement.streets if mentioned(t.name)}
+    if loose:
+        for stem, numbers in re.findall(r" ([a-z]+) ((?:\d+ )+)i?oji ", folded):
+            wanted = set(numbers.split())
+            for t in settlement.streets:
+                m = re.fullmatch(rf"{stem} (\d+) i?o\w*", fold(t.name))
+                if m and m.group(1) in wanted:
+                    found.add(street_key(t))
+    return found
 
 
 def household_clauses(
@@ -225,10 +258,273 @@ def listed_clauses(index: Index, area: Area) -> tuple[list[tuple[Settlement, Cla
     return clauses, whole_districts
 
 
-def resolve(clauses: list[Clause]) -> dict | None:
-    """Turns everything the rows say about one settlement into what the app needs."""
+# --- Nemėžio komunalininkas: lists of settlements ------------------------------
+
+_QUOTES = "\"'“”„«»"
+_TYPE_WORDS = {"k": "k.", "vs": "vs.", "mstl": "mstl.", "m": "m."}
+# A settlement name, then optionally its type ("Mickūnų mstl.", "Kyviškių geležinkelio st.";
+# "g." is a typo seen for "k.") and house numbers ("Voverių k. 1"). The dot is optional: a
+# part's last dot is cut off with the comma after it.
+_HEAD = re.compile(
+    r"(?P<name>.+?)"
+    r"(?:\s+(?:(?P<type>k|vs|mstl|m|g)\b\.?|(?P<station>gele[žz]inkelio\s+st)\b\.?))?"
+    r"(?:\s+(?P<houses>\d+[A-Za-z]?(?:\s*,\s*\d+[A-Za-z]?)*))?",
+    re.I,
+)
+_GARDEN = re.compile(rf"\bS\s*/?\s*B\s*[{_QUOTES}]?\s*([^{_QUOTES}(),]+?)\s*[{_QUOTES}]", re.U)
+# "(bendri)", "(bendro naud.)": shared containers; "(visi)": all; "(ind.)": private houses.
+_NOTES = {"bendri": "shared", "bendro naud": "shared", "bendro naudojimo": "shared"}
+_NOTES |= {"visi": "all", "ind": "all"}
+# Rows or parts of rows that aren't homes: businesses, a cemetery, shops (by their brand, with a
+# capital: "iki" is also "until", as in "Pergalės g. iki geležinkelio").
+_NOT_HOMES = re.compile(
+    r"\b(?:(?i:įmon\w*|kapinės|paukštynas|lentpjūvė|homanit)|Maxima|Iki|MAXIMA|IKI)\b"
+)
+_HOUSE_NUMBERS = re.compile(r"\b(g|pl|al|skg|aklg|tak|kel)\s*\.\s*\d", re.I)
+_RANGE = re.compile(r"\b(nuo|iki)\b[^,()]*", re.I)  # "Pergalės g. nuo 35 iki galo"
+_PARTLY = re.compile(r"[^,()]*\b(nuo|iki)\b[^,()]*", re.I)  # the street with its range
+_EXCLUDING = re.compile(r"^\s*(be|i[sš]kyrus)\b", re.I)
+_ROMAN = re.compile(r"I{1,3}|IV|V")
+
+
+def split_places(text: str) -> list[str]:
+    """Splits a row at the commas between settlements, not those inside brackets. A bracket
+    followed by a capital also ends a part (a missing comma: "Migūnai (...) Raguvėlė")."""
+    parts: list[str] = []
+    depth, start, i = 0, 0, 0
+    while i < len(text):
+        ch = text[i]
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth = max(0, depth - 1)
+            gap = re.match(rf"\s+(?=[{_UPPER}])", text[i + 1 :])
+            if depth == 0 and gap:
+                parts.append(text[start : i + 1])
+                i = start = i + 1 + gap.end()
+                continue
+        elif ch == "," and depth == 0:
+            parts.append(text[start:i])
+            start = i + 1
+        i += 1
+    parts.append(text[start:])
+    return [p.strip(" .;") for p in parts if p.strip(" .;")]
+
+
+def garden_label(text: str) -> tuple[str, str] | None:
+    """'SB „Rasa“', 'SB"Atžalynas-2"', 'SB Prekyba' -> (variant key, 'SB „Rasa“')."""
+    match = _GARDEN.search(text + '"')
+    if not match:
+        return None
+    name = re.sub(r"\s*-\s*", "-", match.group(1).strip())
+    label = f"SB „{name}“"
+    return variant_key(label), label
+
+
+@dataclass
+class _Place:
+    settlement: Settlement
+    streets: set[str] | None
+    extra: bool
+    fallback: bool
+
+
+class PlaceList:
+    """Reads one row of a provider whose rows list many settlements:
+
+        Akmenynė, Mažeikiai (be Kairėnų ir Girios g.), Mickūnų geležinkelio st.,
+        Uosininkai I, II, Mickūnų mstl. (Gaidūnų g., ...), SB „Rasa“- Piktakonių k.
+
+    Names are nominative, or genitive with their type; brackets hold streets ("be ..." and
+    "išskyrus ..." list the streets that are not included), garden communities (SB, offered as
+    one more choice in the street list) or a note ("bendri": shared containers, one more choice
+    next to the row of the houses). House numbers mean only some houses of those streets.
+    """
+
+    def __init__(
+        self,
+        index: Index,
+        provider: Provider,
+        variants: dict[int, dict[str, str]],
+        gardens: dict[str, dict[str, int]] | None,
+    ) -> None:
+        self.index = index
+        self.provider = provider
+        self.variants = variants
+        # district -> garden key -> settlement code, from rows that say where a garden is;
+        # None while collecting them (first pass).
+        self.gardens = gardens
+        # Parts of the last row read that name no settlement we know.
+        self.unknown: list[str] = []
+
+    def settlements(self, name: str, district: str | None, kind: str | None) -> list:
+        hits = [
+            s
+            for s in self.index.candidates(name, district, strict=True)
+            if s.district in self.provider.elderships
+        ]
+        if kind:
+            hits = [s for s in hits if s.abbr == kind] or hits
+        else:
+            # "Kena" is the village, not the railway station of the same name.
+            hits = [s for s in hits if s.abbr != "glž. st."] or hits
+        return hits
+
+    def clauses(self, area: Area) -> tuple[list[tuple[Settlement, Clause]], bool]:
+        """Returns the clauses and whether the row only names places that aren't homes."""
+        self.unknown = []
+        district = self.index.district(area.district or "")
+        if district not in self.provider.elderships:
+            return [], False
+        shared_row = (area.group or "") == "Daugiabučiai namai"
+        places: list[_Place] = []
+        homes = False
+        previous: _Place | None = None
+        base = ""  # "Uosininkai" in "Uosininkai I, II, III"
+        for part in split_places(area.name):
+            head, _, rest = part.partition("(")
+            spec = rest.rsplit(")", 1)[0] if rest else None
+            head = head.strip(" .,-")
+            if _NOT_HOMES.search(head) or (spec is not None and _NOT_HOMES.search(spec)):
+                continue
+            homes = True
+            garden = garden_label(part)
+            if garden and fold(head).startswith("sb"):
+                # "SB „Rasa“- Piktakonių k." or a garden on its own: where is it?
+                after = re.split(rf"[{_QUOTES}]", part)[-1].strip(" -–")
+                target = self._garden_home(garden[0], after, district, previous)
+                if target:
+                    self._add_variant(target, garden)
+                    places.append(_Place(target, {garden[0]}, shared_row, False))
+                continue
+            if _ROMAN.fullmatch(head) and base:
+                head = f"{base} {head}"
+            if re.fullmatch(r"\d+[A-Za-z]?", head) and previous:
+                previous.extra = True  # "Rokantų k. 1, 2, 3": more house numbers
+                continue
+            if fold(head) in _NOTES and spec is None:
+                # 'SB "Atžalynas-2", bendri': a note about the place before it.
+                if previous and _NOTES[fold(head)] == "shared":
+                    previous.extra = True
+                continue
+            notes = []
+            words = head.split()
+            while len(words) > 1 and fold(words[-1]) in _NOTES:
+                notes.append(_NOTES[fold(words.pop())])
+            match = _HEAD.fullmatch(" ".join(words))
+            if not match:
+                continue
+            name = match.group("name")
+            kind = "glž. st." if match.group("station") else None
+            if match.group("type") and match.group("type").lower() in _TYPE_WORDS:
+                kind = _TYPE_WORDS[match.group("type").lower()]
+            hits = self.settlements(name, district, kind)
+            if not hits:
+                text = _RANGE.sub(" ", part)
+                if previous and (streets := streets_in(text, previous.settlement, True)):
+                    # "Skaidiškės (...), Minsko pl.": more streets of the previous place;
+                    # "Lavoriškių k., Vilniaus g. 24": the shared containers of those houses.
+                    if previous.streets is not None:
+                        previous.streets |= streets
+                    elif shared_row:
+                        previous.streets = streets
+                    previous.extra |= bool(_HOUSE_NUMBERS.search(part))
+                else:
+                    self.unknown.append(part)
+                continue
+            base = re.sub(r"\s+(I{1,3}|IV|V)$", "", hits[0].name)
+            for settlement in hits:
+                streets, extra = self._streets(settlement, spec)
+                extra = extra or shared_row or bool(match.group("houses")) or "shared" in notes
+                place = _Place(settlement, streets, extra, fallback=len(hits) > 1 and not kind)
+                places.append(place)
+                previous = place
+        clauses = [
+            (p.settlement, Clause(area.id, p.streets, fallback=p.fallback, extra=p.extra))
+            for p in places
+        ]
+        return clauses, not homes
+
+    def _streets(self, settlement: Settlement, spec: str | None) -> tuple[set[str] | None, bool]:
+        """(streets, only some houses) for the bracket after a settlement's name."""
+        if spec is None:
+            return None, False
+        note = _NOTES.get(fold(spec))
+        if note:
+            return None, note == "shared"
+        text = _RANGE.sub(" ", spec)
+        if _EXCLUDING.match(text):
+            # "be Verslo, Pergalės g. iki 1-31": a street left out only in part stays in.
+            excluded = streets_in(_PARTLY.sub(" ", spec), settlement, loose=True)
+            if not excluded:
+                return None, False  # only houses or a garden are left out
+            return {street_key(t) for t in settlement.streets} - excluded, False
+        streets = streets_in(text, settlement, loose=True)
+        for part in re.split(r",", spec):
+            if garden := garden_label(part):
+                self._add_variant(settlement, garden)
+                streets.add(garden[0])
+        extra = bool(_HOUSE_NUMBERS.search(spec)) or "bendr" in fold(spec)
+        return streets, extra
+
+    def _add_variant(self, settlement: Settlement, garden: tuple[str, str]) -> None:
+        key, label = garden
+        self.variants[settlement.code].setdefault(key, label)
+
+    def _garden_home(
+        self, key: str, after: str, district: str | None, previous: _Place | None
+    ) -> Settlement | None:
+        if after:
+            match = _HEAD.fullmatch(after.strip(" .,"))
+            if match:
+                kind = _TYPE_WORDS.get((match.group("type") or "").lower())
+                hits = self.settlements(match.group("name"), district, kind)
+                if len(hits) == 1:
+                    return hits[0]
+        if self.gardens is None:
+            return None  # first pass: only gardens whose place is named
+        code = (self.gardens.get(district or "") or {}).get(key)
+        if code is not None:
+            return next(s for s in self.index.registry.settlements if s.code == code)
+        label = self.variants_label(key)
+        if label:
+            name = label.removeprefix("SB „").removesuffix("“")
+            hits = self.settlements(name, district, None)
+            if len(hits) == 1:
+                return hits[0]
+        return previous.settlement if previous else None
+
+    def variants_label(self, key: str) -> str | None:
+        for labels in self.variants.values():
+            if key in labels:
+                return labels[key]
+        return None
+
+
+def known_gardens(
+    registry: Registry, variants: dict[int, dict[str, str]]
+) -> dict[str, dict[str, int]]:
+    """district -> garden key -> settlement, for gardens only one settlement lists."""
+    by_code = {s.code: s for s in registry.settlements}
+    found: dict[str, dict[str, set[int]]] = defaultdict(lambda: defaultdict(set))
+    for code, labels in variants.items():
+        for key in labels:
+            found[by_code[code].district][key].add(code)
+    return {
+        district: {key: next(iter(codes)) for key, codes in keys.items() if len(codes) == 1}
+        for district, keys in found.items()
+    }
+
+
+def resolve(clauses: list[Clause], simplify: bool = False) -> dict | None:
+    """Turns everything the rows say about one settlement into what the app needs.
+
+    `simplify`: a settlement split by street whose streets all lead to the same row gets that
+    row directly, so the app doesn't ask for a street for nothing."""
     if not clauses:
         return None
+    extras = [c for c in clauses if c.extra]
+    clauses = [c for c in clauses if not c.extra]
     named = [c for c in clauses if not c.fallback]
     whole = sorted({c.area_id for c in named if c.streets is None})
     by_street: dict[str, set[str]] = defaultdict(set)
@@ -238,6 +534,22 @@ def resolve(clauses: list[Clause]) -> dict | None:
     fallback = sorted({c.area_id for c in clauses if c.fallback})
     # Rows limited to streets we couldn't recognise: better than nothing if no other row applies.
     unknown = sorted({c.area_id for c in named if c.streets is not None and not c.streets})
+
+    if extras:
+        # Rows for some houses only (shared containers, house numbers): one more choice next to
+        # the row that would apply otherwise.
+        street_rows = set().union(*by_street.values()) if by_street else set()
+        others = set(whole) or set(fallback) or street_rows or set(unknown)
+        for c in extras:
+            for key in c.streets or ():
+                by_street[key] = (by_street.get(key) or set(others)) | {c.area_id}
+        loose = {c.area_id for c in extras if not c.streets}
+        if loose and whole:
+            whole = sorted(set(whole) | loose)
+        elif loose and fallback:
+            fallback = sorted(set(fallback) | loose)
+        elif loose and not by_street:
+            unknown = sorted(set(unknown) | loose)
 
     result: dict = {}
     if by_street:
@@ -254,30 +566,62 @@ def resolve(clauses: list[Clause]) -> dict | None:
         result["area"] = unknown[0]
     elif not by_street and len(unknown) > 1:
         result["candidates"] = unknown
+    if simplify and set(result) == {"streets"}:
+        rows = {row for rows in result["streets"].values() for row in rows}
+        if len(rows) == 1:
+            result = {"area": rows.pop()}
+    if simplify and "area" in result and "streets" in result:
+        # A garden named in the row of its village: no need to ask for the street.
+        if all(rows == [result["area"]] for rows in result["streets"].values()):
+            del result["streets"]
     return result or None
 
 
-def build_locations(registry: Registry, areas: list[Area]) -> tuple[list[dict], dict]:
+def build_locations(
+    registry: Registry, areas: list[Area], provider: Provider | None = None
+) -> tuple[list[dict], dict]:
+    """Locations of the settlements `areas` serve. With `provider`, only settlements of its
+    elderships, linked only to its rows."""
     index = Index(registry)
     per_settlement: dict[int, dict[Kind, list[Clause]]] = defaultdict(lambda: defaultdict(list))
     variants: dict[int, dict[str, str]] = defaultdict(dict)
     whole_rules: dict[Kind, list[tuple[str, set[int], str]]] = defaultdict(list)
     unmatched: list[str] = []
+    unknown_parts: list[str] = []  # place-list rows: names that are no settlement we know
     served: set[str] = set()
+    place_lists = bool(provider and provider.place_lists)
+    reader = PlaceList(index, provider, variants, None) if provider and place_lists else None
+    if reader:
+        # First pass: where the garden communities are, from rows that say so.
+        for area in areas:
+            reader.clauses(area)
+        reader.gardens = known_gardens(registry, variants)
 
     for area in areas:
         wholes: list = []
-        if area.kind == "household":
+        skipped = False
+        if reader:
+            found, skipped = reader.clauses(area)
+            unknown_parts += [
+                f"{area.kind}: {part[:80]} ({area.district} sen.)" for part in reader.unknown
+            ]
+            if area.kind == "household" and (district := index.district(area.district or "")):
+                served.add(district)
+        elif area.kind == "household":
             found = household_clauses(index, area, variants)
             if area.district and (district := index.district(area.district)):
                 served.add(district)
         else:
             found, wholes = listed_clauses(index, area)
             whole_rules[area.kind] += [(d, ex, area.id) for d, ex in wholes]
-        if not found and not wholes:
+        if provider:
+            found = [(s, c) for s, c in found if s.district in provider.elderships]
+        if not found and not wholes and not skipped:
             unmatched.append(f"{area.kind}: {area.name[:80]}")
         for settlement, clause in found:
             per_settlement[settlement.code][area.kind].append(clause)
+    if provider:
+        served &= provider.elderships
 
     locations = []
     stats: dict[str, int] = defaultdict(int)
@@ -290,7 +634,7 @@ def build_locations(registry: Registry, areas: list[Area]) -> tuple[list[dict], 
                 if district == settlement.district and settlement.code not in excluded:
                     clauses[kind].append(Clause(area_id, None, fallback=True))
 
-        schedule = {kind: r for kind in KINDS if (r := resolve(clauses.get(kind, [])))}
+        schedule = {kind: r for kind in KINDS if (r := resolve(clauses.get(kind, []), place_lists))}
         street_keys = {k for r in schedule.values() for k in r.get("streets", {})}
         location: dict = {
             "id": f"g{settlement.code}",
@@ -298,6 +642,8 @@ def build_locations(registry: Registry, areas: list[Area]) -> tuple[list[dict], 
             "type": settlement.abbr,
             "district": settlement.district,
         }
+        if provider and not provider.legacy:
+            location["provider"] = provider.id
         if street_keys:
             # The user needs to pick a street only where some schedule splits by street.
             location["streets"] = [[street_key(t), t.label] for t in settlement.streets] + [
@@ -320,4 +666,7 @@ def build_locations(registry: Registry, areas: list[Area]) -> tuple[list[dict], 
 
     stats["locations"] = len(locations)
     stats["unmatchedRows"] = len(unmatched)
-    return locations, {"stats": dict(sorted(stats.items())), "unmatched": unmatched}
+    report = {"stats": dict(sorted(stats.items())), "unmatched": unmatched}
+    if reader:
+        report["unknownPlaces"] = unknown_parts
+    return locations, report

@@ -5,10 +5,16 @@ Snapshots of the schedule page and files published by UAB "Nemenčinės komunali
 2026-10-11 (`household-2026-11-09.xlsx`: the November 2026 version, without the empty
 "Gatvė" column). They are kept here only so the parsers can be tested against real input.
 
-These files belong to their publisher and are **not** covered by this project's Apache 2.0
+`nemezio-*` are the schedule page and the October-December 2026 files of UAB "Nemėžio
+komunalininkas" at <https://www.nkom.lt/kita.html>, downloaded on 2026-11-17:
+`nemezio-household-2026-q4.pdf` is "Grafikas mišrių 2026 (10-12).xlsx - 2026 (10-12).pdf",
+`nemezio-packaging-2026-q4.pdf` is "Grafikas pakuočių 2026 (10-12).xlsx - 2026 (10-12).pdf"
+(packaging and glass).
+
+These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 
-When the publisher changes the format, add the new file here and a test that covers it.
+When a publisher changes the format, add the new file here and a test that covers it.
 
 `registry-*.json` and `addresses-sample.*` are extracts of the Address Register (Adresų
 registras) open data of VĮ Registrų centras, from get.data.gov.lt and
