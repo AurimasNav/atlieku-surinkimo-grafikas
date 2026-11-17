@@ -223,13 +223,17 @@ def test_town_is_split_by_street(part):
     assert {"2026-11-10", "2026-11-24"} <= set(first["dates"])
     # A street written with a typo ("Zastaičių g."), and one with a full first name in the
     # register ("K. Kavecko g." is "Konrado Kavecko g.").
-    assert streets["Zastaučių g."] in household
-    assert streets["Konrado Kavecko g."] in household
+    assert household[streets["Zastaučių g."]]
+    assert household[streets["Konrado Kavecko g."]]
     # Another route on another street.
     other = row(data, household[streets["Vilniaus g."]][0])
     assert other["id"] != first["id"]
+    # A street no route names (apartment buildings with shared containers) has no pickups,
+    # instead of a choice between all the routes of the town.
+    assert household[streets["Draugystės g."]] == []
+    assert town["schedule"]["food"]["streets"][streets["Rasos 3-ioji g."]] == []
     # All four kinds of waste for a street of private houses.
-    assert all(streets["Žemaitės g."] in town["schedule"][k]["streets"] for k in tratc.MIN_AREAS)
+    assert all(town["schedule"][k]["streets"][streets["Žemaitės g."]] for k in tratc.MIN_AREAS)
 
 
 def test_garden_communities_are_choices_of_the_town(part):
