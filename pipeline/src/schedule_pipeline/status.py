@@ -31,14 +31,20 @@ def _timestamp(iso: str) -> int:
 def collect(site: Path) -> dict:
     """What each source published: when, how much, and how many warnings."""
     sources: dict[str, dict] = {}
-    path = site / "schedule.json"
-    if path.exists():
+    # Vilniaus r., then Mažeikių r. (schedule_pipeline.tratc): the same format.
+    for path in (site / "schedule.json", site / "mazeikiu-r" / "schedule.json"):
+        if not path.exists():
+            continue
         data = json.loads(path.read_text(encoding="utf-8"))
         # Vilniaus r.: one file, a part per company (build.merge_parts). Rows and places of the
         # first company, Nemenčinė, have no `provider` field, nor has data from before there
         # were several.
         providers = data.get("providers") or [
-            {"id": FIRST, "generatedAt": data["generatedAt"], "warnings": data.get("warnings", 0)}
+            {
+                "id": FIRST,
+                "generatedAt": data["generatedAt"],
+                "warnings": data.get("warnings", 0),
+            }
         ]
         for provider in providers:
             mine = provider["id"]
@@ -78,7 +84,7 @@ def metrics(status: dict) -> str:
             ],
         ),
         "siuksliaveze_data_places": (
-            "Settlements (nemencine, nemezio) or addresses (kauno) the data covers.",
+            "Settlements (nemencine, nemezio, mazeikiai) or addresses (kauno) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (

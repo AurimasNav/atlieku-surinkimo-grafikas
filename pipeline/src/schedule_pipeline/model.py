@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Literal
 
-Kind = Literal["household", "packaging", "glass"]
+Kind = Literal["household", "packaging", "glass", "food"]
 
 # Bump only for breaking changes: installed apps refuse data newer than they understand.
 # Additive fields (like `locations`) keep the version.
@@ -71,6 +71,10 @@ class Provider:
     elderships: frozenset[str]
     # Rows list many settlements, comma-separated (locations.PlaceList).
     place_lists: bool = False
+    # Rows are routes of the whole municipality: settlements, and streets of this town
+    # (locations.RouteList).
+    route_town: str | None = None
+    kinds: tuple[Kind, ...] = ("household", "packaging", "glass")
     # The first provider, published before there were several: its rows, places and files carry
     # no `provider` field, and its row ids stay as they were.
     legacy: bool = False

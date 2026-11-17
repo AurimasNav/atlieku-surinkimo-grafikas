@@ -11,6 +11,11 @@ komunalininkas" at <https://www.nkom.lt/kita.html>, downloaded on 2026-11-17:
 `nemezio-packaging-2026-q4.pdf` is "Grafikas pakuočių 2026 (10-12).xlsx - 2026 (10-12).pdf"
 (packaging and glass).
 
+`tratc/` has the Mažeikiai page of UAB "Telšių regiono atliekų tvarkymo centras" at
+<https://tratc.lt/atlieku-surinkimo-grafikai/atlieku-surinkimo-grafikai-mazeikiai/> and the
+2026 and 2027 spreadsheets it links (mixed, food and green, packaging and glass), downloaded on
+2026-11-17, with the Address Register extract for Mažeikių r. of the same day.
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 

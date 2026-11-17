@@ -1,9 +1,10 @@
 name: Schedule data live build
 
 # Pull requests that change the pipeline (code or dependencies, e.g. a Renovate update of
-# openpyxl or pdfplumber) build schedule.json from today's files on nemenkom.lt and nkom.lt, the
-# way the daily job does, and compare it with the published data. The unit tests in Schedule
-# data / build only parse stored copies of the files. Nothing is deployed.
+# openpyxl or pdfplumber) build the data from today's files on nemenkom.lt, nkom.lt and tratc.lt
+# and from Kauno švara's open data, the way the daily job does, and compare schedule.json with
+# the published data. The unit tests in Schedule data / build only parse stored copies of the
+# files. Nothing is deployed.
 on:
   pull_request:
     paths: ["pipeline/**", ".github/workflows/schedule-data-live.yml"]
@@ -32,6 +33,8 @@ jobs:
         run: uv run python -m schedule_pipeline --strict --out "$RUNNER_TEMP/site/schedule.json"
       - name: Build the Kauno r. schedule from Kauno švara's open-data file
         run: uv run python -m schedule_pipeline.svara --out "$RUNNER_TEMP/site/kauno-r"
+      - name: Build the Mažeikių r. schedule from the files on tratc.lt
+        run: uv run python -m schedule_pipeline.tratc --out "$RUNNER_TEMP/site/mazeikiu-r"
       - name: Compare with the published data
         run: |
           curl -fsSL https://aurimasnav.github.io/atlieku-surinkimo-grafikas/schedule.json -o "$RUNNER_TEMP/published.json"

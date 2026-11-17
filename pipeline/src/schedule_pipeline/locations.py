@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import hashlib
 import re
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 
 from .model import Area, Kind, Provider
@@ -126,6 +126,15 @@ def _near(a: str, b: str) -> bool:
         return False
     endings = (a[common:], b[common:])
     return all(len(e) <= 3 and set(e) <= set("aeiouys") for e in endings)
+
+
+def _one_off(a: str, b: str) -> bool:
+    """A typo: one letter changed, missing or added, in a word long enough not to be another
+    name ("Padvarnikai" for "Padvarninkai", "Zastaičių" for "Zastaučių")."""
+    if a == b or min(len(a), len(b)) < 7 or abs(len(a) - len(b)) > 1:
+        return False
+    n = len(_common_prefix(a, b))
+    return a[n + 1 :] == b[n + 1 :] or a[n:] == b[n + 1 :] or a[n + 1 :] == b[n:]
 
 
 def _common_prefix(a: str, b: str) -> str:
@@ -516,6 +525,171 @@ def known_gardens(
     }
 
 
+# --- TRATC: routes ---------------------------------------------------------------
+
+_STREET_END = re.compile(r"\b(g|skg|aklg|tak|takas|al|alėja|pl|kel|kelias|a)\s*\.?\s*$", re.I)
+_PART_DISTRICT = re.compile(rf"({_WORD})\s+sen\b\.?", re.U)
+_ROW_DISTRICT = re.compile(rf"^\s*({_WORD})\s+sen\b\.?\s*:", re.U)
+_GARDENS_OF = re.compile(rf"^({_WORD})\s+sodai$", re.U)
+_NUMBERED = r"(?: i{1,3})(?: ir i{1,3})*"
+
+
+class RouteList:
+    """Reads one row of a schedule whose rows are routes of a whole municipality, with no
+    eldership column:
+
+        Žagarėlės g. miesto sen., Neries g., M. Pečkauskaitės g. (Vaisių g., Obuolių g.), ...
+        Lendriškiai, Laižuva, Lėlaičiai (Tirkšlių sen.), Tučiai I ir II, SB „Linelis“
+        Sedos sen: Kalnijos, Užežerė
+
+    A part is a settlement (nominative), a street of the municipality's town (`route_town`), or
+    a garden community, which is offered as one more choice in the town's street list. A name
+    that several elderships have is the one of the eldership named in the row or, failing
+    that, of the eldership most of the row's other settlements are in.
+    """
+
+    def __init__(self, index: Index, provider: Provider, variants: dict[int, dict[str, str]]):
+        self.index = index
+        self.variants = variants
+        self.town = next(
+            s
+            for s in index.registry.settlements
+            if s.name == provider.route_town and s.abbr == "m."
+        )
+        self.unknown: list[str] = []
+
+    def settlements(self, name: str) -> list[Settlement]:
+        key = fold(re.sub(r"\s+(k|vs|mstl|m)\.?$", "", name.strip()))
+        if not key:
+            return []
+        everything = self.index.registry.settlements
+        hits = [s for s in everything if fold(s.name) == key]
+        if not hits:
+            # "Tučiai I ir II", or "Tučiai" for both.
+            base = re.sub(rf"{_NUMBERED}$", "", key)
+            hits = [
+                s for s in everything if re.fullmatch(re.escape(base) + _NUMBERED, fold(s.name))
+            ]
+        if not hits:
+            # A different ending ("Skuodiškės" for "Skuodiškiai"), if only one name is close.
+            # Or a typo ("Padvarnikai" for "Padvarninkai").
+            for close in (_near, _one_off):
+                near = [s for s in everything if close(key, fold(s.name))]
+                if len({s.name for s in near}) == 1:
+                    return near
+        return hits
+
+    def town_streets(self, part: str) -> set[str]:
+        streets = streets_in(part, self.town, loose=True)
+        match = re.fullmatch(r"(.+?)\s+(\w+)\.?", part.strip())
+        if streets or not match:
+            return streets
+        # A typo in a street's name ("Geldiškio skg." for "Gediškio skg."), if it has the
+        # same type and only one street is that close.
+        name, kind = fold(match.group(1)), fold(match.group(2))
+        close = [
+            t
+            for t in self.town.streets
+            if fold(t.abbr).startswith(kind[:3]) and _one_off(name, fold(t.name))
+        ]
+        return {street_key(close[0])} if len(close) == 1 else set()
+
+    def garden_streets(self, label: str) -> set[str]:
+        """The town's streets named after a garden community: "Rasos 1-oji g." ... for SB
+        „Rasa“, "Ašvos Sodo 2-oji g." for SB „Ašva“. Only numbered and "Sodo" streets: "Ašvos
+        g." is an ordinary street."""
+        name = fold(label.removeprefix("SB „").removesuffix("“"))
+        if len(name) < 4:
+            return set()
+        pattern = re.compile(re.escape(name[:-1]) + r"\w{0,2}(?: sodo)?(?: \d+ \w+)?")
+        return {
+            street_key(t)
+            for t in self.town.streets
+            if pattern.fullmatch(fold(t.name)) and re.search(r"\d| sodo", fold(t.name))
+        }
+
+    def clauses(self, area: Area) -> tuple[list[tuple[Settlement, Clause]], bool]:
+        self.unknown = []
+        text = area.name
+        row_district = None
+        if match := _ROW_DISTRICT.match(text):
+            row_district = self.index.district(match.group(1))
+            text = text[match.end() :]
+        text = re.sub(rf"^\s*{re.escape(self.town.genitive)}\s+m\.\s*:?", "", text)
+        text = re.sub(r"\bmiesto sen\b\.?", "", text)  # "Žagarėlės g. miesto sen."
+
+        town_streets: set[str] = set()
+        # (settlements of one name, eldership named for them, streets in brackets)
+        named: list[tuple[list[Settlement], str | None, str | None]] = []
+        streets_of: dict[int, set[str]] = defaultdict(set)
+        for part in split_places(text):
+            head, _, rest = part.partition("(")
+            spec = rest.rsplit(")", 1)[0] if rest else None
+            head = head.strip(" .,-:")
+            if fold(head).startswith(("sb ", "s b ")) and (garden := garden_label(head)):
+                self.variants[self.town.code].setdefault(*garden)
+                town_streets |= {garden[0]} | self.garden_streets(garden[1])
+                continue
+            if match := _GARDENS_OF.match(head):
+                # "Kurmaičių sodai": the streets "Kurmaičių Sodo 1-oji g." ... of any settlement.
+                stem = fold(match.group(1)) + " sodo"
+                found = False
+                for settlement in self.index.registry.settlements:
+                    keys = {
+                        street_key(t) for t in settlement.streets if fold(t.name).startswith(stem)
+                    }
+                    streets_of[settlement.code] |= keys
+                    found = found or bool(keys)
+                if not found:
+                    self.unknown.append(part)
+                continue
+            hits = [] if _STREET_END.search(head) else self.settlements(head)
+            if hits:
+                district = row_district
+                if spec and (match := _PART_DISTRICT.search(spec)):
+                    district, spec = self.index.district(match.group(1)), None
+                named.append((hits, district, spec))
+                continue
+            streets = self.town_streets(part)
+            if streets:
+                town_streets |= streets
+            else:
+                self.unknown.append(part)
+
+        # Where most of the row is: decides between villages of the same name.
+        sure = [hits[0].district for hits, _, _ in named if len({s.district for s in hits}) == 1]
+        common = [district for district, _ in Counter(sure).most_common()]
+        clauses: list[tuple[Settlement, Clause]] = []
+        for hits, district, spec in named:
+            fallback = False
+            districts = {s.district for s in hits}
+            if len(districts) > 1:
+                wanted = district if district in districts else None
+                wanted = wanted or next((d for d in common if d in districts), None)
+                if wanted:
+                    hits = [s for s in hits if s.district == wanted]
+                else:
+                    fallback = True
+            for settlement in hits:
+                streets = streets_in(spec, settlement, loose=True) if spec else None
+                clauses.append((settlement, Clause(area.id, streets or None, fallback=fallback)))
+        by_code = {s.code: s for s in self.index.registry.settlements}
+        whole = {s.code for s, c in clauses if c.streets is None}
+        for code, keys in streets_of.items():
+            if keys and code not in whole:
+                clauses.append((by_code[code], Clause(area.id, keys)))
+        if town_streets:
+            clauses.append((self.town, Clause(area.id, town_streets)))
+        return clauses, False
+
+    def signature(self, area: Area) -> frozenset:
+        """What the row covers, to tell whether two years' rows are the same route."""
+        clauses, _ = self.clauses(area)
+        return frozenset(
+            (s.code, key) for s, c in clauses for key in (sorted(c.streets) if c.streets else [""])
+        )
+
+
 def resolve(clauses: list[Clause], simplify: bool = False) -> dict | None:
     """Turns everything the rows say about one settlement into what the app needs.
 
@@ -590,7 +764,9 @@ def build_locations(
     unknown_parts: list[str] = []  # place-list rows: names that are no settlement we know
     served: set[str] = set()
     place_lists = bool(provider and provider.place_lists)
+    routes = RouteList(index, provider, variants) if provider and provider.route_town else None
     reader = PlaceList(index, provider, variants, None) if provider and place_lists else None
+    kinds = list(provider.kinds) if provider else KINDS
     if reader:
         # First pass: where the garden communities are, from rows that say so.
         for area in areas:
@@ -600,7 +776,11 @@ def build_locations(
     for area in areas:
         wholes: list = []
         skipped = False
-        if reader:
+        if routes:
+            found, skipped = routes.clauses(area)
+            unknown_parts += [f"{area.kind}: {part[:80]}" for part in routes.unknown]
+            served |= provider.elderships
+        elif reader:
             found, skipped = reader.clauses(area)
             unknown_parts += [
                 f"{area.kind}: {part[:80]} ({area.district} sen.)" for part in reader.unknown
@@ -634,7 +814,8 @@ def build_locations(
                 if district == settlement.district and settlement.code not in excluded:
                     clauses[kind].append(Clause(area_id, None, fallback=True))
 
-        schedule = {kind: r for kind in KINDS if (r := resolve(clauses.get(kind, []), place_lists))}
+        simplify = place_lists or bool(routes)
+        schedule = {kind: r for kind in kinds if (r := resolve(clauses.get(kind, []), simplify))}
         street_keys = {k for r in schedule.values() for k in r.get("streets", {})}
         location: dict = {
             "id": f"g{settlement.code}",
@@ -653,7 +834,7 @@ def build_locations(
             location["schedule"] = schedule
         locations.append(location)
 
-        for kind in KINDS:
+        for kind in kinds:
             r = schedule.get(kind)
             state = (
                 "none"
@@ -667,6 +848,6 @@ def build_locations(
     stats["locations"] = len(locations)
     stats["unmatchedRows"] = len(unmatched)
     report = {"stats": dict(sorted(stats.items())), "unmatched": unmatched}
-    if reader:
+    if reader or routes:
         report["unknownPlaces"] = unknown_parts
     return locations, report
