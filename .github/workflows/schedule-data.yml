@@ -1,7 +1,8 @@
 name: Schedule data
 
-# Scrapes nemenkom.lt daily and publishes schedule.json + the privacy policy to GitHub Pages.
-# If parsing or validation fails, nothing is deployed and the last good data stays live.
+# Scrapes nemenkom.lt, nkom.lt and Kauno švara daily and publishes schedule.json + the privacy
+# policy to GitHub Pages. If parsing or validation fails, nothing is deployed and the last good
+# data stays live; a provider whose build fails keeps its part of yesterday's data instead.
 on:
   schedule:
     - cron: "17 4 * * *" # daily, 04:17 UTC
@@ -37,11 +38,13 @@ jobs:
       - run: uv sync --locked
       - run: uv run ruff check . && uv run ruff format --check .
       - run: uv run pytest
-      - name: Build schedule.json from the live website
+      - name: Build schedule.json from the live websites
         if: github.event_name != 'pull_request'
+        # Vilniaus r.: Nemenčinės and Nemėžio komunalininkas. If one company's build fails, its
+        # part of yesterday's schedule.json is kept and the step logs a warning annotation.
         run: uv run python -m schedule_pipeline --out ../site/schedule.json
-      # A second provider with its own source: its failure must not hold back the Nemenčinė
-      # data, so on failure the files published yesterday are kept instead.
+      # Its own file and app download (site/kauno-r): its failure must not hold back the
+      # Vilniaus r. data, so on failure the files published yesterday are kept instead.
       - name: Build the Kauno r. schedule (Kauno švara)
         id: kauno
         if: github.event_name != 'pull_request'

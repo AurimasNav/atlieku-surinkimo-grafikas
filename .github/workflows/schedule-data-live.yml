@@ -1,9 +1,9 @@
 name: Schedule data live build
 
 # Pull requests that change the pipeline (code or dependencies, e.g. a Renovate update of
-# openpyxl or pdfplumber) build schedule.json from today's files on nemenkom.lt, the way the
-# daily job does, and compare it with the published data. The unit tests in Schedule data /
-# build only parse stored copies of the files. Nothing is deployed.
+# openpyxl or pdfplumber) build schedule.json from today's files on nemenkom.lt and nkom.lt, the
+# way the daily job does, and compare it with the published data. The unit tests in Schedule
+# data / build only parse stored copies of the files. Nothing is deployed.
 on:
   pull_request:
     paths: ["pipeline/**", ".github/workflows/schedule-data-live.yml"]
@@ -26,8 +26,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - run: uv sync --locked
-      - name: Build schedule.json from the live website
-        run: uv run python -m schedule_pipeline --out "$RUNNER_TEMP/site/schedule.json"
+      - name: Build schedule.json from the live websites
+        # --strict: a company whose build fails fails the check, instead of keeping its part of
+        # the published data as the daily job does.
+        run: uv run python -m schedule_pipeline --strict --out "$RUNNER_TEMP/site/schedule.json"
       - name: Build the Kauno r. schedule from Kauno švara's open-data file
         run: uv run python -m schedule_pipeline.svara --out "$RUNNER_TEMP/site/kauno-r"
       - name: Compare with the published data
@@ -42,10 +44,16 @@ jobs:
 
 
           def counts(data):
-              result = {"places": len(data["locations"]), "schedule rows": len(data["areas"])}
-              for area in data["areas"]:
-                  key = f"{area['kind']} rows"
+              # Per company: rows and places without `provider` are Nemenčinė's.
+              result = {}
+
+              def add(key):
                   result[key] = result.get(key, 0) + 1
+
+              for place in data["locations"]:
+                  add(f"{place.get('provider', 'nemencine')} places")
+              for area in data["areas"]:
+                  add(f"{area.get('provider', 'nemencine')} {area['kind']} rows")
               return result
 
 

@@ -21,6 +21,8 @@ from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
 
+FIRST = "nemencine"  # the source of schedule.json rows without a `provider`
+
 
 def _timestamp(iso: str) -> int:
     return int(datetime.fromisoformat(iso).timestamp())
@@ -32,12 +34,22 @@ def collect(site: Path) -> dict:
     path = site / "schedule.json"
     if path.exists():
         data = json.loads(path.read_text(encoding="utf-8"))
-        sources["nemencine"] = {
-            "generatedAt": data["generatedAt"],
-            "areas": dict(sorted(Counter(a["kind"] for a in data["areas"]).items())),
-            "places": len(data.get("locations", [])),
-            "warnings": data.get("warnings", 0),
-        }
+        # Vilniaus r.: one file, a part per company (build.merge_parts). Rows and places of the
+        # first company, Nemenčinė, have no `provider` field, nor has data from before there
+        # were several.
+        providers = data.get("providers") or [
+            {"id": FIRST, "generatedAt": data["generatedAt"], "warnings": data.get("warnings", 0)}
+        ]
+        for provider in providers:
+            mine = provider["id"]
+            areas = [a for a in data["areas"] if a.get("provider", FIRST) == mine]
+            places = [p for p in data.get("locations", []) if p.get("provider", FIRST) == mine]
+            sources[mine] = {
+                "generatedAt": provider["generatedAt"],
+                "areas": dict(sorted(Counter(a["kind"] for a in areas).items())),
+                "places": len(places),
+                "warnings": provider.get("warnings", 0),
+            }
     path = site / "kauno-r" / "schedule.json"
     if path.exists():
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -66,7 +78,7 @@ def metrics(status: dict) -> str:
             ],
         ),
         "siuksliaveze_data_places": (
-            "Settlements (nemencine) or addresses (kauno) the data covers.",
+            "Settlements (nemencine, nemezio) or addresses (kauno) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (

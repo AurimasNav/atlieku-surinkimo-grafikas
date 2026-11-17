@@ -9,7 +9,8 @@ No separate agreement is needed.
 ## How the project fits together
 
 ```
-nemenkom.lt (xlsx + pdf)
+nemenkom.lt (xlsx + pdf), nkom.lt (pdf)   Vilniaus r.: one schedule.json
+grafikai.svara.lt (open-data xlsx)        Kauno r.: site/kauno-r/
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
 pipeline/   Python: scrape → parse → validate → schedule.json
@@ -19,7 +20,8 @@ app/        Expo (React Native) app: downloads schedule.json, schedules local no
 ```
 
 There is no backend server. If the pipeline fails, nothing is deployed and the app keeps using
-the last good data.
+the last good data. If one company's source fails, its part of the data published the day
+before is kept and the others are still updated (docs/monitoring.md).
 
 ## Reporting a problem
 

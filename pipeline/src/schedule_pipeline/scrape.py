@@ -7,10 +7,33 @@ from pathlib import PurePosixPath
 from urllib.parse import unquote, urljoin, urlparse
 
 from . import http
-from .model import Kind, SourceFile
+from .model import Kind, Provider, SourceFile
 
 PAGE_URL = "https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/"
 SUPPORTED_EXTENSIONS = {".xlsx", ".pdf"}
+PROVIDER = Provider(
+    id="nemencine",
+    name="UAB „Nemenčinės komunalininkas“",
+    url=PAGE_URL,
+    # Register names; https://nemenkom.lt/apie-mus. The other 11 are Nemėžio komunalininkas'.
+    elderships=frozenset(
+        {
+            "Avižienių",
+            "Bezdonių",
+            "Buivydžių",
+            "Dūkštų",
+            "Maišiagalos",
+            "Nemenčinės",
+            "Nemenčinės miesto",
+            "Paberžės",
+            "Riešės",
+            "Sudervės",
+            "Sužionių",
+            "Zujūnų",
+        }
+    ),
+    legacy=True,
+)
 
 
 class _LinkCollector(HTMLParser):
