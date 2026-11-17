@@ -18,7 +18,7 @@ export type Place = {
   custom?: Partial<Record<WasteKind, CustomSchedule>>;
 };
 
-/** The waste types of Nemenčinė's schedules, and of Kauno švara's in Kauno r. */
+/** The waste types every place is asked about, and those of Kauno švara's addresses in Kauno r. */
 const BASE_KINDS: WasteKind[] = ['household', 'packaging', 'glass'];
 const KAUNO_KINDS: WasteKind[] = ['household', 'food', 'green'];
 
@@ -84,8 +84,9 @@ export function resolvePlace(data: ScheduleData | null, place: Place | null, tod
       kinds[kind] = area ? { status: 'ok', area } : { status: 'none' };
       continue;
     }
-    // Food and green waste only have schedules in Kauno r.: nothing to ask about elsewhere.
-    if (!BASE_KINDS.includes(kind)) {
+    // Food and green waste have schedules in few places (Kauno r., Mažeikiai town): nothing to
+    // ask about elsewhere.
+    if (!BASE_KINDS.includes(kind) && !location?.schedule?.[kind] && !choice) {
       kinds[kind] = { status: 'none' };
       continue;
     }
@@ -127,11 +128,15 @@ export function isHousingChoice(candidates: Area[]): boolean {
 
 /**
  * The waste types to show for a place: its provider's, plus any other the place has a schedule
- * for (a few Kauno r. addresses have glass; own schedules can be set for any type).
+ * for (a few Kauno r. addresses have glass, Mažeikiai has food waste; own schedules can be set
+ * for any type).
  */
 export function visibleKinds(place: Place | null, resolved: Resolved): WasteKind[] {
   const usual = place?.kauno ? KAUNO_KINDS : BASE_KINDS;
-  return WASTE_KINDS.filter((kind) => usual.includes(kind) || resolved.kinds[kind].status === 'ok');
+  const here = (kind: WasteKind) => Boolean(resolved.location?.schedule?.[kind]);
+  return WASTE_KINDS.filter(
+    (kind) => usual.includes(kind) || here(kind) || resolved.kinds[kind].status === 'ok',
+  );
 }
 
 /** Name and detail line of the place, for headings: "Ganyklų g. 2" / "Karkiškių k. · Ringaudų sen.". */

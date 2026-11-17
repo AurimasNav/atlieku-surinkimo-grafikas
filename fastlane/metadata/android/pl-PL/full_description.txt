@@ -1,7 +1,8 @@
-Šiukšliavežė przypomni wieczorem dzień wcześniej, że przyjedzie śmieciarka, więc już nie przegapisz odbioru odpadów. Aplikacja działa w dwóch rejonach.
+Šiukšliavežė przypomni wieczorem dzień wcześniej, że przyjedzie śmieciarka, więc już nie przegapisz odbioru odpadów. Aplikacja działa w trzech rejonach.
 
 • Rejon wileński: odpady zmieszane, opakowania i szkło w ponad 1000 wsiach i miasteczkach obsługiwanych przez UAB „Nemenčinės komunalininkas“ i UAB „Nemėžio komunalininkas“, m.in. w Niemenczynie, Rzeszy, Awiżeniach, Mejszagole, Niemieżu, Pogirach, Czarnym Borze, Mickunach i Rudominie.
 • Rejon kowieński: odpady zmieszane, spożywcze i zielone pod około 39 000 adresów obsługiwanych przez UAB „Kauno švara“, m.in. w miejscowościach Garliava, Domeikava, Ringaudai, Raudondvaris, Užliedžiai i Akademija. Szkło i opakowania odbiera tam UAB „Ekonovus“; aplikacja zawiera link do jej harmonogramów.
+• Rejon możejski: odpady zmieszane, opakowania i szkło w Możejkach, Wiekszniach, Siadach, Tyrkszlach, Żydykach i około 150 wsiach, a w mieście Możejki także odpady spożywcze. Harmonogramy publikuje UAB „Telšių regiono atliekų tvarkymo centras“; odpady odbierają UAB „Ecoservice“ i UAB „Virginijus ir Ko“.
 
 W aplikacji miejscowości mają oficjalne litewskie nazwy (np. Nemenčinė, Riešė).
 
@@ -22,6 +23,6 @@ Prywatność
 Bezpłatna i open source
 Aplikacja jest bezpłatna, a jej kod źródłowy jest otwarty (Apache 2.0) i dostępny na GitHubie: github.com/AurimasNav/atlieku-surinkimo-grafikas. Widzisz błędne daty albo brakuje adresu? Zgłoś to prosto z aplikacji.
 
-Harmonogramy pochodzą z plików publikowanych na nemenkom.lt i nkom.lt oraz z otwartych danych UAB „Kauno švara“; są sprawdzane codziennie. Nazwy miejscowości i ulic pochodzą z Rejestru Adresów VĮ Registrų centras (otwarte dane).
+Harmonogramy pochodzą z plików publikowanych na nemenkom.lt, nkom.lt i tratc.lt oraz z otwartych danych UAB „Kauno švara“; są sprawdzane codziennie. Nazwy miejscowości i ulic pochodzą z Rejestru Adresów VĮ Registrų centras (otwarte dane).
 
-Nieoficjalna aplikacja stworzona przez wolontariuszy, niepowiązana z UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“ ani UAB „Ekonovus“. Daty pochodzą z publikowanych przez nich harmonogramów i mogą zawierać błędy; w razie wątpliwości sprawdź oficjalny harmonogram. Udostępniana bezpłatnie, bez żadnych gwarancji.
+Nieoficjalna aplikacja stworzona przez wolontariuszy, niepowiązana z UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“ ani UAB „Virginijus ir Ko“. Daty pochodzą z publikowanych przez nich harmonogramów i mogą zawierać błędy; w razie wątpliwości sprawdź oficjalny harmonogram. Udostępniana bezpłatnie, bez żadnych gwarancji.

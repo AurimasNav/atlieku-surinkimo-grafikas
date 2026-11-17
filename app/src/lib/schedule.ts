@@ -1,6 +1,6 @@
 import { SCHEDULE_URL, SUPPORTED_SCHEMA_VERSION } from './config';
 
-/** Food and green waste are collected separately in Kauno r. only. */
+/** Food and green waste are collected separately in Kauno r. and in Mažeikiai (as food). */
 export const WASTE_KINDS = ['household', 'packaging', 'glass', 'food', 'green'] as const;
 export type WasteKind = (typeof WASTE_KINDS)[number];
 
@@ -78,8 +78,17 @@ export type ScheduleData = {
 
 export class UnsupportedScheduleError extends Error {}
 
-export async function fetchSchedule(etag?: string): Promise<{ data: ScheduleData; etag?: string } | null> {
-  const response = await fetch(SCHEDULE_URL, {
+type Download = { data: ScheduleData; etag?: string };
+
+/** Vilniaus r. Returns null if the file hasn't changed since `etag`. */
+export const fetchSchedule = (etag?: string): Promise<Download | null> => download(SCHEDULE_URL, etag);
+
+/** Another region's file (config.REGION_URLS), in the same format. */
+export const fetchRegion = (url: string, etag?: string): Promise<Download | null> =>
+  download(`${url}/schedule.json`, etag);
+
+async function download(url: string, etag?: string): Promise<Download | null> {
+  const response = await fetch(url, {
     headers: etag ? { 'If-None-Match': etag } : undefined,
   });
   if (response.status === 304) {
@@ -93,6 +102,29 @@ export async function fetchSchedule(etag?: string): Promise<{ data: ScheduleData
     throw new UnsupportedScheduleError();
   }
   return { data, etag: response.headers.get('etag') ?? undefined };
+}
+
+/** The rows, places and companies of a region: everything of the companies `ids`. */
+export type RegionPart = Pick<ScheduleData, 'areas' | 'locations' | 'providers'>;
+
+export function regionPart(data: ScheduleData, ids: string[]): RegionPart {
+  const mine = (item: { provider?: string }) => Boolean(item.provider) && ids.includes(item.provider!);
+  return {
+    areas: data.areas.filter(mine),
+    locations: (data.locations ?? []).filter(mine),
+    providers: (data.providers ?? []).filter((provider) => ids.includes(provider.id)),
+  };
+}
+
+/** `data` with the region's part replaced by `part`, so the app has one list of places. */
+export function withRegion(data: ScheduleData, ids: string[], part: RegionPart): ScheduleData {
+  const others = (item: { provider?: string }) => !item.provider || !ids.includes(item.provider);
+  return {
+    ...data,
+    areas: [...data.areas.filter(others), ...part.areas],
+    locations: [...(data.locations ?? []).filter(others), ...(part.locations ?? [])],
+    providers: [...(data.providers ?? []).filter((p) => !ids.includes(p.id)), ...(part.providers ?? [])],
+  };
 }
 
 /** Lower-case and strip diacritics so "rieses" finds "Riešės". */

@@ -24,6 +24,14 @@ const kaunoPoints: { places: string[][]; points: [number, number, number, string
   points: [[5470000, 2525000, 0, '8']],
 };
 
+// Mažeikių r.: its own file in the format of the main one.
+const mazeikiai: AddressTable = {
+  generatedAt: '',
+  source: '',
+  places: [['g23467', 's1400123', 'Žemaitės g.']],
+  points: [[5631000, 2234000, 0, '2']],
+};
+
 /** `metres` north of a point given as [lat * 1e5, lon * 1e5]. */
 const north = ([lat, lon]: readonly [number, number, ...unknown[]], metres: number) => ({
   latitude: lat / 1e5 + metres / 111_320,
@@ -39,7 +47,8 @@ beforeEach(() => {
   location.hasServicesEnabledAsync.mockResolvedValue(true);
   globalThis.fetch = jest.fn(async (url: string) => ({
     ok: true,
-    json: async () => (String(url).includes('kauno-r') ? kaunoPoints : table),
+    json: async () =>
+      String(url).includes('kauno-r') ? kaunoPoints : String(url).includes('mazeikiu-r') ? mazeikiai : table,
   })) as unknown as typeof fetch;
 });
 
@@ -74,6 +83,15 @@ describe('locateHome', () => {
     });
     at(north(kaunoPoints.points[0], 250));
     expect(await locateHome()).toMatchObject({ ok: true, kauno: { town: 'Akademijos mstl.' }, street: 'far' });
+  });
+
+  it('finds addresses of the other regions', async () => {
+    at(north(mazeikiai.points[0], 40));
+    expect(await locateHome()).toMatchObject({
+      ok: true,
+      address: { locationId: 'g23467', street: 's1400123', streetLabel: 'Žemaitės g.', number: '2' },
+      street: 'ok',
+    });
   });
 
   it('asks for the street with a poor fix, even next to an address', async () => {

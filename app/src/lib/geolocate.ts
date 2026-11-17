@@ -1,6 +1,6 @@
 import * as Location from 'expo-location';
 
-import { ADDRESSES_URL, KAUNO_POINTS_URL } from './config';
+import { ADDRESSES_URL, KAUNO_POINTS_URL, REGION_URLS } from './config';
 import type { KaunoAddress } from './kauno';
 import { type AddressTable, findNearest, type NearestAddress, nearestPoint, streetConfidence } from './nearest';
 
@@ -41,6 +41,23 @@ async function loadKaunoPoints(): Promise<KaunoPoints | null> {
   return cachedKauno;
 }
 
+const cachedRegions = new Map<string, AddressTable>();
+
+/** The other regions are optional too: without one, its addresses aren't found by location. */
+async function loadRegions(): Promise<AddressTable[]> {
+  await Promise.all(
+    REGION_URLS.filter((url) => !cachedRegions.has(url)).map(async (url) => {
+      try {
+        const response = await fetch(`${url}/addresses.json`);
+        if (response.ok) cachedRegions.set(url, (await response.json()) as AddressTable);
+      } catch {
+        // offline: handled through the main table
+      }
+    }),
+  );
+  return [...cachedRegions.values()];
+}
+
 async function loadAddresses(): Promise<AddressTable> {
   if (!cached) {
     const response = await fetch(ADDRESSES_URL);
@@ -63,10 +80,12 @@ export async function locateHome(): Promise<GeolocateResult> {
   let position: Location.LocationObject;
   let table: AddressTable;
   let kaunoPoints: KaunoPoints | null;
+  let regions: AddressTable[];
   try {
     // Start the downloads while the GPS gets a fix.
     const download = loadAddresses();
     const kaunoDownload = loadKaunoPoints();
+    const regionDownloads = loadRegions();
     position = await Location.getCurrentPositionAsync({
       accuracy: Location.Accuracy.High,
       // Don't push Google's "Location Accuracy" consent screen; plain GPS is enough here.
@@ -74,12 +93,15 @@ export async function locateHome(): Promise<GeolocateResult> {
     });
     table = await download;
     kaunoPoints = await kaunoDownload;
+    regions = await regionDownloads;
   } catch (error) {
     return { ok: false, reason: error instanceof TypeError || String(error).includes('HTTP') ? 'offline' : 'unavailable' };
   }
 
   const { latitude, longitude } = position.coords;
-  const address = findNearest(table, latitude, longitude);
+  const address = [table, ...regions]
+    .map((addresses) => findNearest(addresses, latitude, longitude))
+    .reduce((best, found) => (found && (!best || found.distance < best.distance) ? found : best), null);
   const kauno = kaunoPoints && nearestPoint(kaunoPoints.points, latitude, longitude);
   const distance = Math.min(address?.distance ?? Infinity, kauno?.distance ?? Infinity);
   if (distance > MAX_DISTANCE_M) return { ok: false, reason: 'far' };
