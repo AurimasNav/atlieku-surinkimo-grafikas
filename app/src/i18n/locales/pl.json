@@ -41,6 +41,7 @@
     "locationHint": "Pozwól nam znaleźć Twoją miejscowość albo wyszukaj wieś lub miasto.",
     "locationPlaceholder": "np. Riešė",
     "locationNone": "Nic nie znaleziono. Wyświetlamy tylko miejscowości rejonów wileńskiego, kowieńskiego i możejskiego, dla których mamy harmonogramy.",
+    "locationKaunasCity": "Miasta Kowna nie obejmujemy, tylko rejon kowieński (Kauno r.).",
     "manualLink": "Nie możesz znaleźć? Wybierz wiersze harmonogramu ręcznie",
     "streetTitle": "Przy jakiej ulicy?",
     "streetHint": "W miejscowości {{place}} dni odbioru zależą od ulicy.",

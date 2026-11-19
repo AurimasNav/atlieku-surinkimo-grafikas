@@ -17,7 +17,14 @@ import Animated, {
 
 import { AppText, Button, ListRow, PressableScale, ScreenHeader, SearchField } from '@/components/ui';
 import { type GeolocateResult, locateHome } from '@/lib/geolocate';
-import { fetchKaunoIndex, type KaunoTown, kaunoTowns, loadKaunoAddress, searchKaunoTowns } from '@/lib/kauno';
+import {
+  fetchKaunoIndex,
+  isKaunasCitySearch,
+  type KaunoTown,
+  kaunoTowns,
+  loadKaunoAddress,
+  searchKaunoTowns,
+} from '@/lib/kauno';
 import { type Location, searchLocations } from '@/lib/schedule';
 import { nextSetupStep } from '@/lib/setup-flow';
 import { useMotion } from '@/lib/motion';
@@ -217,16 +224,22 @@ export default function ChooseLocation() {
             <Animated.View entering={motion(FadeIn.duration(180))}>
               <ListRow
                 title={item.location?.name ?? item.kauno?.town ?? ''}
+                // Kauno r.: the title is the town as the data writes it ("Akademijos mstl."), the
+                // subtitle starts with its usual name ("Akademija"), which the user may have typed.
                 subtitle={
                   item.location
                     ? `${item.location.district} sen. · ${item.location.type}`
-                    : `${item.kauno?.eldershipName} · Kauno r.`
+                    : [item.kauno?.registerName, item.kauno?.eldershipName, 'Kauno r.'].filter(Boolean).join(' · ')
                 }
                 selected={item.location ? item.location.id === current : false}
                 onPress={() =>
                   item.location
                     ? pick(item.location.id)
-                    : router.push({ pathname: '/setup/address', params: { ...item.kauno } })
+                    : item.kauno &&
+                      router.push({
+                        pathname: '/setup/address',
+                        params: { eldership: item.kauno.eldership, eldershipName: item.kauno.eldershipName, town: item.kauno.town },
+                      })
                 }
                 icon={
                   <View style={[styles.pin, { backgroundColor: theme.surfaceMuted }]}>
@@ -239,7 +252,7 @@ export default function ChooseLocation() {
           ListEmptyComponent={
             deferred && !found ? (
               <AppText muted style={styles.empty}>
-                {t('setup.locationNone')}
+                {isKaunasCitySearch(deferred, results.length) ? t('setup.locationKaunasCity') : t('setup.locationNone')}
               </AppText>
             ) : undefined
           }

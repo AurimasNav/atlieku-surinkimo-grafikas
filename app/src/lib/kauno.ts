@@ -14,7 +14,16 @@ export type KaunoIndex = {
   schemaVersion: number;
   generatedAt: string;
   areas: KaunoSchedule[];
-  elderships: { id: string; name: string; towns: string[] }[];
+  elderships: {
+    id: string;
+    name: string;
+    towns: string[];
+    /**
+     * Town -> its name in the Address Register, where that differs: "Akademijos mstl." ->
+     * "Akademija". People search for it. Added later, so older data doesn't have it.
+     */
+    registerNames?: Record<string, string>;
+  }[];
 };
 
 /** town -> street -> house number -> positions in `KaunoIndex.areas`. */
@@ -39,7 +48,14 @@ export type KaunoAddress = {
   house: string;
 };
 
-export type KaunoTown = { eldership: string; eldershipName: string; town: string };
+export type KaunoTown = {
+  eldership: string;
+  eldershipName: string;
+  /** As the address files write it ("Akademijos mstl."): addresses are saved with it. */
+  town: string;
+  /** Its name in the Address Register ("Akademija"), if that is different. */
+  registerName?: string;
+};
 
 export const kaunoKey = (a: KaunoAddress) => [a.eldership, a.town, a.street, a.house].join('|');
 
@@ -59,17 +75,53 @@ export const fetchKaunoAddresses = (eldership: string) =>
   getJson<KaunoAddresses>(`${KAUNO_URL}/addresses/${encodeURIComponent(eldership)}.json`);
 
 export function kaunoTowns(index: KaunoIndex): KaunoTown[] {
-  return index.elderships.flatMap((e) => e.towns.map((town) => ({ eldership: e.id, eldershipName: e.name, town })));
+  return index.elderships.flatMap((e) =>
+    e.towns.map((town) => {
+      const registerName = e.registerNames?.[town];
+      return { eldership: e.id, eldershipName: e.name, town, ...(registerName ? { registerName } : {}) };
+    }),
+  );
 }
 
-/** Towns matching every word of the query, names that start with it first. */
+/**
+ * Towns matching every word of the query, names that start with it first. The file writes the
+ * genitive ("Akademijos mstl."), so the town's name in the Address Register ("Akademija") is
+ * searched too and counts as a name.
+ */
 export function searchKaunoTowns(towns: KaunoTown[], query: string): KaunoTown[] {
   const words = normalizeForSearch(query).split(/\s+/).filter(Boolean);
   if (!words.length) return [];
-  const starts = (t: KaunoTown) => normalizeForSearch(t.town).startsWith(words[0]);
+  const starts = (t: KaunoTown) =>
+    [t.town, t.registerName ?? ''].some((name) => normalizeForSearch(name).startsWith(words[0]));
   return towns
-    .filter((t) => words.every((word) => normalizeForSearch(`${t.town} ${t.eldershipName}`).includes(word)))
+    .filter((t) => {
+      const haystack = normalizeForSearch(`${t.town} ${t.registerName ?? ''} ${t.eldershipName}`);
+      return words.every((word) => haystack.includes(word));
+    })
     .sort((a, b) => Number(starts(b)) - Number(starts(a)) || a.town.localeCompare(b.town, 'lt'));
+}
+
+/** "Kaunas" (and "in Kaunas") in the app's languages, as normalizeForSearch writes it. */
+const KAUNAS = ['kaunas', 'kaune', 'kowno', 'каунас'];
+/** The word after it that makes it the district; normalizeForSearch drops the breve of "й". */
+const DISTRICT = /^(r|raj|rajon\p{L}*|rejon\p{L}*|district|раион\p{L}*)$/u;
+
+/**
+ * Whether a search that found nothing was for Kaunas city ("Kaunas", "Kauno m.", "kauno
+ * miestas"), which the app doesn't cover: only Kauno r., the district around it, is. The app
+ * then says so instead of the general "nothing found". `found` is how many places the search
+ * listed, so a town of Kauno r. that matches is shown as usual.
+ */
+export function isKaunasCitySearch(query: string, found: number): boolean {
+  if (found > 0) return false;
+  const [first, second, ...rest] = normalizeForSearch(query)
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean);
+  // "Kaunas", "Kaunas m.", "Kowno", "Каунас", but not "Kaunas r." or "Kaunas district".
+  if (KAUNAS.includes(first)) return !second || !DISTRICT.test(second);
+  // "Kauno m.", "Kauno miestas", "Kauno miesto sav.", also while it is typed ("kauno mies").
+  const city = Boolean(second) && ['miestas', 'miesto'].some((word) => word.startsWith(second));
+  return first === 'kauno' && city && rest.length <= 1;
 }
 
 /**
