@@ -41,6 +41,7 @@
     "locationHint": "Leiskite rasti jūsų vietą arba ieškokite kaimo ar miesto.",
     "locationPlaceholder": "pvz. Riešė",
     "locationNone": "Nieko nerasta. Rodomos tik Vilniaus, Kauno ir Mažeikių rajonų vietovės, kurių grafikus turime.",
+    "locationKaunasCity": "Kauno miesto grafikų neturime, tik Kauno rajono.",
     "manualLink": "Neradote? Pasirinkite grafiko eilutes patys",
     "streetTitle": "Kurioje gatvėje?",
     "streetHint": "Vietovėje {{place}} išvežimo dienos priklauso nuo gatvės.",

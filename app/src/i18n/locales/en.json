@@ -41,6 +41,7 @@
     "locationHint": "Let us find your place, or search for your village or town.",
     "locationPlaceholder": "e.g. Riešė",
     "locationNone": "Nothing found. Only places in Vilnius, Kaunas and Mažeikiai districts that we have schedules for are listed.",
+    "locationKaunasCity": "Kaunas city isn't covered, only Kaunas district (Kauno r.).",
     "manualLink": "Can't find it? Pick schedule rows by hand",
     "streetTitle": "Which street?",
     "streetHint": "Pickup days in {{place}} depend on the street.",
