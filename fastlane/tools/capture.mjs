@@ -8,7 +8,7 @@ import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { back, screenshot, shell, sleep, tap, tapAt, type } from './adb.mjs';
+import { back, clearField, elements, is, screenshot, shell, sleep, tap, tapAt, type, waitFor } from './adb.mjs';
 import { languages, rawShots, strings } from './shared.mjs';
 
 const app = 'io.github.aurimasnav.siuksliaveze';
@@ -58,20 +58,14 @@ export function capture(lang) {
   sleep(5000);
 
   // Welcome screen, in the chosen language.
-  tapAt(850, 175); // language menu
-  sleep(1200);
-  tap(languageNames[lang]); // the menu item, or the menu button itself if already chosen
-  sleep(2500);
+  chooseLanguage(lang);
+  sleep(1500);
   shot('5-welcome');
 
   // Search for the place, with the keyboard hidden.
   tap(s.onboarding.start);
   sleep(2500);
-  tap(s.setup.locationPlaceholder);
-  sleep(1000);
-  type(place.search);
-  sleep(2500);
-  back();
+  search(s.setup.locationPlaceholder, place.search, place.name);
   sleep(1200);
   shot('2-search');
 
@@ -95,6 +89,57 @@ export function capture(lang) {
   tap(s.custom.week2);
   sleep(1200);
   shot('4-custom');
+}
+
+/**
+ * Picks `lang` in the language menu of the welcome screen. Right after the start the app may
+ * not have drawn the menu yet, and a tap then is lost: so this waits for the menu button (found
+ * by its label in any of the languages), opens the menu again if its list doesn't show, and
+ * checks that the screen is in `lang` afterwards.
+ */
+function chooseLanguage(lang) {
+  const buttonLabels = Object.keys(languages).map((l) => strings(l).settings.language);
+  // Always the list's first item, in the language shown.
+  const phoneLanguage = Object.keys(languages).map((l) => strings(l).settings.systemLanguage);
+  const listOpen = (all) => (all.some((e) => phoneLanguage.some((text) => is(text)(e))) ? all : undefined);
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    let list = listOpen(elements());
+    if (!list) {
+      const button = waitFor((all) => all.find((e) => buttonLabels.some((label) => is(label)(e))), 60000);
+      if (!button) throw new Error('Not on screen after 60 s: the language menu');
+      tapAt(button.x, button.y);
+      list = waitFor(listOpen, 5000);
+      if (!list) continue;
+    }
+    // The button shows the current language too; the list's item is below it.
+    const item = list.filter(is(languageNames[lang])).at(-1);
+    if (!item) throw new Error(`Not in the language menu: ${languageNames[lang]}`);
+    tapAt(item.x, item.y);
+    if (waitFor((all) => all.find(is(strings(lang).onboarding.start)), 10000)) return;
+  }
+  throw new Error(`Couldn't switch the app to ${languageNames[lang]}`);
+}
+
+/**
+ * Searches for `query` in the search field with the placeholder `field` and waits for `result`,
+ * with the keyboard hidden. If it doesn't show, the field is cleared and the query typed again:
+ * a failed run showed the query in the field and neither results nor "nothing found", so the
+ * app hadn't received the text.
+ */
+function search(field, query, result) {
+  tap(field);
+  sleep(1000);
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    type(query);
+    sleep(1500);
+    back(); // hides the keyboard
+    if (waitFor((all) => all.find(is(result)), 10000)) return;
+    tap(query); // the field, showing what was typed
+    sleep(500);
+    clearField(query.length + 2);
+    sleep(500);
+  }
+  throw new Error(`Not found by the search "${query}": ${result}`);
 }
 
 // Run directly (npm run capture), not when smoke.mjs imports it.
