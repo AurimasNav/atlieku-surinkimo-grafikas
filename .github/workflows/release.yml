@@ -69,8 +69,9 @@ jobs:
           fetch-depth: 0 # GitVersion needs the full history and tags
       - uses: gittools/actions/gitversion/setup@389fe43e6b0189b98c40c43553070ac029304635 # v5.0.0
         with:
-          # Exact: trunk-based is still a preview workflow in GitVersion 6, checked with 6.8.2.
-          versionSpec: 6.8.2
+          # Exact: trunk-based is still a preview workflow in GitVersion 7, checked with 7.0.0
+          # (the same versions as 6.8.2 for every commit on main).
+          versionSpec: 7.0.0
       - id: gitversion
         uses: gittools/actions/gitversion/execute@389fe43e6b0189b98c40c43553070ac029304635 # v5.0.0
       # Google Play needs a higher version code for every upload. The number of commits on main
