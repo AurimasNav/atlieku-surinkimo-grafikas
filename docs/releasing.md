@@ -60,8 +60,9 @@ See [Versions](#versions) for how releases are numbered.
   *Merge pull request* → edit the message). Only merge commit messages are read.
 - **Releases upload one at a time.** If several merges are waiting, the newest one replaces the
   older waiting ones; testers only need the newest build.
-- To see the version of the current commit: `gitversion /showvariable MajorMinorPatch`
-  (Windows: `winget install GitTools.GitVersion`).
+- To see the version of the current commit: `gitversion --show-variable MajorMinorPatch`
+  with GitVersion 7 (Windows: `winget install GitTools.GitVersion`). It may send usage data
+  unless you add `--telemetry-opt-out` or set `DO_NOT_TRACK=1`; the Release workflow turns it off.
 - **Version codes** (Android `versionCode`, which Google Play requires to increase with every
   upload) are the number of commits on `main`, which only grows. Don't rewrite `main`'s
   history once releases exist.
