@@ -2,9 +2,12 @@
 // the app installed, goes through the app in every language (or the ones given) like
 // capture.mjs, then fails if the app crashed or logged a JavaScript error.
 // Usage: npm run smoke [-- lt en]
-import { logcat } from './adb.mjs';
+import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { logcat, screenText, screenshot } from './adb.mjs';
 import { capture, setUp, tearDown } from './capture.mjs';
-import { languages } from './shared.mjs';
+import { languages, rawShots } from './shared.mjs';
 
 const wanted = process.argv.slice(2);
 logcat('-c');
@@ -16,6 +19,14 @@ try {
   for (const lang of wanted.length ? wanted : Object.keys(languages)) capture(lang);
 } catch (error) {
   problems.push(`The walk-through stopped: ${error.message}`);
+  // The screen it stopped on, in the screens artifact and in the log.
+  try {
+    mkdirSync(rawShots, { recursive: true });
+    screenshot(join(rawShots, 'stopped.png'));
+    problems.push(`On screen: ${screenText().join(' | ')}`);
+  } catch (detail) {
+    problems.push(`No screenshot of it: ${detail.message}`);
+  }
 } finally {
   tearDown();
 }

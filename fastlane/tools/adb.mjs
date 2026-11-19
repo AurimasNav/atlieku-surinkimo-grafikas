@@ -27,23 +27,40 @@ export function elements() {
   return found;
 }
 
+/** Whether an element's text or accessibility label is `text` (any case). */
+export const is = (text) => (e) => e.text.toLowerCase() === text.toLowerCase() || e.label.toLowerCase() === text.toLowerCase();
+
+/**
+ * What `find` returns for the elements on screen, as soon as that is something, checking every
+ * half second for up to `timeout` ms. Undefined if it never is.
+ */
+export function waitFor(find, timeout = 20000) {
+  const until = Date.now() + timeout;
+  for (;;) {
+    const found = find(elements());
+    if (found) return found;
+    if (Date.now() > until) return undefined;
+    sleep(500);
+  }
+}
+
 /**
  * Taps the nth element whose text or accessibility label is `text`, waiting up to `timeout` ms
  * for it to appear (slower machines and emulators take longer to show a screen).
  */
 export function tap(text, nth = 0, timeout = 20000) {
-  const want = text.toLowerCase();
-  const until = Date.now() + timeout;
-  for (;;) {
-    const hit = elements().filter((e) => e.text.toLowerCase() === want || e.label.toLowerCase() === want)[nth];
-    if (hit) return tapAt(hit.x, hit.y);
-    if (Date.now() > until) throw new Error(`Not on screen after ${timeout / 1000} s: ${text}`);
-    sleep(500);
-  }
+  const hit = waitFor((all) => all.filter(is(text))[nth], timeout);
+  if (!hit) throw new Error(`Not on screen after ${timeout / 1000} s: ${text}`);
+  return tapAt(hit.x, hit.y);
 }
+
+/** The texts and labels on screen, for a failure message. */
+export const screenText = () => [...new Set(elements().flatMap((e) => [e.text, e.label]).filter(Boolean))];
 
 export const tapAt = (x, y) => shell(`input tap ${x} ${y}`);
 export const logcat = (...args) => run('logcat', ...args).toString();
 export const type = (ascii) => shell(`input text ${ascii.replace(/ /g, '%s')}`);
 export const back = () => shell('input keyevent 4');
+/** Deletes `count` characters before the end of the focused text field. */
+export const clearField = (count) => shell(`input keyevent KEYCODE_MOVE_END ${'KEYCODE_DEL '.repeat(count)}`);
 export const screenshot = (file) => writeFileSync(file, run('exec-out', 'screencap', '-p'));
