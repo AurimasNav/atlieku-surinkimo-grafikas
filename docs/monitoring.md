@@ -10,7 +10,7 @@ Users see it too: when the data of the company behind their schedule hasn't been
 days (`providers[].generatedAt`, or Kauno švara's `generatedAt`), the app shows a warning with a
 link to the company's official schedule (`app/src/lib/freshness.ts`).
 
-There are thirteen sources:
+There are eighteen sources:
 
 | `source` | Company | Published in |
 |---|---|---|
@@ -27,6 +27,11 @@ There are thirteen sources:
 | `siauliai` | UAB „Šiaulių regiono atliekų tvarkymo centras“, Šiaulių r., Akmenės r., Joniškio r., Kelmės r. and Pakruojo r. | `sratc/` |
 | `radviliskis` | UAB „Šiaulių regiono atliekų tvarkymo centras“, Radviliškio r. | `sratc/` (`provider: "radviliskis"`) |
 | `alytus` | UAB „Alytaus regiono atliekų tvarkymo centras“, Alytaus r., Prienų r., Lazdijų r., Varėnos r., Druskininkų and Birštono sav. | `alytaus-ratc/` (rows with the municipality in `district`) |
+| `marijampole` | UAB „Marijampolės apskrities atliekų tvarkymo centras“, Marijampolės sav. | `maatc/` (`provider: "marijampole"`) |
+| `vilkaviskis` | UAB „Marijampolės apskrities atliekų tvarkymo centras“, Vilkaviškio r. | `maatc/` (`provider: "vilkaviskis"`) |
+| `kalvarija` | UAB „Marijampolės apskrities atliekų tvarkymo centras“, Kalvarijos sav. | `maatc/` (`provider: "kalvarija"`) |
+| `kazluruda` | UAB „Marijampolės apskrities atliekų tvarkymo centras“, Kazlų Rūdos sav. | `maatc/` (`provider: "kazluruda"`) |
+| `sakiai` | UAB „Marijampolės apskrities atliekų tvarkymo centras“, Šakių r. | `maatc/` (`provider: "sakiai"`) |
 
 The two Vilniaus r. companies share one `schedule.json`, so the app needs one download. When
 one of them fails, its part of yesterday's file is kept (its `providers[].generatedAt` stays
@@ -78,6 +83,12 @@ yesterday's file is kept (its `generatedAt` stays old, so `ScheduleDataStale` fi
 the run gets a warning annotation; the others are still updated. A municipality with no
 published part to keep is left out. If none can be built, yesterday's `mazeikiu-r/` is kept.
 
+The five municipalities of Marijampolė county share `maatc/schedule.json` in the same way, a
+part each, built by one step from the regional waste centre's page of each municipality (the
+schedules of UAB „Ecoservice“ and UAB „Ekonovus“): a municipality whose files can't be read
+keeps its part of yesterday's file, the others are still updated. The app doesn't download
+`maatc/` yet.
+
 The job therefore publishes the state of the data with every run:
 
 - `https://aurimasnav.github.io/atlieku-surinkimo-grafikas/metrics.txt` (Prometheus format)
@@ -85,9 +96,9 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
-| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `siauliai` / `radviliskis` / `alytus` was built |
+| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `siauliai` / `radviliskis` / `alytus` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
-| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `siauliai`, `radviliskis` and `alytus` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
+| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `siauliai`, `radviliskis`, `alytus`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda` and `sakiai` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
 | `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead) |
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
@@ -166,6 +177,10 @@ groups:
       # the period's last pickups are 1-2 days away and nothing newer has been read. Not its
       # glass (four or five times a year, the latest on 25 December 2026, before next year's
       # file is usually posted) nor its green waste (last in November).
+      # The five municipalities of Marijampolė county get calendar-year files, posted in
+      # December (the 2026 PDFs were made between 2 and 16 December 2025). Mixed waste,
+      # packaging and food waste end on 28-31 December everywhere. Not glass: every four weeks,
+      # last on 18 December 2026 in Kazlų Rūdos sav. and on 24 December in Vilkaviškio r.
       - alert: ScheduleDataRunsOut
         expr: |-
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"mazeikiai|telsiai|plunge"}[30m]) - time() < 7 * 86400
@@ -175,6 +190,8 @@ groups:
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="alytus",kind="household"}[30m]) - time() < 7 * 86400
             or
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="radviliskis",kind=~"household|packaging"}[30m]) - time() < 2 * 86400
+            or
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"marijampole|vilkaviskis|kalvarija|kazluruda|sakiai",kind=~"household|packaging|food"}[30m]) - time() < 7 * 86400
         for: 1h
         labels: { severity: warning }
         annotations:
@@ -219,5 +236,8 @@ source, query `status.json` (type JSON, URL above) and alert when
 `sources.kaisiadorys.generatedAt`, `sources.mazeikiai.generatedAt`,
 `sources.telsiai.generatedAt`, `sources.plunge.generatedAt`, `sources.rietavas.generatedAt`,
 `sources.klaipedos.generatedAt`, `sources.jurbarkas.generatedAt`,
-`sources.siauliai.generatedAt`, `sources.radviliskis.generatedAt` or
-`sources.alytus.generatedAt` is older than 30 hours (or missing).
+`sources.siauliai.generatedAt`, `sources.radviliskis.generatedAt`,
+`sources.alytus.generatedAt`, `sources.marijampole.generatedAt`,
+`sources.vilkaviskis.generatedAt`, `sources.kalvarija.generatedAt`,
+`sources.kazluruda.generatedAt` or `sources.sakiai.generatedAt` is older than 30 hours (or
+missing).

@@ -919,6 +919,11 @@ class Routes(SectionRoutes):
     containers of apartment buildings), as for Jurbarkas.
     """
 
+    # The municipalities whose rows it reads, and the marks of elderships' sections in them: a
+    # subclass reads another region's (maatc.Routes).
+    municipalities: tuple[Municipality, ...] = MUNICIPALITIES
+    eldership = _ELDERSHIP
+
     def __init__(self, index: Index, provider: Provider, variants: dict[int, dict[str, str]]):
         self.index = index
         self.provider = provider
@@ -927,10 +932,10 @@ class Routes(SectionRoutes):
         self.named: dict[str, set[int]] | None = None
         self.kind = ""
         self.town = _NO_TOWN
-        self.municipality = MUNICIPALITIES[0]
+        self.municipality = self.municipalities[0]
         mine = [s for s in index.registry.settlements if s.district in provider.elderships]
         self.places = {
-            m.label: [s for s in mine if s.district in m.elderships] for m in MUNICIPALITIES
+            m.label: [s for s in mine if s.district in m.elderships] for m in self.municipalities
         }
         self.towns_by_street = {s.code for s in mine if s.abbr == "m."}
 
@@ -1060,11 +1065,12 @@ class Routes(SectionRoutes):
     def clauses(self, area: Area) -> tuple[list[tuple[Settlement, Clause]], bool]:
         self.unknown = []
         self.kind = area.kind
-        self.municipality = BY_LABEL[area.district or ""]
+        self.municipality = {m.label: m for m in self.municipalities}[area.district or ""]
         self.town = _NO_TOWN
         text = clean_text(area.name)
         for written, registered in self.provider.aliases:
             text = text.replace(written, registered)
+        text = self.spellings(text)
         if fold(text) == fold(WHOLE):
             return [(s, Clause(area.id, None)) for s in self.places[self.municipality.label]], False
         rules: list[tuple[str | None, set[str]]] = []
@@ -1075,7 +1081,7 @@ class Routes(SectionRoutes):
 
         text = normalize(_VILLAGES_BUT.sub(villages_but, text))
         marks: list[tuple[int, int, str | None, Settlement, bool]] = []
-        for m in _ELDERSHIP.finditer(text):
+        for m in self.eldership.finditer(text):
             marks.append(
                 (m.start(), m.end(), self.district(m["name"]), _NO_TOWN, m["scope"] == "Visoje")
             )
@@ -1117,6 +1123,10 @@ class Routes(SectionRoutes):
             stops += self.section(district, re.sub(r"^\s*tik\s+", "", body.strip(" .,;:")))
             self.town = _NO_TOWN
         return clauses + [(s.settlement, c) for s in stops for c in s.clauses(area.id)], False
+
+    def spellings(self, text: str) -> str:
+        """A subclass's publisher's spellings, written as this reader reads them."""
+        return text
 
     def _whole(
         self, area: Area, district: str, excluded: set[int]
