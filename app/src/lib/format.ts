@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
 import { daysBetween, parseIsoDate } from './dates';
-import type { ReminderSettings } from './reminders';
+import type { ReminderTime } from './reminders';
 
 /** Reminder times offered in setup and settings. Bins must be out by 7:00 on the day. */
-export const REMINDER_TIMES: Record<ReminderSettings['daysBefore'], [number, number][]> = {
+export const REMINDER_TIMES: Record<ReminderTime['daysBefore'], [number, number][]> = {
   1: [
     [17, 0],
     [18, 0],

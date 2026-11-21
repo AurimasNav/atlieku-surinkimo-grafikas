@@ -118,7 +118,12 @@
     "updated": "Harmonogram zaktualizowano {{date}}",
     "refreshFailed": "Nie udało się sprawdzić nowego harmonogramu. Wyświetlamy zapisany.",
     "settings": "Ustawienia",
-    "choosePlace": "Wybierz miejscowość"
+    "choosePlace": "Wybierz miejscowość",
+    "reminders": "Przypomnienia: {{list}}",
+    "reminderShortEvening": "dzień wcześniej o {{time}}",
+    "reminderShortMorning": "rano o {{time}}",
+    "noReminder": "Przypomnienia dla tego odbioru są wyłączone",
+    "markedDone": "Pojemniki są już wystawione"
   },
   "settings": {
     "title": "Ustawienia",
@@ -140,7 +145,11 @@
     "addressSource": "Adresy: {{source}}",
     "disclaimerTitle": "Bez gwarancji",
     "disclaimer": "Aplikacja jest udostępniana bezpłatnie, w stanie „takim, jaka jest”, bez żadnych gwarancji. Autorzy nie ponoszą odpowiedzialności za pominięte lub błędne przypomnienia ani za żadne skutki polegania na nich. Aplikacja nie jest powiązana z UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“ ani UAB „Virginijus ir Ko“.",
-    "version": "Wersja {{version}}"
+    "version": "Wersja {{version}}",
+    "addReminder": "Dodaj kolejne przypomnienie",
+    "removeReminder": "Usuń to przypomnienie",
+    "otherTime": "Inna godzina",
+    "perKindHint": "Aby przypomnienia o jednym rodzaju odpadów przychodziły o innej porze albo wcale, dotknij go w sekcji „Twoja miejscowość”."
   },
   "notifications": {
     "channelName": "Przypomnienia o odbiorze",
@@ -148,7 +157,10 @@
     "titleToday": "Dzisiaj: {{kinds}}",
     "body": "Wystaw pojemniki do 7:00.",
     "refreshTitle": "Twój harmonogram się kończy",
-    "refreshBody": "Otwórz aplikację, aby wczytała nowy harmonogram."
+    "refreshBody": "Otwórz aplikację, aby wczytała nowy harmonogram.",
+    "done": "Już wystawione",
+    "snoozeHour": "Za godzinę",
+    "snoozeShort": "Za 15 min"
   },
   "errors": {
     "loadFailed": "Nie udało się wczytać harmonogramu. Sprawdź połączenie z internetem.",
@@ -202,7 +214,12 @@
     "statusNone": "Brak w oficjalnym harmonogramie Twojej miejscowości",
     "statusSkipped": "Nie masz takiego pojemnika",
     "statusPending": "Do Twojej miejscowości pasuje kilka wierszy harmonogramu",
-    "hint": "Zmiany od razu obowiązują dla przypomnień."
+    "hint": "Zmiany od razu obowiązują dla przypomnień.",
+    "reminders": "Przypomnienia",
+    "remindersDefault": "Jak pozostałe",
+    "remindersOwn": "Własne godziny",
+    "remindersOff": "Wyłączone",
+    "remindersHint": "Szkło odbierane jest tylko kilka razy w roku, łatwo o nim zapomnieć – dodaj mu dodatkowe przypomnienie. A dla rodzaju, który i tak wystawiasz, przypomnienia możesz wyłączyć."
   },
   "kauno": {
     "glassPackaging": "Szkło i opakowania",

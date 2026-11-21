@@ -83,6 +83,9 @@ export default function Settings() {
 
         <Section title={t('settings.reminder')}>
           <ReminderPicker />
+          <AppText variant="caption" muted>
+            {t('settings.perKindHint')}
+          </AppText>
         </Section>
 
         <Section title={t('settings.language')}>

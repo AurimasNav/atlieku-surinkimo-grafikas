@@ -4,7 +4,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import type { Language } from '@/i18n';
 import type { CustomSchedule } from '@/lib/custom-schedule';
 import type { KaunoAddress } from '@/lib/kauno';
-import type { ReminderSettings } from '@/lib/reminders';
+import type { ReminderSettings, ReminderTime } from '@/lib/reminders';
 import type { Place } from '@/lib/resolve';
 import type { WasteKind } from '@/lib/schedule';
 import { storage } from '@/lib/storage';
@@ -39,7 +39,7 @@ export const useSettings = create<SettingsState>()(
       onboarded: false,
       language: 'system',
       place: null,
-      reminder: { daysBefore: 1, hour: 19, minute: 0 },
+      reminder: { times: [{ daysBefore: 1, hour: 19, minute: 0 }] },
       setOnboarded: () => set({ onboarded: true }),
       setLanguage: (language) => set({ language }),
       // Own schedules are personal choices, so they survive a change of location.
@@ -77,14 +77,16 @@ export const useSettings = create<SettingsState>()(
     }),
     {
       name: 'settings',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => storage),
-      // v1 stored one row per waste type; v2 stores one location. Keep language and reminder
-      // time, and run setup again (only early test builds ever had v1).
       migrate: (persisted, version) => {
         const old = (persisted ?? {}) as Partial<SettingsState>;
-        if (version < 2) return { language: old.language, reminder: old.reminder, onboarded: false, place: null };
-        return old;
+        // v2 had one reminder time for everything; v3 has a list, and per waste type.
+        const reminder = old.reminder && version < 3 ? { times: [old.reminder as unknown as ReminderTime] } : old.reminder;
+        // v1 stored one row per waste type; v2 stores one location. Keep language and reminder
+        // time, and run setup again (only early test builds ever had v1).
+        if (version < 2) return { language: old.language, reminder, onboarded: false, place: null };
+        return { ...old, reminder };
       },
     },
   ),
