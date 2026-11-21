@@ -138,27 +138,21 @@ def test_a_file_that_cant_be_downloaded(tmp_path, monkeypatch):
         return serve(url)
 
     monkeypatch.setattr(kedainiai.http, "get", serve)
-    copies = tmp_path / "copies"
-    kedainiai.save_copies(TODAY, copies)
+    copy = tmp_path / "copy"
+    kedainiai.save_copy(copy, TODAY)
     monkeypatch.setattr(kedainiai.http, "get", get)
-    # Its copy, if it has one.
-    monkeypatch.setattr(kedainiai, "COPIES_DIR", copies)
+    # The copy, if there is one, as for the page.
+    monkeypatch.setattr(kedainiai, "COPY_DIR", copy)
     files, warnings = kedainiai.download(TODAY, 31)
     assert dict((f.group, c) for f, c in files)["Dotnuvos"] == fixture("kedainiai/dotnuvos.docx")
     assert warnings == [
-        "Dotnuvos seniūnija (2026): couldn't be downloaded (HTTP Error 404: Not Found); read "
-        "the copies saved on 2026-11-21"
+        f"{kedainiai.PAGE_URL}: unavailable (HTTP Error 404: Not Found); used the copy from "
+        "2026-11-21 (0 days old)"
     ]
-    # Without one, it fails the build; tolerant (the daily job), it's passed on empty, to keep
-    # its rows of yesterday's data.
-    monkeypatch.setattr(kedainiai, "COPIES_DIR", tmp_path / "none")
+    # Without one, the build fails (and yesterday's part is kept).
+    monkeypatch.setattr(kedainiai, "COPY_DIR", tmp_path / "none")
     with pytest.raises(OSError, match="404"):
         kedainiai.download(TODAY, 31)
-    files, warnings = kedainiai.download(TODAY, 31, tolerant=True)
-    assert len(files) == 11 and dict((f.group, c) for f, c in files)["Dotnuvos"] == b""
-    assert warnings == [
-        "Dotnuvos seniūnija (2026): couldn't be downloaded (HTTP Error 404: Not Found)"
-    ]
 
 
 # --- the tables --------------------------------------------------------------
@@ -573,7 +567,7 @@ def test_a_failed_build_keeps_the_published_part(built, tmp_path, monkeypatch):
     monkeypatch.setattr(kedainiai.http, "get", down)
     monkeypatch.setattr(kedainiai.address_register, "fetch", down)
     monkeypatch.setattr(kedainiai.address_points, "fetch", down)
-    monkeypatch.setattr(kedainiai, "COPIES_DIR", tmp_path / "no copies")
+    monkeypatch.setattr(kedainiai, "COPY_DIR", tmp_path / "no copy")
     monkeypatch.setattr(build, "load_published", lambda url: lambda: published)
     assert kedainiai.main(["--out", str(tmp_path)]) == 0
     kept = json.loads((tmp_path / "schedule.json").read_text(encoding="utf-8"))
@@ -616,32 +610,43 @@ def test_a_file_that_cant_be_read_keeps_its_elderships_rows(built, tmp_path, mon
     assert kedainiai.main(["--strict", "--out", str(tmp_path / "strict")]) == 1
 
 
-def test_the_copies_when_the_site_refuses_the_job(tmp_path, monkeypatch):
+def test_the_copy_when_the_site_refuses_the_job(tmp_path, monkeypatch):
     monkeypatch.setattr(kedainiai.http, "get", serve)
-    copies = tmp_path / "copies"
-    assert kedainiai.save_copies(TODAY, copies) == 11
-    listing = json.loads((copies / "files.json").read_text(encoding="utf-8"))
-    assert listing["takenAt"] == "2026-11-21"
-    assert listing["files"][0] == {
-        "eldership": "Dotnuvos",
-        "year": 2026,
-        "name": "Dotnuvos seniūnija (2026)",
-        "url": f"{DOCLIB}ojtzogief2tn9wx8wngzc89ck2b6qpkh",
-        "copy": "dotnuvos-2026.docx",
-    }
+    copy = tmp_path / "copy"
+    kedainiai.save_copy(copy, TODAY)
+    # As ecoservice's: the page, the files named after their URLs, and copy.json.
+    index = json.loads((copy / "copy.json").read_text(encoding="utf-8"))
+    assert index["takenAt"] == "2026-11-21" and index["page"] == kedainiai.PAGE_URL
+    assert sorted(index["files"]) == sorted(COPIES)
+    assert sorted(p.name for p in copy.iterdir()) == sorted([*COPIES, "copy.json", "page.html"])
 
     def refused(url, timeout=0, user_agent=""):
         raise OSError("HTTP Error 403: Forbidden")
 
     monkeypatch.setattr(kedainiai.http, "get", refused)
-    monkeypatch.setattr(kedainiai, "COPIES_DIR", copies)
+    monkeypatch.setattr(kedainiai, "COPY_DIR", copy)
     files, warnings = kedainiai.download(TODAY, 31)
     assert sorted(f.group for f, _ in files) == sorted(kedainiai.ELDERSHIPS)
     assert dict((f.group, c) for f, c in files)["Josvainių"] == fixture("kedainiai/josvainiu.pdf")
     assert warnings == [
-        "kedainiai.lt unavailable (HTTP Error 403: Forbidden); read the copies saved on 2026-11-21"
+        f"{kedainiai.PAGE_URL}: unavailable (HTTP Error 403: Forbidden); used the copy from "
+        "2026-11-21 (0 days old)"
     ]
-    # Copies over 60 days old ask for a refresh; in a new year, for its files.
+    # Over 60 days old, it asks for a refresh; in a new year, for its files too.
     _, warnings = kedainiai.download(date(2027, 1, 25), 31)
     assert warnings[0].endswith("uv run python -m schedule_pipeline.snapshot")
     assert "no 2027 schedule for Dotnuvos sen. on the page" in warnings
+
+
+def test_the_committed_copy_can_be_built(monkeypatch):
+    """The copy in pipeline/data, as the daily job reads it on GitHub's runners (it is
+    refreshed, so only that it builds: build_dataset checks the counts)."""
+
+    def refused(url, timeout=0, user_agent=""):
+        raise OSError("HTTP Error 403: Forbidden")
+
+    monkeypatch.setattr(kedainiai.http, "get", refused)
+    files, warnings = kedainiai.download(date.today(), 366)
+    assert "used the copy from" in warnings[0]
+    assert sorted(f.group for f, _ in files) == sorted(kedainiai.ELDERSHIPS)
+    build_dataset(files, REGISTRY, date.today(), 366, kedainiai.SOURCE)

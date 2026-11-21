@@ -17,7 +17,8 @@ from __future__ import annotations
 import json
 import sys
 from datetime import UTC, date, datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+from urllib.parse import unquote, urlsplit
 
 from . import addresses as address_points
 from . import registry as address_register
@@ -206,6 +207,48 @@ def load_points(path: Path = ADDRESSES_FILE) -> tuple[list[AddressPoint], str]:
 
 def age_days(taken_at: str, today: date) -> int:
     return (today - date.fromisoformat(taken_at)).days
+
+
+# A copy of a site that refuses GitHub's runners (ecoservice: silute.lt, kedainiai: kedainiai.lt):
+# its page as page.html, the files it links under the last part of their URLs, and this index
+# with when it was taken, the page's URL and the files' names.
+SITE_COPY_INDEX = "copy.json"
+
+
+def _copy_name(url: str) -> str:
+    return PurePosixPath(unquote(urlsplit(url).path)).name
+
+
+def save_site_copy(
+    folder: Path, page: str, html: bytes, files: list[tuple[str, bytes]], today: date
+) -> None:
+    """Saves a page and the files it links, (URL, content), in `folder`, replacing what was
+    there."""
+    folder.mkdir(parents=True, exist_ok=True)
+    for old in folder.iterdir():
+        old.unlink()
+    (folder / "page.html").write_bytes(html)
+    for url, content in files:
+        (folder / _copy_name(url)).write_bytes(content)
+    index = {"takenAt": today.isoformat(), "page": page, "files": [_copy_name(u) for u, _ in files]}
+    (folder / SITE_COPY_INDEX).write_bytes((json.dumps(index, ensure_ascii=False) + "\n").encode())
+
+
+def site_copy(folder: Path, url: str) -> bytes:
+    """A page or file from its copy in `folder` (FileNotFoundError, an OSError, if none)."""
+    page = json.loads((folder / SITE_COPY_INDEX).read_text(encoding="utf-8"))["page"]
+    return (folder / ("page.html" if url == page else _copy_name(url))).read_bytes()
+
+
+def site_copy_note(url: str, error: Exception, folder: Path, today: date) -> str:
+    """The build warning for a copy read instead of `url`: how old it is, and over
+    MAX_AGE_DAYS a request to refresh it."""
+    taken = json.loads((folder / SITE_COPY_INDEX).read_text(encoding="utf-8"))["takenAt"]
+    age = age_days(taken, today)
+    note = f"{url}: unavailable ({error}); used the copy from {taken} ({age} days old)"
+    if age > MAX_AGE_DAYS:
+        note += " - please refresh it: cd pipeline && uv run python -m schedule_pipeline.snapshot"
+    return note
 
 
 def main() -> int:

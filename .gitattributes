@@ -6,3 +6,6 @@
 *.pdf binary
 *.xlsx binary
 *.docx binary
+# The copy of kedainiai.lt's page and documents, named after their URLs (no extension): byte
+# for byte.
+pipeline/data/schedules-kedainiu-r/* binary
