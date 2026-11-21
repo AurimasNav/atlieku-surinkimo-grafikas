@@ -33,16 +33,20 @@ export const EKONOVUS_SCHEDULES_URL = 'https://www.ekonovus.lt/aptarnavimo-grafi
  *   waste centre of Telšiai county (UAB „Telšių regiono atliekų tvarkymo centras“), a provider per
  *   municipality;
  * - klaipedos-r: Klaipėdos r., from the spreadsheet of VšĮ „Gargždų švara“;
- * - jurbarko-r: Jurbarko r., from the PDFs of the regional waste centre of Tauragė county (UAB
- *   „Tauragės regiono atliekų tvarkymo centras“);
- * - sratc: Šiaulių r., Akmenės r., Joniškio r., Kelmės r. and Pakruojo r., from the PDFs of the
- *   regional waste centre of Šiauliai county (UAB „Šiaulių regiono atliekų tvarkymo centras“);
+ * - jurbarko-r: Jurbarko r., Tauragės r., Šilalės r. and Pagėgių sav., from the PDFs of the
+ *   regional waste centre of Tauragė county (UAB „Tauragės regiono atliekų tvarkymo centras“), a
+ *   provider per municipality;
+ * - sratc: Šiaulių r., Akmenės r., Joniškio r., Kelmės r. and Pakruojo r., and Radviliškio r. as a
+ *   provider of its own, from the PDFs of the regional waste centre of Šiauliai county (UAB
+ *   „Šiaulių regiono atliekų tvarkymo centras“);
  * - alytaus-ratc: Alytaus r., Prienų r., Lazdijų r., Varėnos r., Druskininkų sav. and Birštono
  *   sav., from the PDFs of the regional waste centre of Alytus county (UAB „Alytaus regiono atliekų
  *   tvarkymo centras“).
  *
  * Built in, so the app finds them without regions.json (offline, or before it was published);
- * folders added later come from regions.json only.
+ * folders added later come from regions.json only: panevezio-ratc (Pasvalio r., Rokiškio r.,
+ * Biržų r., and the packaging and glass of Panevėžio r.) and maatc (Marijampolės sav.,
+ * Vilkaviškio r., Kalvarijos sav., Kazlų Rūdos sav. and Šakių r.).
  */
 export const REGION_URLS = ['mazeikiu-r', 'klaipedos-r', 'jurbarko-r', 'sratc', 'alytaus-ratc'].map(
   (folder) => `${SITE_URL}/${folder}`,
@@ -71,10 +75,14 @@ export const COMPANIES = [
   'VšĮ „Gargždų švara“',
   'UAB „Tauragės regiono atliekų tvarkymo centras“',
   'UAB „Jurbarko komunalininkas“',
+  'UAB „Dunokai“',
   'UAB „Šiaulių regiono atliekų tvarkymo centras“',
   'UAB „Kuršėnų komunalinis ūkis“',
   'UAB „Pakruojo komunalinis ūkis“',
+  'UAB „Svarinta“',
   'UAB „Alytaus regiono atliekų tvarkymo centras“',
+  'UAB „Panevėžio regiono atliekų tvarkymo centras“',
+  'UAB „Marijampolės apskrities atliekų tvarkymo centras“',
 ];
 
 /** Highest schedule.json schemaVersion this app version understands. */

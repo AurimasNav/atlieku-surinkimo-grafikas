@@ -58,6 +58,11 @@ export type GuideRule = {
   /** Instead of a container the place doesn't have; by default see defaultFallback(). */
   fallback?: Destination[];
   tip?: Localized;
+  /**
+   * The tip is about this container (Kauno švara's bags for food waste): where the place doesn't
+   * have it, as in Kaišiadorių r., the item's general tip is shown instead.
+   */
+  tipFor?: WasteKind;
 };
 
 export type GuideItem = GuideRule & {
@@ -221,6 +226,7 @@ const unique = <T>(list: T[]) => [...new Set(list)];
  */
 export function advise(item: GuideItem, region: Region | undefined, available: Set<WasteKind> | undefined): Advice {
   const rule: GuideRule = { to: item.to, fallback: item.fallback, tip: item.tip, ...(region && item.regions?.[region]) };
+  const tip = rule.tipFor && available && !available.has(rule.tipFor) ? item.tip : rule.tip;
   const fallbackFor = (kind: WasteKind) => {
     const list = (rule.fallback ?? defaultFallback(kind, item, region)).filter(
       (destination) => !isKind(destination) || !available || available.has(destination),
@@ -230,7 +236,7 @@ export function advise(item: GuideItem, region: Region | undefined, available: S
 
   if (!available) {
     const kind = rule.to.find((destination): destination is WasteKind => isKind(destination) && destination !== 'household');
-    return { to: rule.to, tip: rule.tip, otherwise: kind && { kind, to: fallbackFor(kind) } };
+    return { to: rule.to, tip, otherwise: kind && { kind, to: fallbackFor(kind) } };
   }
   let missing: WasteKind | undefined;
   const to = rule.to.flatMap((destination) => {
@@ -238,7 +244,7 @@ export function advise(item: GuideItem, region: Region | undefined, available: S
     missing ??= destination;
     return fallbackFor(destination);
   });
-  return { to: unique(to), missing, tip: rule.tip };
+  return { to: unique(to), missing, tip };
 }
 
 /** Lists of places for a destination in the region, where a regional waste centre publishes one. */

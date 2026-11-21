@@ -218,10 +218,12 @@ export function searchable<T>(sortName: (item: T) => string, names: (item: T) =>
   };
 }
 
+// The type too, as the list shows it: "Marijampolės m." finds Marijampolė of Marijampolės miesto
+// sen., and "Riešė k." the village.
 const locationSearch = searchable<Location>(
   (loc) => loc.name,
   (loc) => [loc.name],
-  (loc) => `${loc.name} ${loc.district}`,
+  (loc) => `${loc.name} ${loc.district} ${loc.type}`,
 );
 
 export function searchLocations(locations: Location[], query: string): Location[] {

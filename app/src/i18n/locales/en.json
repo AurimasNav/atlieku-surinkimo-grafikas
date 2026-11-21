@@ -29,7 +29,7 @@
     "skip": "I don't have this container"
   },
   "coverage": {
-    "areas": "Akmenė, Alytus, Joniškis, Jurbarkas, Kaišiadorys, Kaunas, Kelmė, Klaipėda, Lazdijai, Mažeikiai, Pakruojis, Plungė, Prienai, Šiauliai, Telšiai, Varėna and Vilnius districts, and Birštonas, Druskininkai and Rietavas municipalities"
+    "areas": "Akmenė, Alytus, Biržai, Joniškis, Jurbarkas, Kaišiadorys, Kaunas, Kelmė, Klaipėda, Lazdijai, Mažeikiai, Pakruojis, Pasvalys, Plungė, Prienai, Radviliškis, Rokiškis, Šakiai, Šiauliai, Šilalė, Tauragė, Telšiai, Varėna, Vilkaviškis and Vilnius districts, and Birštonas, Druskininkai, Kalvarija, Kazlų Rūda, Marijampolė, Pagėgiai and Rietavas municipalities"
   },
   "onboarding": {
     "title": "Bins out.\nOn time.",
@@ -38,6 +38,7 @@
     "featurePlace": "Choose your place once",
     "featureReminder": "Get a reminder the evening before",
     "featurePrivate": "Everything stays on your phone",
+    "more": "Show more",
     "disclaimer": "Unofficial app made by volunteers. Dates come from the schedules the waste companies publish and may contain mistakes.",
     "start": "Get started"
   },
@@ -91,7 +92,8 @@
     "addressesFailed": "Couldn't download the addresses. Check your internet connection.",
     "locationKlaipedaCity": "Klaipėda city isn't covered, only Klaipėda district (Klaipėdos r.).",
     "locationSiauliaiCity": "Šiauliai city isn't covered, only Šiauliai district (Šiaulių r.).",
-    "locationAlytusCity": "Alytus city isn't covered, only Alytus district (Alytaus r.)."
+    "locationAlytusCity": "Alytus city isn't covered, only Alytus district (Alytaus r.).",
+    "locationPanevezysCity": "Panevėžys city isn't covered. For Panevėžys district (Panevėžio r.), there are only packaging and glass schedules."
   },
   "select": {
     "title": "{{kind}}: your area",

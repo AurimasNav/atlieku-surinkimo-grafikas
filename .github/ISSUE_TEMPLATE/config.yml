@@ -27,3 +27,9 @@ contact_links:
   - name: Official schedule (UAB „Alytaus regiono atliekų tvarkymo centras“)
     url: https://www.aratc.lt/atlieku-surinkimo-grafikai/
     about: Questions about the collection service itself go to the waste company, not this project.
+  - name: Official schedule (UAB „Panevėžio regiono atliekų tvarkymo centras“)
+    url: https://www.pratc.lt/atlieku-isvezimas-atlieku-isvezimas/
+    about: Questions about the collection service itself go to the waste company, not this project.
+  - name: Official schedule (UAB „Marijampolės apskrities atliekų tvarkymo centras“)
+    url: https://maatc.lt/atlieku-isvezimo-grafikai/
+    about: Questions about the collection service itself go to the waste company, not this project.

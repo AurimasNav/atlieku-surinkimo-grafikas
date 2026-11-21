@@ -16,6 +16,8 @@ body:
         - UAB „Tauragės regiono atliekų tvarkymo centras“: https://www.uabtratc.lt/atlieku-surinkimo-grafikai/
         - UAB „Šiaulių regiono atliekų tvarkymo centras“: https://www.sratc.lt/kalendoriaus-grafikai/
         - UAB „Alytaus regiono atliekų tvarkymo centras“: https://www.aratc.lt/atlieku-surinkimo-grafikai/
+        - UAB „Panevėžio regiono atliekų tvarkymo centras“: https://www.pratc.lt/atlieku-isvezimas-atlieku-isvezimas/
+        - UAB „Marijampolės apskrities atliekų tvarkymo centras“: https://maatc.lt/atlieku-isvezimo-grafikai/
   - type: dropdown
     id: problem
     attributes:

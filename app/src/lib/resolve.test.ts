@@ -271,6 +271,19 @@ describe('search', () => {
     expect(searchLocations(locations, '')).toEqual([]);
   });
 
+  it('finds a town by its eldership and type, as in "Marijampolės m."', () => {
+    const towns: Location[] = [
+      ...locations,
+      { id: 'm1', name: 'Marijampolė', type: 'm.', district: 'Marijampolės miesto', provider: 'marijampole' },
+      { id: 'm2', name: 'Marijampolė', type: 'k.', district: 'Viekšnių', provider: 'mazeikiai' },
+      { id: 'm3', name: 'Mokolai', type: 'k.', district: 'Marijampolės miesto', provider: 'marijampole' },
+    ];
+    expect(searchLocations(towns, 'Marijampolės m.').map((l) => l.id)).toEqual(['m1']);
+    // The places named so first, then the others of the eldership.
+    expect(searchLocations(towns, 'Marijampolė').map((l) => l.id)).toEqual(['m1', 'm2', 'm3']);
+    expect(searchLocations(towns, 'aleksandravas k.').map((l) => l.id)).toEqual(['g1']);
+  });
+
   it('searches the places of newer data, not the ones it sorted before', () => {
     expect(searchLocations(locations, 'avižien').map((l) => l.id)).toEqual(['g2', 'g1']);
     const newer = [...locations, { id: 'g5', name: 'Avižienėlė', type: 'k.', district: 'Avižienių' }];

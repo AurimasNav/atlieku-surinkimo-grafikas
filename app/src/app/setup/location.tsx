@@ -46,6 +46,7 @@ const CITY_HINTS = {
   klaipeda: 'setup.locationKlaipedaCity',
   siauliai: 'setup.locationSiauliaiCity',
   alytus: 'setup.locationAlytusCity',
+  panevezys: 'setup.locationPanevezysCity',
 } as const satisfies Record<UncoveredCity, string>;
 
 export default function ChooseLocation() {

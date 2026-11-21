@@ -126,6 +126,13 @@ KAZLU_RUDA_ADDRESSES_FILE = DATA_DIR / "address-points-kazlu-rudos-sav.json"
 SAKIAI_MUNICIPALITY = ("Šakių rajono", 84)
 SAKIAI_REGISTRY_FILE = DATA_DIR / "registry-sakiu-r.json"
 SAKIAI_ADDRESSES_FILE = DATA_DIR / "address-points-sakiu-r.json"
+# Raseinių r. (schedule_pipeline.raseiniai) and Jonavos r. (schedule_pipeline.jonava).
+RASEINIAI_MUNICIPALITY = ("Raseinių rajono", 72)
+RASEINIAI_REGISTRY_FILE = DATA_DIR / "registry-raseiniu-r.json"
+RASEINIAI_ADDRESSES_FILE = DATA_DIR / "address-points-raseiniu-r.json"
+JONAVA_MUNICIPALITY = ("Jonavos rajono", 46)
+JONAVA_REGISTRY_FILE = DATA_DIR / "registry-jonavos-r.json"
+JONAVA_ADDRESSES_FILE = DATA_DIR / "address-points-jonavos-r.json"
 # Šilutės r., Trakų r. and Šalčininkų r. (schedule_pipeline.ecoservice, a part each).
 SILUTE_MUNICIPALITY = ("Šilutės rajono", 88)
 SILUTE_REGISTRY_FILE = DATA_DIR / "registry-silutes-r.json"
@@ -277,6 +284,13 @@ def main() -> int:
             KAZLU_RUDA_ADDRESSES_FILE,
         ),
         ("Šakių r.", SAKIAI_MUNICIPALITY, SAKIAI_REGISTRY_FILE, SAKIAI_ADDRESSES_FILE),
+        (
+            "Raseinių r.",
+            RASEINIAI_MUNICIPALITY,
+            RASEINIAI_REGISTRY_FILE,
+            RASEINIAI_ADDRESSES_FILE,
+        ),
+        ("Jonavos r.", JONAVA_MUNICIPALITY, JONAVA_REGISTRY_FILE, JONAVA_ADDRESSES_FILE),
         ("Šilutės r.", SILUTE_MUNICIPALITY, SILUTE_REGISTRY_FILE, SILUTE_ADDRESSES_FILE),
         ("Trakų r.", TRAKAI_MUNICIPALITY, TRAKAI_REGISTRY_FILE, TRAKAI_ADDRESSES_FILE),
         (
