@@ -196,6 +196,12 @@ jobs:
       - name: Render privacy policy
         if: github.event_name != 'pull_request'
         run: uv run python -m schedule_pipeline.site ../PRIVACY.md --out ../site/privacy/index.html --title "Privacy Policy / Privatumo politika"
+      # regions.json: every region folder in site/ as it is deployed, so installed apps download
+      # a new one without an update (schedule_pipeline.regions). Last, after the builds and the
+      # steps that keep yesterday's data.
+      - name: Publish the index of regions
+        if: github.event_name != 'pull_request'
+        run: uv run python -m schedule_pipeline.regions --site ../site
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         if: github.event_name != 'pull_request'
         with:

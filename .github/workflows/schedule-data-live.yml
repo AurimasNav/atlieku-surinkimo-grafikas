@@ -84,6 +84,8 @@ jobs:
           if dropped:
               sys.exit(f"Much less data than published: {', '.join(dropped)}")
           EOF
+      - name: Index the region folders (regions.json)
+        run: uv run python -m schedule_pipeline.regions --site "$RUNNER_TEMP/site"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: schedule-data-${{ github.event.pull_request.number || github.ref_name }}
