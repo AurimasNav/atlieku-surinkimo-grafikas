@@ -90,6 +90,9 @@ tests:
         values: "518400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="panevezio-r",kind="glass"}'
         values: "518400x20"
+      # Radviliškio r.'s quarterly mixed waste: ends tomorrow.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="radviliskis",kind="household"}'
+        values: "86400x20"
       # Ends in 30 days: no alert.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="glass"}'
         values: "2592000x20"
@@ -129,6 +132,14 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="packaging"}'
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="glass"}'
+        values: "86400x20"
+      # Radviliškio r.: its files are posted in the last days before their periods, so its
+      # packaging 3 days before its end raises nothing, nor do its glass and green waste.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="radviliskis",kind="packaging"}'
+        values: "259200x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="radviliskis",kind="glass"}'
+        values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="radviliskis",kind="green"}'
         values: "86400x20"
       # Panevėžio RATC's food waste, last collected on 10-23 December: not watched.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="pasvalys",kind="food"}'
@@ -197,6 +208,13 @@ tests:
               severity: warning
             exp_annotations:
               summary: "alytus: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: radviliskis
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "radviliskis: the household schedule ends within a week"
           - exp_labels:
               job: siuksliaveze-data
               source: pasvalys
@@ -294,6 +312,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="plunge",kind="food"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="radviliskis",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="rokiskis",kind="glass"}'
         values: "25920000x191"
