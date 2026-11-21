@@ -530,7 +530,12 @@ def parse_file(source: SourceFile, content: bytes) -> ParseResult:
     another waste type or year than the paragraph's, too few routes, and dates mostly off the
     day of the week their row names raise ValueError; a few off it are warnings."""
     where = source.file_name
-    found = [_table(sheet, where) for sheet in sheets(source, content) if sheet[1]]
+    # Not an empty sheet ("Lapas2").
+    found = [
+        _table(sheet, where)
+        for sheet in sheets(source, content)
+        if any(cell for _, cells in sheet[1] for cell in cells)
+    ]
     if not found:
         raise ValueError(f"{where}: no sheet")
     areas: dict[str, Area] = {}

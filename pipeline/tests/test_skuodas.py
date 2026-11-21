@@ -223,10 +223,11 @@ def test_dates_off_the_day_of_the_week_of_their_row():
     assert result.warnings == ["cia.xlsx row 7: 2026-01-14 is a Trečiadienis, not Antradienis"]
 
 
-def test_hidden_columns_arent_read():
+def test_hidden_columns_and_empty_sheets_arent_read():
     book = openpyxl.load_workbook(io.BytesIO(fixture("skuodas/pakuotes-2026.xlsx")))
     book.active["P7"] = "2025-01-14"
     book.active.column_dimensions["P"].hidden = True
+    book.create_sheet("Lapas2")
     out = io.BytesIO()
     book.save(out)
     assert len(parsed("cia.xlsx", out.getvalue()).areas) == 6
