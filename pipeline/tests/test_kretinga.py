@@ -300,7 +300,8 @@ MONTHS = ("", "Liepa", "Rugpjūtis")
     ("rows", "error"),
     [
         ((ROUTE, MONTHS, ("Mišrios komunalinės atliekos", "6, 2O", "3")), "unrecognised days"),
-        ((ROUTE, MONTHS, ("Mišrios komunalinės atliekos", "6, 32", "3")), "day is out of range"),
+        # Python's own words for it differ between versions: the parser adds the cell.
+        ((ROUTE, MONTHS, ("Mišrios komunalinės atliekos", "6, 32", "3")), "'6, 32' in month 7"),
         ((ROUTE, ("", "Liepa", "Spalis"), ("Mišrios", "6", "3")), r"months \[7, 10\]"),
         ((ROUTE, MONTHS, ("Didžiosios atliekos", "6", "3")), "unknown row"),
         ((MONTHS, ("Mišrios komunalinės atliekos", "6", "3")), "days before the first route"),
