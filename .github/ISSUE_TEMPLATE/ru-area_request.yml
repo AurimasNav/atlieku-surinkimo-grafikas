@@ -11,7 +11,7 @@ body:
     id: municipality
     attributes:
       label: "Самоуправление"
-      placeholder: "например, Klaipėdos r."
+      placeholder: "например, Radviliškio r."
     validations:
       required: true
   - type: input
