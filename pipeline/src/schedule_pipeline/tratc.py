@@ -1,14 +1,21 @@
-"""Mažeikių rajonas: schedules published by the regional waste centre, UAB „Telšių regiono
-atliekų tvarkymo centras“ (TRATC).
+"""Telšių regionas: schedules published by the regional waste centre, UAB „Telšių regiono
+atliekų tvarkymo centras“ (TRATC), for Mažeikių r., Telšių r., Plungės r. and Rietavo sav.
 
-Its page for the municipality links one spreadsheet per waste type and calendar year, agreed
-with the companies that do the collecting (2026: UAB „Ecoservice“ mixed and food waste, UAB
-„Virginijus ir Ko“ packaging and glass):
+Its page for each municipality links one spreadsheet per waste type and calendar year, agreed
+with the companies that do the collecting (2026 in Mažeikių r.: UAB „Ecoservice“ mixed and
+food waste, UAB „Virginijus ir Ko“ packaging and glass):
 
     2027-MKA-grafikas-MAZEIKIAI.xlsx              mixed household waste
     2027-bioskaidzios-atliekos-MAZEIKIAI.xlsx     food and green waste (one container)
     Mazeikiai_pakuociu-grafikas-_2026.xlsx        packaging and glass
     2027-Stambiagabariciu-grafikas-MAZEIKIAI.xlsx bulky waste: by registration, not read
+    2026-misriu_KP_SP_viesinimui-07.xlsx          Telšių r.: mixed waste, packaging ("KP") and
+                                                  glass ("SP") in one file
+    Kopija-Plunge-2026-grafikas-003-3.xlsx        a name that says nothing: the title above its
+                                                  table does ("... pakuočių ir stiklo atliekų
+                                                  išvežimo paslaugos grafikas 2026 m.")
+
+Telšių r. publishes its green and food waste schedule only as a PDF, which isn't read.
 
 A sheet is a table of routes with the days of every month:
 
@@ -16,14 +23,21 @@ A sheet is a table of routes with the days of every month:
     1   | Žagarėlės g. miesto sen., Neries g., ... | 5; 19  | 2; 16   | 2; 16; 30 | ...
     7   | Lendriškiai, Laižuva, Barystės, ...     | 11     | 8       | 8         | ...
 
-The packaging file has two rows per route (the second without the route's text), told apart by
-a column "Atliekų rūšis": "Pakuočių atliekos" and "Stiklo pakuotė".
+Files with several waste types have a row per type and route (the next ones without the
+route's text), told apart by a column "Atliekų rūšis" ("Pakuočių atliekos", "Stiklo pakuotė",
+"Mišrios komunalinės atliekos") or "Atliekos" ("mišrios", "KP", "SP"). Routes of the shared
+containers of apartment buildings (weekdays instead of dates, and no list of places) and of
+businesses aren't read.
 
-A route is a list of streets of Mažeikiai or of villages; locations.RouteList links them to the
-Address Register. Next year's files appear in autumn with the routes renumbered and reworded:
-a route that covers the same places as one of this year's continues it (combine).
+A route is a list of streets of the municipality's town and of villages (locations.RouteList),
+or of the villages of each eldership after its name, "Šateikių sen.: Aleksandravo k., ..."
+(locations.SectionRoutes): the mixed waste files of Plungės r. and Rietavo sav. Next year's
+files appear in autumn with the routes renumbered and reworded: a route that covers the same
+places as one of this year's continues it (combine).
 
-Writes <out>/schedule.json and <out>/addresses.json, in the format of the Vilniaus r. files.
+The four municipalities are written to one <out>/schedule.json and <out>/addresses.json, in
+the format of the Vilniaus r. files, a part (model.Provider) each: the app downloads one file
+for the region, and a municipality whose build fails keeps its part of yesterday's file.
 Run: python -m schedule_pipeline.tratc --out ../site/mazeikiu-r
 """
 
@@ -34,9 +48,11 @@ import io
 import json
 import re
 import sys
+import zipfile
 from collections import Counter, defaultdict
+from dataclasses import dataclass, field
 from datetime import date, datetime
-from functools import partial
+from functools import cache, partial
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote, urljoin, urlsplit
@@ -47,43 +63,166 @@ from . import addresses as address_points
 from . import build, http, snapshot
 from . import registry as address_register
 from .dates import WEEKDAY_NAMES, parse_month, parse_weekdays
-from .locations import Index, RouteList
+from .locations import Index, MixedRoutes, RouteList, SectionRoutes
 from .model import Area, Kind, ParseResult, Provider, SourceFile, clean_text
 from .registry import Registry, fold
 
-PAGE_URL = "https://tratc.lt/atlieku-surinkimo-grafikai/atlieku-surinkimo-grafikai-mazeikiai/"
-MUNICIPALITY = snapshot.MAZEIKIAI_MUNICIPALITY  # the register's name and code
-PROVIDER = Provider(
-    id="mazeikiai",
-    name="UAB „Telšių regiono atliekų tvarkymo centras“",
-    url=PAGE_URL,
-    # Every eldership of the municipality (register names).
-    elderships=frozenset(
-        {
-            "Laižuvos",
-            "Mažeikių",
-            "Mažeikių apylinkės",
-            "Reivyčių",
-            "Sedos",
-            "Šerkšnėnų",
-            "Tirkšlių",
-            "Viekšnių",
-            "Židikų",
-        }
+PAGES = "https://tratc.lt/atlieku-surinkimo-grafikai/"
+PAGE_URL = f"{PAGES}atlieku-surinkimo-grafikai-mazeikiai/"
+# Yesterday's data, for the part of a municipality whose build fails today.
+PUBLISHED_URL = f"{build.PUBLISHED_URL}/mazeikiu-r"
+COMPANY = "UAB „Telšių regiono atliekų tvarkymo centras“"
+
+
+@dataclass(frozen=True)
+class Municipality:
+    """What differs per municipality: its page, whom its schedules serve, and how much of
+    them to expect."""
+
+    provider: Provider
+    register: tuple[str, int]  # the Address Register's name and code
+    registry_file: Path
+    addresses_file: Path
+    # Fewer routes of a kind than this, this year or in next year's file, means the format
+    # changed and the parser or the matching missed rows.
+    min_areas: dict[Kind, int]
+    # Settlements that must get a mixed waste schedule.
+    min_household_places: int
+    min_address_points: int
+    label: str  # for the job summary
+    # Kinds of schedule in a file of each kind, where a file has more than one.
+    file_kinds: dict[Kind, tuple[Kind, ...]] = field(
+        default_factory=lambda: {"packaging": ("packaging", "glass")}
+    )
+
+
+MAZEIKIAI = Municipality(
+    Provider(
+        id="mazeikiai",
+        name=COMPANY,
+        url=PAGE_URL,
+        # Every eldership of the municipality (register names).
+        elderships=frozenset(
+            {
+                "Laižuvos",
+                "Mažeikių",
+                "Mažeikių apylinkės",
+                "Reivyčių",
+                "Sedos",
+                "Šerkšnėnų",
+                "Tirkšlių",
+                "Viekšnių",
+                "Židikų",
+            }
+        ),
+        route_town="Mažeikiai",
+        kinds=("household", "packaging", "glass", "food"),
     ),
-    route_town="Mažeikiai",
-    kinds=("household", "packaging", "glass", "food"),
+    snapshot.MAZEIKIAI_MUNICIPALITY,
+    snapshot.MAZEIKIAI_REGISTRY_FILE,
+    snapshot.MAZEIKIAI_ADDRESSES_FILE,
+    # The 2026 and 2027 files had 21-22 mixed waste routes, 17 packaging and 17 glass routes
+    # and 4 food waste routes (Mažeikiai town only), and gave a mixed waste schedule to 131 of
+    # the 190 settlements.
+    min_areas={"household": 15, "packaging": 12, "glass": 12, "food": 3},
+    min_household_places=100,
+    # About 19,900 addresses in 2026.
+    min_address_points=10_000,
+    label="Mažeikių r.",
 )
-# The 2026 and 2027 files had 21-22 mixed waste routes, 17 packaging and 17 glass routes and 4
-# food waste routes (Mažeikiai town only), and gave a mixed waste schedule to 131 of the
-# 190 settlements. Far fewer means the format changed and the parser or the matching missed
-# rows.
-MIN_AREAS: dict[Kind, int] = {"household": 15, "packaging": 12, "glass": 12, "food": 3}
-MIN_HOUSEHOLD_PLACES = 100
-# The packaging file also has the glass schedule.
-FILE_KINDS: dict[Kind, tuple[Kind, ...]] = {"packaging": ("packaging", "glass")}
-# Mažeikių r. had about 19,900 addresses in 2026.
-MIN_ADDRESS_POINTS = 10_000
+TELSIAI = Municipality(
+    Provider(
+        id="telsiai",
+        name=COMPANY,
+        url=f"{PAGES}atlieku-surinkimo-grafikai-telsiai/",
+        elderships=frozenset(
+            {
+                "Degaičių",
+                "Gadūnavo",
+                "Luokės",
+                "Nevarėnų",
+                "Ryškėnų",
+                "Telšių miesto",
+                "Tryškių",
+                "Upynos",
+                "Varnių",
+                "Viešvėnų",
+                "Žarėnų",
+            }
+        ),
+        route_town="Telšiai",
+        section_town="Telšiai",
+    ),
+    snapshot.TELSIAI_MUNICIPALITY,
+    snapshot.TELSIAI_REGISTRY_FILE,
+    snapshot.TELSIAI_ADDRESSES_FILE,
+    # 2026: 20 routes, each with mixed waste, packaging and glass dates, which gave a mixed
+    # waste schedule to 232 of the 393 settlements (16,100 of the 16,700 addresses).
+    min_areas={"household": 15, "packaging": 15, "glass": 15},
+    min_household_places=200,
+    # About 16,700 addresses in 2026.
+    min_address_points=9_000,
+    label="Telšių r.",
+    file_kinds={"household": ("household", "packaging", "glass")},
+)
+PLUNGE = Municipality(
+    Provider(
+        id="plunge",
+        name=COMPANY,
+        url=f"{PAGES}atlieku-surinkimo-grafikai-plunge/",
+        elderships=frozenset(
+            {
+                "Alsėdžių",
+                "Babrungo",
+                "Kulių",
+                "Nausodžio",
+                "Paukštakių",
+                "Platelių",
+                "Plungės miesto",
+                "Stalgėnų",
+                "Šateikių",
+                "Žemaičių Kalvarijos",
+                "Žlibinų",
+            }
+        ),
+        route_town="Plungė",
+        section_town="Plungė",
+        kinds=("household", "packaging", "glass", "food"),
+    ),
+    snapshot.PLUNGE_MUNICIPALITY,
+    snapshot.PLUNGE_REGISTRY_FILE,
+    snapshot.PLUNGE_ADDRESSES_FILE,
+    # 2026: 12 mixed waste routes (13 in 2027), 13 packaging and 13 glass routes and 5 food
+    # waste routes (Plungė and a few villages), which gave a mixed waste schedule to 185 of the
+    # 201 settlements.
+    min_areas={"household": 9, "packaging": 10, "glass": 10, "food": 3},
+    min_household_places=150,
+    # About 14,100 addresses in 2026.
+    min_address_points=8_000,
+    label="Plungės r.",
+)
+RIETAVAS = Municipality(
+    Provider(
+        id="rietavas",
+        name=COMPANY,
+        url=f"{PAGES}atlieku-surinkimo-grafikai-rietavas/",
+        elderships=frozenset({"Daugėdų", "Medingėnų", "Rietavo", "Rietavo miesto", "Tverų"}),
+        route_town="Rietavas",
+        section_town="Rietavas",
+    ),
+    snapshot.RIETAVAS_MUNICIPALITY,
+    snapshot.RIETAVAS_REGISTRY_FILE,
+    snapshot.RIETAVAS_ADDRESSES_FILE,
+    # 2026: 4 mixed waste, 4 packaging and 4 glass routes, which gave a mixed waste schedule
+    # to 88 of the 108 settlements.
+    min_areas={"household": 3, "packaging": 3, "glass": 3},
+    min_household_places=60,
+    # About 3,500 addresses in 2026.
+    min_address_points=2_000,
+    label="Rietavo sav.",
+)
+MUNICIPALITIES = (MAZEIKIAI, TELSIAI, PLUNGE, RIETAVAS)
+PROVIDER = MAZEIKIAI.provider
 
 
 # --- the page ----------------------------------------------------------------
@@ -112,7 +251,8 @@ def is_bulky(name: str) -> bool:
 
 
 def classify(name: str) -> Kind | None:
-    """By file name. "MKA" is "mišrios komunalinės atliekos"."""
+    """By file name, or by the title above a table. "MKA" is "mišrios komunalinės
+    atliekos"."""
     folded, words = _name_words(name)
     if is_bulky(name):
         return None
@@ -130,31 +270,49 @@ def file_year(name: str) -> int | None:
     return years.pop() if len(years) == 1 else None
 
 
-def find_files(
-    html: str, page_url: str = PAGE_URL, unknown: list[str] | None = None
-) -> list[SourceFile]:
-    """The schedule spreadsheets linked from the page (the PDFs next to them are the same
-    tables, harder to read). Names of spreadsheets that are no kind of schedule we know are
-    added to `unknown`: a new way of naming the files must not go unnoticed."""
+def spreadsheets(html: str, page_url: str = PAGE_URL) -> list[tuple[str, str]]:
+    """(url, file name) of the spreadsheets the page links to (the PDFs next to them are the
+    same tables, harder to read)."""
     collector = _Links()
     collector.feed(html)
-    files: list[SourceFile] = []
-    seen: set[str] = set()
+    found: dict[str, str] = {}
     for href in collector.links:
         url = urljoin(page_url, href)
         path = PurePosixPath(unquote(urlsplit(url).path))
-        kind = classify(path.name)
-        if path.suffix.lower() != ".xlsx" or "/uploads/" not in path.as_posix():
-            continue
-        if url in seen:
-            continue
-        seen.add(url)
-        if kind is None:
-            if unknown is not None and not is_bulky(path.name):
-                unknown.append(path.name)
-            continue
-        files.append(SourceFile(kind=kind, url=url, file_name=path.name))
+        if path.suffix.lower() == ".xlsx" and "/uploads/" in path.as_posix():
+            found.setdefault(url, path.name)
+    return list(found.items())
+
+
+def find_files(
+    html: str, page_url: str = PAGE_URL, unknown: list[str] | None = None
+) -> list[SourceFile]:
+    """The schedule spreadsheets linked from the page, by their names. Names of spreadsheets
+    that are no kind of schedule we know are added to `unknown`."""
+    files: list[SourceFile] = []
+    for url, name in spreadsheets(html, page_url):
+        kind = classify(name)
+        if kind is not None:
+            files.append(SourceFile(kind=kind, url=url, file_name=name))
+        elif unknown is not None and not is_bulky(name):
+            unknown.append(name)
     return files
+
+
+def classify_content(content: bytes) -> Kind | None:
+    """By the title above the table of the first sheet that has one."""
+    try:
+        workbook = openpyxl.load_workbook(io.BytesIO(content), data_only=True)
+    except (zipfile.BadZipFile, KeyError, ValueError, OSError):  # not a spreadsheet
+        return None
+    for sheet in workbook.worksheets:
+        if sheet.sheet_state != "visible":
+            continue
+        texts = [[clean_text(c) for c in row] for row in _visible_rows(sheet)]
+        header = _month_row(texts)
+        if header is not None:
+            return classify(" ".join(c for row in texts[:header] for c in row if c))
+    return None
 
 
 def _uploaded(file: SourceFile) -> str:
@@ -195,28 +353,49 @@ def select_files(files: list[SourceFile], today: date) -> tuple[list[SourceFile]
     return selected, warnings
 
 
-def download(today: date, keep_days: int) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
-    html = http.get(PAGE_URL, timeout=60).decode("utf-8", errors="replace")
-    unknown: list[str] = []
-    files, warnings = select_files(find_files(html, unknown=unknown), today)
-    warnings += [f"{name}: a spreadsheet of no kind we know; not read" for name in unknown]
-    return [(f, http.get(f.url, timeout=60)) for f in files], warnings
+def download(
+    municipality: Municipality, today: date, keep_days: int
+) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
+    page = municipality.provider.url
+    html = http.get(page, timeout=60).decode("utf-8", errors="replace")
+    files: list[SourceFile] = []
+    fetched: dict[str, bytes] = {}
+    warnings: list[str] = []
+    for url, name in spreadsheets(html, page):
+        kind = classify(name)
+        if kind is None and not is_bulky(name):
+            # A name that doesn't tell ("Kopija-Plunge-2026-grafikas-003-3.xlsx"): the title
+            # of its table does. A new way of naming the files must not go unnoticed.
+            fetched[url] = http.get(url, timeout=60)
+            kind = classify_content(fetched[url])
+            if kind is None:
+                warnings.append(f"{name}: a spreadsheet of no kind we know; not read")
+        if kind is not None:
+            files.append(SourceFile(kind=kind, url=url, file_name=name))
+    selected, select_warnings = select_files(files, today)
+    sources = [(f, fetched.get(f.url) or http.get(f.url, timeout=60)) for f in selected]
+    return sources, warnings + select_warnings
 
 
 # --- the spreadsheets ----------------------------------------------------------
 
 
 def parse_days(value: object) -> list[int]:
-    """A month cell: 28, "5; 19", "3;31" or "3; 17;31". Raises ValueError for anything else,
-    so a format change fails loudly."""
+    """A month cell: 28, "5; 19", "3;31" or "3; 17;31", or 14.28, two days typed with a dot
+    that the spreadsheet took for a number. Raises ValueError for anything else, so a format
+    change fails loudly."""
     if value is None:
         return []
     if isinstance(value, bool | datetime | date):
         raise ValueError(f"unrecognised day list: {value!r}")
     if isinstance(value, int | float):
-        if value != int(value):
+        two = re.fullmatch(r"(\d{1,2})\.(\d{2})", repr(value))
+        if value == int(value):
+            days = [int(value)]
+        elif two and int(two[1]) < int(two[2]):
+            days = [int(two[1]), int(two[2])]
+        else:
             raise ValueError(f"unrecognised day list: {value!r}")
-        days = [int(value)]
     else:
         compact = re.sub(r"\s+", "", str(value))
         if not compact:
@@ -243,20 +422,36 @@ def _visible_rows(sheet) -> list[list[object]]:
     ]
 
 
+def _month_row(texts: list[list[str]]) -> int | None:
+    """The row of the months' names, at the top of the table."""
+    return next(
+        (i for i, row in enumerate(texts) if sum(1 for c in row if parse_month(c)) >= 6), None
+    )
+
+
 def _row_kind(text: str) -> Kind | None:
     folded = fold(text)
-    if "stikl" in folded:
+    if "stikl" in folded or folded == "sp":
         return "glass"
-    if "pakuo" in folded:
+    if "pakuo" in folded or folded == "kp":
         return "packaging"
+    if "misri" in folded:
+        return "household"
     return None
 
 
-def parse_sheet(rows: list[list[object]], kind: Kind, title: str, where: str) -> ParseResult:
+# "Plungės m. daugiabučių namų kolektyvinės surinkimo aikštelės": the shared containers of
+# apartment buildings, with weekdays ("TREČIADIENIAIS") or dates for no list of places.
+_SHARED = re.compile(r"daugiabu|kolektyvin")
+# "Plungės raj.sav. juridiniai asmenys (įmonės)": businesses.
+_BUSINESSES = re.compile(r"juridin|\bimon")
+
+
+def parse_sheet(
+    rows: list[list[object]], kind: Kind, title: str, where: str, provider: str = PROVIDER.id
+) -> ParseResult:
     texts = [[clean_text(c) for c in row] for row in rows]
-    header = next(
-        (i for i, row in enumerate(texts) if sum(1 for c in row if parse_month(c)) >= 6), None
-    )
+    header = _month_row(texts)
     if header is None:
         return ParseResult(areas=[])
     months = [(i, m) for i, c in enumerate(texts[header]) if (m := parse_month(c))]
@@ -278,17 +473,21 @@ def parse_sheet(rows: list[list[object]], kind: Kind, title: str, where: str) ->
     name_col = next((i for i, t in enumerate(titles) if "marsrutas" in t), None)
     if name_col is None:
         raise ValueError(f"{where}: no route column in {texts[header]}")
-    kind_col = next((i for i, t in enumerate(titles) if "atlieku rusis" in t), None)
+    kind_col = next(
+        (i for i, t in enumerate(titles) if "atlieku rusis" in t or t == "atliekos"), None
+    )
     weekday_col = next((i for i, t in enumerate(titles) if "savaites diena" in t), None)
 
     areas: dict[str, Area] = {}
     warnings: list[str] = []
     route = ""
+    previous: Area | None = None  # the row above
+    skipping = False  # the rows of a route that isn't read
     for line_no, (row, cells) in enumerate(
         zip(rows[header + 1 :], texts[header + 1 :], strict=True), start=header + 2
     ):
         name = cells[name_col]
-        if re.match(r"(PASTAB|SUDERINTA)", name):
+        if re.match(r"(PASTAB|SUDERINTA)", name) or fold(name).startswith("primename"):
             break
         if fold(name).startswith("kolektyvinio"):
             # Shared containers of apartment buildings: weekday rules for a list of houses.
@@ -299,8 +498,20 @@ def parse_sheet(rows: list[list[object]], kind: Kind, title: str, where: str) ->
             continue
         if name.isdigit():  # a row that numbers the columns
             continue
+        if name:
+            shared = bool(_SHARED.search(fold(name)))
+            skipping = shared or bool(_BUSINESSES.search(fold(name)))
+            if shared:
+                warnings.append(f"{where} row {line_no}: shared containers; not read")
+        if skipping:
+            continue
         row_kind = kind
-        if kind_col is not None:
+        # A second line of the row above, for a second date in a month: the other cells are
+        # merged with the row above (Plungės r. 2026: "28" over "20" in January).
+        more = kind_col is not None and not name and not cells[kind_col] and previous is not None
+        if more:
+            row_kind = previous.kind
+        elif kind_col is not None:
             found = _row_kind(cells[kind_col])
             if found is None:
                 raise ValueError(f"{where} row {line_no}: unknown waste type {cells[kind_col]!r}")
@@ -310,7 +521,7 @@ def parse_sheet(rows: list[list[object]], kind: Kind, title: str, where: str) ->
         route = name or route
         if not route:
             raise ValueError(f"{where} row {line_no}: dates before the first route")
-        area = Area(kind=row_kind, name=route, provider=PROVIDER.id)
+        area = Area(kind=row_kind, name=route, provider=provider)
         for (_, month), value in zip(months, values, strict=True):
             try:
                 for day in parse_days(value):
@@ -326,19 +537,22 @@ def parse_sheet(rows: list[list[object]], kind: Kind, title: str, where: str) ->
                 area.weekday = WEEKDAY_NAMES[weekdays[0]]
         existing = areas.setdefault(area.id, area)
         if existing is not area:
-            warnings.append(f"{where} row {line_no}: {route[:60]!r} is listed twice")
+            if not more:
+                warnings.append(f"{where} row {line_no}: {route[:60]!r} is listed twice")
             existing.dates |= area.dates
+        previous = existing
     return ParseResult(areas=list(areas.values()), warnings=warnings)
 
 
-def parse_file(source: SourceFile, content: bytes) -> ParseResult:
+def parse_file(source: SourceFile, content: bytes, provider: Provider = PROVIDER) -> ParseResult:
     workbook = openpyxl.load_workbook(io.BytesIO(content), data_only=True)
     result = ParseResult(areas=[])
     for sheet in workbook.worksheets:
         if sheet.sheet_state != "visible":
             continue
         where = f"{source.file_name} [{sheet.title}]"
-        parsed = parse_sheet(_visible_rows(sheet), source.kind, sheet.title, where)
+        rows = _visible_rows(sheet)
+        parsed = parse_sheet(rows, source.kind, sheet.title, where, provider.id)
         result.areas += parsed.areas
         result.warnings += parsed.warnings
     if not result.areas:
@@ -357,7 +571,10 @@ def parse_file(source: SourceFile, content: bytes) -> ParseResult:
 
 
 def combine(
-    parsed: list[tuple[SourceFile, ParseResult]], registry: Registry, today: date
+    parsed: list[tuple[SourceFile, ParseResult]],
+    registry: Registry,
+    today: date,
+    municipality: Municipality = MAZEIKIAI,
 ) -> list[str]:
     """Joins next year's routes to this year's, in place.
 
@@ -368,7 +585,11 @@ def combine(
 
     Next year's file is checked now, not on 1 January when it takes over: too few routes in
     it raise ValueError."""
-    reader = RouteList(Index(registry), PROVIDER, defaultdict(dict))
+    provider = municipality.provider
+    index, variants = Index(registry), defaultdict(dict)
+    reader: RouteList | MixedRoutes = RouteList(index, provider, variants)
+    if provider.section_town:
+        reader = MixedRoutes(reader, SectionRoutes(index, provider, variants))
     warnings: list[str] = []
     by_kind: dict[Kind, dict[int, list[tuple[ParseResult, Area]]]] = defaultdict(
         lambda: defaultdict(list)
@@ -385,10 +606,11 @@ def combine(
         for year in sorted(years):
             if year == base:
                 continue
-            if year > base and len(years[year]) < MIN_AREAS.get(kind, 0):
+            minimum = municipality.min_areas.get(kind, 0)
+            if year > base and len(years[year]) < minimum:
                 raise ValueError(
                     f"only {len(years[year])} {kind} routes in the {year} file "
-                    f"(expected at least {MIN_AREAS[kind]})"
+                    f"(expected at least {minimum})"
                 )
             signatures = {id(area): reader.signature(area) for _, area in years[year]}
             times = Counter(signatures.values())
@@ -416,18 +638,39 @@ def combine(
     return warnings
 
 
-SOURCE = build.Source(
-    PROVIDER,
-    download,
-    parse_file,
-    MIN_AREAS,
-    MIN_HOUSEHOLD_PLACES,
-    FILE_KINDS,
-    combine,
-)
+def source(municipality: Municipality) -> build.Source:
+    return build.Source(
+        municipality.provider,
+        partial(download, municipality),
+        partial(parse_file, provider=municipality.provider),
+        municipality.min_areas,
+        municipality.min_household_places,
+        municipality.file_kinds,
+        partial(combine, municipality=municipality),
+    )
+
+
+SOURCE = source(MAZEIKIAI)
 
 
 # --- the output ------------------------------------------------------------------
+
+
+def _once(fetch, source: str, down: set[str]):
+    """`fetch`, unless `source` already failed for another municipality (added to `down`): the
+    register's sites block cloud servers such as GitHub Actions runners, and each try costs
+    its retries."""
+
+    def live():
+        if source in down:
+            raise OSError("unavailable for the municipality before; not tried again")
+        try:
+            return fetch()
+        except OSError:
+            down.add(source)
+            raise
+
+    return live
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -436,37 +679,80 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--keep-days", type=int, default=31, help="drop pickup dates older than this many days"
     )
+    parser.add_argument(
+        "--published",
+        default=PUBLISHED_URL,
+        help="site folder with yesterday's schedule.json, for a municipality whose build fails",
+    )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="fail if any municipality's build fails instead of keeping its published part",
+    )
     args = parser.parse_args(argv)
 
-    name, code = MUNICIPALITY
-    registry, registry_note = build.live_or_snapshot(
-        "Address Register",
-        partial(address_register.fetch, name),
-        partial(snapshot.load_registry, snapshot.MAZEIKIAI_REGISTRY_FILE),
-    )
-    points, points_note = build.live_or_snapshot(
-        "Address points",
-        partial(address_points.fetch, code),
-        partial(snapshot.load_points, snapshot.MAZEIKIAI_ADDRESSES_FILE),
-    )
+    loader = None if args.strict else cache(build.load_published(args.published))
+    results: list[build.PartResult] = []
+    registries: list[tuple[Municipality, Registry]] = []
+    points: list[address_points.AddressPoint] = []
+    notes: list[str] = []
+    down: set[str] = set()  # live sources that failed
     try:
-        results = build.build_parts((SOURCE,), registry, date.today(), args.keep_days, None)
-        dataset = build.merge_parts([(r.provider, r.part) for r in results], PAGE_URL)
+        for municipality in MUNICIPALITIES:
+            name, code = municipality.register
+            registry, registry_note = build.live_or_snapshot(
+                f"Address Register ({municipality.label})",
+                _once(partial(address_register.fetch, name), "register", down),
+                partial(snapshot.load_registry, municipality.registry_file),
+            )
+            found, points_note = build.live_or_snapshot(
+                f"Address points ({municipality.label})",
+                _once(partial(address_points.fetch, code), "points", down),
+                partial(snapshot.load_points, municipality.addresses_file),
+            )
+            notes += [n for n in (registry_note, points_note) if n]
+            registries.append((municipality, registry))
+            points += found
+            results += build.build_parts(
+                (source(municipality),), registry, date.today(), args.keep_days, loader
+            )
+        dataset = build.merge_parts([(r.provider, r.part) for r in results if r.part], PAGES)
         served = {loc["id"] for loc in dataset["locations"]}
-        addresses = address_points.build_addresses(points, registry, served, dataset["generatedAt"])
-        if len(addresses["points"]) < MIN_ADDRESS_POINTS:
-            raise build.ValidationError(f"only {len(addresses['points'])} address points")
+        everything = Registry([s for _, registry in registries for s in registry.settlements])
+        addresses = address_points.build_addresses(
+            points, everything, served, dataset["generatedAt"]
+        )
+        places = Counter(addresses["places"][point[2]][0] for point in addresses["points"])
+        for municipality, registry in registries:
+            count = sum(places[f"g{s.code}"] for s in registry.settlements)
+            if any(r.part for r in results if r.provider == municipality.provider) and (
+                count < municipality.min_address_points
+            ):
+                raise build.ValidationError(f"{municipality.label}: only {count} address points")
     except (build.ValidationError, OSError, ValueError) as error:
         print(f"Validation failed: {error}", file=sys.stderr)
         return 1
+
+    for municipality, r in zip(MUNICIPALITIES, results, strict=True):
+        if r.error:
+            if r.part:
+                kept = f"the data published on {r.part['generatedAt'][:10]} is kept"
+            else:
+                kept = "there is no published data to keep, so it is left out"
+            # An annotation on the workflow run.
+            print(f"::warning::The {municipality.label} build failed; {kept}. {r.error}")
 
     args.out.mkdir(parents=True, exist_ok=True)
     for file_name, data in (("schedule.json", dataset), ("addresses.json", addresses)):
         (args.out / file_name).write_text(
             json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
         )
-    notes = [n for n in (registry_note, points_note) if n]
-    build.write_summary(dataset, results, notes, "Mažeikių r. (TRATC)", "mazeikiu-r/schedule.json")
+    # A section per municipality: the company's name is the same in each.
+    for municipality, r in zip(MUNICIPALITIES, results, strict=True):
+        part = r.part or {"locations": [], "areas": []}
+        title, file_name = f"{municipality.label} (TRATC)", f"{args.out.name}/schedule.json"
+        build.write_summary(part, [r], [], title, f"{municipality.label} in {file_name}")
+    build.write_summary(dataset, [], notes, "Telšių RATC", f"{args.out.name}/schedule.json")
     return 0
 
 

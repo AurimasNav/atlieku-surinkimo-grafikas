@@ -1,8 +1,12 @@
-"""Mažeikių r.: the TRATC page, the yearly spreadsheets, the routes and the joined years."""
+"""Telšių RATC: the pages of Mažeikių r., Telšių r., Plungės r. and Rietavo sav., the yearly
+spreadsheets, the routes and the joined years."""
 
+import dataclasses
 import io
 import json
+import re
 from datetime import date
+from urllib.parse import unquote
 
 import openpyxl
 import pytest
@@ -96,7 +100,8 @@ def test_unknown_spreadsheets_are_reported(monkeypatch):
     monkeypatch.setattr(
         tratc.http, "get", lambda url, timeout=0: html.encode() if url == tratc.PAGE_URL else b""
     )
-    _, warnings = tratc.download(TODAY, 31)
+    # Its name says nothing and its content isn't a schedule.
+    _, warnings = tratc.download(tratc.MAZEIKIAI, TODAY, 31)
     assert warnings == [
         "2028-komunaliniu-atlieku-grafikas.xlsx: a spreadsheet of no kind we know; not read"
     ]
@@ -285,7 +290,8 @@ def test_town_is_split_by_street(part):
     assert household[streets["Draugystės g."]] == []
     assert town["schedule"]["food"]["streets"][streets["Rasos 3-ioji g."]] == []
     # All four kinds of waste for a street of private houses.
-    assert all(town["schedule"][k]["streets"][streets["Žemaitės g."]] for k in tratc.MIN_AREAS)
+    kinds = tratc.MAZEIKIAI.min_areas
+    assert all(town["schedule"][k]["streets"][streets["Žemaitės g."]] for k in kinds)
 
 
 def test_garden_communities_are_choices_of_the_town(part):
@@ -359,13 +365,16 @@ def routes(*rows):
     )
 
 
-def test_two_routes_never_continue_one(monkeypatch):
-    monkeypatch.setattr(tratc, "MIN_AREAS", {})
+NO_MINIMUM = dataclasses.replace(tratc.MAZEIKIAI, min_areas={})
+
+
+def test_two_routes_never_continue_one():
     this_year = routes(("Viekšniai", date(2026, 12, 7)), ("Seda", date(2026, 12, 8)))
     # A route split in two with wording that reads as the same places.
     next_year = routes(("Viekšniai", date(2027, 1, 4)), ("Viekšniai (dalis)", date(2027, 1, 11)))
     file = SourceFile("household", "https://x/h.xlsx", "h.xlsx")
-    warnings = tratc.combine([(file, this_year), (file, next_year)], REGISTRY, date(2026, 12, 1))
+    parsed = [(file, this_year), (file, next_year)]
+    warnings = tratc.combine(parsed, REGISTRY, date(2026, 12, 1), NO_MINIMUM)
     assert this_year.areas[0].dates == {date(2026, 12, 7)}
     assert sum("doesn't match one 2026 route" in w for w in warnings) == 2
     # Routes of this year that end with it are named too.
@@ -380,8 +389,7 @@ def test_next_year_is_checked_when_it_appears():
         tratc.combine([(file, this_year), (file, next_year)], REGISTRY, date(2026, 12, 1))
 
 
-def test_a_changed_route_waits_for_its_year(monkeypatch):
-    monkeypatch.setattr(tratc, "MIN_AREAS", {})
+def test_a_changed_route_waits_for_its_year():
     this_year = ParseResult(
         [
             Area("household", "Viekšniai", dates={date(2026, 12, 7)}, provider="mazeikiai"),
@@ -395,7 +403,8 @@ def test_a_changed_route_waits_for_its_year(monkeypatch):
         ]
     )
     file = SourceFile("household", "https://x/h.xlsx", "h.xlsx")
-    warnings = tratc.combine([(file, this_year), (file, next_year)], REGISTRY, date(2026, 12, 1))
+    parsed = [(file, this_year), (file, next_year)]
+    warnings = tratc.combine(parsed, REGISTRY, date(2026, 12, 1), NO_MINIMUM)
     assert this_year.areas[0].dates == {date(2026, 12, 7), date(2027, 1, 4)}
     assert this_year.areas[1].dates == {date(2026, 12, 8)}
     assert next_year.areas == []
@@ -439,3 +448,276 @@ def test_published_file_and_its_metrics(part, tmp_path):
     # 2027-12-31: the last mixed waste pickup published.
     last = 'siuksliaveze_data_last_date_timestamp_seconds{source="mazeikiai",kind="household"}'
     assert f"{last} 1830211200" in text
+
+
+# --- Telšių r., Plungės r. and Rietavo sav. ----------------------------------------------
+
+DAY = date(2026, 11, 21)  # when the pages and files of the other municipalities were saved
+REGISTRIES = {
+    "telsiai": "registry-telsiu-r-2026-11-21.json",
+    "plunge": "registry-plunges-r-2026-11-21.json",
+    "rietavas": "registry-rietavo-sav-2026-11-21.json",
+}
+OTHERS = {m.provider.id: m for m in tratc.MUNICIPALITIES if m.provider.id in REGISTRIES}
+
+
+def serve(url, timeout=0):
+    """The saved pages and files of the other municipalities, as tratc.http.get."""
+    for municipality in OTHERS.values():
+        if url == municipality.provider.url:
+            return fixture(f"tratc/page-{municipality.provider.id}.html")
+    return fixture(f"tratc/{unquote(url.rsplit('/', 1)[-1])}")
+
+
+@pytest.fixture(scope="module")
+def parts():
+    """Each municipality's part, built as the daily job does from its page."""
+    built = {}
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(tratc.http, "get", serve)
+        for key, municipality in OTHERS.items():
+            files, warnings = tratc.download(municipality, DAY, 31)
+            registry = Registry.load(FIXTURES / "tratc" / REGISTRIES[key])
+            data, more = build_dataset(files, registry, DAY, 31, tratc.source(municipality))
+            built[key] = (files, data, warnings + more)
+    return built
+
+
+def schedule_of(data, name, kind="household", district=None):
+    return place(data, name, district)["schedule"][kind]
+
+
+def street_rows(data, town, kind, label):
+    """The rows of a street; None if it's left to the app."""
+    location = place(data, town)
+    key = next(key for key, text in location["streets"] if text == label)
+    return location["schedule"][kind]["streets"].get(key)
+
+
+def test_a_name_that_says_nothing_is_read_by_its_title():
+    for name in ("Kopija-Plunge-2026-grafikas-003-3.xlsx", "Kopija-Rietavas-2026-grafikas.xlsx"):
+        assert tratc.classify(name) is None
+        assert tratc.classify_content(fixture(f"tratc/{name}")) == "packaging"
+    assert tratc.classify_content(fixture("tratc/Rietavo-MKA-2026-Grafikas-2.xlsx")) == "household"
+    assert tratc.classify_content(b"<html>Not found</html>") is None
+
+
+def test_the_schedules_of_each_municipality(parts):
+    names = {key: {(f.kind, f.file_name) for f, _ in files} for key, (files, *_) in parts.items()}
+    assert names["telsiai"] == {("household", "2026-misriu_KP_SP_viesinimui-07.xlsx")}
+    # This year's and next year's files; bulky waste ("DGA", "stambiagabarites") isn't read.
+    assert names["plunge"] == {
+        ("household", "MKA-atlieku-surinkimo-grafikas-Plunges-raj.sav_.-2026-03-12-men.xlsx"),
+        ("household", "2027-MKA-Plunge-exel.xlsx"),
+        ("packaging", "Kopija-Plunge-2026-grafikas-003-3.xlsx"),
+        ("packaging", "2027-Pakuociu-stiklo-Plunge-exel.xlsx"),
+        ("food", "Kopija-2026-m.-maisto-atliekos-Plunge.xlsx"),
+    }
+    # The 2027 mixed waste file of Rietavo sav. isn't out yet.
+    assert names["rietavas"] == {
+        ("household", "Rietavo-MKA-2026-Grafikas-2.xlsx"),
+        ("packaging", "Kopija-Rietavas-2026-grafikas.xlsx"),
+        ("packaging", "2027-pakuociu-stiklo-grafikas-RIETAVAS.xlsx"),
+    }
+
+
+@pytest.mark.parametrize(("value", "expected"), [(14.28, [14, 28]), (1.15, [1, 15])])
+def test_two_days_typed_with_a_dot(value, expected):
+    # Rietavo sav.: "14.28" in December, which the spreadsheet stores as a number.
+    assert tratc.parse_days(value) == expected
+
+
+@pytest.mark.parametrize("value", [5.1, 28.14, 14.285])
+def test_numbers_that_are_no_two_days(value):
+    with pytest.raises(ValueError):
+        tratc.parse_days(value)
+
+
+def parse(name, kind, key):
+    return tratc.parse_file(
+        SourceFile(kind, f"https://x/{name}", name), fixture(f"tratc/{name}"), OTHERS[key].provider
+    )
+
+
+def test_one_file_with_three_kinds_of_waste():
+    # Telšių r.: a row per kind ("mišrios", "KP", "SP") under each route.
+    result = parse("2026-misriu_KP_SP_viesinimui-07.xlsx", "household", "telsiai")
+    kinds = [a.kind for a in result.areas]
+    assert {k: kinds.count(k) for k in set(kinds)} == {
+        "household": 20,
+        "packaging": 20,
+        "glass": 20,
+    }
+    assert result.warnings == []
+    # The routes of shared containers are in hidden rows.
+    assert not any(a.name.startswith("Didieji") for a in result.areas)
+    route = [a for a in result.areas if a.name.startswith("Tryškių seniūnijos: Bėdakiai")]
+    household = next(a for a in route if a.kind == "household")
+    assert len(household.dates) == 26
+    assert min(household.dates) == date(2026, 1, 6) and max(household.dates) == date(2026, 12, 22)
+    glass = next(a for a in route if a.kind == "glass")
+    assert glass.dates == {
+        date(2026, 1, 19),
+        date(2026, 4, 20),
+        date(2026, 7, 13),
+        date(2026, 10, 26),
+    }
+
+
+def test_routes_of_shared_containers_and_businesses_are_not_read():
+    result = parse("2027-MKA-Plunge-exel.xlsx", "household", "plunge")
+    assert len(result.areas) == 13
+    assert not any(re.search(r"juridin|daugiabu", a.name) for a in result.areas)
+    assert result.warnings == [
+        "2027-MKA-Plunge-exel.xlsx [MKA] row 33: shared containers; not read"
+    ]
+    assert all(a.kind == "household" and a.weekday for a in result.areas)
+
+
+def test_a_second_line_of_a_row():
+    # Plungės r. 2026: a second date of January or February in the line below ("3" over "23"),
+    # the route's other cells merged. Those months are hidden: the file is for March-December.
+    result = parse(
+        "MKA-atlieku-surinkimo-grafikas-Plunges-raj.sav_.-2026-03-12-men.xlsx",
+        "household",
+        "plunge",
+    )
+    route = next(a for a in result.areas if a.name.startswith("Alsėdžių sen.:"))
+    assert min(route.dates) == date(2026, 3, 9) and max(route.dates) == date(2026, 12, 28)
+    assert not any(d.month < 3 for a in result.areas for d in a.dates)
+    title = ["Nr.", "Maršrutas", "Diena", "Atliekų rūšis", *MONTHS]
+    rows = [title, [1, "Seda", "", "Mišrios komunalinės atliekos", 3], [None, None, None, None, 23]]
+    second = tratc.parse_file(TEST_FILE, workbook(rows)).areas
+    assert [(a.kind, sorted(a.dates)) for a in second] == [
+        ("household", [date(2027, 1, 3), date(2027, 1, 23)])
+    ]
+    assert result.warnings == [
+        "MKA-atlieku-surinkimo-grafikas-Plunges-raj.sav_.-2026-03-12-men.xlsx [MKA] row 31: "
+        "shared containers; not read"
+    ]
+
+
+def test_telsiai_villages_streets_and_gardens(parts):
+    _, data, warnings = parts["telsiai"]
+    kinds = [a["kind"] for a in data["areas"]]
+    assert {k: kinds.count(k) for k in set(kinds)} == {
+        "household": 20,
+        "packaging": 20,
+        "glass": 20,
+    }
+    assert sum(1 for loc in data["locations"] if "household" in loc.get("schedule", {})) >= 230
+    # "Degaičių" in a list of streets of Telšiai is Degaičių g., not the village.
+    village = row(data, schedule_of(data, "Degaičiai")["area"])
+    assert village["name"].startswith("Degaičių seniūnijos:")
+    assert row(data, street_rows(data, "Telšiai", "household", "Degaičių g.")[0])[
+        "name"
+    ].startswith("Telšių miesto Aguonų")
+    # A street without its type is the "g.", "Ežero skg." the other one.
+    first = street_rows(data, "Telšiai", "household", "Degaičių skg.")
+    assert row(data, first[0])["name"].startswith("Telšių miesto Aukštoji")
+    assert street_rows(data, "Telšiai", "household", "Ežero skg.") == first
+    # A street no route names isn't "no pickup": the file leaves out streets of private houses
+    # (Išdegos Pušies g.). The app offers the town's routes.
+    assert street_rows(data, "Telšiai", "household", "Išdegos Pušies g.") is None
+    assert street_rows(data, "Telšiai", "household", "Luokės skg.") is None
+    assert all(schedule_of(data, "Telšiai")["streets"].values())
+    # Gardens after "Sodai :": the streets named after them ("Austelės g." of Siraičiai is
+    # named in the same route).
+    gardens = street_rows(data, "Siraičiai", "household", "Austelės g.")
+    assert row(data, gardens[0])["name"].startswith("Sodai : Aitvaras")
+    assert row(data, schedule_of(data, "Siraičiai")["area"])["name"].startswith("Ryškėnų seniūnija")
+    # "D.Palūkstis", "Sarakai I-II", and "Viešvėnai" next to "Viešvėnai II" in another route.
+    assert schedule_of(data, "Didysis Palūkstis")["area"]
+    assert schedule_of(data, "Sarakai I") == schedule_of(data, "Sarakai II")
+    assert schedule_of(data, "Viešvėnai I") != schedule_of(data, "Viešvėnai II")
+    assert any("not a settlement or a street: household: Jampolė" in w for w in warnings)
+
+
+def test_plunge_sections_lists_and_next_year(parts):
+    _, data, warnings = parts["plunge"]
+    # "Žemaičių Kalvarijos sen.:" is one eldership; its town and village of one name.
+    for kind in ("mstl.", "k."):
+        location = next(
+            loc
+            for loc in data["locations"]
+            if loc["name"] == "Žemaičių Kalvarija" and loc["type"] == kind
+        )
+        assert row(data, location["schedule"]["household"]["area"])["name"].startswith(
+            "Žemaičių Kalvarijos sen.:"
+        )
+    # The 2027 route continues the 2026 one: the dates of both years.
+    dates = row(data, schedule_of(data, "Šateikiai")["area"])["dates"]
+    assert {"2026-11-03", "2026-12-29", "2027-01-12", "2027-12-28"} <= set(dates)
+    # A route that changed waits for its year.
+    assert any("the 2026 route 'Babrungo sen.: Babrungėnų k." in w for w in warnings)
+    # Two parts of Medsėdžiai in two routes: the app asks.
+    assert len(schedule_of(data, "Medsėdžiai")["candidates"]) == 2
+    # Food waste: "Pakerai (Skalsos g.)" in one route, "Pakerai (išskyrus Skalsos g.)" in another.
+    food = schedule_of(data, "Pakerai", "food")
+    assert row(data, food["area"])["name"].startswith("Dariaus ir Girėno g. nuo Stoties g.")
+    assert street_rows(data, "Pakerai", "food", "Skalsos g.") != [food["area"]]
+    # Streets of Plungė in the packaging routes, with their types.
+    both = street_rows(data, "Plungė", "packaging", "Žemaitės skg.")
+    assert street_rows(data, "Plungė", "packaging", "Žemaitės g.") == both
+    assert row(data, both[0])["name"].startswith("Plungės m.individualių namų: Žemaitės g.")
+
+
+def test_rietavas_villages_of_one_name_and_the_town(parts):
+    _, data, _ = parts["rietavas"]
+    # Patyris of Medingėnų sen. and of Rietavo sen., in two sections of two routes.
+    east = row(data, schedule_of(data, "Patyris", district="Medingėnų")["area"])
+    west = row(data, schedule_of(data, "Patyris", district="Rietavo")["area"])
+    assert east["name"].startswith("Daugėdų sen.:") and west["name"].startswith(
+        "Rietavo miesto sen.:"
+    )
+    # "14.28": the last two pickups of the year.
+    village = row(data, schedule_of(data, "Kungiai")["area"])
+    assert village["dates"][-2:] == ["2026-12-14", "2026-12-28"]
+    # "Sauslaukis (Rasos g.)" in one packaging route, "Sauslaukis" in another.
+    packaging = schedule_of(data, "Sauslaukis", "packaging")
+    assert street_rows(data, "Sauslaukis", "packaging", "Rasos g.") != [packaging["area"]]
+    # The town: by street for mixed waste, a street no route names left to the app; one route
+    # for packaging.
+    assert street_rows(data, "Rietavas", "household", "Atgimimo g.")
+    assert street_rows(data, "Rietavas", "household", "Lankų g.") is None
+    packaging = row(data, schedule_of(data, "Rietavas", "packaging")["area"])
+    assert packaging["name"].startswith("Rietavo m.individualių namų")
+
+
+def test_one_file_for_the_four_municipalities(part, parts, tmp_path):
+    mazeikiai, warnings = part
+    built = [(tratc.PROVIDER, {**mazeikiai, "warnings": len(warnings)})]
+    built += [
+        (OTHERS[key].provider, {**data, "warnings": len(more)})
+        for key, (_, data, more) in parts.items()
+    ]
+    dataset = merge_parts(built, tratc.PAGES)
+    assert [p["id"] for p in dataset["providers"]] == ["mazeikiai", "telsiai", "plunge", "rietavas"]
+    # Mažeikių r.'s part is as it was published on its own.
+    assert [a for a in dataset["areas"] if a["provider"] == "mazeikiai"] == sorted(
+        mazeikiai["areas"], key=lambda a: (a["kind"], a["name"].casefold())
+    )
+    (tmp_path / "mazeikiu-r").mkdir()
+    (tmp_path / "mazeikiu-r" / "schedule.json").write_text(json.dumps(dataset), encoding="utf-8")
+    assert status.main(["--site", str(tmp_path)]) == 0
+    text = (tmp_path / "metrics.txt").read_text(encoding="utf-8")
+    # A source each, by its provider.
+    assert 'siuksliaveze_data_places{source="mazeikiai"} 157' in text
+    for key in ("telsiai", "plunge", "rietavas"):
+        assert f'siuksliaveze_data_areas{{source="{key}",kind="household"}}' in text
+    assert 'siuksliaveze_data_areas{source="plunge",kind="food"} 5' in text
+
+
+def test_a_live_source_that_failed_is_not_tried_again():
+    # The register's sites block cloud servers; each try costs its retries.
+    calls = []
+
+    def blocked():
+        calls.append(1)
+        raise OSError("HTTP Error 403: Forbidden")
+
+    down: set[str] = set()
+    for _ in range(3):
+        with pytest.raises(OSError):
+            tratc._once(blocked, "points", down)()
+    assert len(calls) == 1 and down == {"points"}

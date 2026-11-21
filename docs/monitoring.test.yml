@@ -78,6 +78,12 @@ tests:
         values: "518400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="siauliai",kind="household"}'
         values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="telsiai",kind="glass"}'
+        values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="plunge",kind="food"}'
+        values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="rietavas",kind="household"}'
+        values: "518400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="household"}'
         values: "518400x20"
       # Ends in 30 days: no alert.
@@ -106,6 +112,9 @@ tests:
         values: "172800x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="siauliai",kind="food"}'
         values: "172800x20"
+      # Rietavo sav. glass too.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="rietavas",kind="glass"}'
+        values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="nemencine",kind="household"}'
         values: "259200x20"
       # Alytaus RATC's food waste, packaging and glass: not watched.
@@ -149,6 +158,27 @@ tests:
               severity: warning
             exp_annotations:
               summary: "siauliai: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: telsiai
+              kind: glass
+              severity: warning
+            exp_annotations:
+              summary: "telsiai: the glass schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: plunge
+              kind: food
+              severity: warning
+            exp_annotations:
+              summary: "plunge: the food schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: rietavas
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "rietavas: the household schedule ends within a week"
           - exp_labels:
               job: siuksliaveze-data
               source: alytus
@@ -235,6 +265,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jurbarkas",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="siauliai",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="plunge",kind="food"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="household"}'
         values: "25920000x191"

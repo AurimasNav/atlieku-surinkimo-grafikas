@@ -11,7 +11,8 @@ No separate agreement is needed.
 ```
 nemenkom.lt (xlsx + pdf), nkom.lt (pdf)   Vilniaus r.: one schedule.json
 grafikai.svara.lt (open-data xlsx)        Kauno r., Kaišiadorių r.: site/kauno-r/
-tratc.lt (xlsx)                           Mažeikių r.: site/mazeikiu-r/
+tratc.lt (xlsx)                           Mažeikių r., Telšių r., Plungės r., Rietavo sav.:
+                                          site/mazeikiu-r/
 gargzdusvara.eu (xlsx)                    Klaipėdos r.: site/klaipedos-r/
 uabtratc.lt (pdf)                         Jurbarko r.: site/jurbarko-r/
 sratc.lt (pdf)                            Šiaulių r., Akmenės r., Joniškio r., Kelmės r.,

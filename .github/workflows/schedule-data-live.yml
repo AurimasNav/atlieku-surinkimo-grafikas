@@ -33,8 +33,9 @@ jobs:
         run: uv run python -m schedule_pipeline --strict --out "$RUNNER_TEMP/site/schedule.json"
       - name: Build the Kauno r. and Kaišiadorių r. schedules from Kauno švara's open-data file
         run: uv run python -m schedule_pipeline.svara --out "$RUNNER_TEMP/site/kauno-r"
-      - name: Build the Mažeikių r. schedule from the files on tratc.lt
-        run: uv run python -m schedule_pipeline.tratc --out "$RUNNER_TEMP/site/mazeikiu-r"
+      - name: Build the Mažeikių r., Telšių r., Plungės r. and Rietavo sav. schedules from the files on tratc.lt
+        # --strict: a municipality whose build fails fails the check.
+        run: uv run python -m schedule_pipeline.tratc --strict --out "$RUNNER_TEMP/site/mazeikiu-r"
       - name: Build the Klaipėdos r. schedule from the spreadsheet on gargzdusvara.eu
         run: uv run python -m schedule_pipeline.gargzdu --out "$RUNNER_TEMP/site/klaipedos-r"
       - name: Build the Jurbarko r. schedule from the PDFs on uabtratc.lt

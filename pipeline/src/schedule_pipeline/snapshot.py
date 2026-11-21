@@ -71,6 +71,16 @@ ALYTUS_MUNICIPALITIES = (
 )
 ALYTUS_REGISTRY_FILE = DATA_DIR / "registry-alytaus-ratc.json"
 ALYTUS_ADDRESSES_FILE = DATA_DIR / "address-points-alytaus-ratc.json"
+# Telšių r., Plungės r. and Rietavo sav. (schedule_pipeline.tratc, next to Mažeikių r.).
+TELSIAI_MUNICIPALITY = ("Telšių rajono", 78)
+TELSIAI_REGISTRY_FILE = DATA_DIR / "registry-telsiu-r.json"
+TELSIAI_ADDRESSES_FILE = DATA_DIR / "address-points-telsiu-r.json"
+PLUNGE_MUNICIPALITY = ("Plungės rajono", 68)
+PLUNGE_REGISTRY_FILE = DATA_DIR / "registry-plunges-r.json"
+PLUNGE_ADDRESSES_FILE = DATA_DIR / "address-points-plunges-r.json"
+RIETAVAS_MUNICIPALITY = ("Rietavo", 74)
+RIETAVAS_REGISTRY_FILE = DATA_DIR / "registry-rietavo-sav.json"
+RIETAVAS_ADDRESSES_FILE = DATA_DIR / "address-points-rietavo-sav.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -153,6 +163,9 @@ def main() -> int:
             PAKRUOJO_R_REGISTRY_FILE,
             PAKRUOJO_R_ADDRESSES_FILE,
         ),
+        ("Telšių r.", TELSIAI_MUNICIPALITY, TELSIAI_REGISTRY_FILE, TELSIAI_ADDRESSES_FILE),
+        ("Plungės r.", PLUNGE_MUNICIPALITY, PLUNGE_REGISTRY_FILE, PLUNGE_ADDRESSES_FILE),
+        ("Rietavo sav.", RIETAVAS_MUNICIPALITY, RIETAVAS_REGISTRY_FILE, RIETAVAS_ADDRESSES_FILE),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)
