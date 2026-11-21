@@ -339,10 +339,11 @@ def _days(cell: str, year: int, month: int, where: str) -> set[date]:
         return set()
     if not _DAYS.fullmatch(cell):
         raise ValueError(f"{where}: unrecognised days {cell!r}")
-    try:
-        return {date(year, month, int(day)) for day in re.findall(r"\d+", cell)}
-    except ValueError as error:
-        raise ValueError(f"{where}: {error} ({cell!r} in month {month})") from error
+    days = [int(day) for day in re.findall(r"\d+", cell)]
+    last = month_end(year, month).day
+    if wrong := [day for day in days if not 1 <= day <= last]:
+        raise ValueError(f"{where}: month {month} of {year} has no day {wrong[0]} ({cell!r})")
+    return {date(year, month, day) for day in days}
 
 
 def parse_routes(
