@@ -216,12 +216,18 @@ class Routes(aratc.Routes):
     eldership = _ELDERSHIP
 
     def __init__(self, index: Index, provider: Provider, variants: dict[int, dict[str, str]]):
-        self.municipalities = (BY_PROVIDER[provider.id],)
+        self.municipalities = (self.municipality_of(provider),)
         super().__init__(index, provider, variants)
         self.towns_by_street: set[int] = set()
         self.some_houses: set[int] = set()  # villages of the row read for some houses only
         # Stops of the section being read: villages of one name without the bracket's streets.
         self.dropped: set[int] = set()
+
+    @staticmethod
+    def municipality_of(provider: Provider) -> Municipality:
+        """The municipality whose rows the provider has: a subclass reads another region's
+        (ecoservice.Routes)."""
+        return BY_PROVIDER[provider.id]
 
     def spellings(self, text: str) -> str:
         for pattern, replacement in _FIXES:

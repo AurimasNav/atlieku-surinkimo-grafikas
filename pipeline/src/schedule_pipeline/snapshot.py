@@ -124,6 +124,16 @@ KAZLU_RUDA_ADDRESSES_FILE = DATA_DIR / "address-points-kazlu-rudos-sav.json"
 SAKIAI_MUNICIPALITY = ("Šakių rajono", 84)
 SAKIAI_REGISTRY_FILE = DATA_DIR / "registry-sakiu-r.json"
 SAKIAI_ADDRESSES_FILE = DATA_DIR / "address-points-sakiu-r.json"
+# Šilutės r., Trakų r. and Šalčininkų r. (schedule_pipeline.ecoservice, a part each).
+SILUTE_MUNICIPALITY = ("Šilutės rajono", 88)
+SILUTE_REGISTRY_FILE = DATA_DIR / "registry-silutes-r.json"
+SILUTE_ADDRESSES_FILE = DATA_DIR / "address-points-silutes-r.json"
+TRAKAI_MUNICIPALITY = ("Trakų rajono", 79)
+TRAKAI_REGISTRY_FILE = DATA_DIR / "registry-traku-r.json"
+TRAKAI_ADDRESSES_FILE = DATA_DIR / "address-points-traku-r.json"
+SALCININKAI_MUNICIPALITY = ("Šalčininkų rajono", 85)
+SALCININKAI_REGISTRY_FILE = DATA_DIR / "registry-salcininku-r.json"
+SALCININKAI_ADDRESSES_FILE = DATA_DIR / "address-points-salcininku-r.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -262,6 +272,14 @@ def main() -> int:
             KAZLU_RUDA_ADDRESSES_FILE,
         ),
         ("Šakių r.", SAKIAI_MUNICIPALITY, SAKIAI_REGISTRY_FILE, SAKIAI_ADDRESSES_FILE),
+        ("Šilutės r.", SILUTE_MUNICIPALITY, SILUTE_REGISTRY_FILE, SILUTE_ADDRESSES_FILE),
+        ("Trakų r.", TRAKAI_MUNICIPALITY, TRAKAI_REGISTRY_FILE, TRAKAI_ADDRESSES_FILE),
+        (
+            "Šalčininkų r.",
+            SALCININKAI_MUNICIPALITY,
+            SALCININKAI_REGISTRY_FILE,
+            SALCININKAI_ADDRESSES_FILE,
+        ),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)

@@ -24,6 +24,8 @@ pratc.lt (xlsx)                           Pasvalio r., Rokiškio r., Biržų r.,
                                           site/panevezio-ratc/
 maatc.lt (pdf)                            Marijampolės sav., Vilkaviškio r., Kalvarijos sav.,
                                           Kazlų Rūdos sav., Šakių r.: site/maatc/
+silute.lt (pdf)                           Šilutės r.: site/silutes-r/
+ecoservice.lt (pdf)                       Trakų r., Šalčininkų r.: site/ecoservice/
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
 pipeline/   Python: scrape → parse → validate → schedule.json
