@@ -5,12 +5,13 @@ import {
   Manrope_800ExtraBold,
   useFonts,
 } from '@expo-google-fonts/manrope';
-import { DarkTheme, DefaultTheme, type ErrorBoundaryProps, Stack, ThemeProvider, useSegments } from 'expo-router';
+import * as Notifications from 'expo-notifications';
+import { DarkTheme, DefaultTheme, type ErrorBoundaryProps, router, Stack, ThemeProvider, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppState, StyleSheet, View } from 'react-native';
+import { AppState, Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText, Button } from '@/components/ui';
@@ -19,7 +20,7 @@ import i18n, { resolveLanguage } from '@/i18n';
 import { registerBackgroundRefresh } from '@/lib/background';
 import { installCrashRecorder } from '@/lib/crash';
 import { appVersion, formatError, openIssue } from '@/lib/feedback';
-import { configureNotifications, syncReminders } from '@/lib/notifications';
+import { configureNotifications, handleReminderAction, syncReminders } from '@/lib/notifications';
 import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
 import { spacing, useTheme } from '@/theme';
@@ -93,11 +94,22 @@ export default function RootLayout() {
     const unsubscribeSchedule = useSchedule.subscribe((state, prev) => {
       if (state.data !== prev.data) syncReminders();
     });
+    // "Bins are out" and "Later" while the app runs (lib/background.ts handles them when it's
+    // closed). A tap on the notification itself shows the upcoming pickups.
+    const responses =
+      Platform.OS === 'web'
+        ? undefined
+        : Notifications.addNotificationResponseReceivedListener((response) => {
+            handleReminderAction(response).then((handled) => {
+              if (!handled && useSettings.getState().onboarded) router.navigate('/');
+            });
+          });
 
     return () => {
       appState.remove();
       unsubscribeSettings();
       unsubscribeSchedule();
+      responses?.remove();
     };
   }, []);
 

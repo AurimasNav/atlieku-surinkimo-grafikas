@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppText, Card, ListRow, ScreenHeader } from '@/components/ui';
+import { ReminderTimesEditor } from '@/components/reminder-picker';
+import { AppText, Card, Chip, ListRow, ScreenHeader } from '@/components/ui';
 import { toIsoDate } from '@/lib/dates';
 import { useDateFormat } from '@/lib/format';
 import { resolvePlace } from '@/lib/resolve';
@@ -25,6 +26,7 @@ export default function ManageKind() {
   const date = useDateFormat();
   const data = useSchedule((s) => s.data);
   const place = useSettings((s) => s.place);
+  const reminder = useSettings((s) => s.reminder);
   const today = toIsoDate(new Date());
   const resolved = resolvePlace(data, place, today);
   const status = resolved.kinds[kind];
@@ -52,6 +54,16 @@ export default function ManageKind() {
           : t('manage.statusNone');
 
   const done = () => router.back();
+
+  // This waste type's own reminders: none saved = the same as the others, [] = off.
+  const ownTimes = reminder.kinds?.[kind];
+  const reminderMode = ownTimes === undefined ? 'default' : ownTimes.length ? 'own' : 'off';
+  const setOwnTimes = (times: typeof ownTimes) => {
+    const kinds = { ...reminder.kinds };
+    if (times) kinds[kind] = times;
+    else delete kinds[kind];
+    useSettings.getState().setReminder({ ...reminder, kinds });
+  };
 
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + spacing.xl }}>
@@ -117,6 +129,27 @@ export default function ManageKind() {
           )}
         </View>
 
+        {status.status === 'ok' && (
+          <View style={styles.reminders}>
+            <AppText variant="overline" muted>
+              {t('manage.reminders')}
+            </AppText>
+            <View style={styles.chips}>
+              <Chip label={t('manage.remindersDefault')} selected={reminderMode === 'default'} onPress={() => setOwnTimes(undefined)} />
+              <Chip
+                label={t('manage.remindersOwn')}
+                selected={reminderMode === 'own'}
+                onPress={() => reminderMode !== 'own' && setOwnTimes(reminder.times)}
+              />
+              <Chip label={t('manage.remindersOff')} selected={reminderMode === 'off'} onPress={() => setOwnTimes([])} />
+            </View>
+            {reminderMode === 'own' && <ReminderTimesEditor value={ownTimes!} onChange={setOwnTimes} />}
+            <AppText variant="caption" muted>
+              {t('manage.remindersHint')}
+            </AppText>
+          </View>
+        )}
+
         <AppText variant="caption" muted>
           {t('manage.hint')}
         </AppText>
@@ -129,4 +162,6 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: spacing.lg, gap: spacing.lg },
   status: { gap: spacing.xs, borderLeftWidth: 6, borderRadius: radius.md },
   actions: { gap: spacing.sm },
+  reminders: { gap: spacing.sm + 2 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
 });

@@ -114,7 +114,12 @@
     "updated": "Schedule updated {{date}}",
     "refreshFailed": "Couldn't check for a new schedule. Showing the saved one.",
     "settings": "Settings",
-    "choosePlace": "Choose your place"
+    "choosePlace": "Choose your place",
+    "reminders": "Reminders: {{list}}",
+    "reminderShortEvening": "evening before {{time}}",
+    "reminderShortMorning": "that morning {{time}}",
+    "noReminder": "Reminders are off for this pickup",
+    "markedDone": "You've put the bins out"
   },
   "settings": {
     "title": "Settings",
@@ -136,7 +141,11 @@
     "addressSource": "Addresses: {{source}}",
     "disclaimerTitle": "No guarantees",
     "disclaimer": "This app is provided free of charge, as is, without any warranty. The authors are not responsible for missed or wrong reminders, or for any consequences of relying on them. It is not affiliated with UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“ or UAB „Virginijus ir Ko“.",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "addReminder": "Add another reminder",
+    "removeReminder": "Remove this reminder",
+    "otherTime": "Other time",
+    "perKindHint": "To be reminded of one waste type differently, or not at all, tap it under “Your place”."
   },
   "notifications": {
     "channelName": "Pickup reminders",
@@ -144,7 +153,10 @@
     "titleToday": "Today: {{kinds}}",
     "body": "Put your bins out by 7:00.",
     "refreshTitle": "Your schedule is running out",
-    "refreshBody": "Open the app so it can load the next schedule."
+    "refreshBody": "Open the app so it can load the next schedule.",
+    "done": "Bins are out",
+    "snoozeHour": "In an hour",
+    "snoozeShort": "In 15 min"
   },
   "errors": {
     "loadFailed": "Couldn't load the schedule. Check your internet connection.",
@@ -198,7 +210,12 @@
     "statusNone": "Not in the official schedule for your place",
     "statusSkipped": "You don't have this container",
     "statusPending": "Several schedule rows match your place",
-    "hint": "Changes apply to your reminders right away."
+    "hint": "Changes apply to your reminders right away.",
+    "reminders": "Reminders",
+    "remindersDefault": "Like the others",
+    "remindersOwn": "Own times",
+    "remindersOff": "Off",
+    "remindersHint": "Glass is collected only a few times a year, so it's easy to forget: give it an extra reminder. Or turn reminders off for a type you put out anyway."
   },
   "kauno": {
     "glassPackaging": "Glass and packaging",

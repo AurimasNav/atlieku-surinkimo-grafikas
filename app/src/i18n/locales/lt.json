@@ -118,7 +118,12 @@
     "updated": "Grafikas atnaujintas {{date}}",
     "refreshFailed": "Nepavyko patikrinti naujo grafiko. Rodomas išsaugotas.",
     "settings": "Nustatymai",
-    "choosePlace": "Pasirinkite vietovę"
+    "choosePlace": "Pasirinkite vietovę",
+    "reminders": "Priminimai: {{list}}",
+    "reminderShortEvening": "vakare prieš {{time}}",
+    "reminderShortMorning": "tą rytą {{time}}",
+    "noReminder": "Šiam išvežimui priminimai išjungti",
+    "markedDone": "Konteinerius jau išstūmėte"
   },
   "settings": {
     "title": "Nustatymai",
@@ -140,7 +145,11 @@
     "addressSource": "Adresai: {{source}}",
     "disclaimerTitle": "Jokių garantijų",
     "disclaimer": "Programėlė teikiama nemokamai, tokia, kokia yra, be jokių garantijų. Autoriai neatsako už praleistus ar klaidingus priminimus ir jokias pasekmes, kylančias juos naudojant. Programėlė nesusijusi su UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“ ir UAB „Virginijus ir Ko“.",
-    "version": "Versija {{version}}"
+    "version": "Versija {{version}}",
+    "addReminder": "Pridėti dar vieną priminimą",
+    "removeReminder": "Pašalinti šį priminimą",
+    "otherTime": "Kitas laikas",
+    "perKindHint": "Jei apie kurią nors atliekų rūšį norite priminimų kitu laiku arba visai jų nenorite, palieskite ją skiltyje „Jūsų vietovė“."
   },
   "notifications": {
     "channelName": "Išvežimo priminimai",
@@ -148,7 +157,10 @@
     "titleToday": "Šiandien: {{kinds}}",
     "body": "Konteinerius išstumkite iki 7:00.",
     "refreshTitle": "Jūsų grafikas baigiasi",
-    "refreshBody": "Atidarykite programėlę, kad ji įkeltų naują grafiką."
+    "refreshBody": "Atidarykite programėlę, kad ji įkeltų naują grafiką.",
+    "done": "Jau išstūmiau",
+    "snoozeHour": "Po valandos",
+    "snoozeShort": "Po 15 min."
   },
   "errors": {
     "loadFailed": "Nepavyko įkelti grafiko. Patikrinkite interneto ryšį.",
@@ -202,7 +214,12 @@
     "statusNone": "Jūsų vietovės oficialiame grafike nėra",
     "statusSkipped": "Tokio konteinerio neturite",
     "statusPending": "Jūsų vietovei tinka kelios grafiko eilutės",
-    "hint": "Pakeitimai priminimams taikomi iš karto."
+    "hint": "Pakeitimai priminimams taikomi iš karto.",
+    "reminders": "Priminimai",
+    "remindersDefault": "Kaip kitų",
+    "remindersOwn": "Savas laikas",
+    "remindersOff": "Išjungti",
+    "remindersHint": "Stiklas išvežamas tik kelis kartus per metus, todėl jį lengva pamiršti – pridėkite jam papildomą priminimą. O rūšiai, kurią vis tiek išstumiate, priminimus galite išjungti."
   },
   "kauno": {
     "glassPackaging": "Stiklas ir pakuotės",

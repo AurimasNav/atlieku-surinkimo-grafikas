@@ -15,10 +15,11 @@ import { toIsoDate } from '@/lib/dates';
 import { openIssue } from '@/lib/feedback';
 import { formatTime, useDateFormat } from '@/lib/format';
 import { hasNotificationPermission } from '@/lib/notifications';
-import { type Pickup, upcomingPickups } from '@/lib/reminders';
+import { doneKey, type Pickup, sortTimes, timesFor, upcomingPickups } from '@/lib/reminders';
 import { pendingKinds, placeLabel, resolvePlace, visibleKinds } from '@/lib/resolve';
 import { useMotion } from '@/lib/motion';
 import type { WasteKind } from '@/lib/schedule';
+import { useReminderActions } from '@/store/reminder-actions';
 import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
 import { fonts, radius, spacing, useTheme } from '@/theme';
@@ -36,6 +37,7 @@ export default function Home() {
   const onboarded = useSettings((s) => s.onboarded);
   const place = useSettings((s) => s.place);
   const reminder = useSettings((s) => s.reminder);
+  const doneKeys = useReminderActions((s) => s.done);
   const { data, refreshing, error, refresh } = useSchedule();
   const [filter, setFilter] = useState<Filter>('all');
   const [notificationsOn, setNotificationsOn] = useState(true);
@@ -70,9 +72,31 @@ export default function Home() {
   // Served, but the last pickup has passed and the next schedule isn't published yet.
   const today = toIsoDate(new Date());
   const waiting = resolved.areas.filter((area) => !area.note && (area.dates.at(-1) ?? today) < today);
-  const reminderText = t(reminder.daysBefore === 1 ? 'home.reminderEvening' : 'home.reminderMorning', {
-    time: formatTime(reminder.hour, reminder.minute),
-  });
+  // The reminders of the next pickup: its waste types may have their own.
+  const nextTimes = next
+    ? sortTimes(
+        [...new Map(next.kinds.flatMap((kind) => timesFor(reminder, kind)).map((time) => [JSON.stringify(time), time])).values()],
+      )
+    : [];
+  const nextDone = next?.kinds.every((kind) => doneKeys.includes(doneKey(next.date, kind)));
+  const reminderText = nextDone
+    ? t('home.markedDone')
+    : nextTimes.length === 0
+      ? t('home.noReminder')
+      : nextTimes.length === 1
+        ? t(nextTimes[0].daysBefore === 1 ? 'home.reminderEvening' : 'home.reminderMorning', {
+            time: formatTime(nextTimes[0].hour, nextTimes[0].minute),
+          })
+        : t('home.reminders', {
+            list: nextTimes
+              .map((time) =>
+                t(time.daysBefore === 1 ? 'home.reminderShortEvening' : 'home.reminderShortMorning', {
+                  time: formatTime(time.hour, time.minute),
+                }),
+              )
+              .join(', '),
+          });
+  const reminderIcon = nextDone ? 'checkmark-circle' : notificationsOn && nextTimes.length ? 'notifications' : 'notifications-off';
 
   // Group the remaining pickups by month for section headers.
   const months: { key: string; label: string; items: Pickup[] }[] = [];
@@ -214,7 +238,7 @@ export default function Home() {
                     ))}
                   </View>
                   <View style={styles.heroFooter}>
-                    <Ionicons name={notificationsOn ? 'notifications' : 'notifications-off'} size={16} color="#C8F169" />
+                    <Ionicons name={reminderIcon} size={16} color="#C8F169" />
                     <AppText variant="caption" style={styles.heroReminder}>
                       {reminderText}
                     </AppText>
