@@ -10,7 +10,7 @@ Users see it too: when the data of the company behind their schedule hasn't been
 days (`providers[].generatedAt`, or Kauno švara's `generatedAt`), the app shows a warning with a
 link to the company's official schedule (`app/src/lib/freshness.ts`).
 
-There are seventeen sources:
+There are eighteen sources:
 
 | `source` | Company | Published in |
 |---|---|---|
@@ -25,6 +25,7 @@ There are seventeen sources:
 | `klaipedos` | VšĮ „Gargždų švara“, Klaipėdos r. | `klaipedos-r/` |
 | `jurbarkas` | UAB „Tauragės regiono atliekų tvarkymo centras“, Jurbarko r. | `jurbarko-r/` |
 | `siauliai` | UAB „Šiaulių regiono atliekų tvarkymo centras“, Šiaulių r., Akmenės r., Joniškio r., Kelmės r. and Pakruojo r. | `sratc/` |
+| `radviliskis` | UAB „Šiaulių regiono atliekų tvarkymo centras“, Radviliškio r. | `sratc/` (`provider: "radviliskis"`) |
 | `alytus` | UAB „Alytaus regiono atliekų tvarkymo centras“, Alytaus r., Prienų r., Lazdijų r., Varėnos r., Druskininkų and Birštono sav. | `alytaus-ratc/` (rows with the municipality in `district`) |
 | `marijampole` | UAB „Marijampolės apskrities atliekų tvarkymo centras“, Marijampolės sav. | `maatc/` (`provider: "marijampole"`) |
 | `vilkaviskis` | UAB „Marijampolės apskrities atliekų tvarkymo centras“, Vilkaviškio r. | `maatc/` (`provider: "vilkaviskis"`) |
@@ -46,12 +47,26 @@ understood), Kauno r. is published without them: `kaisiadorys` disappears from `
 and `ScheduleDataSourceMissing` fires.
 
 `siauliai` is one file a year for each of five municipalities, from one site in one template,
-built by one step into `sratc/`. If any of the five files can't be read, or one municipality's
-places stop matching the Address Register (`sratc.check_municipalities`), the step fails and
-yesterday's `sratc/` is kept for all five. Its metrics are the five together: the last date is
-the latest of the five, so `ScheduleDataRunsOut` stays quiet if one municipality posts next
-year's file and another doesn't; the build's warnings name the late one ("Akmenės r.: no
-schedule for 2027 on the page").
+built by one step into `sratc/`. If any of the five files can't be read, their part of
+yesterday's file is kept for all five (its `generatedAt` stays old, so `ScheduleDataStale`
+fires) and the run gets a warning annotation. If one municipality's places stop matching the
+Address Register (`sratc.check_municipalities`), the step fails and yesterday's `sratc/` is
+kept. Its metrics are the five together: the last date is the latest of the five, so
+`ScheduleDataRunsOut` stays quiet if one municipality posts next year's file and another
+doesn't; the build's warnings name the late one ("Akmenės r.: no schedule for 2027 on the
+page").
+
+`radviliskis` is Radviliškio r., from the same site in other layouts, by other collectors:
+mixed waste (with the town's green waste) a quarter at a time, packaging and glass a year at a
+time. It is a second part of `sratc/schedule.json`, built by the same step but on its own: when
+one of the two parts fails, its part of yesterday's file is kept and the other is still
+updated. The next quarter's mixed waste file is read as soon as the page links it, next to the
+last one or in its place; until its months start, its places continue those of the quarter in
+force. If no newer file is linked when a quarter ends, its places keep their last dates and the
+build warns ("Radviliškio r.: the mixed waste schedule ended on 2026-12-31; no newer one is
+read"). If the page replaces the last quarter's file before the next one starts, that quarter's
+last dates are lost, with a warning ("no mixed waste schedule for today; the next starts on
+…").
 
 `alytus` is one source for the six municipalities of Alytaus RATC: one page, one company behind
 the schedules, one build step. A file of any of them that can't be read, or a municipality left
@@ -81,9 +96,9 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
-| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `siauliai` / `alytus` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` was built |
+| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `siauliai` / `radviliskis` / `alytus` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
-| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `siauliai`, `alytus`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda` and `sakiai` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
+| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `siauliai`, `radviliskis`, `alytus`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda` and `sakiai` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
 | `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead) |
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
@@ -155,6 +170,13 @@ groups:
       # latest of them: the alert means none of next year's mixed waste files has been read.
       # Not its packaging and glass: those of Alytaus r. and Prienų r. run to March 2028 (a new
       # contract from December 2026), which hides the others' February ends.
+      # Radviliškio r.: its mixed waste file covers a quarter (October-December 2026), its
+      # packaging file a year, both to 31 December 2026. They were made in the last days before
+      # their periods (the mixed waste file on 24 September, the 2026 packaging file on 29
+      # December 2025), so a week's notice would fire every quarter: 2 days, so the alert means
+      # the period's last pickups are 1-2 days away and nothing newer has been read. Not its
+      # glass (four or five times a year, the latest on 25 December 2026, before next year's
+      # file is usually posted) nor its green waste (last in November).
       # The five municipalities of Marijampolė county get calendar-year files, posted in
       # December (the 2026 PDFs were made between 2 and 16 December 2025). Mixed waste,
       # packaging and food waste end on 28-31 December everywhere. Not glass: every four weeks,
@@ -166,6 +188,8 @@ groups:
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"klaipedos|jurbarkas|siauliai|rietavas",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
             or
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="alytus",kind="household"}[30m]) - time() < 7 * 86400
+            or
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="radviliskis",kind=~"household|packaging"}[30m]) - time() < 2 * 86400
             or
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"marijampole|vilkaviskis|kalvarija|kazluruda|sakiai",kind=~"household|packaging|food"}[30m]) - time() < 7 * 86400
         for: 1h
@@ -212,7 +236,8 @@ source, query `status.json` (type JSON, URL above) and alert when
 `sources.kaisiadorys.generatedAt`, `sources.mazeikiai.generatedAt`,
 `sources.telsiai.generatedAt`, `sources.plunge.generatedAt`, `sources.rietavas.generatedAt`,
 `sources.klaipedos.generatedAt`, `sources.jurbarkas.generatedAt`,
-`sources.siauliai.generatedAt`, `sources.alytus.generatedAt`,
-`sources.marijampole.generatedAt`, `sources.vilkaviskis.generatedAt`,
-`sources.kalvarija.generatedAt`, `sources.kazluruda.generatedAt` or
-`sources.sakiai.generatedAt` is older than 30 hours (or missing).
+`sources.siauliai.generatedAt`, `sources.radviliskis.generatedAt`,
+`sources.alytus.generatedAt`, `sources.marijampole.generatedAt`,
+`sources.vilkaviskis.generatedAt`, `sources.kalvarija.generatedAt`,
+`sources.kazluruda.generatedAt` or `sources.sakiai.generatedAt` is older than 30 hours (or
+missing).

@@ -42,6 +42,13 @@ the 2026 PDFs for private houses of its five municipalities, downloaded on 2026-
 "2026 - individualios.pdf", `kelmes-r-2026.pdf` "2026 - individualūs.pdf" and
 `pakruojo-r-2026.pdf` "2026 m grafikai/2026 m- pakruojo individualiu valdu grafikas.pdf". With
 the Address Register extract for the five municipalities of the same day, in one file.
+`radviliskio-rajonas.html` is its page of Radviliškio r. (`.../grafikai-radviliskio-rajonas/`),
+downloaded on 2026-11-21 with the two files for private houses it links, renamed:
+`radviliskio-r-mka-2026-q4.pdf` is "2026 m indiv- valdų MKA ir BSA surinkimas_sv.pdf" (mixed and
+green waste, October-December 2026) and `radviliskio-r-pop-2026.pdf` "2026 m grafikai/2026 m
+radviliskio indiv- valdu POP ir stiklo surinkimas.pdf" (packaging and glass, 2026); with the
+Address Register extract for Radviliškio r. of the same day
+(`registry-radviliskio-r-2026-11-21.json`).
 
 `aratc/` has the schedule page of UAB "Alytaus regiono atliekų tvarkymo centras" at
 <https://www.aratc.lt/atlieku-surinkimo-grafikai/> and the PDFs of individual houses it links,

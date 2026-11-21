@@ -84,8 +84,8 @@ export function resolvePlace(data: ScheduleData | null, place: Place | null, tod
       kinds[kind] = area ? { status: 'ok', area } : { status: 'none' };
       continue;
     }
-    // Food and green waste have schedules in few places (Kauno r., Mažeikiai town, green waste in
-    // Klaipėdos r. and in Jurbarkas): nothing to ask about elsewhere.
+    // Food and green waste have schedules only in some places (towns, a few districts): nothing
+    // to ask about elsewhere.
     if (!BASE_KINDS.includes(kind) && !location?.schedule?.[kind] && !choice) {
       kinds[kind] = { status: 'none' };
       continue;
@@ -128,8 +128,8 @@ export function isHousingChoice(candidates: Area[]): boolean {
 
 /**
  * The waste types to show for a place: its provider's, plus any other the place has a schedule
- * for (a few Kauno r. addresses have glass, Mažeikiai has food waste, Klaipėdos r. and Jurbarkas
- * green waste; own schedules can be set for any type).
+ * for (a few Kauno švara addresses have glass, some towns and districts have food or green waste;
+ * own schedules can be set for any type).
  */
 export function visibleKinds(place: Place | null, resolved: Resolved): WasteKind[] {
   const usual = place?.kauno ? KAUNO_KINDS : BASE_KINDS;
@@ -156,9 +156,10 @@ export function placeLabel(place: Place | null, resolved: Resolved): { name?: st
 }
 
 /**
- * The official schedule page of the company that serves the place: Kauno švara for a Kauno r.
- * address, otherwise the `provider` of the location (or of a row picked by hand) as listed in
- * the data. Places without one are Nemenčinės komunalininkas', as in data published before.
+ * The official schedule page of the company that serves the place: Kauno švara for an address
+ * of its data (Kauno r., Kaišiadorių r.), otherwise the `provider` of the location (or of a row
+ * picked by hand) as listed in the data. Places without one are Nemenčinės komunalininkas', as in
+ * data published before.
  */
 export function sourcePageUrl(data: ScheduleData | null, place: Place | null, resolved: Resolved): string {
   if (place?.kauno) return KAUNO_SOURCE_PAGE_URL;

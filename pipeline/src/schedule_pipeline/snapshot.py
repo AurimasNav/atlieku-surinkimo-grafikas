@@ -60,6 +60,10 @@ KELMES_R_ADDRESSES_FILE = DATA_DIR / "address-points-kelmes-r.json"
 PAKRUOJO_R_MUNICIPALITY = ("Pakruojo rajono", 65)
 PAKRUOJO_R_REGISTRY_FILE = DATA_DIR / "registry-pakruojo-r.json"
 PAKRUOJO_R_ADDRESSES_FILE = DATA_DIR / "address-points-pakruojo-r.json"
+# Radviliškio r. (schedule_pipeline.sratc, a source of its own next to the five).
+RADVILISKIO_R_MUNICIPALITY = ("Radviliškio rajono", 71)
+RADVILISKIO_R_REGISTRY_FILE = DATA_DIR / "registry-radviliskio-r.json"
+RADVILISKIO_R_ADDRESSES_FILE = DATA_DIR / "address-points-radviliskio-r.json"
 # The six municipalities of Alytaus RATC (schedule_pipeline.aratc), in one file.
 ALYTUS_MUNICIPALITIES = (
     ("Alytaus rajono", 33),
@@ -178,6 +182,12 @@ def main() -> int:
             PAKRUOJO_R_MUNICIPALITY,
             PAKRUOJO_R_REGISTRY_FILE,
             PAKRUOJO_R_ADDRESSES_FILE,
+        ),
+        (
+            "Radviliškio r.",
+            RADVILISKIO_R_MUNICIPALITY,
+            RADVILISKIO_R_REGISTRY_FILE,
+            RADVILISKIO_R_ADDRESSES_FILE,
         ),
         ("Telšių r.", TELSIAI_MUNICIPALITY, TELSIAI_REGISTRY_FILE, TELSIAI_ADDRESSES_FILE),
         ("Plungės r.", PLUNGE_MUNICIPALITY, PLUNGE_REGISTRY_FILE, PLUNGE_ADDRESSES_FILE),
