@@ -30,6 +30,7 @@ kretkom.lt (pdf)                          Kretingos r.: site/kretingos-r/
 silute.lt (pdf)                           Šilutės r.: site/silutes-r/ (from a copy in
                                           pipeline/data when the site refuses the runners)
 ecoservice.lt (pdf)                       Trakų r., Šalčininkų r.: site/ecoservice/
+skuodas.lt (xls + xlsx)                   Skuodo r.: site/skuodo-r/
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
 pipeline/   Python: scrape → parse → validate → schedule.json
