@@ -118,6 +118,16 @@ aptranavimo grafikas_Biržų r-.xlsx", `panevezio-r-pakuotes.xlsx` "Pakuočių k
 konteinerių (individualių valdų) aptarnavimo grafikas.xlsx". With the Address Register extracts
 for Pasvalio r., Rokiškio r., Biržų r. and Panevėžio r. of the same day.
 
+`kedainiai/` has the page of waste schedules of Kėdainių rajono savivaldybė at
+<https://www.kedainiai.lt/gyventojui/atlieku-tvarkymas/atlieku-isvezimo-grafikai/1538> (line
+endings made LF) and the 2026 files of individual houses it links, one per eldership, downloaded
+on 2026-11-21. The links lead to `/lt/doclib/<id>`, which serves the file under its own name;
+the copies are named after the eldership: `dotnuvos.docx` is "Dotnuvos seniūnija.docx",
+`kedainiu-miesto.docx` "Kėdainių miesto seniūnija.docx", `surviliskio.docx` "Surviliškio
+seniūnija (2).docx", `josvainiu.pdf` "Josvainiai.pdf" (the only PDF) and so on
+(`test_kedainiai.COPIES` maps the ids to the copies). With the Address Register extract for
+Kėdainių r. of the same day.
+
 `raseiniai/` has the waste page of UAB "Raseinių komunalinės paslaugos" at
 <https://www.rkp.lt/atlieku-tvarkymas/> and the 25 PDFs it links for 2026 (bulky waste and the
 rules aside), downloaded on 2026-11-21 and renamed `<eldership>-mka.pdf` (mixed waste) and

@@ -30,6 +30,8 @@ kretkom.lt (pdf)                          Kretingos r.: site/kretingos-r/
 silute.lt (pdf)                           Šilutės r.: site/silutes-r/ (from a copy in
                                           pipeline/data when the site refuses the runners)
 ecoservice.lt (pdf)                       Trakų r., Šalčininkų r.: site/ecoservice/
+kedainiai.lt (docx, pdf)                  Kėdainių r.: site/kedainiu-r/ (from a copy in
+                                          pipeline/data when the site refuses the runners)
 anykom.lt (pdf)                           Anykščių r.: site/anyksciu-r/
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
@@ -83,6 +85,11 @@ uv run python -m schedule_pipeline.snapshot
 ```
 
 The job summary says which source was used and warns when the snapshot is over 60 days old.
+The same command saves copies of the Šilutės r. and Kėdainių r. schedule pages and files to
+`pipeline/data/schedules-silutes-r/` and `pipeline/data/schedules-kedainiu-r/`: silute.lt and
+kedainiai.lt refuse GitHub's runners too, so the job reads these copies (its build warning says
+how old they are). Refresh the Kėdainių r. copy also soon after the page gets next year's files
+(December or January) and after a corrected file (about once a year, in the first half).
 
 **Location matching** (`locations.py`) links each Address Register settlement and street to
 its row in every schedule. The job summary on the Actions tab shows how many places resolve
