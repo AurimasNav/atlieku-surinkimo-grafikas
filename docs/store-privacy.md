@@ -33,7 +33,8 @@ the user decides whether to submit it. Nothing is transmitted by the app, so thi
 collection by the app either. Crash details are stored on the device until reported or dismissed.
 
 **Why "Data Not Collected" is correct:** Apple counts data as collected when it is sent off the
-device and stored longer than needed to serve the request. The app downloads public files;
+device and stored longer than needed to serve the request. The app downloads public files from
+GitHub Pages (the schedules, `regions.json`, the list of region folders, and the address lists);
 the requests carry no user data, and the IP address that reaches GitHub Pages is not stored
 by us or linked to the user. For an address in Kaunas or Kaišiadorys district the app downloads
 the address list of the user's eldership (seniūnija), so the file name shows GitHub Pages which

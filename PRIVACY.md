@@ -32,8 +32,9 @@ deleted when you uninstall the app or clear its data.
 
 If you tap "Use my current location", the app asks for permission to read your position
 **once**. It then downloads the public lists of addresses (`addresses.json`, the
-`addresses.json` of each region folder, `mazeikiu-r/`, `klaipedos-r/`, `jurbarko-r/`, `sratc/`
-and `alytaus-ratc/`, and `kauno-r/points.json`, the same files for every user) and finds the
+`addresses.json` of each region folder, `mazeikiu-r/`, `klaipedos-r/`, `jurbarko-r/`, `sratc/`,
+`alytaus-ratc/` and any other listed in `regions.json`, and `kauno-r/points.json`, the same
+files for every user) and finds the
 nearest address **on your phone**. Your position is never sent
 anywhere and is not stored; only the place you confirm is saved, as when you search by name.
 You can refuse the permission and search for your place instead.
@@ -59,8 +60,9 @@ push notifications, so no device token or identifier is sent anywhere.
 ## Network connections
 
 The app connects to the internet only to download the public collection schedules
-(`schedule.json`, the `schedule.json` of the same region folders and, when you choose a place,
-the list of places of Kaunas and Kaišiadorys districts, `kauno-r/schedule.json`) and, if you use
+(`schedule.json`, the list of region folders `regions.json`, the `schedule.json` of the same
+region folders and, when you choose a place, the list of places of Kaunas and Kaišiadorys
+districts, `kauno-r/schedule.json`) and, if you use
 GPS to find your address, the public
 address lists from GitHub Pages, a hosting service operated by GitHub, Inc. Like any
 website, GitHub's servers receive the technical information included in every internet request,
@@ -144,8 +146,9 @@ duomenis, jie pašalinami.
 
 Paspaudus „Naudoti mano buvimo vietą“, programėlė paprašo leidimo **vieną kartą** nustatyti
 jūsų buvimo vietą. Tada ji atsisiunčia viešus adresų sąrašus (`addresses.json`, kiekvieno
-regiono aplanko – `mazeikiu-r/`, `klaipedos-r/`, `jurbarko-r/`, `sratc/` ir `alytaus-ratc/` –
-`addresses.json` ir `kauno-r/points.json`, visiems naudotojams tuos pačius failus) ir artimiausią
+regiono aplanko – `mazeikiu-r/`, `klaipedos-r/`, `jurbarko-r/`, `sratc/`, `alytaus-ratc/` ir kitų
+faile `regions.json` išvardytų – `addresses.json` ir `kauno-r/points.json`, visiems naudotojams
+tuos pačius failus) ir artimiausią
 adresą randa **jūsų telefone**. Jūsų buvimo vieta
 niekur nesiunčiama ir nesaugoma; išsaugoma tik jūsų patvirtinta vietovė, kaip ir ieškant
 pagal pavadinimą. Leidimo galite neduoti ir vietovę surasti paieškoje.
@@ -172,7 +175,8 @@ pranešimų, todėl joks įrenginio identifikatorius niekur nesiunčiamas.
 ## Interneto ryšys
 
 Programėlė jungiasi prie interneto tik tam, kad atsisiųstų viešus išvežimo grafikus
-(`schedule.json`, tų pačių regionų aplankų `schedule.json` ir, kai renkatės vietovę, Kauno ir
+(`schedule.json`, regionų aplankų sąrašą `regions.json`, tų pačių regionų aplankų
+`schedule.json` ir, kai renkatės vietovę, Kauno ir
 Kaišiadorių rajonų vietovių sąrašą `kauno-r/schedule.json`) ir, jei adresą ieškote pagal buvimo
 vietą, viešus adresų sąrašus
 iš „GitHub Pages“ – „GitHub, Inc.“ valdomos talpinimo paslaugos. Kaip ir bet

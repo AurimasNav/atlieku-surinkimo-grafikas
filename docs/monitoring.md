@@ -108,6 +108,26 @@ The job therefore publishes the state of the data with every run:
 If a source fails, its `generated` time stays old while `checked` keeps moving. If the job
 doesn't run at all, both stay old.
 
+### The index of regions
+
+The last step before the deploy writes
+`https://aurimasnav.github.io/atlieku-surinkimo-grafikas/regions.json`
+(`schedule_pipeline.regions`): every region folder in `site/`, the root `schedule.json` of
+Vilniaus r. included, with its `kind`, its `files` and its `providers`. It is generated from
+what is about to be deployed, after the steps that keep yesterday's data, so nothing lists
+regions by hand.
+
+The app reads it on every refresh and downloads the folders it lists next to the ones it was
+built with (`REGION_URLS` in `app/src/lib/config.ts`), so a new folder in the format of
+`schedule.json` (`kind: "settlements"`, with an `addresses.json` for "Use my location")
+reaches installed apps without an app update. If `regions.json` can't be downloaded, the app
+uses the copy it saved last time, or its built-in list. A folder that a newer `regions.json`
+no longer lists is taken off the phones, except the built-in ones, so remove a published folder
+only on purpose. A folder in Kauno švara's per-address format (`kind: "addresses"`) is listed
+too, but the app reads that format from `kauno-r/` only: another such folder still needs an
+app update. Fields can be added to the file without a new `schemaVersion`; the app ignores the
+ones it doesn't know, and regions of a kind it doesn't know.
+
 ## Prometheus
 
 GitHub Pages serves the file as plain text, which Prometheus scrapes directly; no exporter and
