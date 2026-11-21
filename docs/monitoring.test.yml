@@ -115,6 +115,9 @@ tests:
         values: "518400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="salcininkai",kind="glass"}'
         values: "518400x20"
+      # Ukmergės r.'s packaging of January-May or June-December: ends tomorrow.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ukmerge",kind="packaging"}'
+        values: "86400x20"
       # Ends in 30 days: no alert.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="glass"}'
         values: "2592000x20"
@@ -194,6 +197,12 @@ tests:
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="trakai",kind="packaging"}'
         values: "2592000x20"
+      # Ukmergės r.: its files are posted two or three weeks before their periods, so its mixed
+      # waste 3 days before its end raises nothing, nor does its glass.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ukmerge",kind="household"}'
+        values: "259200x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ukmerge",kind="glass"}'
+        values: "86400x20"
     alert_rule_test:
       - eval_time: 40m
         alertname: ScheduleDataRunsOut
@@ -347,6 +356,13 @@ tests:
               severity: warning
             exp_annotations:
               summary: "salcininkai: the glass schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: ukmerge
+              kind: packaging
+              severity: warning
+            exp_annotations:
+              summary: "ukmerge: the packaging schedule ends within a week"
 
   - name: fewer places and more warnings than a day before
     interval: 15m
@@ -446,6 +462,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="trakai",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ukmerge",kind="household"}'
         values: "25920000x191"
       - series: 'up{job="siuksliaveze-data"}'
         values: "1x191"

@@ -147,6 +147,15 @@ food waste) and `zaliosios-2026.pdf` "Žaliųjų-biriųjų atliekų išvežimo g
 2026 m- 04-11 mėn_.pdf" (Kretinga's green waste, April-November). With the Address Register
 extract for Kretingos r. of the same day.
 
+`ukmerge/` has the mixed waste page of the Ukmergės r. municipality at
+<https://www.ukmerge.lt/misrios-komunalines-atliekos/> and the four 2026 PDFs of UAB "Ukmergės
+autobusų parkas" it links, downloaded on 2026-11-21 and renamed: `miestas-2026-h1.pdf` is
+"2026_m._sausio-gegus_mn._Ukmerges_miesto_komunalini_ir_pakuoi_atliek_surinkimo_grafikas_(002).pdf"
+(the town, January-May), `miestas-2026-h2.pdf` "2026_m._birelio-gruodio_mn._Ukmergs_miesto_...pdf"
+(the town, June-December), and `rajonas-2026-h1.pdf` and `rajonas-2026-h2.pdf` the district's of
+the same periods (`test_ukmerge.COPIES`). With the Address Register extract for Ukmergės r. of
+the same day.
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 
