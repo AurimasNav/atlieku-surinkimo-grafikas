@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Literal
+from typing import Any, Literal
 
 Kind = Literal["household", "packaging", "glass", "food", "green"]
 
@@ -82,6 +83,9 @@ class Provider:
     # Places the rows name in a way the register can't tell apart, as the rows write them and
     # as the register's genitive with its type: ("Naukaimio k. (Vytėnų)", "Naukaimio II k.").
     aliases: tuple[tuple[str, str], ...] = ()
+    # Reads the rows itself (sratc.Blocks): a class called with (index, provider, variants) whose
+    # instances have clauses(area), unknown and prepare(areas), like locations.SectionRoutes.
+    reader: Callable[..., Any] | None = None
     kinds: tuple[Kind, ...] = ("household", "packaging", "glass")
     # The first provider, published before there were several: its rows, places and files carry
     # no `provider` field, and its row ids stay as they were.
@@ -96,6 +100,9 @@ class SourceFile:
     kind: Kind
     url: str
     file_name: str
+    # The municipality the file is for, where one source has files for several (sratc): each
+    # one's files run out on their own (build.current_rows).
+    municipality: str = ""
 
 
 @dataclass
