@@ -118,6 +118,11 @@ export default function Settings() {
         <Section title={t('feedback.title')}>
           <View style={styles.links}>
             <ListRow
+              icon={<Ionicons name="leaf" size={22} color={theme.primary} />}
+              title={t('guide.entry')}
+              onPress={() => router.push('/guide')}
+            />
+            <ListRow
               icon={<Ionicons name="bug" size={22} color={theme.primary} />}
               title={t('feedback.bug')}
               onPress={() => openIssue('bug_report')}
