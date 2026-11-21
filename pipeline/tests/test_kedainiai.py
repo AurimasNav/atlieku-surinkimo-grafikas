@@ -35,7 +35,7 @@ COPIES = {
 REGISTRY = Registry.load(FIXTURES / "kedainiai" / "registry-kedainiu-r-2026-11-21.json")
 
 
-def serve(url, timeout=0):
+def serve(url, timeout=0, user_agent=""):
     """The saved page and files, as kedainiai.http.get."""
     if url == kedainiai.PAGE_URL:
         return fixture("kedainiai/page.html")
@@ -132,7 +132,7 @@ def test_this_years_files_and_next_years_both(between):
 
 
 def test_a_link_that_isnt_a_document_is_left_out(monkeypatch):
-    def get(url, timeout=0):
+    def get(url, timeout=0, user_agent=""):
         if url.endswith("ojtzogief2tn9wx8wngzc89ck2b6qpkh"):
             return b"<!DOCTYPE html><html></html>"
         return serve(url)
@@ -549,7 +549,7 @@ def test_a_failed_build_keeps_the_published_part(built, tmp_path, monkeypatch):
         kedainiai.PAGE_URL,
     )
 
-    def down(url, timeout=0):
+    def down(url, timeout=0, user_agent=""):
         raise OSError("HTTP Error 503: Service Unavailable")
 
     monkeypatch.setattr(kedainiai.http, "get", down)

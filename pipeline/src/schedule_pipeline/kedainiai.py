@@ -272,12 +272,18 @@ def select_files(
     return selected, warnings
 
 
+def _get(url: str) -> bytes:
+    # The site answers GitHub's runners 403 for unknown user agents, as registrucentras.lt does
+    # (addresses.py): present a browser one.
+    return http.get(url, timeout=60, user_agent="Mozilla/5.0")
+
+
 def download(today: date, keep_days: int) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
-    html = http.get(PAGE_URL, timeout=60).decode("utf-8", errors="replace")
+    html = _get(PAGE_URL).decode("utf-8", errors="replace")
     files, warnings = select_files(find_files(html), today)
     downloaded: list[tuple[SourceFile, bytes]] = []
     for file in files:
-        content = http.get(file.url, timeout=60)
+        content = _get(file.url)
         if content.startswith((b"PK", b"%PDF")):
             downloaded.append((file, content))
         else:
