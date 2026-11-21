@@ -10,13 +10,14 @@ Users see it too: when the data of the company behind their schedule hasn't been
 days (`providers[].generatedAt`, or Kauno švara's `generatedAt`), the app shows a warning with a
 link to the company's official schedule (`app/src/lib/freshness.ts`).
 
-There are six sources, each built on its own:
+There are seven sources:
 
 | `source` | Company | Published in |
 |---|---|---|
 | `nemencine` | UAB „Nemenčinės komunalininkas“, 12 elderships of Vilniaus r. | `schedule.json` (rows and places without a `provider` field) |
 | `nemezio` | UAB „Nemėžio komunalininkas“, the other 11 elderships of Vilniaus r. | `schedule.json` (`provider: "nemezio"`) |
 | `kauno` | UAB „Kauno švara“, Kauno r. | `kauno-r/` |
+| `kaisiadorys` | UAB „Kauno švara“, Kaišiadorių r. | `kauno-r/` (elderships with `municipality: "Kaišiadorių r."`) |
 | `mazeikiai` | UAB „Telšių regiono atliekų tvarkymo centras“, Mažeikių r. | `mazeikiu-r/` |
 | `klaipedos` | VšĮ „Gargždų švara“, Klaipėdos r. | `klaipedos-r/` |
 | `jurbarkas` | UAB „Tauragės regiono atliekų tvarkymo centras“, Jurbarko r. | `jurbarko-r/` |
@@ -26,6 +27,14 @@ one of them fails, its part of yesterday's file is kept (its `providers[].genera
 old) and the run gets a warning annotation; the other part is still updated. If a company has
 no published part to keep, the file is published without it.
 
+`kauno` and `kaisiadorys` come from one file of Kauno švara and are built by one step into
+`kauno-r/`, so installed apps find Kaišiadorių r. addresses without an update. They share
+`generatedAt` but are counted apart (Kaišiadorių r. in `otherMunicipalities[]` of
+`kauno-r/schedule.json`). If the rows of Kauno r. can't be read, the step fails and yesterday's
+`kauno-r/` is kept for both. If only those of Kaišiadorių r. can't (too few, or too many not
+understood), Kauno r. is published without them: `kaisiadorys` disappears from `metrics.txt`
+and `ScheduleDataSourceMissing` fires.
+
 The job therefore publishes the state of the data with every run:
 
 - `https://aurimasnav.github.io/atlieku-surinkimo-grafikas/metrics.txt` (Prometheus format)
@@ -33,10 +42,10 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
-| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `mazeikiai` / `klaipedos` / `jurbarkas` was built |
+| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `klaipedos` / `jurbarkas` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
-| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `klaipedos` and `jurbarkas` those with a schedule) or addresses (`kauno`) covered |
-| `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno`, whose dates are calculated ahead) |
+| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `klaipedos` and `jurbarkas` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
+| `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead) |
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
 
@@ -141,5 +150,6 @@ promtool and python3).
 Add the [Infinity](https://grafana.com/grafana/plugins/yesoreyeram-infinity-datasource/) data
 source, query `status.json` (type JSON, URL above) and alert when
 `sources.nemencine.generatedAt`, `sources.nemezio.generatedAt`, `sources.kauno.generatedAt`,
-`sources.mazeikiai.generatedAt`, `sources.klaipedos.generatedAt` or
-`sources.jurbarkas.generatedAt` is older than 30 hours.
+`sources.kaisiadorys.generatedAt`, `sources.mazeikiai.generatedAt`,
+`sources.klaipedos.generatedAt` or `sources.jurbarkas.generatedAt` is older than 30 hours (or
+missing).

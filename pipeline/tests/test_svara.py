@@ -1,4 +1,5 @@
 # ruff: noqa: E501 (rows of the source file are long)
+from dataclasses import replace
 from datetime import date
 
 import pytest
@@ -22,11 +23,19 @@ Kauno m. sav.;Šančių sen.;Kauno m.;Švenčionių g.;16;MK-000002;2026-11-18;k
 """
 
 
+def relax(monkeypatch, max_skipped=0.05):
+    """Small test files are enough data."""
+    monkeypatch.setattr(
+        svara,
+        "MUNICIPALITIES",
+        tuple(replace(m, min_rows=1, min_addresses=1) for m in svara.MUNICIPALITIES),
+    )
+    monkeypatch.setattr(svara, "MAX_SKIPPED", max_skipped)
+
+
 @pytest.fixture
 def built(monkeypatch):
-    monkeypatch.setattr(svara, "MIN_ROWS", 1)
-    monkeypatch.setattr(svara, "MIN_ADDRESSES", 1)
-    monkeypatch.setattr(svara, "MAX_SKIPPED", 0.5)
+    relax(monkeypatch, max_skipped=0.5)
     return svara.build(("﻿" + CSV).encode("utf-8"), TODAY)
 
 
@@ -36,11 +45,16 @@ def test_parse_rule():
     assert parse_rule("kas 7 dienas") == Rule(7)
     assert parse_rule("kas 28 dienas, balandį, gegužę, lapkritį") == Rule(28, (4, 5, 11))
     assert parse_rule("kiekvieną mėnesio dieną, kiekvieną mėnesį, penktadienį") == Rule(7)
-    assert (
-        parse_rule("kiekvieną mėnesio dieną, kiekvieną mėnesį, trečiąjį mėnesyje trečiadienį")
-        is None
-    )
+    # Several days a week, and one day a month (Kaišiadorių r.).
+    assert parse_rule(
+        "kiekvieną mėnesio dieną, kiekvieną mėnesį, pirmadienį, trečiadienį, penktadienį"
+    ) == Rule(7, weekdays=(0, 2, 4))
+    assert parse_rule(
+        "kiekvieną mėnesio dieną, kiekvieną mėnesį, trečiąjį mėnesyje trečiadienį"
+    ) == Rule(0, weekdays=(2,), nth=3)
     assert parse_rule("kas 14 dienų, kartais") is None
+    assert parse_rule("kiekvieną mėnesio dieną, kiekvieną mėnesį, pirmadienį, kartais") is None
+    assert parse_rule("30 mėnesio dieną, spalį") is None
     assert parse_rule("") is None
 
 
@@ -100,9 +114,7 @@ def test_every_weekday_rule_is_weekly(built):
 
 
 def test_ids_stay_the_same_the_next_day(monkeypatch):
-    monkeypatch.setattr(svara, "MIN_ROWS", 1)
-    monkeypatch.setattr(svara, "MIN_ADDRESSES", 1)
-    monkeypatch.setattr(svara, "MAX_SKIPPED", 0.5)
+    relax(monkeypatch, max_skipped=0.5)
     content = CSV.encode("utf-8")
 
     def ids(day):
@@ -199,8 +211,7 @@ REGISTRY_FOR_SPELLINGS = [
 def build_spellings(monkeypatch, registry=True):
     from schedule_pipeline.registry import Registry, Settlement, Street
 
-    monkeypatch.setattr(svara, "MIN_ROWS", 1)
-    monkeypatch.setattr(svara, "MIN_ADDRESSES", 1)
+    relax(monkeypatch)
     frequency = {"Maistinės atliekos": "kas 7 dienas"}
     rows = [
         f"Kauno r. sav.;{e};{t};{s};{h};C-{n};2026-11-20;{frequency.get(w, 'kas 14 dienų')};{w}"
@@ -211,7 +222,7 @@ def build_spellings(monkeypatch, registry=True):
         for code, name, genitive, abbr, district, streets in REGISTRY_FOR_SPELLINGS
     ]
     return svara.build(
-        "\n".join(rows).encode("utf-8"), TODAY, Registry(settlements) if registry else None
+        "\n".join(rows).encode("utf-8"), TODAY, {"kauno": Registry(settlements)} if registry else {}
     )
 
 
@@ -385,3 +396,229 @@ def test_register_names_only_where_they_are_certain_and_differ():
 def test_without_the_register_no_names_are_published(monkeypatch):
     dataset, _, _ = build_spellings(monkeypatch, registry=False)
     assert not any("registerNames" in e for e in dataset["elderships"])
+
+
+# Rows of the other municipalities, as the file has them (2026-11-21; Kauno švara's container
+# numbers). Kaišiadorių r. is written two ways, and a few rows have it as their eldership.
+KAISIADORYS = """\
+Kaišiadorių r. sav.;Kaišiadorių miesto sen.;Kaišiadorių m.;Beržyno g.;23;49-MK-000002;2026-12-03;kas 14 dienų;Mišrios komunalinės
+Kaišiadorių r. sav.;Kaišiadorių miesto sen.;Kaišiadorių m.;Laisvės g.;6;49-MK-000003;2026-12-03;kas 14 dienų;Mišrios komunalinės
+Kaišiadorių rajono sav.;Kaišiadorių rajono sav.;Kaišiadorių m.;Dobilų g.;5;49-MK-009927;2026-12-03;kas 14 dienų;Mišrios komunalinės
+Kaišiadorių rajono sav.;Paparčių sen.;Neravų k.;Ąžuolo g.;8;49-MK-000288;2026-12-01;kas 28 dienas;Mišrios komunalinės
+Kaišiadorių r. sav.;Žiežmarių apylinkės sen.;Stasiūnų k.;Ateities g.;6;MK-000986;2026-12-01;kiekvieną mėnesio dieną, kiekvieną mėnesį, pirmąjį mėnesyje antradienį;Mišrios komunalinės
+Kaišiadorių r. sav.;Žiežmarių apylinkės sen.;Stasiūnų k.;Ateities g.;6;MK-000986;2026-12-18;kiekvieną mėnesio dieną, kiekvieną mėnesį, trečiąjį mėnesyje penktadienį;Mišrios komunalinės
+Kaišiadorių r. sav.;Rumšiškių sen.;Rusonių k.;Topolių g.;26;49-MK-000101;2026-12-02;kiekvieną mėnesio dieną, kiekvieną mėnesį, pirmąjį mėnesyje trečiadienį;Mišrios komunalinės
+Kaišiadorių r. sav.;Kaišiadorių miesto sen.;Kaišiadorių m.;Gedimino g.;92;49-MK-003602;2026-11-23;kiekvieną mėnesio dieną, kiekvieną mėnesį, pirmadienį, trečiadienį, penktadienį;Mišrios komunalinės
+"""
+ALYTAUS_RATC = """\
+Prienų r. sav.;Jiezno sen.;Jiezno m.;Vytauto g.;1;PR-1;2026-11-26;kas 14 dienų;Mišrios komunalinės
+Birštono sav.;Birštono sen.;Birštono m.;Jaunimo g.;2;BI-1;2026-11-26;kas 14 dienų;Mišrios komunalinės
+Druskininkų sav.;Leipalingio sen.;Leipalingio mstl.;Ežero g.;3;DR-1;2026-11-26;kas 14 dienų;Mišrios komunalinės
+"""
+NOVEMBER_21 = date(2026, 11, 21)
+
+
+def build_all(monkeypatch, csv=CSV + KAISIADORYS + ALYTAUS_RATC, registries=None):
+    relax(monkeypatch, max_skipped=0.5)
+    return svara.build(csv.encode("utf-8"), NOVEMBER_21, registries)
+
+
+def dates_of(dataset, ids):
+    return sorted({d for i in ids for d in dataset["areas"][i]["dates"]})
+
+
+def test_kaisiadorys_is_published_with_kauno_r(monkeypatch):
+    dataset, files, warnings = build_all(monkeypatch)
+    kaisiadorys = [e for e in dataset["elderships"] if e.get("municipality") == "Kaišiadorių r."]
+    assert [e["name"] for e in kaisiadorys] == [
+        "Kaišiadorių miesto sen.",
+        "Paparčių sen.",
+        "Rumšiškių sen.",
+        "Žiežmarių apylinkės sen.",
+    ]
+    # Kauno r. elderships say nothing: apps that don't know the field take them as they are.
+    assert {e["name"] for e in dataset["elderships"] if "municipality" not in e} == {
+        "Ringaudų sen.",
+        "Užliedžių sen.",
+    }
+    street = files["kaisiadoriu-miesto"]["towns"]["Kaišiadorių m."]["Beržyno g."]
+    assert dates_of(dataset, street["23"])[2:5] == ["2026-11-19", "2026-12-03", "2026-12-17"]
+    # A row with the municipality as its eldership: the eldership of its town.
+    assert "Dobilų g." in files["kaisiadoriu-miesto"]["towns"]["Kaišiadorių m."]
+    # Monitoring counts it apart (status.py); Kauno r.'s own numbers stay at the top.
+    assert dataset["otherMunicipalities"] == [
+        {
+            "id": "kaisiadorys",
+            "name": "Kaišiadorių r.",
+            "stats": {
+                "rows": 8,
+                "addresses": 7,
+                "towns": 4,
+                "areas": {"household": 8},
+                "merged": dict.fromkeys(
+                    [
+                        "towns",
+                        "streets",
+                        "houses",
+                        "townsMovedToTheirEldership",
+                        "townsInAnotherEldership",
+                        "aliases",
+                        "filledFromBuilding",
+                    ],
+                    0,
+                ),
+            },
+            "warnings": 0,
+        }
+    ]
+    assert dataset["stats"]["rows"] == 9
+    assert not [w for w in warnings if w.startswith("Kaišiadorių r.")]
+
+
+def test_kauno_r_stays_as_it_was_alone(monkeypatch):
+    alone, alone_files, _ = build_all(monkeypatch, csv=CSV)
+    both, both_files, _ = build_all(monkeypatch)
+    assert "otherMunicipalities" not in alone
+    # Same file names and contents, schedules at the same positions, the same numbers.
+    for name, data in alone_files.items():
+        assert both_files[name] == data
+    assert both["areas"][: len(alone["areas"])] == alone["areas"]
+    assert [e for e in both["elderships"] if "municipality" not in e] == alone["elderships"]
+    for key in ("municipality", "stats", "warnings"):
+        assert both[key] == alone[key]
+
+
+def test_alytaus_ratc_municipalities_are_never_read(monkeypatch):
+    # Their schedules come from Alytaus RATC; reading them here too would give their addresses
+    # two sources.
+    read = {name for m in svara.MUNICIPALITIES for name in m.spellings}
+    assert not read & svara.FROM_ALYTAUS_RATC
+    dataset, files, _ = build_all(monkeypatch)
+    text = str(dataset) + str(files)
+    for place in ("Jiezno", "Birštono", "Leipalingio"):
+        assert place not in text
+
+
+def test_a_municipality_that_cant_be_read_is_left_out(monkeypatch):
+    relax(monkeypatch, max_skipped=0.5)
+    kauno, kaisiadorys = svara.MUNICIPALITIES
+    monkeypatch.setattr(svara, "MUNICIPALITIES", (kauno, replace(kaisiadorys, min_rows=100)))
+    dataset, files, warnings = svara.build((CSV + KAISIADORYS).encode("utf-8"), NOVEMBER_21)
+    # Kauno r. is published without it.
+    assert "otherMunicipalities" not in dataset
+    assert set(files) == {"ringaudu", "uzliedziu"}
+    assert "Kaišiadorių r. left out: only 8 rows for Kaišiadorių r." in warnings
+
+
+def test_one_day_of_the_month(monkeypatch):
+    dataset, files, _ = build_all(monkeypatch)
+    house = files["rumsiskiu"]["towns"]["Rusonių k."]["Topolių g."]["26"]
+    (area,) = (dataset["areas"][i] for i in house)
+    # The first Wednesday of every month.
+    assert area["dates"][:4] == ["2026-11-04", "2026-12-02", "2027-01-06", "2027-02-03"]
+    assert (area["nth"], area["weekday"]) == (1, 2)
+    assert "every" not in area
+    # One container emptied on the first Tuesday and the third Friday: both are pickups.
+    stasiunai = files["ziezmariu-apylinkes"]["towns"]["Stasiūnų k."]["Ateities g."]["6"]
+    assert dates_of(dataset, stasiunai)[2:6] == [
+        "2026-12-01",
+        "2026-12-18",
+        "2027-01-05",
+        "2027-01-15",
+    ]
+
+
+def test_several_days_a_week(monkeypatch):
+    dataset, files, _ = build_all(monkeypatch)
+    house = files["kaisiadoriu-miesto"]["towns"]["Kaišiadorių m."]["Gedimino g."]["92"]
+    # Monday, Wednesday and Friday: a weekly schedule each, shared with other containers.
+    assert len(house) == 3
+    assert all(dataset["areas"][i]["every"] == 7 for i in house)
+    assert [d for d in dates_of(dataset, house) if "2026-11-23" <= d <= "2026-11-29"] == [
+        "2026-11-23",
+        "2026-11-25",
+        "2026-11-27",
+    ]
+
+
+def test_a_next_date_the_rule_doesnt_have_is_not_used(monkeypatch):
+    # 9 December is the second Wednesday.
+    row = "Kaišiadorių r. sav.;Rumšiškių sen.;Rusonių k.;Topolių g.;28;C-1;2026-12-09;kiekvieną mėnesio dieną, kiekvieną mėnesį, pirmąjį mėnesyje trečiadienį;Mišrios komunalinės\n"
+    _, files, warnings = build_all(monkeypatch, csv=CSV + KAISIADORYS + row)
+    assert "28" not in files["rumsiskiu"]["towns"]["Rusonių k."]["Topolių g."]
+    assert any(w.startswith("Kaišiadorių r.: 1 rows skipped: frequency") for w in warnings)
+
+
+def test_a_town_written_with_its_former_type(monkeypatch):
+    from schedule_pipeline.registry import Registry, Settlement, Street
+
+    # The register has the town Žiežmariai (its own eldership), and a village and a homestead
+    # of that name in Žiežmarių apylinkės sen.
+    registry = Registry(
+        [
+            Settlement(1, "Žiežmariai", "Žiežmarių", "m.", "Žiežmarių", [
+                Street(11, "Vytauto", "g."),
+                Street(12, "Kauno", "g."),
+                Street(13, "Tvenkinių", "aklg."),
+            ]),
+            Settlement(2, "Žiežmariai", "Žiežmarių", "k.", "Žiežmarių apylinkės", [
+                Street(21, "Linų", "g."),
+            ]),
+            Settlement(3, "Žiežmariai", "Žiežmarių", "vs.", "Žiežmarių apylinkės"),
+        ]
+    )  # fmt: skip
+
+    def row(eldership, town, street, house):
+        return f"Kaišiadorių r. sav.;{eldership};{town};{street};{house};C;2026-12-03;kas 14 dienų;Mišrios komunalinės\n"
+
+    # Most of the town is "Žiežmarių mstl." under the eldership around it, with one house of
+    # a street the town doesn't have.
+    rows = [
+        row("Žiežmarių apylinkės sen.", "Žiežmarių mstl.", "Vytauto g.", n) for n in range(1, 10)
+    ]
+    rows.append(row("Žiežmarių apylinkės sen.", "Žiežmarių mstl.", "Tvenkinių akl. g.", 1))
+    rows.append(row("Žiežmarių apylinkės sen.", "Žiežmarių mstl.", "Linų g.", 1))
+    rows.append(row("Žiežmarių sen.", "Žiežmarių m.", "Kauno g.", 2))
+    dataset, files, _ = build_all(
+        monkeypatch, csv=CSV + "".join(rows), registries={"kaisiadorys": registry}
+    )
+    # One town, in its own eldership, found by its name in the register.
+    entry = next(e for e in dataset["elderships"] if e["name"] == "Žiežmarių sen.")
+    assert entry["towns"] == ["Žiežmarių mstl."]
+    assert entry["registerNames"] == {"Žiežmarių mstl.": "Žiežmariai"}
+    town = files["ziezmariu"]["towns"]["Žiežmarių mstl."]
+    assert list(town) == ["Kauno g.", "Linų g.", "Tvenkinių akl. g.", "Vytauto g."]
+    assert files["ziezmariu"]["aliases"]["Žiežmarių m."]["Kauno g."]["2"][1] == "Žiežmarių mstl."
+    stats = dataset["otherMunicipalities"][0]["stats"]["merged"]
+    assert (stats["towns"], stats["townsMovedToTheirEldership"]) == (1, 1)
+
+
+def test_streets_with_two_types():
+    from schedule_pipeline.registry import Settlement, Street
+
+    assert svara.split_type("Liepų al. g.", svara.STREET_TYPES) == ("liepu", "al.")
+    assert svara.split_type("Tvenkinių aklg.", svara.STREET_TYPES) == ("tvenkiniu", "aklg.")
+    pakertai = Settlement(1, "Pakertai", "Pakertų", "k.", "Žiežmarių apylinkės", [
+        Street(11, "Liepų", "al."),
+        Street(12, "Liepų", "g."),
+    ])  # fmt: skip
+    assert svara.find_street(pakertai, "Liepų al. g.") == 11
+
+
+def test_the_location_tables_of_several_municipalities_are_joined():
+    kauno = {
+        "generatedAt": "now",
+        "source": "AR",
+        "places": [["ringaudu", "Ringaudų sen.", "Karkiškių k.", "Ganyklų g."]],
+        "points": [[5485000, 2375000, 0, "2"]],
+    }
+    kaisiadorys = {
+        "generatedAt": "now",
+        "source": "AR",
+        "places": [["ziezmariu", "Žiežmarių sen.", "Žiežmarių mstl.", "Vytauto g."]],
+        "points": [[5480000, 2445000, 0, "1"]],
+    }
+    table = svara.join_tables([kauno, kaisiadorys])
+    # Kauno r.'s places keep their index; the points stay sorted by latitude.
+    assert table["places"] == kauno["places"] + kaisiadorys["places"]
+    assert table["points"] == [[5480000, 2445000, 1, "1"], [5485000, 2375000, 0, "2"]]

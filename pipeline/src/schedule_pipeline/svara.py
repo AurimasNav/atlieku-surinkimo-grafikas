@@ -1,4 +1,4 @@
-"""Kauno rajonas: schedules from the open-data file of UAB „Kauno švara“.
+"""Kauno r. and Kaišiadorių r.: schedules from the open-data file of UAB „Kauno švara“.
 
 The company shares one CSV with every container it empties (nine municipalities, ~390k rows,
 refreshed nightly). A row is one container at one address with its next pickup date and how
@@ -6,6 +6,13 @@ often it is emptied:
 
     Kauno r. sav.;Ringaudų sen.;Karkiškių k.;Ganyklų g.;2;52-MK-042246;2026-11-25;
     kas 14 dienų;Mišrios komunalinės   (one line in the file)
+
+Two of the municipalities are read (MUNICIPALITIES): Kauno r. and Kaišiadorių r., where the
+company empties only mixed waste. Both are published together, so app versions that know Kauno
+r. find the Kaišiadorių r. addresses too; elderships of Kaišiadorių r. say so (`municipality`).
+The others are left out on purpose: Kauno m., Vilniaus m. and Alytaus m. are cities, which the
+project doesn't cover; Alytaus r. has only packaging and glass here; and Prienų r., Birštonas
+and Druskininkai come from the schedules of Alytaus RATC (FROM_ALYTAUS_RATC).
 
 Only a few hundred distinct schedules hide behind the tens of thousands of containers, so the
 output is the same shape as for Nemenčinė: a short list of schedules ("areas") with dates, and
@@ -21,7 +28,7 @@ spellings stay in the address files as hidden aliases, so addresses saved under 
 working. The list of towns gives each town its name in the Address Register too
 ("Akademijos mstl." is "Akademija"), which is what people type in the search.
 
-Writes <out>/schedule.json and <out>/addresses/<eldership>.json. Run:
+Writes <out>/schedule.json, <out>/addresses/<eldership>.json and <out>/points.json. Run:
     python -m schedule_pipeline.svara --out ../site/kauno-r
 """
 
@@ -66,7 +73,57 @@ PROVIDER = {
     "name": "UAB „Kauno švara“",
     "url": "https://grafikai.svara.lt/",
 }
-MUNICIPALITY = "Kauno r. sav."
+
+
+@dataclass(frozen=True)
+class Municipality:
+    """A municipality of the file whose addresses are published."""
+
+    # As the app shows it ("Kaišiadorių r.").
+    name: str
+    # Its source in monitoring (status.py).
+    id: str
+    # The first column of its rows: some municipalities are written two ways.
+    spellings: tuple[str, ...]
+    # Fewer than this means the file or its format changed.
+    min_rows: int
+    min_addresses: int
+    # Its Address Register snapshot (snapshot.py).
+    registry_file: Path
+    addresses_file: Path
+
+
+# Kauno r. first. Its file names, schedule positions, `stats` and `warnings` stay what they were
+# when it was alone in the files, for the app versions and monitoring that know only Kauno r.;
+# elderships of the others have a `municipality`. If the rows of Kauno r. can't be read, the
+# build fails; another municipality is left out instead, with a warning.
+MUNICIPALITIES = (
+    # 2026: 63k rows, 39k addresses.
+    Municipality(
+        "Kauno r.",
+        "kauno",
+        ("Kauno r. sav.",),
+        min_rows=30_000,
+        min_addresses=20_000,
+        registry_file=snapshot.KAUNO_REGISTRY_FILE,
+        addresses_file=snapshot.KAUNO_ADDRESSES_FILE,
+    ),
+    # 2026: 8.7k rows, 7.8k addresses, mixed waste only.
+    Municipality(
+        "Kaišiadorių r.",
+        "kaisiadorys",
+        ("Kaišiadorių r. sav.", "Kaišiadorių rajono sav."),
+        min_rows=4_000,
+        min_addresses=3_500,
+        registry_file=snapshot.KAISIADORIU_REGISTRY_FILE,
+        addresses_file=snapshot.KAISIADORIU_ADDRESSES_FILE,
+    ),
+)
+# In the file too, but never read here: their schedules come from UAB „Alytaus regiono atliekų
+# tvarkymo centras“ (aratc.lt), the official source for them. Reading them here as well would
+# give their addresses two sources. Their rules in this file ("pirmąjį mėnesyje ketvirtadienį",
+# "30 mėnesio dieną, spalį") aren't all understood either.
+FROM_ALYTAUS_RATC = frozenset({"Prienų r. sav.", "Birštono sav.", "Druskininkų sav."})
 
 KINDS = {
     "Mišrios komunalinės": "household",
@@ -92,24 +149,25 @@ MONTHS = {
     "lapkritį": 11,
     "gruodį": 12,
 }
+# Days of the week as date.weekday() numbers them.
 WEEKDAYS = {
-    "pirmadienį",
-    "antradienį",
-    "trečiadienį",
-    "ketvirtadienį",
-    "penktadienį",
-    "šeštadienį",
-    "sekmadienį",
+    "pirmadienį": 0,
+    "antradienį": 1,
+    "trečiadienį": 2,
+    "ketvirtadienį": 3,
+    "penktadienį": 4,
+    "šeštadienį": 5,
+    "sekmadienį": 6,
 }
+# "pirmąjį mėnesyje trečiadienį": the first Wednesday of the month.
+ORDINALS = {"pirmąjį": 1, "antrąjį": 2, "trečiąjį": 3, "ketvirtąjį": 4}
+EVERY_DAY = ["kiekvieną mėnesio dieną", "kiekvieną mėnesį"]
 
 # Dates are calculated this far ahead. The file is read again every day, so the phase of every
 # schedule is always taken from its real next date.
 HORIZON_DAYS = 180
 KEEP_DAYS = 31
-# Fewer than this in Kauno r. means the file or its format changed (2026: 63k rows, 39k addresses).
-MIN_ROWS = 30_000
-MIN_ADDRESSES = 20_000
-# Share of rows whose waste type or frequency we may fail to understand.
+# Share of rows of a municipality whose waste type or frequency we may fail to understand.
 MAX_SKIPPED = 0.05
 
 # Types of settlements and streets as the file writes them (folded, without the dot), and the
@@ -144,7 +202,16 @@ STREET_TYPES = {
     "prospektas": "pr.",
     "a": "a.",
     "aikste": "a.",
+    "akl": "aklg.",
+    "aklg": "aklg.",
+    "aklagatvis": "aklg.",
 }
+# A town that was a miestelis is still written so after the register made it a miestas:
+# "Žiežmarių mstl." is the town Žiežmariai.
+FORMER_TYPES = {("mstl.", "m.")}
+# Share of a town's addresses that must be on streets of a settlement elsewhere in the
+# district to move it there (see merge_spellings).
+MOVE_SHARE = 0.9
 # A house number and what follows it: "8", "8A", "8-1", "20S-K1-2", "20S K2" (blocks are
 # written with and without a dash). The containers of "8-1" and "8-2" are those of building 8.
 BUILDING = re.compile(r"(\d+[A-Z]?)(?:-.+|-?K-?\d.*)?")
@@ -156,16 +223,33 @@ class ValidationError(Exception):
 
 @dataclass(frozen=True)
 class Rule:
-    """Emptied every `every` days, in `months` only (all year if empty)."""
+    """Emptied every `every` days, in `months` only (all year if empty). Or on days of the week
+    (`weekdays`, 0 = Monday): every week on each of them, or with `nth` on the nth of that day
+    in every month (`every` is then 0)."""
 
     every: int
     months: tuple[int, ...] = ()
+    weekdays: tuple[int, ...] = ()
+    nth: int = 0
+
+    @property
+    def gap(self) -> int:
+        """The most days between two pickups (outside the months it skips)."""
+        return 35 if self.nth else self.every
+
+    def allows(self, day: date) -> bool:
+        """Whether `day` can be a pickup: the file's next date is checked with it."""
+        if self.weekdays and day.weekday() not in self.weekdays:
+            return False
+        return not self.nth or (day.day - 1) // 7 + 1 == self.nth
 
 
 def parse_rule(text: str) -> Rule | None:
     """Understands the frequency texts of the file, e.g. "kas 14 dienų", "kas 28 dienas,
     balandį, gegužę, …, lapkritį" and "kiekvieną mėnesio dieną, kiekvieną mėnesį, penktadienį"
-    (every Friday). Returns None for anything else."""
+    (every Friday), "…, pirmadienį, penktadienį" (every Monday and Friday) and "…, pirmąjį
+    mėnesyje trečiadienį" (the first Wednesday of every month). Returns None for anything
+    else."""
     parts = [clean_text(p).casefold() for p in text.split(",") if clean_text(p)]
     if not parts:
         return None
@@ -177,12 +261,15 @@ def parse_rule(text: str) -> Rule | None:
                 return None
             months.append(MONTHS[part])
         return Rule(int(interval.group(1)), tuple(sorted(months)))
-    if (
-        parts[:2] == ["kiekvieną mėnesio dieną", "kiekvieną mėnesį"]
-        and len(parts) == 3
-        and parts[2] in WEEKDAYS
-    ):
+    days = parts[2:] if parts[:2] == EVERY_DAY else []
+    if len(days) == 1 and days[0] in WEEKDAYS:
+        # One day a week: weekly, with the phase of its next date.
         return Rule(7)
+    if len(days) > 1 and all(day in WEEKDAYS for day in days):
+        return Rule(7, weekdays=tuple(sorted({WEEKDAYS[day] for day in days})))
+    nth = re.fullmatch(r"(\w+) mėnesyje (\w+)", days[0]) if len(days) == 1 else None
+    if nth and nth.group(1) in ORDINALS and nth.group(2) in WEEKDAYS:
+        return Rule(0, weekdays=(WEEKDAYS[nth.group(2)],), nth=ORDINALS[nth.group(1)])
     return None
 
 
@@ -203,25 +290,63 @@ class Schedule:
     @property
     def id(self) -> str:
         key = f"{self.kind}|{self.rule.every}|{self.phase}|{','.join(map(str, self.rule.months))}"
+        if self.rule.nth:
+            key += f"|{self.rule.nth}.{self.rule.weekdays[0]}"
         if self.resumes:
             key += f"|{self.resumes.isoformat()}"
         return f"k{self.kind[0]}-{hashlib.sha1(key.encode()).hexdigest()[:10]}"
 
     def dates(self, start: date, end: date) -> list[date]:
         start = max(start, self.resumes) if self.resumes else start
-        first = start + timedelta(days=(self.phase - start.toordinal()) % self.rule.every)
-        days = range((end - first).days + 1)
-        result = [first + timedelta(days=n) for n in days[:: self.rule.every]]
+        if self.rule.nth:
+            days = (start + timedelta(days=n) for n in range((end - start).days + 1))
+            result = [d for d in days if self.rule.allows(d)]
+        else:
+            first = start + timedelta(days=(self.phase - start.toordinal()) % self.rule.every)
+            days = range((end - first).days + 1)
+            result = [first + timedelta(days=n) for n in days[:: self.rule.every]]
         return [d for d in result if not self.rule.months or d.month in self.rule.months]
 
     def to_json(self, start: date, end: date) -> dict:
-        data: dict = {"id": self.id, "kind": self.kind, "rule": self.text, "every": self.rule.every}
+        data: dict = {"id": self.id, "kind": self.kind, "rule": self.text}
+        if self.rule.nth:
+            # The nth weekday (0 = Monday) of every month. Added later; the app reads `dates`.
+            data |= {"nth": self.rule.nth, "weekday": self.rule.weekdays[0]}
+        else:
+            data["every"] = self.rule.every
         if self.rule.months:
             data["months"] = list(self.rule.months)
         if self.resumes:
             data["resumes"] = self.resumes.isoformat()
         data["dates"] = [d.isoformat() for d in self.dates(start, end)]
         return data
+
+
+def schedules_for(kind: str, rule: Rule, pickup: date, text: str, today: date) -> list[Schedule]:
+    """The schedules of a container with this rule and next pickup. Several days a week are a
+    weekly schedule each, so containers emptied on any of those days share them."""
+    # The next pickup is more than one interval away (green waste in winter).
+    resumes = pickup if pickup > today + timedelta(days=rule.gap) else None
+    if rule.nth:
+        return [Schedule(kind, rule, 0, text, resumes)]
+    if rule.weekdays:
+        # 1 January of the year 1, day 1, was a Monday: a weekday's days are (weekday + 1) % 7.
+        weekly = Rule(7, rule.months)
+        return [Schedule(kind, weekly, (day + 1) % 7, text, resumes) for day in rule.weekdays]
+    return [Schedule(kind, rule, pickup.toordinal() % rule.every, text, resumes)]
+
+
+def _order(schedule: Schedule) -> tuple:
+    rule = schedule.rule
+    return (
+        schedule.kind,
+        rule.every,
+        rule.months,
+        rule.nth,
+        rule.weekdays,
+        schedule.phase,
+        schedule.resumes or date.min,
+    )
 
 
 def slug(name: str) -> str:
@@ -244,8 +369,11 @@ Address = tuple[str, str, str, str]
 
 def split_type(name: str, types: dict[str, str]) -> tuple[str, str | None]:
     """ "Vynuogyno g" -> ("vynuogyno", "g."), "Akademija" -> ("akademija", None): the folded
-    name and the register's abbreviation of its type, if the name ends with one."""
+    name and the register's abbreviation of its type, if the name ends with one. Of two types
+    ("Liepų al. g."), the first is the one."""
     words = name.split()
+    if len(words) > 2 and fold(words[-2]) in types and fold(words[-1]) in types:
+        return fold(" ".join(words[:-2])), types[fold(words[-2])]
     if len(words) > 1 and fold(words[-1]) in types:
         return fold(" ".join(words[:-1])), types[fold(words[-1])]
     return fold(name), None
@@ -253,12 +381,14 @@ def split_type(name: str, types: dict[str, str]) -> tuple[str, str | None]:
 
 def find_settlements(settlements: Iterable[Settlement], town: str) -> list[Settlement]:
     """The settlements `town` may be: the file mostly writes the genitive and the type
-    ("Akademijos mstl."), sometimes the plain name ("Akademija") or a type without its dot."""
+    ("Akademijos mstl."), sometimes the plain name ("Akademija"), a type without its dot or a
+    former type (FORMER_TYPES)."""
     base, kind = split_type(town, TOWN_TYPES)
     return [
         s
         for s in settlements
-        if base in (fold(s.name), fold(s.genitive)) and kind in (None, s.abbr)
+        if base in (fold(s.name), fold(s.genitive))
+        and (kind in (None, s.abbr) or (kind, s.abbr) in FORMER_TYPES)
     ]
 
 
@@ -352,8 +482,8 @@ def merge_spellings(index: Index, registry: Registry | None) -> Merged:
     """Merges the spellings of one town, street or house number into one: "Akademija" and
     "Akademijos mstl.", "Vynuogyno" and "Vynuogyno g.", "21 A" and "21A". A town listed under
     an eldership the register doesn't put it in moves to the register's eldership when that is
-    certain (one settlement of that name in the district, and its streets are there); otherwise
-    it stays, and is counted."""
+    certain (one settlement of that name in the district, and nine in ten of its addresses are
+    on its streets); otherwise it stays, and is counted."""
     settlements = registry.settlements if registry else []
     in_district = _by_district(settlements)
     elderships = {_district(name): name for name in index}
@@ -372,7 +502,8 @@ def merge_spellings(index: Index, registry: Registry | None) -> Merged:
             if not found:
                 continue
             target = elderships.get(fold(found[0].district)) if len(found) == 1 else None
-            if target and all(find_street(found[0], street) is not None for street in streets):
+            known = sum(len(h) for s, h in streets.items() if find_street(found[0], s) is not None)
+            if target and known >= MOVE_SHARE * sum(len(h) for h in streets.values()):
                 moved[(eldership, town)] = target
                 counts["movedTowns"] += 1
             else:
@@ -480,27 +611,43 @@ def fill_buildings(index: Index, kind_of: dict[str, str]) -> int:
     return changed
 
 
-def build(
-    content: bytes, today: date, registry: Registry | None = None
-) -> tuple[dict, dict[str, dict], list[str]]:
-    """Returns (schedule.json, {eldership slug: addresses file}, warnings). With the Address
-    Register (`registry`), spellings are merged by the register's codes; without it only
-    spellings that differ in case, spaces, dots or a missing type are."""
-    reader = csv.reader(io.StringIO(content.decode("utf-8-sig")), delimiter=";")
-    rows = [[clean_text(c) for c in row] for row in reader if len(row) == 9]
-    rows = [row for row in rows if row[0] == MUNICIPALITY]
-    if len(rows) < MIN_ROWS:
-        raise ValidationError(f"only {len(rows)} rows for {MUNICIPALITY}")
+@dataclass
+class Part:
+    """The schedules and addresses of one municipality."""
+
+    municipality: Municipality
+    rows: int
+    schedules: dict[str, Schedule]
+    merged: Merged
+    filled: int
+    addresses: int
+    registry: Registry | None
+    warnings: list[str]
+
+
+def read_part(
+    municipality: Municipality, rows: list[list[str]], today: date, registry: Registry | None
+) -> Part:
+    """Reads the rows of one municipality. With the Address Register (`registry`), spellings
+    are merged by the register's codes; without it only spellings that differ in case, spaces,
+    dots or a missing type are."""
+    if len(rows) < municipality.min_rows:
+        raise ValidationError(f"only {len(rows)} rows for {municipality.name}")
+
+    def eldership_of(row: list[str]) -> str:
+        # A few rows have the municipality in the place of the eldership.
+        return "" if row[1] in municipality.spellings else row[1]
 
     # Some rows have no eldership: take it from other rows of the same town.
-    town_eldership = {row[2]: row[1] for row in rows if row[1]}
+    town_eldership = {row[2]: name for row in rows if (name := eldership_of(row))}
     schedules: dict[str, Schedule] = {}
     index: Index = {}
     skipped: Counter[str] = Counter()
     # Containers whose only date is long past have no pickup announced (not in service, or the
     # season is over): continuing their rhythm would invent dates.
     stale: Counter[str] = Counter()
-    for _, eldership, town, street, house, _container, next_date, frequency, service in rows:
+    for row in rows:
+        _, _, town, street, house, _container, next_date, frequency, service = row
         kind = KINDS.get(service)
         rule = parse_rule(frequency)
         try:
@@ -510,18 +657,19 @@ def build(
         if not kind:
             skipped[f"waste type „{service}“"] += 1
             continue
-        if not rule or not pickup:
+        # The next date must be one the rule has: "pirmąjį mėnesyje trečiadienį" is the first
+        # Wednesday of a month.
+        if not rule or not pickup or not rule.allows(pickup):
             skipped[f"frequency „{frequency}“ / date „{next_date}“"] += 1
             continue
-        if pickup < today - timedelta(days=rule.every):
+        if pickup < today - timedelta(days=rule.gap):
             stale[kind] += 1
             continue
-        resumes = pickup if pickup > today + timedelta(days=rule.every) else None
-        schedule = Schedule(kind, rule, pickup.toordinal() % rule.every, frequency, resumes)
-        schedules.setdefault(schedule.id, schedule)
-        eldership = eldership or town_eldership.get(town, "")
+        eldership = eldership_of(row) or town_eldership.get(town, "")
         houses = index.setdefault(eldership, {}).setdefault(town, {}).setdefault(street, {})
-        houses.setdefault(house, set()).add(schedule.id)
+        for schedule in schedules_for(kind, rule, pickup, frequency, today):
+            schedules.setdefault(schedule.id, schedule)
+            houses.setdefault(house, set()).add(schedule.id)
 
     warnings = [f"{count} rows skipped: {reason}" for reason, count in skipped.most_common()]
     warnings += [
@@ -531,32 +679,88 @@ def build(
     if sum(skipped.values()) > MAX_SKIPPED * len(rows):
         raise ValidationError("too many rows not understood: " + "; ".join(warnings))
     merged = merge_spellings(index, registry)
-    index = merged.index
-    filled = fill_buildings(index, {i: s.kind for i, s in schedules.items()})
+    filled = fill_buildings(merged.index, {i: s.kind for i, s in schedules.items()})
     address_count = sum(
         len(houses)
-        for towns in index.values()
+        for towns in merged.index.values()
         for streets in towns.values()
         for houses in streets.values()
     )
-    if address_count < MIN_ADDRESSES:
-        raise ValidationError(f"only {address_count} addresses for {MUNICIPALITY}")
-
-    start, end = today - timedelta(days=KEEP_DAYS), today + timedelta(days=HORIZON_DAYS)
-    ordered = sorted(
-        schedules.values(),
-        key=lambda s: (s.kind, s.rule.every, s.rule.months, s.phase, s.resumes or date.min),
+    if address_count < municipality.min_addresses:
+        raise ValidationError(f"only {address_count} addresses for {municipality.name}")
+    return Part(
+        municipality, len(rows), schedules, merged, filled, address_count, registry, warnings
     )
-    # Address files refer to schedules by their position in this list, to stay small.
-    position = {s.id: i for i, s in enumerate(ordered)}
 
+
+def read(
+    content: bytes, today: date, registries: dict[str, Registry] | None = None
+) -> tuple[list[Part], list[str], Counter[str]]:
+    """The parts of MUNICIPALITIES that can be read, Kauno r. first; `registries` are their
+    Address Register snapshots by municipality id. Also returns warnings about municipalities
+    left out, and how many rows each municipality that isn't read has."""
+    reader = csv.reader(io.StringIO(content.decode("utf-8-sig")), delimiter=";")
+    rows = [[clean_text(c) for c in row] for row in reader if len(row) == 9]
+    municipality_of = {name: m for m in MUNICIPALITIES for name in m.spellings}
+    rows_of: dict[str, list[list[str]]] = defaultdict(list)
+    not_read: Counter[str] = Counter()
+    for row in rows:
+        if row[0] in municipality_of:
+            rows_of[municipality_of[row[0]].id].append(row)
+        else:
+            not_read[row[0]] += 1
+
+    registries = registries or {}
+    parts: list[Part] = []
+    left_out: list[str] = []
+    for municipality in MUNICIPALITIES:
+        rows = rows_of[municipality.id]
+        try:
+            parts.append(read_part(municipality, rows, today, registries.get(municipality.id)))
+        except ValidationError as error:
+            # Kauno r. fails the build (yesterday's files are kept). The others must not hold
+            # it back: their addresses are left out until their rows can be read again.
+            if not parts:
+                raise
+            left_out.append(f"{municipality.name} left out: {error}")
+    return parts, left_out, not_read
+
+
+def _stats(part: Part) -> dict:
+    merged, counts = part.merged, Counter(s.kind for s in part.schedules.values())
+    return {
+        "rows": part.rows,
+        "addresses": part.addresses,
+        "towns": sum(len(t) for t in merged.index.values()),
+        "areas": dict(sorted(counts.items())),
+        # Spellings of one place merged into one, and house numbers that got waste types from
+        # the rest of their building (see merge_spellings and fill_buildings).
+        "merged": {
+            "towns": merged.counts["towns"],
+            "streets": merged.counts["streets"],
+            "houses": merged.counts["houses"],
+            "townsMovedToTheirEldership": merged.counts["movedTowns"],
+            "townsInAnotherEldership": merged.counts["otherEldership"],
+            "aliases": len(merged.aliases),
+            "filledFromBuilding": part.filled,
+        },
+    }
+
+
+def _files(
+    part: Part, position: dict[str, int], taken: set[str], label: str | None
+) -> tuple[dict[str, dict], list[dict]]:
+    """The address files of one municipality and its entries in the list of elderships, which
+    say `label` as their municipality. `taken` are file names other municipalities use."""
+    index, merged = part.merged.index, part.merged
     # File names stay the same as long as the elderships do: phones saved them.
     file_of: dict[str, str] = {}
     for eldership in sorted(set(index) | {a[0] for a in merged.aliases}, key=str.casefold):
         name = slug(eldership)
-        while name in file_of.values():  # two elderships with the same ASCII name
+        while name in taken:  # two elderships with the same ASCII name
             name += "-2"
         file_of[eldership] = name
+        taken.add(name)
     # Spellings merged into another one, by the eldership they were written under: town ->
     # street -> house -> [eldership file, town, street, house] of the address to use. Not shown
     # in the app's lists; they keep addresses saved with these spellings working.
@@ -567,7 +771,7 @@ def build(
 
     files: dict[str, dict] = {}
     elderships = []
-    names = register_names(index, registry)
+    names = register_names(index, part.registry)
     for eldership, name in file_of.items():
         towns = index.get(eldership, {})
         files[name] = {
@@ -585,42 +789,79 @@ def build(
         }
         if eldership in aliases:
             files[name]["aliases"] = aliases[eldership]
-        entry = {"id": name, "name": eldership, "towns": sorted(towns, key=str.casefold)}
+        entry: dict = {"id": name, "name": eldership}
+        # Added later: apps that don't know it take every eldership to be in Kauno r.
+        if label:
+            entry["municipality"] = label
+        entry["towns"] = sorted(towns, key=str.casefold)
         # Added later: apps that don't know it search the town names only.
         if eldership in names:
             entry["registerNames"] = dict(sorted(names[eldership].items()))
         elderships.append(entry)
+    return files, elderships
 
-    counts = Counter(s.kind for s in ordered)
-    dataset = {
+
+def assemble(parts: list[Part], today: date) -> tuple[dict, list[dict[str, dict]]]:
+    """schedule.json and the address files of each part (by file name, in the order of
+    `parts`)."""
+    start, end = today - timedelta(days=KEEP_DAYS), today + timedelta(days=HORIZON_DAYS)
+    # Address files refer to schedules by their position in this list, to stay small. Those of
+    # Kauno r. come first, in their order, so its files are the same as when it was alone; the
+    # schedules only the others have follow.
+    ordered: list[Schedule] = []
+    for part in parts:
+        known = {s.id for s in ordered}
+        ordered += sorted((s for s in part.schedules.values() if s.id not in known), key=_order)
+    position = {s.id: i for i, s in enumerate(ordered)}
+
+    taken: set[str] = set()
+    files_of: list[dict[str, dict]] = []
+    elderships: list[dict] = []
+    for n, part in enumerate(parts):
+        files, entries = _files(part, position, taken, part.municipality.name if n else None)
+        files_of.append(files)
+        elderships += entries
+
+    first, *others = parts
+    dataset: dict = {
         "schemaVersion": SCHEMA_VERSION,
         "generatedAt": datetime.now(UTC).isoformat(timespec="seconds"),
         "provider": PROVIDER,
         "source": SHARE_URL,
-        "municipality": MUNICIPALITY,
-        "stats": {
-            "rows": len(rows),
-            "addresses": address_count,
-            "towns": sum(len(t) for t in index.values()),
-            "areas": dict(sorted(counts.items())),
-            # Spellings of one place merged into one, and house numbers that got waste types
-            # from the rest of their building (see merge_spellings and fill_buildings).
-            "merged": {
-                "towns": merged.counts["towns"],
-                "streets": merged.counts["streets"],
-                "houses": merged.counts["houses"],
-                "townsMovedToTheirEldership": merged.counts["movedTowns"],
-                "townsInAnotherEldership": merged.counts["otherEldership"],
-                "aliases": len(merged.aliases),
-                "filledFromBuilding": filled,
-            },
-        },
+        "municipality": first.municipality.spellings[0],
+        "stats": _stats(first),
         # For monitoring (status.py).
-        "warnings": len(warnings),
-        "areas": [s.to_json(start, end) for s in ordered],
-        "elderships": elderships,
+        "warnings": len(first.warnings),
     }
-    return dataset, files, warnings
+    if others:
+        # The same for the other municipalities: a source each in monitoring.
+        dataset["otherMunicipalities"] = [
+            {
+                "id": part.municipality.id,
+                "name": part.municipality.name,
+                "stats": _stats(part),
+                "warnings": len(part.warnings),
+            }
+            for part in others
+        ]
+    dataset["areas"] = [s.to_json(start, end) for s in ordered]
+    dataset["elderships"] = elderships
+    return dataset, files_of
+
+
+def build(
+    content: bytes, today: date, registries: dict[str, Registry] | None = None
+) -> tuple[dict, dict[str, dict], list[str]]:
+    """Returns (schedule.json, {eldership file: addresses file}, warnings); warnings of the
+    municipalities after Kauno r. start with their name. `registries`: see read()."""
+    parts, left_out, _ = read(content, today, registries)
+    dataset, files_of = assemble(parts, today)
+    files = {name: data for files in files_of for name, data in files.items()}
+    first, *others = parts
+    warnings = first.warnings + [
+        f"{part.municipality.name}: {warning}" for part in others for warning in part.warnings
+    ]
+    return dataset, files, warnings + left_out
 
 
 def _house(number: str) -> str:
@@ -678,6 +919,19 @@ def locate_table(
     return table, missing
 
 
+def join_tables(tables: list[dict]) -> dict:
+    """One table of the tables of several municipalities: the places of the first keep their
+    index, and the points stay sorted."""
+    places: list[list[str]] = []
+    rows: list[list] = []
+    for table in tables:
+        offset = len(places)
+        places += table["places"]
+        rows += [[lat, lon, place + offset, house] for lat, lon, place, house in table["points"]]
+    rows.sort()
+    return {**tables[0], "places": places, "points": rows}
+
+
 def fetch(sleep=time.sleep) -> bytes:
     """Downloads the CSV: opening the sharing link sets an anonymous cookie, which the download
     address then accepts."""
@@ -713,43 +967,13 @@ def write(out: Path, dataset: dict, files: dict[str, dict]) -> None:
     dump(out / "schedule.json", dataset)
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("--out", type=Path, required=True, help="directory for the output files")
-    parser.add_argument("--csv", type=Path, help="read this file instead of downloading")
-    args = parser.parse_args(argv)
-
-    content = args.csv.read_bytes() if args.csv else fetch()
-    # The snapshot of the Address Register (see snapshot.py) tells which spellings are one place
-    # and gives the addresses coordinates. Without it the app still works: fewer spellings are
-    # merged, and "use my location" doesn't find Kauno r. addresses.
-    registry = None
-    if snapshot.KAUNO_REGISTRY_FILE.exists():
-        registry, _ = snapshot.load_registry(snapshot.KAUNO_REGISTRY_FILE)
-    try:
-        dataset, files, warnings = build(content, date.today(), registry)
-    except ValidationError as error:
-        print(f"Validation failed: {error}", file=sys.stderr)
-        return 1
-    write(args.out, dataset, files)
-
-    located = ""
-    if registry and snapshot.KAUNO_ADDRESSES_FILE.exists():
-        points, taken_at = snapshot.load_points(snapshot.KAUNO_ADDRESSES_FILE)
-        table, missing = locate_table(files, registry, points, dataset["generatedAt"])
-        (args.out / "points.json").write_text(
-            json.dumps(table, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
-        )
-        located = (
-            f'- {len(table["points"])} addresses with coordinates for "use my location" '
-            f"({missing} not found in the Address Register snapshot of {taken_at})"
-        )
-
-    stats = dataset["stats"]
-    named = sum(len(e.get("registerNames", {})) for e in dataset["elderships"])
-    sizes = sorted((args.out / "addresses").glob("*.json"), key=lambda p: p.stat().st_size)
+def _summary(part: Part, files: dict[str, dict], folder: Path, located: str) -> list[str]:
+    """The job summary of one municipality."""
+    stats = _stats(part)
+    named = sum(len(names) for names in register_names(part.merged.index, part.registry).values())
+    sizes = sorted((folder / f"{name}.json" for name in files), key=lambda p: p.stat().st_size)
     lines = [
-        "## Kauno r. (Kauno švara)",
+        f"## {part.municipality.name} (Kauno švara)",
         "",
         f"- {stats['rows']} containers at {stats['addresses']} addresses in {stats['towns']} towns",
         f"- {named} towns can also be searched by their name in the Address Register",
@@ -764,7 +988,62 @@ def main(argv: list[str] | None = None) -> int:
         ),
     ]
     lines += [located] if located else []
-    lines += [f"- warning: {w}" for w in warnings]
+    lines += [f"- warning: {w}" for w in part.warnings]
+    return [*lines, ""]
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--out", type=Path, required=True, help="directory for the output files")
+    parser.add_argument("--csv", type=Path, help="read this file instead of downloading")
+    args = parser.parse_args(argv)
+
+    content = args.csv.read_bytes() if args.csv else fetch()
+    # The snapshots of the Address Register (see snapshot.py) tell which spellings are one place
+    # and give the addresses coordinates. Without one the app still works: fewer spellings are
+    # merged, and "use my location" doesn't find the addresses of that municipality.
+    registries = {
+        m.id: snapshot.load_registry(m.registry_file)[0]
+        for m in MUNICIPALITIES
+        if m.registry_file.exists()
+    }
+    today = date.today()
+    try:
+        parts, left_out, not_read = read(content, today, registries)
+    except ValidationError as error:
+        print(f"Validation failed: {error}", file=sys.stderr)
+        return 1
+    dataset, files_of = assemble(parts, today)
+    write(args.out, dataset, {name: data for files in files_of for name, data in files.items()})
+
+    lines: list[str] = []
+    tables = []
+    for part, files in zip(parts, files_of, strict=True):
+        located = ""
+        if part.registry and part.municipality.addresses_file.exists():
+            points, taken_at = snapshot.load_points(part.municipality.addresses_file)
+            table, missing = locate_table(files, part.registry, points, dataset["generatedAt"])
+            tables.append(table)
+            located = (
+                f'- {len(table["points"])} addresses with coordinates for "use my location" '
+                f"({missing} not found in the Address Register snapshot of {taken_at})"
+            )
+        lines += _summary(part, files, args.out / "addresses", located)
+    if tables:
+        (args.out / "points.json").write_text(
+            json.dumps(join_tables(tables), ensure_ascii=False, separators=(",", ":")),
+            encoding="utf-8",
+        )
+    lines += [f"- warning: {w}" for w in left_out]
+    lines += [
+        "",
+        "Not read: "
+        + ", ".join(
+            f"{name or '(no municipality)'} ({count} rows"
+            + (", from Alytaus RATC)" if name in FROM_ALYTAUS_RATC else ")")
+            for name, count in not_read.most_common()
+        ),
+    ]
     text = "\n".join(lines) + "\n"
     print(text)
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
