@@ -8,8 +8,8 @@ data changes slowly, so a snapshot refreshed from a machine in Lithuania is good
 
 The build tries the live sources first and falls back to these files. The same refresh saves
 a copy of the Šilutės r. schedule and its page, whose site refuses GitHub's runners too
-(ecoservice.save_copy), and of the Kėdainių r. page and its elderships' files
-(kedainiai.save_copy).
+(ecoservice.save_copy), of the Kėdainių r. page and its elderships' files
+(kedainiai.save_copy), and of the Ukmergės r. page and its files (ukmerge.save_copy).
 """
 
 from __future__ import annotations
@@ -163,6 +163,9 @@ KEDAINIAI_COPY_DIR = DATA_DIR / "schedules-kedainiu-r"
 UKMERGE_MUNICIPALITY = ("Ukmergės rajono", 81)
 UKMERGE_REGISTRY_FILE = DATA_DIR / "registry-ukmerges-r.json"
 UKMERGE_ADDRESSES_FILE = DATA_DIR / "address-points-ukmerges-r.json"
+# A copy of the Ukmergės r. page and the files it links: ukmerge.lt refuses GitHub's runners
+# (HTTP 403) too (ukmerge.save_copy).
+UKMERGE_COPY_DIR = DATA_DIR / "schedules-ukmerges-r"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -213,9 +216,9 @@ def age_days(taken_at: str, today: date) -> int:
     return (today - date.fromisoformat(taken_at)).days
 
 
-# A copy of a site that refuses GitHub's runners (ecoservice: silute.lt, kedainiai: kedainiai.lt):
-# its page as page.html, the files it links under the last part of their URLs, and this index
-# with when it was taken, the page's URL and the files' names.
+# A copy of a site that refuses GitHub's runners (ecoservice: silute.lt, kedainiai: kedainiai.lt,
+# ukmerge: ukmerge.lt): its page as page.html, the files it links under the last part of their
+# URLs, and this index with when it was taken, the page's URL and the files' names.
 SITE_COPY_INDEX = "copy.json"
 
 
@@ -383,12 +386,14 @@ def main() -> int:
     save(registry, points, ALYTUS_REGISTRY_FILE, ALYTUS_ADDRESSES_FILE)
     count = f"{len(registry.settlements)} settlements and {len(points)} address points"
     print(f"Alytaus RATC: saved {count} to {DATA_DIR}")
-    from . import ecoservice, kedainiai  # import this module
+    from . import ecoservice, kedainiai, ukmerge  # import this module
 
     ecoservice.save_copy(ecoservice.SILUTE, SILUTE_COPY_DIR)
     print(f"Šilutės r.: saved the schedule's page and files to {SILUTE_COPY_DIR}")
     kedainiai.save_copy(KEDAINIAI_COPY_DIR)
     print(f"Kėdainių r.: saved the schedules' page and files to {KEDAINIAI_COPY_DIR}")
+    ukmerge.save_copy(UKMERGE_COPY_DIR)
+    print(f"Ukmergės r.: saved the schedules' page and files to {UKMERGE_COPY_DIR}")
     return 0
 
 

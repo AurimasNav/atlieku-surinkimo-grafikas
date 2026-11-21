@@ -11,7 +11,9 @@ Excel; the schedules come in two periods a year, January to May and June to Dece
 
 The files are found by these texts. The rounds of bulky waste (a page of their own, "DGA
 surinkimas 2026 m. lapkritis-gruodis") aren't read, and the shared containers of the town's
-apartment buildings have no file.
+apartment buildings have no file. ukmerge.lt refuses GitHub's runners (HTTP 403): the daily job
+then reads the copy of the page and its files in pipeline/data (COPY_DIR, save_copy), with a
+warning that says how old it is, as for Šilutės r. and Kėdainių r.
 
 The district's file is a table of routes, each named after an eldership, with a row of days per
 waste type under the months, and a table of the places of each route:
@@ -52,9 +54,12 @@ from __future__ import annotations
 import argparse
 import io
 import re
+import sys
 from collections import Counter, defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date, timedelta
+from functools import partial
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -143,11 +148,54 @@ def select_files(
     return selected, warnings
 
 
-def download(today: date, keep_days: int) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
-    html = http.get(PAGE_URL, timeout=60).decode("utf-8", errors="replace")
-    found, warnings = find_files(html)
+def _get(url: str) -> bytes:
+    # With the project's own user agent (http.USER_AGENT). ukmerge.lt answers GitHub's runners
+    # 403; it serves a machine in Lithuania.
+    return http.get(url, timeout=120)
+
+
+# A copy of the page and the files the daily job reads from it, taken from a machine in
+# Lithuania (save_copy, run by snapshot.py with the Address Register snapshots): ukmerge.lt
+# answers GitHub's runners 403, as silute.lt (ecoservice) and kedainiai.lt do.
+COPY_DIR = snapshot.UKMERGE_COPY_DIR
+
+
+def _download(
+    today: date, keep_days: int, get: Callable[[str], bytes]
+) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
+    found, warnings = find_files(get(PAGE_URL).decode("utf-8", errors="replace"))
     chosen, notes = select_files(found, today, keep_days)
-    return [(f, http.get(f.url, timeout=120)) for f in chosen], warnings + notes
+    return [(f, get(f.url)) for f in chosen], warnings + notes
+
+
+def download(today: date, keep_days: int) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
+    """The files with dates still to publish, from the page, or where the site doesn't answer
+    and there is a copy (COPY_DIR), the copy's, with a warning that says how old it is, as
+    kedainiai.download does."""
+    try:
+        return _download(today, keep_days, _get)
+    except OSError as error:
+        folder = COPY_DIR
+        if not (folder / snapshot.SITE_COPY_INDEX).exists():
+            raise
+        files, warnings = _download(today, keep_days, partial(snapshot.site_copy, folder))
+        note = snapshot.site_copy_note(PAGE_URL, error, folder, today)
+        print(note, file=sys.stderr)
+        return files, [note, *warnings]
+
+
+def save_copy(folder: Path | None = None, today: date | None = None) -> None:
+    """Saves the page and the files the daily job would read from it in `folder` (COPY_DIR),
+    for download when the site doesn't answer: python -m schedule_pipeline.snapshot. Run it
+    too when the page gets the next period's files (December and May)."""
+    today = today or date.today()
+    html = _get(PAGE_URL)
+    found, warnings = find_files(html.decode("utf-8", errors="replace"))
+    chosen, notes = select_files(found, today)
+    for warning in warnings + notes:
+        print(f"Ukmergės r.: {warning}", file=sys.stderr)
+    contents = [(f.url, _get(f.url)) for f in chosen]
+    snapshot.save_site_copy(folder or COPY_DIR, PAGE_URL, html, contents, today)
 
 
 # --- the tables ------------------------------------------------------------------

@@ -634,26 +634,69 @@ def test_published_folder_and_its_metrics(part, tmp_path):
 
 
 def test_main_writes_the_folder(tmp_path, monkeypatch):
-    by_url = {f.url: COPIES[f.file_name] for f in (TOWN_H2, DISTRICT_H2, TOWN_H1, DISTRICT_H1)}
-
-    def serve(url, timeout=0):
-        if url == ukmerge.PAGE_URL:
-            return fixture("ukmerge/page.html")
-        if url in by_url:
-            return fixture(f"ukmerge/{by_url[url]}")
-        raise OSError(f"HTTP Error 404: {url}")
-
-    def blocked(*args):
-        raise OSError("HTTP Error 403: Forbidden")
-
     monkeypatch.setattr(ukmerge.http, "get", serve)
-    monkeypatch.setattr(ukmerge.raseiniai.address_register, "fetch", blocked)
-    monkeypatch.setattr(ukmerge.raseiniai.address_points, "fetch", blocked)
+    monkeypatch.setattr(ukmerge.raseiniai.address_register, "fetch", refused)
+    monkeypatch.setattr(ukmerge.raseiniai.address_points, "fetch", refused)
     assert ukmerge.main(["--out", str(tmp_path)]) == 0
     data = json.loads((tmp_path / "schedule.json").read_text(encoding="utf-8"))
     assert [p["id"] for p in data["providers"]] == ["ukmerge"]
     addresses = json.loads((tmp_path / "addresses.json").read_text(encoding="utf-8"))
     assert len(addresses["points"]) > ukmerge.MUNICIPALITY.min_address_points
+
+
+def serve(url, timeout=0):
+    """The page and its files, from the fixtures."""
+    by_url = {f.url: COPIES[f.file_name] for f in (TOWN_H2, DISTRICT_H2, TOWN_H1, DISTRICT_H1)}
+    if url == ukmerge.PAGE_URL:
+        return fixture("ukmerge/page.html")
+    if url in by_url:
+        return fixture(f"ukmerge/{by_url[url]}")
+    raise OSError(f"HTTP Error 404: {url}")
+
+
+def refused(url, timeout=0):
+    raise OSError("HTTP Error 403: Forbidden")
+
+
+def test_the_copy_when_the_site_refuses_the_job(tmp_path, monkeypatch):
+    monkeypatch.setattr(ukmerge.http, "get", serve)
+    copy = tmp_path / "copy"
+    ukmerge.save_copy(copy, TODAY)
+    # As Kėdainių r.'s: the page, the files read today named after their URLs, and copy.json.
+    index = json.loads((copy / "copy.json").read_text(encoding="utf-8"))
+    assert index["takenAt"] == "2026-11-21" and index["page"] == ukmerge.PAGE_URL
+    assert index["files"] == [TOWN_H2.file_name, DISTRICT_H2.file_name]
+    assert sorted(p.name for p in copy.iterdir()) == sorted(
+        [TOWN_H2.file_name, DISTRICT_H2.file_name, "copy.json", "page.html"]
+    )
+
+    monkeypatch.setattr(ukmerge.http, "get", refused)
+    monkeypatch.setattr(ukmerge, "COPY_DIR", copy)
+    files, warnings = ukmerge.download(TODAY, 31)
+    assert [(f.group, f.months) for f, _ in files] == [("town", (6, 12)), ("district", (6, 12))]
+    assert files[1][1] == content(DISTRICT_H2)
+    assert warnings == [
+        f"{ukmerge.PAGE_URL}: unavailable (HTTP Error 403: Forbidden); used the copy from "
+        "2026-11-21 (0 days old)"
+    ]
+    # Over 60 days old, it asks for a refresh; the routes keep their last dates meanwhile.
+    _, warnings = ukmerge.download(date(2027, 1, 25), 31)
+    assert warnings[0].endswith("uv run python -m schedule_pipeline.snapshot")
+    # Without a copy, the error.
+    monkeypatch.setattr(ukmerge, "COPY_DIR", tmp_path / "none")
+    with pytest.raises(OSError, match="403"):
+        ukmerge.download(TODAY, 31)
+
+
+def test_the_committed_copy_can_be_built(monkeypatch):
+    """The copy in pipeline/data, as the daily job reads it on GitHub's runners (it is
+    refreshed, so only that it builds: build_dataset checks the counts)."""
+    monkeypatch.setattr(ukmerge.http, "get", refused)
+    # The files the daily job reads (31 days back): the copy has those of the day it was taken.
+    files, warnings = ukmerge.download(date.today(), 31)
+    assert "used the copy from" in warnings[0]
+    assert {f.group for f, _ in files} == {"town", "district"}
+    build_dataset(files, REGISTRY, date.today(), 31, ukmerge.SOURCE)
 
 
 def test_a_page_without_the_files_fails(tmp_path, monkeypatch):

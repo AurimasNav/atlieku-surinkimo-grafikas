@@ -32,7 +32,8 @@ silute.lt (pdf)                           Šilutės r.: site/silutes-r/ (from a 
 ecoservice.lt (pdf)                       Trakų r., Šalčininkų r.: site/ecoservice/
 kedainiai.lt (docx, pdf)                  Kėdainių r.: site/kedainiu-r/ (from a copy in
                                           pipeline/data when the site refuses the runners)
-ukmerge.lt (pdf)                          Ukmergės r.: site/ukmerges-r/
+ukmerge.lt (pdf)                          Ukmergės r.: site/ukmerges-r/ (from a copy in
+                                          pipeline/data when the site refuses the runners)
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
 pipeline/   Python: scrape → parse → validate → schedule.json

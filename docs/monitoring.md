@@ -181,7 +181,12 @@ them, next to the last ones or in their place; until their months start, their r
 those of the period in force that cover the same places. If no newer file of the town or of the
 district is linked when a period ends, its routes keep their last dates and the build warns
 ("the schedule of the district ended on 2026-12-31; no newer one is read"). Installed apps find
-`ukmerges-r/` through `regions.json` (below).
+`ukmerges-r/` through `regions.json` (below). ukmerge.lt refuses GitHub's runners (HTTP 403), so
+`ukmerge` is built from the copy of its page and files in `pipeline/data/schedules-ukmerges-r/`
+that the snapshot refresh takes, with a build warning that says how old it is: the next
+period's files reach the site only with a refresh, so run it when they are posted (mid-December
+and mid-May), and `ScheduleDataRunsOut` fires for `ukmerge` in late May and December until one
+is done.
 
 The job therefore publishes the state of the data with every run:
 
@@ -332,10 +337,12 @@ groups:
       # Ukmergės r.: every kind comes in two periods a year, January to May and June to
       # December, so mixed waste and packaging near their ends every May and December (the last
       # pickups on 28-29 May and 29 December 2026). The files are posted two or three weeks
-      # before their periods (made on 17-18 December 2025 and 13 May 2026): 2 days, as for
-      # Kretingos r. Not glass, once or twice a period and last weeks before its end (1 May and
-      # 4 December 2026). The town's and the district's files are one source: a late file of
-      # one of them doesn't fire while the other's newer file is read.
+      # before their periods (made on 17-18 December 2025 and 13 May 2026), but are read from
+      # the copy in pipeline/data (ukmerge.lt refuses the runners), which a refresh must take
+      # after they are posted: a week's notice, as for Šilutės r., so there is time for it. Not
+      # glass, once or twice a period and last weeks before its end (1 May and 4 December
+      # 2026). The town's and the district's files are one source: a late file of one of them
+      # doesn't fire while the other's newer file is read.
       - alert: ScheduleDataRunsOut
         expr: |-
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"mazeikiai|telsiai|plunge"}[30m]) - time() < 7 * 86400
@@ -366,7 +373,7 @@ groups:
             or
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="kedainiai",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
             or
-          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="ukmerge",kind=~"household|packaging"}[30m]) - time() < 2 * 86400
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="ukmerge",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
         for: 1h
         labels: { severity: warning }
         annotations:

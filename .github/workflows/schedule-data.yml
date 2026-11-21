@@ -391,8 +391,9 @@ jobs:
             echo "::error::The Kėdainių r. build failed and the published data couldn't be downloaded (HTTP $code)."
             exit 1
           fi
-      # Ukmergės r., from the PDFs of Ukmergės autobusų parkas on the municipality's page
-      # (site/ukmerges-r): if today's build fails, yesterday's files are kept.
+      # Ukmergės r., from the PDFs of Ukmergės autobusų parkas on the municipality's page or, as
+      # ukmerge.lt refuses the runners, their copy in pipeline/data (site/ukmerges-r): if
+      # today's build fails, yesterday's files are kept.
       - name: Build the Ukmergės r. schedule (Ukmergės autobusų parkas)
         id: ukmerge
         if: github.event_name != 'pull_request'

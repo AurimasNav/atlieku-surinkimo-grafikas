@@ -73,7 +73,9 @@ jobs:
         # warning. --strict: a file that can't be read fails the check, instead of keeping its
         # rows of the published data as the daily job does.
         run: uv run python -m schedule_pipeline.kedainiai --strict --out "$RUNNER_TEMP/site/kedainiu-r"
-      - name: Build the Ukmergės r. schedule from the PDFs on ukmerge.lt
+      - name: Build the Ukmergės r. schedule from the PDFs on ukmerge.lt (or their copy)
+        # ukmerge.lt refuses the runners: the copy in pipeline/data is read instead, with a
+        # warning.
         run: uv run python -m schedule_pipeline.ukmerge --out "$RUNNER_TEMP/site/ukmerges-r"
       - name: Compare with the published data
         run: |
