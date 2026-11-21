@@ -59,25 +59,31 @@ scrape_configs:
 
 Alert rules:
 
+Every rule reads the newest sample of the last 30 minutes with `last_over_time(...[30m])`. A
+plain selector like `siuksliaveze_data_places` only looks back 5 minutes (Prometheus'
+`--query.lookback-delta`), so with a 15-minute scrape it has no value for 10 of every 15
+minutes: alerts with `for:` never fire, and the others fire and resolve every 15 minutes.
+Keep the window at least twice the scrape interval.
+
 ```yaml
 groups:
   - name: siuksliaveze-data
     rules:
       - alert: ScheduleDataStale
         # The job runs daily at 04:17 UTC; 30 hours means one run was missed or failed.
-        expr: time() - siuksliaveze_data_generated_timestamp_seconds > 30 * 3600
+        expr: time() - last_over_time(siuksliaveze_data_generated_timestamp_seconds[30m]) > 30 * 3600
         for: 30m
         labels: { severity: warning }
         annotations:
           summary: "Schedule data of {{ $labels.source }} is {{ $value | humanizeDuration }} old"
           description: "The daily build of this source fails or doesn't run. See the Schedule data workflow on GitHub."
       - alert: ScheduleDataShrank
-        expr: siuksliaveze_data_places < 0.9 * (siuksliaveze_data_places offset 1d)
+        expr: last_over_time(siuksliaveze_data_places[30m]) < 0.9 * last_over_time(siuksliaveze_data_places[30m] offset 1d)
         labels: { severity: warning }
         annotations:
           summary: "{{ $labels.source }} covers 10% fewer places than yesterday"
       - alert: ScheduleDataMoreWarnings
-        expr: siuksliaveze_data_warnings > (siuksliaveze_data_warnings offset 1d)
+        expr: last_over_time(siuksliaveze_data_warnings[30m]) > last_over_time(siuksliaveze_data_warnings[30m] offset 1d)
         labels: { severity: info }
         annotations:
           summary: "{{ $labels.source }}: more build warnings than yesterday (new typo or renamed place?)"
@@ -88,9 +94,9 @@ groups:
       # year and green waste from April to November, so only its mixed waste and packaging.
       - alert: ScheduleDataRunsOut
         expr: |-
-          siuksliaveze_data_last_date_timestamp_seconds{source="mazeikiai"} - time() < 7 * 86400
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="mazeikiai"}[30m]) - time() < 7 * 86400
             or
-          siuksliaveze_data_last_date_timestamp_seconds{source="klaipedos",kind=~"household|packaging"} - time() < 7 * 86400
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="klaipedos",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
         for: 1h
         labels: { severity: warning }
         annotations:
@@ -102,15 +108,18 @@ groups:
         expr: |-
           group by (source) (last_over_time(siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data"}[3d]))
             unless on (source)
-          group by (source) (siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data"})
+          group by (source) (last_over_time(siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data"}[30m]))
             and on ()
-          (up{job="siuksliaveze-data"} == 1)
+          (last_over_time(up{job="siuksliaveze-data"}[30m]) == 1)
         for: 30m
         labels: { severity: warning }
         annotations:
           summary: "{{ $labels.source }} is missing from metrics.txt"
+      # absent_over_time: also fires when the scrape job itself is gone.
       - alert: ScheduleDataNotScraped
-        expr: up{job="siuksliaveze-data"} == 0
+        expr: |-
+          last_over_time(up{job="siuksliaveze-data"}[30m]) == 0
+            or absent_over_time(up{job="siuksliaveze-data"}[30m])
         for: 2h
         labels: { severity: warning }
         annotations:
