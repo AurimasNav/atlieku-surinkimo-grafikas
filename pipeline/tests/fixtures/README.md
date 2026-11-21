@@ -89,6 +89,18 @@ konteineriu-grafikas-.pdf", `kalvarija-food.pdf` "2026-m.-Kalvarijos-sav.-indivi
 surinkimo-grafikas.pdf" and so on (`test_maatc.COPIES` lists all thirteen). With the Address
 Register extracts of the five municipalities of the same day.
 
+`ecoservice/` has the schedules of UAB "Ecoservice" for Šilutės r., Trakų r. and Šalčininkų r.,
+downloaded on 2026-11-21 and renamed `<provider id>-<kind>.pdf`, with the pages that link them
+(`page-<provider id>.html`): Šilutės r.'s waste management page
+(<https://www.silute.lt/veiklos-sritys/aplinkosauga-ir-atlieku-tvarkymas/atlieku-tvarkymas/10160>)
+and `silute-household.pdf`, "isvezimai_valdos_2026silute.pdf"; <https://ecoservice.lt/trakugrafikai/>
+and `trakai-household.pdf`, "Traku-r.-atlieku-surinkimo-grafikas-2026.pdf";
+<https://ecoservice.lt/salcininkugrafikai/>, `salcininkai-household.pdf`
+"Individualiu-valdu-misriu-komunaliniu-atlieku-surinkimo-grafikas-Salcininku-r.-2026-m.pdf" and
+`salcininkai-packaging.pdf` "Individualiu-valdu-antriniu-zaliavu-isvezimo-grafikas-Salcininku-r.-
+2026-m.pdf" (`test_ecoservice.COPIES`). With the Address Register extracts of the three
+municipalities of the same day.
+
 `pratc/` has the schedule page of UAB "Panevėžio regiono atliekų tvarkymo centras" at
 <https://www.pratc.lt/atlieku-isvezimas-atlieku-isvezimas/> and the 2026 spreadsheets of
 individual houses it links, downloaded on 2026-11-21, renamed (the page links them under

@@ -6,7 +6,10 @@ data changes slowly, so a snapshot refreshed from a machine in Lithuania is good
 
     cd pipeline && uv run python -m schedule_pipeline.snapshot
 
-The build tries the live sources first and falls back to these files.
+The build tries the live sources first and falls back to these files. The same refresh saves
+a copy of the Šilutės r. schedule and its page, whose site refuses GitHub's runners too
+(ecoservice.save_copy), and of the Kėdainių r. page and its elderships' files
+(kedainiai.save_copy).
 """
 
 from __future__ import annotations
@@ -135,10 +138,26 @@ JONAVA_ADDRESSES_FILE = DATA_DIR / "address-points-jonavos-r.json"
 KRETINGOS_MUNICIPALITY = ("Kretingos rajono", 56)
 KRETINGOS_REGISTRY_FILE = DATA_DIR / "registry-kretingos-r.json"
 KRETINGOS_ADDRESSES_FILE = DATA_DIR / "address-points-kretingos-r.json"
+# Šilutės r., Trakų r. and Šalčininkų r. (schedule_pipeline.ecoservice, a part each).
+SILUTE_MUNICIPALITY = ("Šilutės rajono", 88)
+SILUTE_REGISTRY_FILE = DATA_DIR / "registry-silutes-r.json"
+SILUTE_ADDRESSES_FILE = DATA_DIR / "address-points-silutes-r.json"
+# A copy of the Šilutės r. schedule and the page that links it: silute.lt refuses GitHub's
+# runners (HTTP 403), as the register's sites do (ecoservice.save_copy).
+SILUTE_COPY_DIR = DATA_DIR / "schedules-silutes-r"
+TRAKAI_MUNICIPALITY = ("Trakų rajono", 79)
+TRAKAI_REGISTRY_FILE = DATA_DIR / "registry-traku-r.json"
+TRAKAI_ADDRESSES_FILE = DATA_DIR / "address-points-traku-r.json"
+SALCININKAI_MUNICIPALITY = ("Šalčininkų rajono", 85)
+SALCININKAI_REGISTRY_FILE = DATA_DIR / "registry-salcininku-r.json"
+SALCININKAI_ADDRESSES_FILE = DATA_DIR / "address-points-salcininku-r.json"
 # Kėdainių r. (schedule_pipeline.kedainiai).
 KEDAINIAI_MUNICIPALITY = ("Kėdainių rajono", 53)
 KEDAINIAI_REGISTRY_FILE = DATA_DIR / "registry-kedainiu-r.json"
 KEDAINIAI_ADDRESSES_FILE = DATA_DIR / "address-points-kedainiu-r.json"
+# A copy of the Kėdainių r. page and the elderships' files it links: kedainiai.lt refuses
+# GitHub's runners (HTTP 403) too (kedainiai.save_copy).
+KEDAINIAI_COPY_DIR = DATA_DIR / "schedules-kedainiu-r"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -290,6 +309,14 @@ def main() -> int:
             KRETINGOS_REGISTRY_FILE,
             KRETINGOS_ADDRESSES_FILE,
         ),
+        ("Šilutės r.", SILUTE_MUNICIPALITY, SILUTE_REGISTRY_FILE, SILUTE_ADDRESSES_FILE),
+        ("Trakų r.", TRAKAI_MUNICIPALITY, TRAKAI_REGISTRY_FILE, TRAKAI_ADDRESSES_FILE),
+        (
+            "Šalčininkų r.",
+            SALCININKAI_MUNICIPALITY,
+            SALCININKAI_REGISTRY_FILE,
+            SALCININKAI_ADDRESSES_FILE,
+        ),
         (
             "Kėdainių r.",
             KEDAINIAI_MUNICIPALITY,
@@ -308,11 +335,12 @@ def main() -> int:
     save(registry, points, ALYTUS_REGISTRY_FILE, ALYTUS_ADDRESSES_FILE)
     count = f"{len(registry.settlements)} settlements and {len(points)} address points"
     print(f"Alytaus RATC: saved {count} to {DATA_DIR}")
-    # Kėdainių r.'s schedule files too: kedainiai.lt refuses GitHub's runners.
-    from . import kedainiai
+    from . import ecoservice, kedainiai  # import this module
 
-    count = kedainiai.save_copies(date.today())
-    print(f"Kėdainių r.: saved {count} schedule files to {kedainiai.COPIES_DIR}")
+    ecoservice.save_copy(ecoservice.SILUTE, SILUTE_COPY_DIR)
+    print(f"Šilutės r.: saved the schedule's page and files to {SILUTE_COPY_DIR}")
+    kedainiai.save_copy(KEDAINIAI_COPY_DIR)
+    print(f"Kėdainių r.: saved the schedules' page and files to {KEDAINIAI_COPY_DIR}")
     return 0
 
 

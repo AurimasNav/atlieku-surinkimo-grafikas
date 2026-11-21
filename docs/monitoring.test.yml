@@ -110,6 +110,11 @@ tests:
       # Kretingos r.'s half-yearly mixed waste: ends tomorrow.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="household"}'
         values: "86400x20"
+      # Ecoservice's Šilutės r., Trakų r. and Šalčininkų r.: every kind.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="silute",kind="household"}'
+        values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="salcininkai",kind="glass"}'
+        values: "518400x20"
       # Kėdainių r. in January, before next year's files: the last date has passed.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kedainiai",kind="household"}'
         values: "-864000x20"
@@ -190,6 +195,8 @@ tests:
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="green"}'
         values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="trakai",kind="packaging"}'
+        values: "2592000x20"
       # Kėdainių r. glass (four times a year, last in October): not watched.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kedainiai",kind="glass"}'
         values: "86400x20"
@@ -334,6 +341,20 @@ tests:
               summary: "kretinga: the household schedule ends within a week"
           - exp_labels:
               job: siuksliaveze-data
+              source: silute
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "silute: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: salcininkai
+              kind: glass
+              severity: warning
+            exp_annotations:
+              summary: "salcininkai: the glass schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
               source: kedainiai
               kind: household
               severity: warning
@@ -436,6 +457,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jonava",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="trakai",kind="household"}'
         values: "25920000x191"
       - series: 'up{job="siuksliaveze-data"}'
         values: "1x191"

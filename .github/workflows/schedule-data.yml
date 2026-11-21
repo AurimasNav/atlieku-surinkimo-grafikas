@@ -1,6 +1,6 @@
 name: Schedule data
 
-# Scrapes nemenkom.lt, nkom.lt, Kauno švara, tratc.lt, gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt and kedainiai.lt daily and
+# Scrapes nemenkom.lt, nkom.lt, Kauno švara, tratc.lt, gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt, ecoservice.lt and kedainiai.lt daily and
 # publishes the data + the privacy policy to GitHub Pages. If parsing or validation fails, nothing is deployed and the last good
 # data stays live; a provider whose build fails keeps its part of yesterday's data instead.
 on:
@@ -316,8 +316,57 @@ jobs:
             echo "::error::The Kretingos r. build failed and the published data couldn't be downloaded (HTTP $code)."
             exit 1
           fi
-      # Kėdainių r., from the elderships' files on the municipality's page, or the copies in
-      # pipeline/data/kedainiai when it refuses the runners (site/kedainiu-r): a file that can't
+      # The schedules of UAB „Ecoservice“ in two folders: Šilutės r., from the PDF on the
+      # municipality's page or, as silute.lt refuses the runners, its copy in pipeline/data
+      # (site/silutes-r), and Trakų r. and Šalčininkų r., from the PDFs on ecoservice.lt
+      # (site/ecoservice, a part each). A municipality whose build fails keeps its part of
+      # yesterday's file; if none of a folder's can be built, yesterday's files are kept.
+      - name: Build the Šilutės r. schedule (Ecoservice)
+        id: silute
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: uv run python -m schedule_pipeline.ecoservice --region silutes-r --out ../site/silutes-r
+      - name: Keep the published Šilutės r. data if today's build failed
+        if: steps.silute.outcome == 'failure'
+        run: |
+          base=https://aurimasnav.github.io/atlieku-surinkimo-grafikas/silutes-r
+          out=../site/silutes-r
+          rm -rf "$out" && mkdir -p "$out"
+          get() { curl -sS --retry 3 --max-time 120 -o "$out/$1" -w '%{http_code}' "$base/$1" || true; }
+          code=$(get schedule.json)
+          if [ "$code" = 200 ] && [ "$(get addresses.json)" = 200 ]; then
+            echo "::warning::The Šilutės r. build failed; yesterday's published data is kept."
+          elif [ "$code" = 404 ]; then
+            rm -rf "$out"
+            echo "::warning::The Šilutės r. build failed and there is no published data to keep."
+          else
+            echo "::error::The Šilutės r. build failed and the published data couldn't be downloaded (HTTP $code)."
+            exit 1
+          fi
+      - name: Build the Trakų r. and Šalčininkų r. schedules (Ecoservice)
+        id: ecoservice
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: uv run python -m schedule_pipeline.ecoservice --region ecoservice --out ../site/ecoservice
+      - name: Keep the published Trakų r. and Šalčininkų r. data if today's build failed
+        if: steps.ecoservice.outcome == 'failure'
+        run: |
+          base=https://aurimasnav.github.io/atlieku-surinkimo-grafikas/ecoservice
+          out=../site/ecoservice
+          rm -rf "$out" && mkdir -p "$out"
+          get() { curl -sS --retry 3 --max-time 120 -o "$out/$1" -w '%{http_code}' "$base/$1" || true; }
+          code=$(get schedule.json)
+          if [ "$code" = 200 ] && [ "$(get addresses.json)" = 200 ]; then
+            echo "::warning::The Trakų r. and Šalčininkų r. build failed; yesterday's published data is kept."
+          elif [ "$code" = 404 ]; then
+            rm -rf "$out"
+            echo "::warning::The Trakų r. and Šalčininkų r. build failed and there is no published data to keep."
+          else
+            echo "::error::The Trakų r. and Šalčininkų r. build failed and the published data couldn't be downloaded (HTTP $code)."
+            exit 1
+          fi
+      # Kėdainių r., from the elderships' files on the municipality's page or, as kedainiai.lt
+      # refuses the runners, their copy in pipeline/data (site/kedainiu-r): a file that can't
       # be read keeps its eldership's rows of yesterday's data; if the build fails, yesterday's
       # part is kept, or yesterday's files, or none.
       - name: Build the Kėdainių r. schedule (kedainiai.lt)

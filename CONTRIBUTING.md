@@ -27,7 +27,11 @@ maatc.lt (pdf)                            Marijampolės sav., Vilkaviškio r., K
 rkp.lt (pdf)                              Raseinių r.: site/raseiniu-r/
 jonavospaslaugos.lt (pdf)                 Jonavos r.: site/jonavos-r/
 kretkom.lt (pdf)                          Kretingos r.: site/kretingos-r/
-kedainiai.lt (docx, pdf)                  Kėdainių r.: site/kedainiu-r/
+silute.lt (pdf)                           Šilutės r.: site/silutes-r/ (from a copy in
+                                          pipeline/data when the site refuses the runners)
+ecoservice.lt (pdf)                       Trakų r., Šalčininkų r.: site/ecoservice/
+kedainiai.lt (docx, pdf)                  Kėdainių r.: site/kedainiu-r/ (from a copy in
+                                          pipeline/data when the site refuses the runners)
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
 pipeline/   Python: scrape → parse → validate → schedule.json

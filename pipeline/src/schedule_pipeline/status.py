@@ -38,8 +38,9 @@ def collect(site: Path) -> dict:
     # mazeikiu-r also has Telšių r., Plungės r. and Rietavo sav., a provider each; sratc has
     # Radviliškio r. next to the five ("radviliskis"); panevezio-ratc (schedule_pipeline.pratc)
     # a provider for each of its four municipalities; maatc the five municipalities of
-    # Marijampolė county (schedule_pipeline.maatc), a provider each; kedainiu-r Kėdainių r.
-    # (schedule_pipeline.kedainiai), "kedainiai".
+    # Marijampolė county (schedule_pipeline.maatc), a provider each; silutes-r and ecoservice
+    # (schedule_pipeline.ecoservice) Šilutės r., and Trakų r. and Šalčininkų r., a provider each;
+    # kedainiu-r Kėdainių r. (schedule_pipeline.kedainiai), "kedainiai".
     # jurbarko-r also has Tauragės r., Šilalės r. and Pagėgių sav., a provider each.
     # raseiniu-r (schedule_pipeline.raseiniai) and jonavos-r (schedule_pipeline.jonava): a
     # provider each.
@@ -56,6 +57,8 @@ def collect(site: Path) -> dict:
         site / "raseiniu-r" / "schedule.json",
         site / "jonavos-r" / "schedule.json",
         site / "kretingos-r" / "schedule.json",
+        site / "silutes-r" / "schedule.json",
+        site / "ecoservice" / "schedule.json",
         site / "kedainiu-r" / "schedule.json",
     ):
         if not path.exists():
@@ -141,8 +144,8 @@ def metrics(status: dict) -> str:
             "Settlements (nemencine, nemezio, mazeikiai, telsiai, plunge, rietavas, klaipedos, "
             "jurbarkas, taurage, silale, pagegiai, siauliai, radviliskis, alytus, pasvalys, "
             "rokiskis, birzai, panevezio-r, marijampole, vilkaviskis, kalvarija, kazluruda, "
-            "sakiai, raseiniai, jonava, kretinga, kedainiai) or addresses (kauno, kaisiadorys) the "
-            "data covers.",
+            "sakiai, raseiniai, jonava, kretinga, silute, trakai, salcininkai, kedainiai) or "
+            "addresses (kauno, kaisiadorys) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (
