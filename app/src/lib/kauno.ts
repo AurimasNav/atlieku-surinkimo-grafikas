@@ -1,5 +1,12 @@
 import { KAUNO_URL, SUPPORTED_SCHEMA_VERSION } from './config';
-import { type Area, normalizeForSearch, UnsupportedScheduleError, type WasteKind } from './schedule';
+import {
+  type Area,
+  normalizeForSearch,
+  queryWords,
+  searchable,
+  UnsupportedScheduleError,
+  type WasteKind,
+} from './schedule';
 
 /**
  * Kauno r. and Kaišiadorių r.: schedules of UAB „Kauno švara“, published per address rather than
@@ -101,22 +108,19 @@ export function kaunoTowns(index: KaunoIndex): KaunoTown[] {
   );
 }
 
+const townSearch = searchable<KaunoTown>(
+  (t) => t.town,
+  (t) => [t.town, t.registerName ?? ''],
+  (t) => `${t.town} ${t.registerName ?? ''} ${t.eldershipName}`,
+);
+
 /**
  * Towns matching every word of the query, names that start with it first. The file writes the
  * genitive ("Akademijos mstl."), so the town's name in the Address Register ("Akademija") is
  * searched too and counts as a name.
  */
 export function searchKaunoTowns(towns: KaunoTown[], query: string): KaunoTown[] {
-  const words = normalizeForSearch(query).split(/\s+/).filter(Boolean);
-  if (!words.length) return [];
-  const starts = (t: KaunoTown) =>
-    [t.town, t.registerName ?? ''].some((name) => normalizeForSearch(name).startsWith(words[0]));
-  return towns
-    .filter((t) => {
-      const haystack = normalizeForSearch(`${t.town} ${t.registerName ?? ''} ${t.eldershipName}`);
-      return words.every((word) => haystack.includes(word));
-    })
-    .sort((a, b) => Number(starts(b)) - Number(starts(a)) || a.town.localeCompare(b.town, 'lt'));
+  return queryWords(query).length ? townSearch(towns, query) : [];
 }
 
 /**

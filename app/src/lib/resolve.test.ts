@@ -271,6 +271,13 @@ describe('search', () => {
     expect(searchLocations(locations, '')).toEqual([]);
   });
 
+  it('searches the places of newer data, not the ones it sorted before', () => {
+    expect(searchLocations(locations, 'avižien').map((l) => l.id)).toEqual(['g2', 'g1']);
+    const newer = [...locations, { id: 'g5', name: 'Avižienėlė', type: 'k.', district: 'Avižienių' }];
+    // Ė is an E: Avižienėlė before Avižieniai.
+    expect(searchLocations(newer, 'avižien').map((l) => l.id)).toEqual(['g5', 'g2', 'g1']);
+  });
+
   it('hides outdated rows in the manual row picker', () => {
     expect(searchAreas(areas, 'glass', '', today).map((a) => a.id)).toEqual(['g-1', 'g-between']);
   });

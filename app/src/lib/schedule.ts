@@ -160,37 +160,70 @@ export function isCurrent(area: Area, today: string): boolean {
   return Boolean(area.note) || Boolean(area.current) || (area.dates.at(-1) ?? '') >= today;
 }
 
-function queryWords(query: string): string[] {
+export function queryWords(query: string): string[] {
   return normalizeForSearch(query).split(/\s+/).filter(Boolean);
 }
 
 /**
- * Search results in Lithuanian alphabetical order (Š after S, Ž last), the names that start with
- * the first query word first: "riese" -> "Riešė" before "Didžioji Riešė".
+ * Lithuanian alphabetical order (Š after S, Ž last). One collator for every comparison: given a
+ * locale, Hermes builds a new one for each localeCompare call, and on Android it and `normalize`
+ * go through Java, so sorting thousands of places on every keystroke froze the search.
  */
-function byName<T extends { name: string }>(firstWord: string | undefined) {
-  const startsWith = (item: T) => (firstWord ? normalizeForSearch(item.name).startsWith(firstWord) : false);
-  return (a: T, b: T) => Number(startsWith(b)) - Number(startsWith(a)) || a.name.localeCompare(b.name, 'lt');
+const lithuanian = new Intl.Collator('lt');
+
+type Entry<T> = { item: T; names: string[]; text: string };
+
+/**
+ * A search over lists of thousands of items: each list (by identity, so a new download gets a new
+ * one) is normalized and sorted once, and a search only filters it. `sortName` orders the results,
+ * `names` are what counts as the start of the name, `text` is searched.
+ */
+export function searchable<T>(sortName: (item: T) => string, names: (item: T) => string[], text: (item: T) => string) {
+  const cache = new WeakMap<readonly T[], Entry<T>[]>();
+  const entries = (items: readonly T[]) => {
+    let sorted = cache.get(items);
+    if (!sorted) {
+      sorted = items
+        .map((item) => ({ item, key: sortName(item) }))
+        .sort((a, b) => lithuanian.compare(a.key, b.key))
+        .map(({ item }) => ({ item, names: names(item).map(normalizeForSearch), text: normalizeForSearch(text(item)) }));
+      cache.set(items, sorted);
+    }
+    return sorted;
+  };
+  /**
+   * The items (those `keep` lets through) whose text has every word of the query, in Lithuanian
+   * alphabetical order, the names that start with the first word first: "riese" -> "Riešė" before
+   * "Didžioji Riešė". Without a query, all of them in alphabetical order.
+   */
+  return (items: readonly T[], query: string, keep: (item: T) => boolean = () => true): T[] => {
+    const words = queryWords(query);
+    const matches = entries(items).filter(
+      (entry) => keep(entry.item) && words.every((word) => entry.text.includes(word)),
+    );
+    if (!words.length) return matches.map((entry) => entry.item);
+    const starts = (entry: Entry<T>) => entry.names.some((name) => name.startsWith(words[0]));
+    return [...matches.filter(starts), ...matches.filter((entry) => !starts(entry))].map((entry) => entry.item);
+  };
 }
 
+const locationSearch = searchable<Location>(
+  (loc) => loc.name,
+  (loc) => [loc.name],
+  (loc) => `${loc.name} ${loc.district}`,
+);
+
 export function searchLocations(locations: Location[], query: string): Location[] {
-  const words = queryWords(query);
-  if (!words.length) return [];
-  const matches = locations.filter((loc) => {
-    const haystack = normalizeForSearch(`${loc.name} ${loc.district}`);
-    return words.every((word) => haystack.includes(word));
-  });
-  return matches.sort(byName(words[0]));
+  return queryWords(query).length ? locationSearch(locations, query) : [];
 }
+
+const areaSearch = searchable<Area>(
+  (area) => area.name,
+  (area) => [area.name],
+  (area) => `${area.district ?? ''} ${area.name}`,
+);
 
 /** Rows for the manual row picker: current rows of one kind, alphabetical like the place search. */
 export function searchAreas(areas: Area[], kind: WasteKind, query: string, today: string): Area[] {
-  const words = queryWords(query);
-  const matches = areas.filter((area) => {
-    if (area.kind !== kind || !isCurrent(area, today)) return false;
-    if (!words.length) return true;
-    const haystack = normalizeForSearch(`${area.district ?? ''} ${area.name}`);
-    return words.every((word) => haystack.includes(word));
-  });
-  return matches.sort(byName(words[0]));
+  return areaSearch(areas, query, (area) => area.kind === kind && isCurrent(area, today));
 }
