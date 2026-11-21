@@ -36,6 +36,20 @@ describe('staleSources', () => {
     ).toEqual([]);
   });
 
+  it('names the company and page a region file lists, and skips one it does not', () => {
+    const sratc = 'https://www.sratc.lt/kalendoriaus-grafikai/';
+    const regions: ScheduleData = {
+      ...data,
+      providers: [
+        ...data.providers!,
+        { id: 'siauliai', name: 'UAB „Šiaulių regiono atliekų tvarkymo centras“', url: sratc, generatedAt: '2026-11-01T16:48:12Z' },
+      ],
+    };
+    expect(staleSources(regions, { choices: {} }, resolvedWith('siauliai', 'not-listed'), now)).toEqual([
+      { name: 'UAB „Šiaulių regiono atliekų tvarkymo centras“', url: sratc, since: '2026-11-01T16:48:12Z' },
+    ]);
+  });
+
   it('uses the Kauno švara build time for a Kauno r. address', () => {
     const kauno = { eldership: 'e', eldershipName: 'E', town: 'T', street: '', house: '' };
     const withPersonal = { ...data, personals: [{ key: 'e|T||', areas: [], generatedAt: '2026-11-01T04:20:00Z' }] };

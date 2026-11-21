@@ -1,20 +1,21 @@
 # Šiukšliavežė
 
 Android app that reminds you when waste is collected at your address, based on the
-schedules the waste companies publish:
+schedules the waste companies publish. It covers 20 municipalities:
 
 - **Vilnius district**: mixed waste, packaging and glass, from the schedule files of
   [UAB "Nemenčinės komunalininkas"](https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/)
   and [UAB "Nemėžio komunalininkas"](https://www.nkom.lt/kita.html), each serving its own
   elderships.
-- **Kaunas district**: mixed, food and green waste, from the open-data file of
-  [UAB "Kauno švara"](https://grafikai.svara.lt/). Glass and packaging there are collected by
-  UAB "Ekonovus", which doesn't publish its schedules as data; the app links to
-  [its schedules](https://www.ekonovus.lt/aptarnavimo-grafikai/).
-- **Mažeikiai district**: mixed waste, packaging and glass, and food waste in Mažeikiai town,
-  from the spreadsheets of the regional waste centre,
-  [UAB "Telšių regiono atliekų tvarkymo centras"](https://tratc.lt/atlieku-surinkimo-grafikai/atlieku-surinkimo-grafikai-mazeikiai/).
-  The waste is collected by UAB "Ecoservice" and UAB "Virginijus ir Ko".
+- **Kaunas and Kaišiadorys districts**: mixed waste, and food and green waste in Kaunas
+  district, from the open-data file of [UAB "Kauno švara"](https://grafikai.svara.lt/). Glass
+  and packaging there are collected by UAB "Ekonovus", which doesn't publish its schedules as
+  data; the app links to [its schedules](https://www.ekonovus.lt/aptarnavimo-grafikai/).
+- **Mažeikiai, Telšiai and Plungė districts and Rietavas municipality**: mixed waste, packaging
+  and glass, and food waste in Mažeikiai, Plungė and a few villages, from the spreadsheets of
+  the regional waste centre,
+  [UAB "Telšių regiono atliekų tvarkymo centras"](https://tratc.lt/atlieku-surinkimo-grafikai/).
+  In Mažeikiai district the waste is collected by UAB "Ecoservice" and UAB "Virginijus ir Ko".
 - **Klaipėda district**: mixed waste, packaging, glass and green waste, from the spreadsheet of
   the municipality's waste administrator,
   [VšĮ "Gargždų švara"](https://www.gargzdusvara.eu/komunaliniu-atlieku-tvarkymo-grafikai/).
@@ -23,6 +24,19 @@ schedules the waste companies publish:
   from the PDFs of the regional waste centre,
   [UAB "Tauragės regiono atliekų tvarkymo centras"](https://www.uabtratc.lt/atlieku-surinkimo-grafikai/).
   The waste is collected by UAB "Ecoservice" and UAB "Jurbarko komunalininkas".
+- **Šiauliai, Akmenė, Joniškis, Kelmė and Pakruojis districts**: mixed waste, packaging and
+  glass, green waste in some places and food waste in Joniškis and Žagarė, from the PDFs of the
+  regional waste centre,
+  [UAB "Šiaulių regiono atliekų tvarkymo centras"](https://www.sratc.lt/kalendoriaus-grafikai/).
+  The files of Šiauliai and Pakruojis districts name the collectors, UAB "Kuršėnų komunalinis
+  ūkis" and UAB "Pakruojo komunalinis ūkis".
+- **Alytus, Prienai, Lazdijai and Varėna districts and Druskininkai and Birštonas
+  municipalities**: mixed waste, packaging and glass, and food waste in towns and some villages,
+  for private houses, from the PDFs of the regional waste centre,
+  [UAB "Alytaus regiono atliekų tvarkymo centras"](https://www.aratc.lt/atlieku-surinkimo-grafikai/),
+  which publishes the schedules of every company that empties the containers.
+
+The cities of Vilnius, Kaunas, Klaipėda, Šiauliai and Alytus aren't covered.
 
 Available in Lithuanian, English, Russian and Polish.
 
@@ -69,10 +83,8 @@ your own build, rename and rebrand it. See [TRADEMARKS.md](TRADEMARKS.md).
 
 ## Disclaimer
 
-This is an unofficial project, not affiliated with or endorsed by UAB "Nemenčinės
-komunalininkas", UAB "Nemėžio komunalininkas", UAB "Kauno švara", UAB "Ekonovus", UAB "Telšių
-regiono atliekų tvarkymo centras", UAB "Ecoservice", UAB "Virginijus ir Ko", VšĮ "Gargždų
-švara", UAB "Tauragės regiono atliekų tvarkymo centras" or UAB "Jurbarko komunalininkas". The
+This is an unofficial project, not affiliated with or endorsed by any of the companies and
+organisations named above, or by the other companies that collect the waste. The
 schedule data belongs to its publishers. Settlement and street names
 come from the Address Register (Adresų registras) of VĮ Registrų centras, published as open
 data at [get.data.gov.lt](https://get.data.gov.lt/datasets/gov/rc/ar/:ns). Dates are converted

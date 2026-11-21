@@ -2,10 +2,15 @@ import { KAUNO_URL, SUPPORTED_SCHEMA_VERSION } from './config';
 import { type Area, normalizeForSearch, UnsupportedScheduleError, type WasteKind } from './schedule';
 
 /**
- * Kauno r.: schedules of UAB „Kauno švara“, published per address rather than per settlement
- * (pipeline/src/schedule_pipeline/svara.py). The app downloads the list of towns, then only the
- * address file of the user's eldership, and keeps the schedules of the user's own address.
+ * Kauno r. and Kaišiadorių r.: schedules of UAB „Kauno švara“, published per address rather than
+ * per settlement (pipeline/src/schedule_pipeline/svara.py). The app downloads the list of towns,
+ * then only the address file of the user's eldership, and keeps the schedules of the user's own
+ * address. Names and types say "Kauno" because Kauno r. came first; an eldership of another
+ * municipality says which (`municipality`).
  */
+
+/** The municipality of an eldership that doesn't name one. */
+export const KAUNO_MUNICIPALITY = 'Kauno r.';
 
 /** Containers emptied on the same days. */
 export type KaunoSchedule = { id: string; kind: WasteKind; rule: string; dates: string[] };
@@ -23,6 +28,8 @@ export type KaunoIndex = {
      * "Akademija". People search for it. Added later, so older data doesn't have it.
      */
     registerNames?: Record<string, string>;
+    /** "Kaišiadorių r."; absent for the elderships of Kauno r. Added later, like registerNames. */
+    municipality?: string;
   }[];
 };
 
@@ -55,7 +62,12 @@ export type KaunoTown = {
   town: string;
   /** Its name in the Address Register ("Akademija"), if that is different. */
   registerName?: string;
+  /** "Kaišiadorių r.", or absent for Kauno r. (see municipalityOf). */
+  municipality?: string;
 };
+
+/** The municipality of a town, as shown next to it: "Kauno r." or "Kaišiadorių r.". */
+export const municipalityOf = (town: Pick<KaunoTown, 'municipality'>) => town.municipality ?? KAUNO_MUNICIPALITY;
 
 export const kaunoKey = (a: KaunoAddress) => [a.eldership, a.town, a.street, a.house].join('|');
 
@@ -78,7 +90,13 @@ export function kaunoTowns(index: KaunoIndex): KaunoTown[] {
   return index.elderships.flatMap((e) =>
     e.towns.map((town) => {
       const registerName = e.registerNames?.[town];
-      return { eldership: e.id, eldershipName: e.name, town, ...(registerName ? { registerName } : {}) };
+      return {
+        eldership: e.id,
+        eldershipName: e.name,
+        town,
+        ...(registerName ? { registerName } : {}),
+        ...(e.municipality ? { municipality: e.municipality } : {}),
+      };
     }),
   );
 }
@@ -109,19 +127,20 @@ export function searchKaunoTowns(towns: KaunoTown[], query: string): KaunoTown[]
 const CITIES = {
   kaunas: { names: ['kaunas', 'kaune', 'kowno', 'каунас'], genitive: 'kauno' },
   klaipeda: { names: ['klaipeda', 'klaipedoje', 'kłajpeda', 'клаипеда'], genitive: 'klaipedos' },
+  siauliai: { names: ['siauliai', 'siauliuose', 'szawle', 'шяуляи', 'шауляи', 'шавли'], genitive: 'siauliu' },
+  alytus: { names: ['alytus', 'alytuje', 'olita', 'алитус'], genitive: 'alytaus' },
 } as const;
 export type UncoveredCity = keyof typeof CITIES;
 /** The word after it that makes it the district. */
 const DISTRICT = /^(r|raj|rajon\p{L}*|rejon\p{L}*|district|раион\p{L}*)$/u;
 
 /**
- * Whether a search that found nothing was for Kaunas or Klaipėda city ("Kaunas", "Kauno m.",
- * "klaipedos miestas"), which the app doesn't cover: only the districts around them (Kauno r.,
- * Klaipėdos r.) are. The app then says so instead of the general "nothing found". `found` is
- * how many places the search listed, so a place of the district that matches is shown as usual.
+ * Whether a search was for a city the app doesn't cover, only the district around it: Kaunas,
+ * Klaipėda, Šiauliai or Alytus ("Kaunas", "Kauno m.", "klaipedos miestas", "Szawle"). The app
+ * then says so: instead of the general "nothing found", or above the places it found, since a
+ * village can have the city's name (Alytus in Alovės sen., Šiauliai in Veliuonos sen.).
  */
-export function uncoveredCitySearch(query: string, found: number): UncoveredCity | undefined {
-  if (found > 0) return undefined;
+export function uncoveredCitySearch(query: string): UncoveredCity | undefined {
   const [first, second, ...rest] = normalizeForSearch(query)
     .split(/[^\p{L}\p{N}]+/u)
     .filter(Boolean);
@@ -136,7 +155,7 @@ export function uncoveredCitySearch(query: string, found: number): UncoveredCity
 }
 
 /** {@link uncoveredCitySearch} for Kaunas. */
-export const isKaunasCitySearch = (query: string, found: number) => uncoveredCitySearch(query, found) === 'kaunas';
+export const isKaunasCitySearch = (query: string) => uncoveredCitySearch(query) === 'kaunas';
 
 /**
  * The schedules of one address as one area per waste type: an address can have several

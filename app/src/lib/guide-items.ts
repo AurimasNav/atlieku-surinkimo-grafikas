@@ -13,7 +13,8 @@ import type { GuideItem, GuideRule, Localized } from './guide';
  * - Kauno r.: kaunoratc.lt (atlieku-rusiavimo-abc, dgasa, zaka), svara.lt (rusiavimo-gidas,
  *   maisto-atlieku-tvarkymas), rkpc.lt (atlieku-tvarkymas-informacija: Ekonovus empties the bins
  *   for all packaging except glass, and glass; food waste in a paper or plastic bag).
- * - Mažeikių r.: tratc.lt (atlieku-rusiavimas-2/*, tratc-atlieku-surinkimo-aiksteles).
+ * - Mažeikių r., Telšių r., Plungės r., Rietavo sav. (region `mazeikiai`): tratc.lt
+ *   (atlieku-rusiavimas-2/*, tratc-atlieku-surinkimo-aiksteles).
  * - National: grazintiverta.lt (deposit, 10 ct), eei.lt (electronics and batteries go back to
  *   shops that sell them), aplinka.vilnius.lt (receipts are mixed waste).
  */

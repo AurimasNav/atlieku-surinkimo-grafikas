@@ -191,6 +191,15 @@ const locations: Location[] = [
     schedule: { household: { area: 'mh' }, food: { area: 'mf' } },
   },
   { id: 'elsewhere', name: 'Kitur', type: 'k.', district: 'Kitur', provider: 'someone-new', schedule: { household: { area: 'xh' } } },
+  {
+    id: 'plunge',
+    name: 'Plungė',
+    type: 'm.',
+    district: 'Plungės miesto',
+    provider: 'plunge',
+    schedule: { household: { area: 'ph' }, packaging: { area: 'pp' } },
+  },
+  { id: 'simnas', name: 'Simnas', type: 'm.', district: 'Simno', provider: 'alytus', schedule: { household: { area: 'ah' } } },
 ];
 const data: ScheduleData = {
   schemaVersion: 1,
@@ -205,6 +214,9 @@ const data: ScheduleData = {
     area('mh', 'household', { provider: 'mazeikiai' }),
     area('mf', 'food', { provider: 'mazeikiai' }),
     area('xh', 'household', { provider: 'someone-new' }),
+    area('ph', 'household', { provider: 'plunge' }),
+    area('pp', 'packaging', { provider: 'plunge' }),
+    area('ah', 'household', { provider: 'alytus' }),
   ],
   locations,
   personal: { key: '', areas: [] },
@@ -228,6 +240,17 @@ describe('regionOf', () => {
     expect(regionOf(...at(null))).toBeUndefined();
     expect(regionOf(...at({ choices: {}, custom: { household: { start: '2026-11-24', every: 2, unit: 'week' } } }))).toBeUndefined();
     expect(regionOf(...at({ locationId: 'elsewhere', choices: {} }))).toBeUndefined();
+    // A regional centre without rules of its own here: the general advice.
+    expect(regionOf(...at({ locationId: 'simnas', choices: {} }))).toBeUndefined();
+    expect(advise(item('aerosol'), regionOf(...at({ locationId: 'simnas', choices: {} })), kinds('household')).to).toEqual(['site']);
+  });
+
+  it("gives TRATC's rules in all four of its municipalities", () => {
+    const plunge = at({ locationId: 'plunge', choices: {} });
+    expect(regionOf(...plunge)).toBe('mazeikiai');
+    expect(regionOf(...at({ choices: { household: 'ph' } }))).toBe('mazeikiai');
+    expect(advise(item('aerosol'), regionOf(...plunge), availableKinds(...plunge)).to).toEqual(['packaging']);
+    expect(locationsUrl('site', regionOf(...plunge))).toContain('tratc.lt');
   });
 });
 

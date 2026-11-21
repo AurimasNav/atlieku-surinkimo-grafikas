@@ -11,7 +11,7 @@ body:
     id: municipality
     attributes:
       label: "Savivaldybė"
-      placeholder: "pvz., Klaipėdos r."
+      placeholder: "pvz., Radviliškio r."
     validations:
       required: true
   - type: input

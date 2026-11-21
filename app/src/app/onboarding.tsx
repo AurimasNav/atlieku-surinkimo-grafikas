@@ -96,6 +96,9 @@ export default function Welcome() {
             {t('onboarding.title')}
           </AppText>
           <AppText style={styles.subtitle}>{t('onboarding.body')}</AppText>
+          <AppText variant="caption" style={styles.areas}>
+            {t('onboarding.areas', { areas: t('coverage.areas') })}
+          </AppText>
         </Animated.View>
 
         <View style={styles.features}>
@@ -150,6 +153,7 @@ const styles = StyleSheet.create({
   body: { flex: 1, gap: spacing.xl },
   title: { color: '#FFFFFF', fontSize: 52, lineHeight: 56 },
   subtitle: { color: 'rgba(255,255,255,0.78)', fontSize: 18, lineHeight: 26, marginTop: spacing.md },
+  areas: { color: 'rgba(255,255,255,0.66)', marginTop: spacing.sm },
   features: { gap: spacing.md },
   feature: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   featureIcon: {

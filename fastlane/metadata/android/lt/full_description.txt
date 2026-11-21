@@ -1,10 +1,14 @@
-Šiukšliavežė primins vakare prieš atvažiuojant šiukšliavežei, kad daugiau nepraleistumėte atliekų išvežimo. Programėlė veikia penkiuose rajonuose.
+Šiukšliavežė primins vakare prieš atvažiuojant šiukšliavežei, kad daugiau nepraleistumėte atliekų išvežimo. Programėlė veikia 20 savivaldybių kaimuose ir miestuose pagal jų atliekų tvarkymo įmonių skelbiamus grafikus:
 
-• Vilniaus rajonas: mišrios atliekos, pakuotės ir stiklas daugiau nei 1 000 kaimų ir miestelių, kuriuos aptarnauja UAB „Nemenčinės komunalininkas“ ir UAB „Nemėžio komunalininkas“: Nemenčinėje, Riešėje, Avižieniuose, Maišiagaloje, Nemėžyje, Pagiriuose, Juodšiliuose, Mickūnuose, Rudaminoje ir kitur.
-• Kauno rajonas: mišrios, maisto ir žaliosios atliekos maždaug 39 000 adresų, kuriuos aptarnauja UAB „Kauno švara“: Garliavoje, Domeikavoje, Ringauduose, Raudondvaryje, Užliedžiuose, Akademijoje ir kitur. Stiklą ir pakuotes ten išveža UAB „Ekonovus“; programėlėje yra nuoroda į jos grafikus.
-• Mažeikių rajonas: mišrios atliekos, pakuotės ir stiklas Mažeikiuose, Viekšniuose, Sedoje, Tirkšliuose, Židikuose ir maždaug 150 kaimų, o Mažeikių mieste – ir maisto atliekos. Grafikus skelbia UAB „Telšių regiono atliekų tvarkymo centras“; atliekas išveža UAB „Ecoservice“ ir UAB „Virginijus ir Ko“.
-• Klaipėdos rajonas: mišrios atliekos, pakuotės, stiklas ir žaliosios atliekos Gargžduose, Priekulėje, Doviluose, Kretingalėje, Vėžaičiuose ir maždaug 270 kaimų. Grafikus skelbia VšĮ „Gargždų švara“; atliekas išveža UAB „Ekonovus“.
-• Jurbarko rajonas: mišrios atliekos Jurbarke, Smalininkuose, Seredžiuje ir maždaug 340 kaimų, pakuotės ir stiklas – maždaug 120 iš jų, žaliosios atliekos – Jurbarko mieste. Grafikus skelbia UAB „Tauragės regiono atliekų tvarkymo centras“; atliekas išveža UAB „Ecoservice“ ir UAB „Jurbarko komunalininkas“.
+• Vilniaus r.: UAB „Nemenčinės komunalininkas“ ir UAB „Nemėžio komunalininkas“.
+• Kauno ir Kaišiadorių r.: UAB „Kauno švara“, pagal adresą. Stiklo ir pakuočių grafikams programėlėje yra nuoroda į UAB „Ekonovus“ svetainę.
+• Mažeikių, Telšių ir Plungės r. bei Rietavo sav.: UAB „Telšių regiono atliekų tvarkymo centras“.
+• Klaipėdos r.: VšĮ „Gargždų švara“.
+• Jurbarko r.: UAB „Tauragės regiono atliekų tvarkymo centras“.
+• Šiaulių, Akmenės, Joniškio, Kelmės ir Pakruojo r.: UAB „Šiaulių regiono atliekų tvarkymo centras“.
+• Alytaus, Prienų, Lazdijų ir Varėnos r. bei Druskininkų ir Birštono sav.: UAB „Alytaus regiono atliekų tvarkymo centras“.
+
+Mišrios atliekos, pakuotės ir stiklas, o ten, kur surenkamos atskirai, – ir maisto bei žaliosios atliekos. Vilniaus, Kauno, Klaipėdos, Šiaulių ir Alytaus miestų grafikų programėlėje nėra.
 
 Kaip tai veikia
 • Vieną kartą pasirinkite savo kaimą ar miestelį arba leiskite programėlei surasti jūsų adresą. Jei išvežimo dienos priklauso nuo gatvės ar namo tipo, programėlė paklaus ir to.
@@ -26,6 +30,6 @@ Privatumas
 Nemokama ir atvirojo kodo
 Programėlė nemokama, o jos išeitinis kodas atviras (Apache 2.0) ir skelbiamas GitHub: github.com/AurimasNav/atlieku-surinkimo-grafikas. Pastebėjote klaidingas datas ar trūksta adreso? Praneškite tiesiai iš programėlės.
 
-Grafikai imami iš nemenkom.lt, nkom.lt, tratc.lt, gargzdusvara.eu ir uabtratc.lt skelbiamų failų ir iš UAB „Kauno švara“ atvirųjų duomenų; jie tikrinami kasdien. Gyvenviečių ir gatvių pavadinimai paimti iš VĮ Registrų centro Adresų registro (atvirieji duomenys).
+Grafikai tikrinami kasdien. Gyvenviečių ir gatvių pavadinimai paimti iš VĮ Registrų centro Adresų registro (atvirieji duomenys).
 
-Neoficiali savanorių sukurta programėlė, nesusijusi su UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“, UAB „Virginijus ir Ko“, VšĮ „Gargždų švara“, UAB „Tauragės regiono atliekų tvarkymo centras“ ir UAB „Jurbarko komunalininkas“. Datos paimtos iš jų skelbiamų grafikų ir gali turėti klaidų; kilus abejonių, pasitikrinkite oficialų grafiką. Teikiama nemokamai, be jokių garantijų.
+Neoficiali savanorių sukurta programėlė, nesusijusi su čia minimomis įmonėmis ir įstaigomis ar su atliekas išvežančiomis įmonėmis. Datos paimtos iš jų skelbiamų grafikų ir gali turėti klaidų; kilus abejonių, pasitikrinkite oficialų grafiką. Teikiama nemokamai, be jokių garantijų.
