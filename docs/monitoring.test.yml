@@ -86,6 +86,10 @@ tests:
         values: "518400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="household"}'
         values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="marijampole",kind="household"}'
+        values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="sakiai",kind="food"}'
+        values: "518400x20"
       # Ends in 30 days: no alert.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="glass"}'
         values: "2592000x20"
@@ -124,6 +128,11 @@ tests:
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="glass"}'
         values: "86400x20"
+      # Glass of Marijampolė county's municipalities (every four weeks): not watched.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kazluruda",kind="glass"}'
+        values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="vilkaviskis",kind="packaging"}'
+        values: "2592000x20"
     alert_rule_test:
       - eval_time: 40m
         alertname: ScheduleDataRunsOut
@@ -186,6 +195,20 @@ tests:
               severity: warning
             exp_annotations:
               summary: "alytus: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: marijampole
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "marijampole: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: sakiai
+              kind: food
+              severity: warning
+            exp_annotations:
+              summary: "sakiai: the food schedule ends within a week"
 
   - name: fewer places and more warnings than a day before
     interval: 15m
@@ -269,6 +292,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="plunge",kind="food"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kalvarija",kind="packaging"}'
         values: "25920000x191"
       - series: 'up{job="siuksliaveze-data"}'
         values: "1x191"

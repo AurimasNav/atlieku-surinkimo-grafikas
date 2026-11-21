@@ -587,9 +587,13 @@ def combine(
     it raise ValueError."""
     provider = municipality.provider
     index, variants = Index(registry), defaultdict(dict)
-    reader: RouteList | MixedRoutes = RouteList(index, provider, variants)
-    if provider.section_town:
-        reader = MixedRoutes(reader, SectionRoutes(index, provider, variants))
+    if provider.reader:
+        # A reader of the provider's own (maatc.Routes).
+        reader = provider.reader(index, provider, variants)
+    else:
+        reader = RouteList(index, provider, variants)
+        if provider.section_town:
+            reader = MixedRoutes(reader, SectionRoutes(index, provider, variants))
     warnings: list[str] = []
     by_kind: dict[Kind, dict[int, list[tuple[ParseResult, Area]]]] = defaultdict(
         lambda: defaultdict(list)

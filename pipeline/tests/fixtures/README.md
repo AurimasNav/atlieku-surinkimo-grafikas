@@ -62,6 +62,20 @@ KOMUNALINIŲ ATLIEKŲ SURINKIMO DRUSKININKŲ SAVIVALDYBĖS TERITORIJOJE GRAFIKAS
 "Birstono sav 2026-2027 PA STKL gyventojai.pdf". With the Address Register extract for the six
 municipalities of the same day.
 
+`maatc/` has the schedule pages of the five municipalities of UAB "Marijampolės apskrities
+atliekų tvarkymo centras" (<https://maatc.lt/atlieku-isvezimo-grafikai/marijampoles-sav/>,
+`.../vilkaviskio-raj-sav/`, `.../kalvarijos-sav/`, `.../kazlu-rudos-sav/`, `.../sakiu-raj-sav/`,
+renamed `page-<provider id>.html`) and the 2026 PDFs of individual houses they link (made by UAB
+"Ecoservice" and UAB "Ekonovus"), downloaded on 2026-11-21 and renamed
+`<provider id>-<kind>.pdf`: `marijampole-household.pdf` is "2026-m.-Marijampoles-sav.-
+individualiu-valdu-misriu-komunaliniu-atlieku-pakuociu-ir-antriniu-zaliavu-konteineriu-
+aptarnavimo-grafikas.pdf", `vilkaviskis-packaging.pdf` "2026-m.-Vilkaviskio-raj.-sav.-
+individualiu-valdu-antriniu-zaliavu-ir-pakuociu-konteineriu-aptarnavimo-grafikas.pdf",
+`sakiai-glass.pdf` "2026-m.-Sakiu-rajono-sav.-stiklo-pakuociu-atlieku-surinkimo-is-individualiu-
+konteineriu-grafikas-.pdf", `kalvarija-food.pdf` "2026-m.-Kalvarijos-sav.-individualiu-maisto-
+surinkimo-grafikas.pdf" and so on (`test_maatc.COPIES` lists all thirteen). With the Address
+Register extracts of the five municipalities of the same day.
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 
