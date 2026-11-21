@@ -20,12 +20,13 @@
     "greenShort": "Zielone"
   },
   "common": {
-    "retry": "Spróbuj ponownie",
+    "cancel": "Anuluj",
+    "change": "Zmień",
     "continue": "Dalej",
     "done": "Gotowe",
-    "skip": "Nie mam takiego pojemnika",
     "openSettings": "Otwórz ustawienia",
-    "change": "Zmień"
+    "retry": "Spróbuj ponownie",
+    "skip": "Nie mam takiego pojemnika"
   },
   "onboarding": {
     "title": "Pojemniki.\nNa czas.",
@@ -212,7 +213,14 @@
     "remove": "Usuń mój harmonogram",
     "notSet": "Nie ustawiono",
     "set": "Ustaw harmonogram",
-    "needOne": "Ustaw co najmniej jeden harmonogram, aby kontynuować."
+    "needOne": "Ustaw co najmniej jeden harmonogram, aby kontynuować.",
+    "skipDate": "Pomiń tę datę",
+    "unskipDate": "Przywróć tę datę",
+    "removeDate": "Usuń tę datę",
+    "addDate": "Dodaj termin odbioru",
+    "skipped": "Pominięty",
+    "extra": "dodatkowy termin",
+    "exceptionsHint": "Tydzień ze świętem? Pomiń zwykły termin przyciskiem ×, a potem dodaj dzień, na który przeniesiono odbiór."
   },
   "manage": {
     "useOfficial": "Użyj oficjalnego harmonogramu mojej miejscowości",

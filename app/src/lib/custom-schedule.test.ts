@@ -1,4 +1,4 @@
-import { customDates } from './custom-schedule';
+import { customDates, customPreview, tidyExceptions } from './custom-schedule';
 
 const today = new Date(2026, 9, 11); // Sunday, 11 October 2026
 
@@ -33,5 +33,30 @@ describe('customDates', () => {
   it('crosses daylight saving time without drifting', () => {
     const dates = customDates({ start: '2026-10-22', every: 1, unit: 'week' }, today);
     expect(dates.slice(0, 2)).toEqual(['2026-10-22', '2026-10-29']); // DST ends 25 Oct
+  });
+});
+
+describe('exceptions', () => {
+  const rule = { start: '2026-10-15', every: 2, unit: 'week' as const };
+
+  it('skips a regular date and adds an extra one', () => {
+    const dates = customDates({ ...rule, skip: ['2026-10-29'], extra: ['2026-10-31', '2026-10-01'] }, today);
+    expect(dates.slice(0, 3)).toEqual(['2026-10-15', '2026-10-31', '2026-11-12']);
+  });
+
+  it('previews skipped dates so they can be brought back', () => {
+    expect(customPreview({ ...rule, skip: ['2026-10-29'], extra: ['2026-10-31'] }, today, 4)).toEqual([
+      { date: '2026-10-15', status: 'regular' },
+      { date: '2026-10-29', status: 'skipped' },
+      { date: '2026-10-31', status: 'extra' },
+      { date: '2026-11-12', status: 'regular' },
+    ]);
+  });
+
+  it('tidies away past dates and skips the rhythm no longer has', () => {
+    expect(
+      tidyExceptions({ ...rule, skip: ['2026-10-01', '2026-10-29', '2026-10-30'], extra: ['2026-10-02', '2026-11-12', '2026-11-13'] }, today),
+    ).toEqual({ ...rule, skip: ['2026-10-29'], extra: ['2026-11-13'] });
+    expect(tidyExceptions({ ...rule, skip: ['2026-10-01'] }, today)).toEqual(rule);
   });
 });

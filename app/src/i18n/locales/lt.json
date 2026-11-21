@@ -20,12 +20,13 @@
     "greenShort": "Žaliosios"
   },
   "common": {
-    "retry": "Bandyti dar kartą",
+    "cancel": "Atšaukti",
+    "change": "Keisti",
     "continue": "Tęsti",
     "done": "Baigta",
-    "skip": "Tokio konteinerio neturiu",
     "openSettings": "Atidaryti nustatymus",
-    "change": "Keisti"
+    "retry": "Bandyti dar kartą",
+    "skip": "Tokio konteinerio neturiu"
   },
   "onboarding": {
     "title": "Konteineriai.\nLaiku.",
@@ -212,7 +213,14 @@
     "remove": "Pašalinti mano grafiką",
     "notSet": "Nenustatyta",
     "set": "Nustatyti grafiką",
-    "needOne": "Nustatykite bent vieną grafiką, kad galėtumėte tęsti."
+    "needOne": "Nustatykite bent vieną grafiką, kad galėtumėte tęsti.",
+    "skipDate": "Praleisti šią datą",
+    "unskipDate": "Grąžinti šią datą",
+    "removeDate": "Pašalinti šią datą",
+    "addDate": "Pridėti išvežimo datą",
+    "skipped": "Praleista",
+    "extra": "papildoma data",
+    "exceptionsHint": "Šventinė savaitė? Įprastą datą praleiskite paspaudę ×, tada pridėkite dieną, į kurią išvežimas perkeltas."
   },
   "manage": {
     "useOfficial": "Naudoti oficialų mano vietovės grafiką",
