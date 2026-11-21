@@ -34,7 +34,7 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false,
+      "predictiveBackGestureEnabled": true,
       "package": "io.github.aurimasnav.siuksliaveze",
       "permissions": [],
       "blockedPermissions": [
@@ -92,6 +92,6 @@
     "experiments": {
       "reactCompiler": true
     },
-    "description": "Reminders for household, packaging and glass waste collection days in Vilnius district."
+    "description": "Reminders for waste collection days in Lithuanian district municipalities, from the official schedules of the waste companies."
   }
 }
