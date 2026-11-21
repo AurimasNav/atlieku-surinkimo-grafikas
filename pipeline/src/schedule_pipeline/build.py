@@ -211,7 +211,7 @@ def build_dataset(
             f"(expected at least {source.min_household_places})"
         )
     warnings += [f"not linked to any settlement: {u}" for u in report["unmatched"]]
-    whole_municipality = provider.route_town or provider.settlement_rows
+    whole_municipality = provider.route_town or provider.settlement_rows or provider.section_town
     unknown = "a settlement or a street" if whole_municipality else "a settlement of the eldership"
     warnings += [f"not {unknown}: {u}" for u in report.get("unknownPlaces", [])]
 

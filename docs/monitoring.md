@@ -10,7 +10,7 @@ Users see it too: when the data of the company behind their schedule hasn't been
 days (`providers[].generatedAt`, or Kauno švara's `generatedAt`), the app shows a warning with a
 link to the company's official schedule (`app/src/lib/freshness.ts`).
 
-There are five sources, each built on its own:
+There are six sources, each built on its own:
 
 | `source` | Company | Published in |
 |---|---|---|
@@ -19,6 +19,7 @@ There are five sources, each built on its own:
 | `kauno` | UAB „Kauno švara“, Kauno r. | `kauno-r/` |
 | `mazeikiai` | UAB „Telšių regiono atliekų tvarkymo centras“, Mažeikių r. | `mazeikiu-r/` |
 | `klaipedos` | VšĮ „Gargždų švara“, Klaipėdos r. | `klaipedos-r/` |
+| `jurbarkas` | UAB „Tauragės regiono atliekų tvarkymo centras“, Jurbarko r. | `jurbarko-r/` |
 
 The two Vilniaus r. companies share one `schedule.json`, so the app needs one download. When
 one of them fails, its part of yesterday's file is kept (its `providers[].generatedAt` stays
@@ -32,9 +33,9 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
-| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `mazeikiai` / `klaipedos` was built |
+| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `mazeikiai` / `klaipedos` / `jurbarkas` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
-| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai` and `klaipedos` those with a schedule) or addresses (`kauno`) covered |
+| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `klaipedos` and `jurbarkas` those with a schedule) or addresses (`kauno`) covered |
 | `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno`, whose dates are calculated ahead) |
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
@@ -87,16 +88,18 @@ groups:
         labels: { severity: info }
         annotations:
           summary: "{{ $labels.source }}: more build warnings than yesterday (new typo or renamed place?)"
-      # Mažeikių r. and Klaipėdos r. get one file per year. If next year's isn't posted, or the
-      # job no longer recognises it, the build stays green while the reminders stop after the
-      # last date. Only these sources: the quarterly files of the Vilniaus r. companies come
-      # close to their last date every quarter. Klaipėdos r. collects glass four or five times a
-      # year and green waste from April to November, so only its mixed waste and packaging.
+      # Mažeikių r., Klaipėdos r. and Jurbarko r. get one file per year. If next year's isn't
+      # posted, or the job no longer recognises it, the build stays green while the reminders
+      # stop after the last date. Only these sources: the quarterly files of the Vilniaus r.
+      # companies come close to their last date every quarter. Klaipėdos r. collects glass four
+      # or five times a year and green waste from April to November, and Jurbarko r. glass four
+      # times a year (last on 3 December 2026) and green waste last in mid-December, before
+      # next year's files are usually posted: so only their mixed waste and packaging.
       - alert: ScheduleDataRunsOut
         expr: |-
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="mazeikiai"}[30m]) - time() < 7 * 86400
             or
-          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="klaipedos",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"klaipedos|jurbarkas",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
         for: 1h
         labels: { severity: warning }
         annotations:
@@ -138,4 +141,5 @@ promtool and python3).
 Add the [Infinity](https://grafana.com/grafana/plugins/yesoreyeram-infinity-datasource/) data
 source, query `status.json` (type JSON, URL above) and alert when
 `sources.nemencine.generatedAt`, `sources.nemezio.generatedAt`, `sources.kauno.generatedAt`,
-`sources.mazeikiai.generatedAt` or `sources.klaipedos.generatedAt` is older than 30 hours.
+`sources.mazeikiai.generatedAt`, `sources.klaipedos.generatedAt` or
+`sources.jurbarkas.generatedAt` is older than 30 hours.

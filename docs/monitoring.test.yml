@@ -74,16 +74,24 @@ tests:
         values: "518400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="klaipedos",kind="household"}'
         values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jurbarkas",kind="packaging"}'
+        values: "518400x20"
       # Ends in 30 days: no alert.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="glass"}'
         values: "2592000x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="klaipedos",kind="packaging"}'
         values: "2592000x20"
-      # Klaipėdos r. glass and green waste, and the quarterly Vilniaus r. files, routinely get
-      # this close to their last date: no alert.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jurbarkas",kind="household"}'
+        values: "2592000x20"
+      # Klaipėdos r. and Jurbarko r. glass and green waste, and the quarterly Vilniaus r. files,
+      # routinely get this close to their last date: no alert.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="klaipedos",kind="glass"}'
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="klaipedos",kind="green"}'
+        values: "172800x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jurbarkas",kind="glass"}'
+        values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jurbarkas",kind="green"}'
         values: "172800x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="nemencine",kind="household"}'
         values: "259200x20"
@@ -107,6 +115,13 @@ tests:
               severity: warning
             exp_annotations:
               summary: "klaipedos: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: jurbarkas
+              kind: packaging
+              severity: warning
+            exp_annotations:
+              summary: "jurbarkas: the packaging schedule ends within a week"
 
   - name: fewer places and more warnings than a day before
     interval: 15m
@@ -182,6 +197,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="klaipedos",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jurbarkas",kind="household"}'
         values: "25920000x191"
       - series: 'up{job="siuksliaveze-data"}'
         values: "1x191"

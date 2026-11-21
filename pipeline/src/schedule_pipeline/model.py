@@ -76,6 +76,12 @@ class Provider:
     route_town: str | None = None
     # Rows are one settlement each, then which of its streets (locations.SettlementRows).
     settlement_rows: bool = False
+    # Rows are routes in sections: the settlements of an eldership after its name ("Šimkaičių
+    # sen.:"), or streets of this town (locations.SectionRoutes).
+    section_town: str | None = None
+    # Places the rows name in a way the register can't tell apart, as the rows write them and
+    # as the register's genitive with its type: ("Naukaimio k. (Vytėnų)", "Naukaimio II k.").
+    aliases: tuple[tuple[str, str], ...] = ()
     kinds: tuple[Kind, ...] = ("household", "packaging", "glass")
     # The first provider, published before there were several: its rows, places and files carry
     # no `provider` field, and its row ids stay as they were.
