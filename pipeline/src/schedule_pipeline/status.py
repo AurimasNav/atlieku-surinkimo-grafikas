@@ -45,6 +45,7 @@ def collect(site: Path) -> dict:
     # raseiniu-r (schedule_pipeline.raseiniai) and jonavos-r (schedule_pipeline.jonava): a
     # provider each.
     # kretingos-r is Kretingos r. (schedule_pipeline.kretinga), "kretinga".
+    # moletu-r is Molėtų r. (schedule_pipeline.moletai), "moletai".
     for path in (
         site / "schedule.json",
         site / "mazeikiu-r" / "schedule.json",
@@ -60,6 +61,7 @@ def collect(site: Path) -> dict:
         site / "silutes-r" / "schedule.json",
         site / "ecoservice" / "schedule.json",
         site / "kedainiu-r" / "schedule.json",
+        site / "moletu-r" / "schedule.json",
     ):
         if not path.exists():
             continue
@@ -144,7 +146,8 @@ def metrics(status: dict) -> str:
             "Settlements (nemencine, nemezio, mazeikiai, telsiai, plunge, rietavas, klaipedos, "
             "jurbarkas, taurage, silale, pagegiai, siauliai, radviliskis, alytus, pasvalys, "
             "rokiskis, birzai, panevezio-r, marijampole, vilkaviskis, kalvarija, kazluruda, "
-            "sakiai, raseiniai, jonava, kretinga, silute, trakai, salcininkai, kedainiai) or "
+            "sakiai, raseiniai, jonava, kretinga, silute, trakai, salcininkai, kedainiai, "
+            "moletai) or "
             "addresses (kauno, kaisiadorys) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),

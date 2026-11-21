@@ -159,6 +159,10 @@ KEDAINIAI_ADDRESSES_FILE = DATA_DIR / "address-points-kedainiu-r.json"
 # A copy of the Kėdainių r. page and the elderships' files it links: kedainiai.lt refuses
 # GitHub's runners (HTTP 403) too (kedainiai.save_copy).
 KEDAINIAI_COPY_DIR = DATA_DIR / "schedules-kedainiu-r"
+# Molėtų r. (schedule_pipeline.moletai).
+MOLETAI_MUNICIPALITY = ("Molėtų rajono", 62)
+MOLETAI_REGISTRY_FILE = DATA_DIR / "registry-moletu-r.json"
+MOLETAI_ADDRESSES_FILE = DATA_DIR / "address-points-moletu-r.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -372,6 +376,7 @@ def main() -> int:
             KEDAINIAI_REGISTRY_FILE,
             KEDAINIAI_ADDRESSES_FILE,
         ),
+        ("Molėtų r.", MOLETAI_MUNICIPALITY, MOLETAI_REGISTRY_FILE, MOLETAI_ADDRESSES_FILE),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)
