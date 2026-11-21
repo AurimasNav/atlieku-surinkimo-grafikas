@@ -6,11 +6,14 @@
 
 How it works
 • Choose your village or town once, or let the app find your address. If pickup days in your place depend on the street or the kind of home, it asks about that too.
-• See all your pickups in one place: the next one, how many days are left and the dates after that.
-• Get a reminder the evening before or that morning, at a time you choose.
-• New schedules load automatically, so your reminders stay up to date.
-• Place not listed, or your bin is emptied on other days? Set your own schedule: every 1–4 weeks or every 1–3 months.
+• See your pickups as a list or a month calendar, or add them to your calendar app.
+• A home screen widget shows the next pickup.
+• Reminders the evening before, that morning or both, at any time you choose. Glass comes rarely? Give it an extra reminder. Mark “Bins are out” or snooze right from the reminder.
+• New schedules load automatically, and you hear right away when a pickup date changes.
+• Save more than one place, like a summer house, and get reminders for each.
+• Place not listed, or your bin is emptied on other days? Set your own schedule, every 1–4 weeks or every 1–3 months, and skip or move single dates around holidays.
 • No glass or packaging container? Turn off its reminders.
+• Not sure which bin something goes in? Look it up in the sorting guide.
 • In Lithuanian, English, Russian and Polish.
 
 Private by design

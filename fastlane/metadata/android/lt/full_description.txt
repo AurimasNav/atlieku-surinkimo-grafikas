@@ -6,11 +6,14 @@
 
 Kaip tai veikia
 • Vieną kartą pasirinkite savo kaimą ar miestelį arba leiskite programėlei surasti jūsų adresą. Jei išvežimo dienos priklauso nuo gatvės ar namo tipo, programėlė paklaus ir to.
-• Visi išvežimai vienoje vietoje: artimiausias, kiek dienų liko ir tolesnės datos.
-• Priminimas vakare prieš išvežimą arba tą rytą, jūsų pasirinktu laiku.
-• Nauji grafikai įkeliami automatiškai, todėl priminimai visada aktualūs.
-• Jūsų vietovės nėra sąraše arba konteineris ištuštinamas kitomis dienomis? Nustatykite savo grafiką: kas 1–4 savaites arba kas 1–3 mėnesius.
+• Išvežimai sąraše arba mėnesio kalendoriuje; juos galima įkelti ir į savo kalendorių.
+• Valdiklis pagrindiniame ekrane rodo artimiausią išvežimą.
+• Priminimai vakare prieš, tą rytą arba abu kartus, jūsų pasirinktu laiku. Stiklas išvežamas retai? Pridėkite jam papildomą priminimą. Pažymėti „Jau išstūmiau“ ar atidėti galima tiesiai iš priminimo.
+• Nauji grafikai įkeliami automatiškai, o pasikeitus išvežimo datai sužinosite iš karto.
+• Išsaugokite kelias vietoves, pvz., sodybą, ir gaukite priminimus apie kiekvieną.
+• Jūsų vietovės nėra sąraše arba konteineris ištuštinamas kitomis dienomis? Nustatykite savo grafiką – kas 1–4 savaites arba kas 1–3 mėnesius – ir praleiskite ar perkelkite atskiras datas per šventes.
 • Neturite stiklo ar pakuočių konteinerio? Išjunkite jo priminimus.
+• Nežinote, į kurį konteinerį ką mesti? Pasitikrinkite rūšiavimo vadove.
 • Lietuvių, anglų, rusų ir lenkų kalbomis.
 
 Privatumas
