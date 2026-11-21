@@ -107,6 +107,9 @@ tests:
         values: "518400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jonava",kind="packaging"}'
         values: "518400x20"
+      # Kretingos r.'s half-yearly mixed waste: ends tomorrow.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="household"}'
+        values: "86400x20"
       # Kėdainių r. in January, before next year's files: the last date has passed.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kedainiai",kind="household"}'
         values: "-864000x20"
@@ -178,6 +181,14 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="raseiniai",kind="green"}'
         values: "172800x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jonava",kind="glass"}'
+        values: "86400x20"
+      # Kretingos r.: its files are posted a week or two before their periods, so its food waste
+      # 3 days before its end raises nothing, nor do its glass and green waste.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="food"}'
+        values: "259200x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="glass"}'
+        values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="green"}'
         values: "86400x20"
       # Kėdainių r. glass (four times a year, last in October): not watched.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kedainiai",kind="glass"}'
@@ -316,6 +327,13 @@ tests:
               summary: "jonava: the packaging schedule ends within a week"
           - exp_labels:
               job: siuksliaveze-data
+              source: kretinga
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "kretinga: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
               source: kedainiai
               kind: household
               severity: warning
@@ -416,6 +434,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="raseiniai",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jonava",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="household"}'
         values: "25920000x191"
       - series: 'up{job="siuksliaveze-data"}'
         values: "1x191"

@@ -2,7 +2,7 @@ name: Schedule data live build
 
 # Pull requests that change the pipeline (code or dependencies, e.g. a Renovate update of
 # openpyxl or pdfplumber) build the data from today's files on nemenkom.lt, nkom.lt, tratc.lt,
-# gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt and kedainiai.lt and from Kauno švara's open data, the way the daily job does, and compare
+# gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt and kedainiai.lt (or its saved copies) and from Kauno švara's open data, the way the daily job does, and compare
 # schedule.json with the published data. The unit tests in Schedule data / build only parse stored copies of the
 # files. Nothing is deployed.
 on:
@@ -59,8 +59,12 @@ jobs:
       - name: Build the Jonavos r. schedule from the PDFs on jonavospaslaugos.lt
         # --strict: a file that can't be read fails the check.
         run: uv run python -m schedule_pipeline.jonava --strict --out "$RUNNER_TEMP/site/jonavos-r"
+      - name: Build the Kretingos r. schedule from the PDFs on kretkom.lt
+        run: uv run python -m schedule_pipeline.kretinga --out "$RUNNER_TEMP/site/kretingos-r"
       - name: Build the Kėdainių r. schedule from the elderships' files on kedainiai.lt
-        # --strict: fails the check instead of keeping the published data.
+        # kedainiai.lt refuses GitHub's runners, so this reads the copies in
+        # pipeline/data/kedainiai. --strict: a file that can't be read fails the check, instead
+        # of keeping its rows of the published data as the daily job does.
         run: uv run python -m schedule_pipeline.kedainiai --strict --out "$RUNNER_TEMP/site/kedainiu-r"
       - name: Compare with the published data
         run: |

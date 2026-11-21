@@ -1,0 +1,1138 @@
+
+<!DOCTYPE html>
+<html lang="lt" >
+<head>
+    <meta charset="UTF-8"/>
+    
+    
+<base href="https://www.kretkom.lt/" />
+
+    
+    <title>Atliekų išvežimo grafikai - Kretingos komunalininkas</title><style>:root{--header-top-height:auto;--gutter:12px;--gutter-bottom:-24px;--gtbc:#000;--error:red;--main-container-width:1320px;--color-1:rgba(96,104,122,.99);--color-2:rgba(0,71,255,.99);--color-3:rgba(184,194,218,.99);--color-4:rgba(255,255,255,.99);--color-5:rgba(0,31,109,.99);--color-6:rgba(3,36,117,.99);--color-7:rgba(242,246,255,.99);--swiper-theme-color:var(--color-2);--swiper-navigation-size:44px;--swiper-navigation-top-offset:50%;--swiper-navigation-sides-offset:-50px;--swiper-navigation-color:var(--swiper-theme-color);--mobile-header-height:50px}@font-face{font-family:'Plus Jakarta Sans';font-style:italic;font-weight:200 800;font-display:swap;src:url(https://fonts.gstatic.com/s/plusjakartasans/v8/LDIuaomQNQcsA88c7O9yZ4KMCoOg4Koz4yOqhNnZR-AHYA.woff2) format('woff2');unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}@font-face{font-family:'Plus Jakarta Sans';font-style:italic;font-weight:200 800;font-display:swap;src:url(https://fonts.gstatic.com/s/plusjakartasans/v8/LDIuaomQNQcsA88c7O9yZ4KMCoOg4Koz4yGqhNnZR-AHYA.woff2) format('woff2');unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}@font-face{font-family:'Plus Jakarta Sans';font-style:italic;font-weight:200 800;font-display:swap;src:url(https://fonts.gstatic.com/s/plusjakartasans/v8/LDIuaomQNQcsA88c7O9yZ4KMCoOg4Koz4yCqhNnZR-AHYA.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Plus Jakarta Sans';font-style:italic;font-weight:200 800;font-display:swap;src:url(https://fonts.gstatic.com/s/plusjakartasans/v8/LDIuaomQNQcsA88c7O9yZ4KMCoOg4Koz4y6qhNnZR-A.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:200 800;font-display:swap;src:url(https://fonts.gstatic.com/s/plusjakartasans/v8/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko70yygg_vbd-E.woff2) format('woff2');unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:200 800;font-display:swap;src:url(https://fonts.gstatic.com/s/plusjakartasans/v8/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko50yygg_vbd-E.woff2) format('woff2');unicode-range:U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB}@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:200 800;font-display:swap;src:url(https://fonts.gstatic.com/s/plusjakartasans/v8/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko40yygg_vbd-E.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:200 800;font-display:swap;src:url(https://fonts.gstatic.com/s/plusjakartasans/v8/LDIoaomQNQcsA88c7O9yZ4KMCoOg4Ko20yygg_vb.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}*{-webkit-overflow-scrolling:touch}div.container{padding-left:15px;padding-right:15px;margin:0 auto}.clearfix,.clearfix:after,.clearfix:before,.container-fluid:after,.container-fluid:before,.container:after,.container:before,.row:after,.row:before{content:" ";display:table}.clearfix:after,.container-fluid:after,.container:after,.row:after{clear:both}*,:after,:before{-webkit-box-sizing:border-box;box-sizing:border-box}*{outline:0!important}button,hr,input{overflow:visible}progress,sub,sup{vertical-align:baseline}[type=checkbox],[type=radio],legend{-webkit-box-sizing:border-box;box-sizing:border-box;padding:0}body{margin:0}details,main{display:block}h1,h2,h3,h4{line-height:1.2;margin:0 0 .5em}hr{-webkit-box-sizing:content-box;box-sizing:content-box;height:0}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}a{background-color:transparent}abbr[title]{border-bottom:none;text-decoration:underline;-webkit-text-decoration:underline dotted;text-decoration:underline dotted}b,strong{font-weight:bolder}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}img{border-style:none}button,input,optgroup,select,textarea{font-family:inherit;font-size:100%;line-height:1.15;margin:0}button,select{text-transform:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button}[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner,button::-moz-focus-inner{border-style:none;padding:0}[type=button]:-moz-focusring,[type=reset]:-moz-focusring,[type=submit]:-moz-focusring,button:-moz-focusring{outline:ButtonText dotted 1px}fieldset{padding:.35em .75em .625em}legend{color:inherit;display:table;max-width:100%;white-space:normal}textarea{overflow:auto}[type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}[type=search]::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}[hidden],template{display:none}html{-webkit-text-size-adjust:100%;font-family:sans-serif}.hidden,[hidden]{display:none!important}.swiper-container{overflow:hidden}button{background:0 0;border:none;cursor:pointer;padding:0;text-align:inherit}.nopadd{padding:0!important}.noborg{border:0!important}.nomarg{margin:0!important}.nowrap{white-space:nowrap}.bold{font-weight:700}.f_9{font-size:.9rem}.f_10{font-size:1rem}.f_11{font-size:1.1rem}.f_12{font-size:1.2rem}.f_13{font-size:1.3rem}.f_14{font-size:1.4rem}.f_15{font-size:1.5rem}.f_16{font-size:1.6rem}p{margin:1.4em 0}p:first-child{margin-top:0}p:last-child{margin-bottom:0}div.page-module ul{margin:20px}div.page-module ul>li{margin:5px 0 0}div.page-module ul>li:first-child{margin:0}div.page-module ol{margin:20px}div.page-module ol>li{margin:5px 0 0}div.page-module ol>li:first-child{margin:0}.hide{display:none}body{margin:0}*,:before,:after{-webkit-box-sizing:border-box;box-sizing:border-box}.uppercase{text-transform:uppercase}button{border:0;-webkit-box-shadow:none;box-shadow:none;background:transparent;padding:0;margin:0;line-height:inherit;font-weight:inherit;-webkit-transition:all ease 0.3s;-o-transition:all ease 0.3s;transition:all ease 0.3s}html{height:100%;font-size:62.5%}body{min-height:100vh;color:var(--color-1);font-weight:400;font-family:"Plus Jakarta Sans",sans-serif;font-size:1.6rem;line-height:30px;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column}a{text-decoration:none;outline:none;color:var(--color-2)}#page{min-height:100vh;position:relative;overflow:hidden;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;-webkit-box-flex:1;-ms-flex:auto;flex:auto}.inner #page:before{background-image:url(../../images/misc/misc-6.svg);width:1440px;height:512px;content:'';position:absolute;left:0;top:44px;z-index:-1}.inner #page:after{background:linear-gradient(180deg,#F2F6FF 0%,rgba(242,246,255,0) 100%);height:512px;position:absolute;left:0;right:0;top:44px;content:'';z-index:-2}header{position:absolute;left:0;right:0;top:0;z-index:222}.inner header{position:relative}header>.container{position:relative;height:100%}main{-webkit-box-flex:1;-ms-flex:auto;flex:auto;-ms-flex-positive:1;flex-grow:1}div.header-content{position:relative;height:100%;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;-webkit-box-align:end;-ms-flex-align:end;align-items:flex-end}a.logo{display:-webkit-box;display:-ms-flexbox;display:flex;position:absolute;left:15px;top:44px;bottom:0;background:url(../../images/logo.png) left center no-repeat;background-size:contain;width:195px;z-index:15}.inner a.logo{background:url(../../images/logo2.png) left center no-repeat;background-size:contain;width:195px}section{padding:60px 0}div.search-place{position:relative;z-index:55}.search-toggler{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;cursor:pointer;color:var(--color-7)}.search-toggler.opened{border:1px solid var(--color-7)}div.search-container{position:absolute;right:0;top:100%;-webkit-box-shadow:0 0 7px 0 rgba(0,0,0,.25);box-shadow:0 0 7px 0 rgba(0,0,0,.25);opacity:0;visibility:hidden}.search-toggler.opened + div.search-container{opacity:1;visibility:visible}div.search-container form{width:250px;display:-webkit-box;display:-ms-flexbox;display:flex;background:#fff}div.search-container input[type="text"]{color:#000;font-size:13px;padding:15px 25px;border:0;width:50px;-webkit-box-flex:1;-ms-flex:auto;flex:auto}div.search-container button{border:0;background:none;color:#000;min-width:47px;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center}ul.contacts-menu{list-style:none;padding:0;margin:0 -16px;display:-webkit-box;display:-ms-flexbox;display:flex}ul.contacts-menu>li{display:-webkit-box;display:-ms-flexbox;display:flex}ul.contacts-menu>li>a{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:6px;padding:5px 16px;font-weight:400;font-size:1.4rem;line-height:14px;letter-spacing:-.02em;color:var(--color-7)}nav.main-menu-container{display:-webkit-box;display:-ms-flexbox;display:flex;-ms-flex-preferred-size:82px;flex-basis:82px}ul.main-menu{display:-webkit-box;display:-ms-flexbox;display:flex;list-style:none;padding:0;margin:0 -16px}ul.main-menu>li{position:relative;display:-webkit-box;display:-ms-flexbox;display:flex}ul.main-menu>li>a{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;padding:10px 16px;text-align:center;font-weight:600;font-size:1.6rem;letter-spacing:-.02em;color:var(--color-7)}.inner ul.main-menu>li>a{color:var(--color-6)}ul.main-menu>li>a>span{position:relative;line-height:1.1}ul.main-menu>li>a>span:before{position:absolute;left:0;right:0;top:100%;height:1px;content:'';background:var(--color-4);width:0;-webkit-transition:all ease 0.3s;-o-transition:all ease 0.3s;transition:all ease 0.3s}.inner ul.main-menu>li>a>span:before{background:var(--color-6)}ul.main-menu>li>ul{opacity:0;visibility:hidden;position:absolute}div.header-list{display:-webkit-box;display:-ms-flexbox;display:flex;gap:18px;-webkit-box-align:center;-ms-flex-align:center;align-items:center}div.header-list button,div.header-list a{display:-webkit-box;display:-ms-flexbox;display:flex}div.header-elements a{color:var(--color-7)}div.header-elements>div{display:-webkit-box;display:-ms-flexbox;display:flex}section.page-top-photo-section{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:end;-ms-flex-align:end;align-items:flex-end;position:relative;padding:90px 0 20px}section.page-top-photo-section .container{position:relative;z-index:2}section.page-top-photo-section h1{margin:0;font-weight:700;font-size:6.4rem;line-height:1.1;letter-spacing:-.03em;color:var(--color-5);opacity:0;-webkit-transform:translate(0,-80px);-ms-transform:translate(0,-80px);transform:translate(0,-80px)}div.content-colls{display:-webkit-box;display:-ms-flexbox;display:flex;margin:0 -37px}div.content-colls>*{padding:0 37px}aside{min-width:270px;-ms-flex-preferred-size:270px;flex-basis:270px}div.mainbar{min-width:1px;-webkit-box-flex:1;-ms-flex:auto;flex:auto}.fr{float:right;position:relative;padding-left:75px;padding-bottom:50px}.fr:before{content:'';position:absolute;width:372px;height:468px;background:var(--color-7);border-radius:15px;right:-40px;top:90px;z-index:-1}.fr img{display:block;border-radius:15px;opacity:0;-webkit-transform:translate(50px);-ms-transform:translate(50px);transform:translate(50px)}ul.content-menu{list-style:none;padding:0;margin:0}ul.content-menu>li:first-child>a{padding-top:0}ul.content-menu li>a{display:-webkit-box;display:-ms-flexbox;display:flex;padding:1.2em 0;-webkit-box-align:center;-ms-flex-align:center;align-items:center;font-weight:600;font-size:1.4rem;line-height:24px;letter-spacing:-.02em;color:var(--color-6)}ul.content-menu>li:not(:last-child){border-bottom:1px dashed rgba(0,31,109,.3)}ul.content-menu ul{list-style:none;padding:0;margin:0}ul.content-menu ul>li:first-child>a{padding-top:0}ul.content-menu ul>li:last-child>a{padding-bottom:1.2em}ul.content-menu ul>li>a{padding:.3em 0 .3em 20px;font-weight:400;font-size:1.4rem;line-height:24px;letter-spacing:-.02em;color:var(--color-1)}ul.content-menu ul>li>a>span{position:relative}ul.content-menu ul>li>a>span:before{position:absolute;left:0;right:0;top:100%;content:'';height:1px;background:var(--color-2);-webkit-transition:all ease 0.3s;-o-transition:all ease 0.3s;transition:all ease 0.3s;width:0}ul.content-menu li>a:focus,ul.content-menu li:hover>a,ul.content-menu li.selected>a{color:var(--color-2)}ul.content-menu ul>li:hover>a,ul.content-menu ul>li>a:focus,ul.content-menu ul>li.selected>a{color:var(--color-2)}ul.content-menu ul>li:hover>a>span:before,ul.content-menu ul>li>a:focus>span:before,ul.content-menu ul>li.selected>a>span:before{width:100%}ul.main-menu>li:hover>a>span:before,ul.main-menu>li.selected>a>span:before,ul.main-menu>li>a:focus>span:before{width:100%}div.index-swiper-container{position:relative}div.index-swiper-container div.swiper-pagination{position:absolute;right:0;top:0;bottom:0;left:auto;width:75px;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center}div.index-swiper-container div.swiper-pagination>*{width:10px;height:10px;background:#fff;opacity:1}div.index-swiper-container div.swiper-pagination .swiper-pagination-bullet-active{background:var(--color-5)}div.index-swiper .swiper-slide .photo{width:100%;height:auto;display:block;-o-object-fit:cover;object-fit:cover;max-height:calc(100vh - 160px);min-height:555px}div.index-swiper div.swiper-slide-content{position:absolute;left:0;right:0;bottom:0;top:0;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;color:var(--color-4)}div.index-swiper .swiper-slide div.swiper-slide-content:before{content:'';position:absolute;height:440px;top:0;left:0;right:0;background:-webkit-gradient(linear,left bottom,left top,from(rgba(0,9,32,0)),to(#000920));background:-o-linear-gradient(bottom,rgba(0,9,32,0) 0%,#000920 100%);background:linear-gradient(0deg,rgba(0,9,32,0) 0%,#000920 100%);opacity:.5}div.index-swiper div.swiper-slide-content h1,div.index-swiper div.swiper-slide-content h2{margin:0;font-weight:700;font-size:8rem;line-height:90px;letter-spacing:-.03em}div.index-swiper .swiper-slide h1 span,div.index-swiper .swiper-slide h2 span{opacity:0;-webkit-transform:translate(0,100%);-ms-transform:translate(0,100%);transform:translate(0,100%)}.google-translate{display:flex}.google-translate a{align-items:center}section.fancy-blocks-section{padding:0;background:var(--color-7)}div.header-elements:before{content:'';position:absolute;left:-100vw;top:0;right:-100vw;bottom:0;background:var(--color-6);z-index:-1}div.header-elements{display:-webkit-box;display:-ms-flexbox;display:flex;height:44px;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;width:100%;position:relative;gap:30px}div.header-elements a:focus,div.header-elements a:hover{text-decoration:underline}div.fancy-blocks-container{display:-webkit-box;display:-ms-flexbox;display:flex;gap:24px;margin-top:-80px;z-index:2;position:relative}div.fancy-blocks-container>*{-webkit-box-flex:1;-ms-flex:1 1 100%;flex:1 1 100%}.fancy-block-item{height:100%;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;background:var(--color-4);min-height:170px;-webkit-box-align:center;-ms-flex-align:center;align-items:center;border-radius:15px;padding:10px 35px;border:2px solid var(--color-4)}div.footer-colls h4,.useful-box-left>div,.custom-title-1,.effect1{-webkit-transform:translate(0,-80px);-ms-transform:translate(0,-80px);transform:translate(0,-80px);opacity:0}.fancy-blocks-container>div{-webkit-transform:translate(0,-20px);-ms-transform:translate(0,-20px);transform:translate(0,-20px);opacity:0}.fancy-block-item:hover,.fancy-block-item:focus{border-color:var(--color-2)}div.fancy-block-icon{position:relative;height:89px;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;z-index:1;margin-bottom:10px}div.fancy-block-icon img{max-width:100%;display:block}div.fancy-block-icon:before{background-image:url(../../images/misc/misc-3.svg);width:108px;height:89px;content:'';position:absolute;top:50%;left:50%;z-index:-1;margin-left:-54px;margin-top:-45px}div.fancy-block-title{font-weight:600;font-size:2rem;line-height:110%;text-align:center;letter-spacing:-.024em;color:var(--color-6);display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;min-height:44px}@media (min-width:568px){.container{width:auto}}@media (max-width:767px){header{height:var(--mobile-header-height);-webkit-box-shadow:0 0 7px 0 rgba(0,0,0,.15);box-shadow:0 0 7px 0 rgba(0,0,0,.15);position:fixed;left:0;top:0;right:0;background:#fff}.inner a.logo,.webp a.logo,a.logo{left:15px;top:0;width:100px;bottom:0;height:auto;background:url(../../images/logo2.png) left center no-repeat;background-size:contain}div.header-content{display:none}.mobile-menu-toggler{display:-webkit-box!important;display:-ms-flexbox!important;display:flex!important;padding:15px 45px 15px 15px;position:relative;width:100%;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;-webkit-box-align:center;-ms-flex-align:center;align-items:center;text-transform:uppercase;font-weight:500}ul.content-menu>li:first-child>a{padding-top:.7em}ul.content-menu li>a{padding:.7em 1em}div.content-menu-container{margin:-30px -15px 25px}ul.content-menu ul>li:last-child>a{padding-bottom:.5em}ul.content-menu ul>li>a{padding-left:2em}ul.content-menu{max-height:0;overflow:hidden;-webkit-transition:all ease 0.3s;-o-transition:all ease 0.3s;transition:all ease 0.3s}ul.content-menu.opened{max-height:1500px}ul.content-menu>li:first-child>a{border-top:1px solid rgba(0,0,0,.1)}header.mob-position-fixed + div,header.mob-position-fixed + main{margin-top:var(--mobile-header-height)}body.mob_menu_opened #page,body.mob_menu_opened #footer{left:-80%}body.mob_menu_opened header.mob-position-fixed,body.mob_menu_opened .mob-search-container.mob-position-fixed{-webkit-transform:translate(-80%,0);-ms-transform:translate(-80%,0);transform:translate(-80%,0)}div.mob_nav_container{position:fixed;left:20%;top:0;right:0;bottom:0;overflow:hidden;z-index:1;background:rgba(172,44,16,.02);opacity:0;visibility:hidden;-webkit-transition:all ease 0.3s;-o-transition:all ease 0.3s;transition:all ease 0.3s;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column}div.mob_nav_menus{-webkit-box-flex:1;-ms-flex:auto;flex:auto;overflow:hidden;overflow-y:auto}.smart_menu_caller{position:absolute;right:0;top:0;width:var(--mobile-header-height);height:100%;z-index:569;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center}.hamburger-box{width:21px;height:16px;position:relative}.smart_menu_caller span{display:block;position:absolute;height:2px;width:100%;background:#000;opacity:1;left:0;-webkit-transform:rotate(0deg);-ms-transform:rotate(0deg);transform:rotate(0deg);-webkit-transition:.25s ease-in-out;-o-transition:.25s ease-in-out;transition:.25s ease-in-out}.smart_menu_caller span:nth-child(1){top:0}.smart_menu_caller span:nth-child(2),.smart_menu_caller span:nth-child(3){top:50%}.smart_menu_caller span:nth-child(4){top:100%}body.mob_menu_opened .smart_menu_caller span:nth-child(1){top:50%;width:0%;left:50%}body.mob_menu_opened .smart_menu_caller span:nth-child(2){-webkit-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg)}body.mob_menu_opened .smart_menu_caller span:nth-child(3){-webkit-transform:rotate(-45deg);-ms-transform:rotate(-45deg);transform:rotate(-45deg)}body.mob_menu_opened .smart_menu_caller span:nth-child(4){top:50%;width:0%;left:50%}#page{z-index:2;-webkit-transition:left ease 0.3s;-o-transition:left ease 0.3s;transition:left ease 0.3s;overflow:hidden;-webkit-box-shadow:0 0 7px 0 rgba(0,0,0,.25);box-shadow:0 0 7px 0 rgba(0,0,0,.25);left:0%;background:#fff}header.mob-position-fixed{-webkit-transition:top ease 0.3s,-webkit-transform ease 0.3s;transition:top ease 0.3s,-webkit-transform ease 0.3s;-o-transition:transform ease 0.3s,top ease 0.3s;transition:transform ease 0.3s,top ease 0.3s;transition:transform ease 0.3s,top ease 0.3s,-webkit-transform ease 0.3s}body.mob_menu_opened{overflow:hidden}body.mob_menu_opened div.mob_nav_container{overflow-y:auto;opacity:1;visibility:visible}.xs-hide{display:none}div.langs-select select{border:0;height:var(--mobile-header-height);text-align:center;font-size:1.6rem;padding:0 15px;-webkit-appearance:none;border-radius:0;background:none;-moz-text-align-last:center;text-align-last:center}div.mobile-menu-span{width:16px;height:16px;position:absolute;right:15px;top:15px}div.content-menu-container div.mobile-menu-span{top:24px}div.mobile-menu-span:before{width:1px;height:16px;background:rgba(0,0,0,.1);position:absolute;left:-15px;top:0;bottom:0;content:''}div.mobile-menu-span span{width:16px;height:4px;display:block;border-radius:3px}div.mobile-menu-span span:nth-child(1){position:absolute;top:calc(50% - 2px)}div.mobile-menu-span span:nth-child(2){position:absolute;-webkit-transform:rotate(90deg);-ms-transform:rotate(90deg);transform:rotate(90deg);top:calc(50% - 2px);-webkit-transition:all ease 0.3s;-o-transition:all ease 0.3s;transition:all ease 0.3s}ul.top-menu>li.selected>div.mobile-menu-span span:nth-child(2),ul.main-menu>li.selected>div.mobile-menu-span span:nth-child(2),.mobile-menu-toggler.opened div.mobile-menu-span span:nth-child(2){-webkit-transform:none;-ms-transform:none;transform:none}.container{width:auto;padding:0 15px}div.mob_nav_container div.mob-nav-top-line{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between}div.mob-nav-top-line>div{-webkit-box-flex:1;-ms-flex:1 1 100%;flex:1 1 100%;border-left:1px solid rgba(193,217,184,.3)}div.mob-nav-top-line a{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;text-align:center;padding:15px}div.google-translate{display:-webkit-box;display:-ms-flexbox;display:flex}div.mob_header_extention{position:absolute;left:160px;top:0;right:var(--mobile-header-height);height:100%;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:end;-ms-flex-pack:end;justify-content:flex-end}div.mob_header_extention>div{height:var(--mobile-header-height)}div.mob-header-items{display:-webkit-box;display:-ms-flexbox;display:flex}div.mob-header-items>div{border-right:1px solid rgba(193,217,184,.3)}div.mob-search-container{display:block;height:0;overflow:hidden;-webkit-transition:all ease 0.3s;-o-transition:all ease 0.3s;transition:all ease 0.3s}div.mob-search-container.opened{height:40px}div.mob-search-container.mob-position-fixed{position:fixed;left:0;top:-41px;right:0;z-index:221}div.mob-search-container.mob-position-fixed.opened{top:0}div.mob-search-container.mob-position-fixed.opened + header.mob-position-fixed{top:40px}div.index-swiper-container div.swiper-pagination{display:none}div.sitemap a,div.links_item a,div.google-translate a,div.mob_search a{display:-webkit-box;display:-ms-flexbox;display:flex;height:var(--mobile-header-height);width:calc(var(--mobile-header-height) - 10px);-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;font-size:1.6rem;text-decoration:none}div.content-colls{-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column}aside{-ms-flex-preferred-size:auto;flex-basis:auto}section.page-top-photo-section{padding:30px 15px;text-align:center;height:auto}section.page-top-photo-section .cont h1{font-size:3rem}section.page-top-photo-section .cont{display:block}.fr{float:none;padding-left:0;padding-bottom:15px}.fr img{width:100%;height:auto;display:block}section{padding:30px 0!important}div.index-swiper{height:100vw}div.index-swiper .swiper-slide .photo{height:100vw;-o-object-fit:cover;object-fit:cover;min-height:100vw;max-height:100vw}div.index-swiper div.swiper-slide-content{padding:30px 15px;text-align:center}div.index-swiper div.swiper-slide-content h1{font-size:3rem;line-height:1.5}div.index-swiper div.swiper-slide-content h1 br{display:none}div.fancy-blocks-container{-ms-flex-wrap:wrap;flex-wrap:wrap}div.fancy-blocks-container>*{min-width:calc((100% / 2) - 16px);-webkit-box-flex:1;-ms-flex:1 1 calc((100% / 2) - 16px);flex:1 1 calc((100% / 2) - 16px)}div.fancy-block-title{font-size:1.6rem}.inner header{position:fixed}}@media (min-width:768px){.container{width:738px}.smart_menu_caller{display:none}div.mob_nav_container{display:none}#page,#footer{-webkit-transform:none!important;-ms-transform:none!important;transform:none!important}.full-w-mob{width:100%;height:auto;display:block}}@media (min-width:1024px){.container{width:996px}}@media (min-width:768px) and (max-width:1023px){.md-hide{display:none}.fr{float:none;padding-left:0}.fr img{width:100%;height:auto;display:block}section{padding:50px 0!important}ul.main-menu>li>a{padding:10px;font-size:1.4rem}div.index-swiper div.swiper-slide-content h1,div.index-swiper div.swiper-slide-content h2{font-size:6rem;line-height:1.3}div.fancy-blocks-container{-ms-flex-wrap:wrap;flex-wrap:wrap}div.fancy-blocks-container>*{min-width:calc((100% / 3) - 16px);-webkit-box-flex:1;-ms-flex:1 1 calc((100% / 3) - 16px);flex:1 1 calc((100% / 3) - 16px)}}@media (min-width:1024px) and (max-width:1279px){.lg-hide{display:none}.fr{float:none;padding-left:0}.fr img{width:100%;height:auto;display:block}}@media (min-width:1350px){.container{width:var(--main-container-width)}.xlg-hide{display:none}}.swiper-horizontal{touch-action:pan-y}.swiper,swiper-container{margin-left:auto;margin-right:auto;position:relative;overflow:hidden;list-style:none;padding:0;z-index:1;display:block}.swiper-vertical>.swiper-wrapper{flex-direction:column}.swiper-wrapper{position:relative;width:100%;height:100%;z-index:1;display:flex;transition-property:transform;transition-timing-function:var(--swiper-wrapper-transition-timing-function,initial);box-sizing:content-box}.swiper-android .swiper-slide,.swiper-wrapper{transform:translate3d(0,0,0)}.swiper-autoheight .swiper-wrapper{align-items:flex-start;transition-property:transform,height}.swiper-backface-hidden .swiper-slide{transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden}.swiper-3d.swiper-css-mode .swiper-wrapper{perspective:1200px}.swiper-vertical{touch-action:pan-x}.swiper-slide,swiper-slide{flex-shrink:0;width:100%;height:100%;position:relative;transition-property:transform;display:block}.swiper-slide-invisible-blank{visibility:hidden}.pure-g{margin-bottom:var(--gutter-bottom);margin-left:calc(-1 * var(--gutter));margin-right:calc(-1 * var(--gutter));font-family:inherit;display:flex;flex-flow:row wrap;align-content:flex-start}.pure-g [class*=pure-u]{margin-bottom:calc(-1 * var(--gutter-bottom));padding-left:var(--gutter);padding-right:var(--gutter);font-family:inherit;letter-spacing:normal}.pure-u{display:inline-block;vertical-align:top}.pure-u-1,.pure-u-1-1,.pure-u-1-12,.pure-u-1-2,.pure-u-1-24,.pure-u-1-3,.pure-u-1-4,.pure-u-1-5,.pure-u-1-6,.pure-u-1-8,.pure-u-10-24,.pure-u-11-12,.pure-u-11-24,.pure-u-12-24,.pure-u-13-24,.pure-u-14-24,.pure-u-15-24,.pure-u-16-24,.pure-u-17-24,.pure-u-18-24,.pure-u-19-24,.pure-u-2-24,.pure-u-2-3,.pure-u-2-5,.pure-u-20-24,.pure-u-21-24,.pure-u-22-24,.pure-u-23-24,.pure-u-24-24,.pure-u-3-24,.pure-u-3-4,.pure-u-3-5,.pure-u-3-8,.pure-u-4-24,.pure-u-4-5,.pure-u-5-12,.pure-u-5-24,.pure-u-5-5,.pure-u-5-6,.pure-u-5-8,.pure-u-6-24,.pure-u-7-12,.pure-u-7-24,.pure-u-7-8,.pure-u-8-24,.pure-u-9-24{display:inline-block;letter-spacing:normal;word-spacing:normal;vertical-align:top;text-rendering:auto}.pure-u-1,.pure-u-1-1,.pure-u-24-24,.pure-u-5-5{width:100%}@media screen and (min-width:48em){.pure-u-md-1,.pure-u-md-1-1,.pure-u-md-1-12,.pure-u-md-1-2,.pure-u-md-1-24,.pure-u-md-1-3,.pure-u-md-1-4,.pure-u-md-1-5,.pure-u-md-1-6,.pure-u-md-1-8,.pure-u-md-10-24,.pure-u-md-11-12,.pure-u-md-11-24,.pure-u-md-12-24,.pure-u-md-13-24,.pure-u-md-14-24,.pure-u-md-15-24,.pure-u-md-16-24,.pure-u-md-17-24,.pure-u-md-18-24,.pure-u-md-19-24,.pure-u-md-2-24,.pure-u-md-2-3,.pure-u-md-2-5,.pure-u-md-20-24,.pure-u-md-21-24,.pure-u-md-22-24,.pure-u-md-23-24,.pure-u-md-24-24,.pure-u-md-3-24,.pure-u-md-3-4,.pure-u-md-3-5,.pure-u-md-3-8,.pure-u-md-4-24,.pure-u-md-4-5,.pure-u-md-5-12,.pure-u-md-5-24,.pure-u-md-5-5,.pure-u-md-5-6,.pure-u-md-5-8,.pure-u-md-6-24,.pure-u-md-7-12,.pure-u-md-7-24,.pure-u-md-7-8,.pure-u-md-8-24,.pure-u-md-9-24{display:inline-block;letter-spacing:normal;word-spacing:normal;vertical-align:top;text-rendering:auto}.pure-u-md-1-2,.pure-u-md-12-24{width:50%}}@media screen and (min-width:64em){.pure-u-lg-1,.pure-u-lg-1-1,.pure-u-lg-1-12,.pure-u-lg-1-2,.pure-u-lg-1-24,.pure-u-lg-1-3,.pure-u-lg-1-4,.pure-u-lg-1-5,.pure-u-lg-1-6,.pure-u-lg-1-8,.pure-u-lg-10-24,.pure-u-lg-11-12,.pure-u-lg-11-24,.pure-u-lg-12-24,.pure-u-lg-13-24,.pure-u-lg-14-24,.pure-u-lg-15-24,.pure-u-lg-16-24,.pure-u-lg-17-24,.pure-u-lg-18-24,.pure-u-lg-19-24,.pure-u-lg-2-24,.pure-u-lg-2-3,.pure-u-lg-2-5,.pure-u-lg-20-24,.pure-u-lg-21-24,.pure-u-lg-22-24,.pure-u-lg-23-24,.pure-u-lg-24-24,.pure-u-lg-3-24,.pure-u-lg-3-4,.pure-u-lg-3-5,.pure-u-lg-3-8,.pure-u-lg-4-24,.pure-u-lg-4-5,.pure-u-lg-5-12,.pure-u-lg-5-24,.pure-u-lg-5-5,.pure-u-lg-5-6,.pure-u-lg-5-8,.pure-u-lg-6-24,.pure-u-lg-7-12,.pure-u-lg-7-24,.pure-u-lg-7-8,.pure-u-lg-8-24,.pure-u-lg-9-24{display:inline-block;letter-spacing:normal;word-spacing:normal;vertical-align:top;text-rendering:auto}.pure-u-lg-1-3,.pure-u-lg-8-24{width:33.3333%}}@media screen and (min-width:80em){.pure-u-xl-1,.pure-u-xl-1-1,.pure-u-xl-1-12,.pure-u-xl-1-2,.pure-u-xl-1-24,.pure-u-xl-1-3,.pure-u-xl-1-4,.pure-u-xl-1-5,.pure-u-xl-1-6,.pure-u-xl-1-8,.pure-u-xl-10-24,.pure-u-xl-11-12,.pure-u-xl-11-24,.pure-u-xl-12-24,.pure-u-xl-13-24,.pure-u-xl-14-24,.pure-u-xl-15-24,.pure-u-xl-16-24,.pure-u-xl-17-24,.pure-u-xl-18-24,.pure-u-xl-19-24,.pure-u-xl-2-24,.pure-u-xl-2-3,.pure-u-xl-2-5,.pure-u-xl-20-24,.pure-u-xl-21-24,.pure-u-xl-22-24,.pure-u-xl-23-24,.pure-u-xl-24-24,.pure-u-xl-3-24,.pure-u-xl-3-4,.pure-u-xl-3-5,.pure-u-xl-3-8,.pure-u-xl-4-24,.pure-u-xl-4-5,.pure-u-xl-5-12,.pure-u-xl-5-24,.pure-u-xl-5-5,.pure-u-xl-5-6,.pure-u-xl-5-8,.pure-u-xl-6-24,.pure-u-xl-7-12,.pure-u-xl-7-24,.pure-u-xl-7-8,.pure-u-xl-8-24,.pure-u-xl-9-24{display:inline-block;letter-spacing:normal;word-spacing:normal;vertical-align:top;text-rendering:auto}.pure-u-xl-1-4,.pure-u-xl-6-24{width:25%}}</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <meta name="format-detection" content="telephone=no">
+
+    
+        <meta property="og:title" content="Atliekų išvežimo grafikai" />
+        <meta property="og:image" content="https://www.kretkom.lt/uploads/_CGSmartImage/onecalendar-0c78b9a6672e4a33d2c2829d0ce4d75a.jpg" />
+        <meta property="og:url" content="https://www.kretkom.lt/atlieku-isvezimo-grafikai/" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        
+        <meta property="og:type" content="website" />
+    
+
+
+        
+
+    
+        <script type="text/javascript">// <![CDATA[
+            var gtl = 'en,ru,de';
+            function googleTranslateElementInit() {
+                new google.translate.TranslateElement({
+                    pageLanguage: 'lt',
+                    includedLanguages: gtl,
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+                }, 'google_translate_element');
+            }
+
+            // ]]></script>
+        <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    
+
+    
+   
+    
+    
+    
+    <link rel="canonical" href="https://www.kretkom.lt/atlieku-isvezimo-grafikai/">
+    
+    
+
+    <link rel="alternate" href="https://www.kretkom.lt/atlieku-isvezimo-grafikai/" hreflang="lt" />
+    <script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('consent', 'default', {
+            'ad_storage': 'denied',
+            'ad_user_data': 'denied',
+            'ad_personalization': 'denied',
+            'analytics_storage': 'denied',
+            'functionality_storage': 'denied',
+            'personalization_storage': 'denied',
+            'security_storage': 'denied',
+        });</script><!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JMBB4LY5ZW"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-JMBB4LY5ZW');
+</script>
+
+    
+
+</head>
+
+<body class=" inner">
+
+
+
+
+
+
+<div class="mobile-additional-content hide">
+
+    <div class="mob-nav-top-line">
+        <div class="adresas">
+            <a href="tel:(0445)44676"
+               aria-label="Skambinti: (0445)44676">
+                <svg width="22" height="22" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22.2143 17.7751V20.7751C22.2154 21.0536 22.1584 21.3292 22.0468 21.5844C21.9352 21.8396 21.7716 22.0687 21.5664 22.2569C21.3611 22.4452 21.1189 22.5886 20.855 22.6778C20.5912 22.767 20.3117 22.8001 20.0343 22.7751C16.9571 22.4407 14.0013 21.3892 11.4043 19.7051C8.98812 18.1697 6.93962 16.1212 5.40429 13.7051C3.71427 11.0963 2.66253 8.12607 2.33429 5.03508C2.3093 4.75854 2.34216 4.47984 2.43079 4.2167C2.51941 3.95357 2.66186 3.71177 2.84905 3.5067C3.03625 3.30163 3.26409 3.13779 3.51808 3.0256C3.77207 2.91341 4.04663 2.85534 4.32429 2.85508H7.32429C7.8096 2.8503 8.28008 3.02216 8.64805 3.33861C9.01602 3.65506 9.25637 4.09452 9.32429 4.57508C9.45091 5.53514 9.68574 6.4778 10.0243 7.38508C10.1588 7.743 10.188 8.13199 10.1082 8.50596C10.0284 8.87992 9.84315 9.22319 9.57429 9.49508L8.30429 10.7651C9.72784 13.2686 11.8007 15.3415 14.3043 16.7651L15.5743 15.4951C15.8462 15.2262 16.1894 15.0409 16.5634 14.9612C16.9374 14.8814 17.3264 14.9105 17.6843 15.0451C18.5916 15.3836 19.5342 15.6185 20.4943 15.7451C20.9801 15.8136 21.4237 16.0583 21.7408 16.4326C22.058 16.8069 22.2265 17.2847 22.2143 17.7751Z"
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+        </div>
+        <div class="mail">
+            <a href="mailto:info@kretkom.lt" aria-label="Rašyti: info@kretkom.lt">
+                <svg width="22" height="22" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4.21387 4.85498H20.2139C21.3139 4.85498 22.2139 5.75498 22.2139 6.85498V18.855C22.2139 19.955 21.3139 20.855 20.2139 20.855H4.21387C3.11387 20.855 2.21387 19.955 2.21387 18.855V6.85498C2.21387 5.75498 3.11387 4.85498 4.21387 4.85498Z"
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M22.2139 6.85498L12.2139 13.855L2.21387 6.85498" stroke="currentColor" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+        </div>
+        <div class="adresas">
+            <a href="https://maps.app.goo.gl/a6UHpMb5b7Xhe5yi6" target="_blank" rel="noopener noreferrer"
+               aria-label="Vieta žemėlapyje">
+                <svg width="22" height="22" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_2002_5)">
+                        <path d="M21.2139 10.855C21.2139 17.855 12.2139 23.855 12.2139 23.855C12.2139 23.855 3.21387 17.855 3.21387 10.855C3.21387 8.46803 4.16208 6.17885 5.84991 4.49102C7.53773 2.80319 9.82692 1.85498 12.2139 1.85498C14.6008 1.85498 16.89 2.80319 18.5778 4.49102C20.2657 6.17885 21.2139 8.46803 21.2139 10.855Z"
+                              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12.2139 13.855C13.8707 13.855 15.2139 12.5118 15.2139 10.855C15.2139 9.19813 13.8707 7.85498 12.2139 7.85498C10.557 7.85498 9.21387 9.19813 9.21387 10.855C9.21387 12.5118 10.557 13.855 12.2139 13.855Z"
+                              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_2002_5">
+                            <rect width="24" height="24" fill="white" transform="translate(0.213867 0.85498)"/>
+                        </clipPath>
+                    </defs>
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    <div class="mob_search">
+        <a href="#" aria-label="Paieška">
+            <svg width="22" height="22" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.4766 19.8179C15.8948 19.8179 19.4766 16.2361 19.4766 11.8179C19.4766 7.39959 15.8948 3.81787 11.4766 3.81787C7.05828 3.81787 3.47656 7.39959 3.47656 11.8179C3.47656 16.2361 7.05828 19.8179 11.4766 19.8179Z"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21.477 21.8178L17.127 17.4678" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </svg>
+        </a>
+    </div>
+
+    <div class="langs-select">
+        <select aria-label="Pasirinkite kalbą">
+                                            
+                    <option value="https://www.kretkom.lt/atlieku-isvezimo-grafikai/"  selected>LT</option>
+            
+        </select>
+    </div>
+
+</div>
+
+<div id="page">
+
+    <header>
+        <div class="container">
+            <a class="logo" href="https://www.kretkom.lt/" aria-label=""></a>
+
+            <div class="header-content">
+                <div class="header-elements">
+                    <div class="contacts-menu-container">
+                        <ul class="contacts-menu">
+                                                            <li>
+                                    <a href="tel:(0 445) 44 676">
+                                        <img src="images/icons/svg/ico-1.svg" alt="">
+                                        <span>
+                                            (0 445) 44 676
+                                        </span>
+                                    </a>
+                                </li>
+                                                                                        <li>
+                                    <a href="mailto:info@kretkom.lt">
+                                        <img src="images/icons/svg/ico-2.svg" alt="">
+                                        <span>
+                                            info@kretkom.lt
+                                        </span>
+                                    </a>
+                                </li>
+                                                                                        <li>
+                                    <a href="https://maps.app.goo.gl/a6UHpMb5b7Xhe5yi6">
+                                        <img src="images/icons/svg/ico-3.svg" alt="">
+                                        <span>
+                                            Vytauto g. 118 LT-97134 Kretinga
+                                        </span>
+                                    </a>
+                                </li>
+                                                    </ul>
+                    </div>
+                    <div class="header-list">
+                        <div class="search-place">
+                            <button class="search-toggler" aria-label="Paieška">
+                                <svg width="25" height="24" viewBox="0 0 25 24" fill="none"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <g clip-path="url(#clip0_12_39)">
+                                        <path d="M11.1758 18C15.3179 18 18.6758 14.6421 18.6758 10.5C18.6758 6.35786 15.3179 3 11.1758 3C7.03365 3 3.67578 6.35786 3.67578 10.5C3.67578 14.6421 7.03365 18 11.1758 18Z"
+                                              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M16.4792 15.8035L21.6758 21" stroke="currentColor"
+                                              stroke-linecap="round"
+                                              stroke-linejoin="round"/>
+                                    </g>
+                                    <defs>
+                                        <clipPath id="clip0_12_39">
+                                            <rect width="24" height="24" fill="currentColor"
+                                                  transform="translate(0.675781)"/>
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                            </button>
+                            <div class="search-container">
+                                <form id="cntnt01moduleform_1" method="get" action="https://www.kretkom.lt/paieska/" class="cms_form">
+<div class="hidden">
+<input type="hidden" name="mact" value="Search,cntnt01,dosearch,0" />
+<input type="hidden" name="cntnt01returnid" value="71" />
+</div>
+
+<input type="hidden" id="cntnt01origreturnid" name="cntnt01origreturnid" value="224" />
+
+
+
+    <input type="text" id="cntnt01searchinput" aria-label="Paieškos laukelis" class="search-sufler" autocomplete="off" name="cntnt01searchinput" placeholder="Paieška"
+           value=""/>
+    <input type="hidden" name="anticsrf" value="e1b8e233381e0d41900ac7ca5727e01b3428120eeeb5d5cf0192031901699068">
+
+    <button type="submit" aria-label="Spauskite mygtuką ieškoti" >
+        <svg width="25" height="24" viewBox="0 0 25 24" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+            <g clip-path="url(#clip0_12_39)">
+                <path d="M11.1758 18C15.3179 18 18.6758 14.6421 18.6758 10.5C18.6758 6.35786 15.3179 3 11.1758 3C7.03365 3 3.67578 6.35786 3.67578 10.5C3.67578 14.6421 7.03365 18 11.1758 18Z"
+                      stroke="currentColor" stroke-linecap="round"
+                      stroke-linejoin="round"/>
+                <path d="M16.4792 15.8035L21.6758 21" stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </g>
+            <defs>
+                <clipPath id="clip0_12_39">
+                    <rect width="24" height="24" fill="currentColor"
+                          transform="translate(0.675781)"/>
+                </clipPath>
+            </defs>
+        </svg>
+    </button>
+
+
+</form>
+
+
+
+                            </div>
+                        </div>
+                                                    <div class="sitemap">
+                                <a href="/svetaines-zemelapis/" aria-label="Sitemap">
+                                    <svg width="25" height="24" viewBox="0 0 25 24" fill="none"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <g clip-path="url(#clip0_12_43)">
+                                            <path d="M5.92578 9.75H2.92578C2.51157 9.75 2.17578 10.0858 2.17578 10.5V13.5C2.17578 13.9142 2.51157 14.25 2.92578 14.25H5.92578C6.33999 14.25 6.67578 13.9142 6.67578 13.5V10.5C6.67578 10.0858 6.33999 9.75 5.92578 9.75Z"
+                                                  stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M20.1758 3.75H15.6758C15.2616 3.75 14.9258 4.08579 14.9258 4.5V9C14.9258 9.41421 15.2616 9.75 15.6758 9.75H20.1758C20.59 9.75 20.9258 9.41421 20.9258 9V4.5C20.9258 4.08579 20.59 3.75 20.1758 3.75Z"
+                                                  stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M20.1758 14.25H15.6758C15.2616 14.25 14.9258 14.5858 14.9258 15V19.5C14.9258 19.9142 15.2616 20.25 15.6758 20.25H20.1758C20.59 20.25 20.9258 19.9142 20.9258 19.5V15C20.9258 14.5858 20.59 14.25 20.1758 14.25Z"
+                                                  stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M6.67578 12H11.1758" stroke="currentColor" stroke-linecap="round"
+                                                  stroke-linejoin="round"/>
+                                            <path d="M14.9258 17.25H12.6758C12.278 17.25 11.8964 17.092 11.6151 16.8107C11.3338 16.5294 11.1758 16.1478 11.1758 15.75V8.25C11.1758 7.85218 11.3338 7.47064 11.6151 7.18934C11.8964 6.90804 12.278 6.75 12.6758 6.75H14.9258"
+                                                  stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </g>
+                                        <defs>
+                                            <clipPath id="clip0_12_43">
+                                                <rect width="24" height="24" fill="currentColor"
+                                                      transform="translate(0.675781)"/>
+                                            </clipPath>
+                                        </defs>
+                                    </svg>
+                                </a>
+                            </div>
+                        
+                        <div class="google-translate" id="google_translate_element">
+                            <a href="javascript:void(0)" aria-label="Google translate" class="butaforic_lang">
+                                <svg width="25" height="24" viewBox="0 0 25 24" fill="none"
+                                     xmlns="http://www.w3.org/2000/svg">
+                                    <g clip-path="url(#clip0_12_50)">
+                                        <path d="M12.6758 21C17.6463 21 21.6758 16.9706 21.6758 12C21.6758 7.02944 17.6463 3 12.6758 3C7.70522 3 3.67578 7.02944 3.67578 12C3.67578 16.9706 7.70522 21 12.6758 21Z"
+                                              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M7.78906 11.5554L9.03781 9.37477C9.10373 9.26059 9.19859 9.16581 9.31281 9.09997C9.42704 9.03413 9.5566 8.99957 9.68844 8.99977H11.255C11.3817 8.99997 11.5063 8.96769 11.6169 8.90602L12.7691 8.27227C12.8198 8.24499 12.8667 8.21127 12.9088 8.17195L15.4325 5.89102C15.5581 5.77681 15.6412 5.62338 15.6683 5.45582C15.6953 5.28825 15.6648 5.11646 15.5816 4.96852L14.5972 3.20508"
+                                              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M7.03058 4.99023L5.9262 7.60117C5.85161 7.77792 5.84758 7.97654 5.91495 8.15617L6.99308 11.0315C7.03738 11.149 7.11046 11.2534 7.20563 11.3353C7.30079 11.4172 7.415 11.4739 7.53777 11.5002L9.54683 11.9324C9.65826 11.9563 9.76278 12.0053 9.85245 12.0756C9.94212 12.146 10.0146 12.2358 10.0643 12.3384L10.4206 13.0762C10.482 13.2029 10.5779 13.3098 10.6973 13.3846C10.8167 13.4594 10.9547 13.499 11.0956 13.499H12.3893"
+                                              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M20.6528 16.17L15.7422 13.1493C15.6529 13.0949 15.5533 13.0595 15.4497 13.0453L13.3104 12.7565C13.1497 12.7348 12.9863 12.7657 12.8446 12.8446C12.703 12.9235 12.5908 13.0463 12.5247 13.1943L11.2404 16.0762C11.1807 16.2103 11.1616 16.359 11.1856 16.5038C11.2096 16.6486 11.2756 16.7832 11.3753 16.8909L13.226 18.7968C13.3062 18.8831 13.365 18.987 13.3976 19.1002C13.4301 19.2134 13.4356 19.3327 13.4135 19.4484L13.1163 20.9897"
+                                              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </g>
+                                    <defs>
+                                        <clipPath id="clip0_12_50">
+                                            <rect width="24" height="24" fill="currentColor"
+                                                  transform="translate(0.675781)"/>
+                                        </clipPath>
+                                    </defs>
+                                </svg>
+                            </a>
+                            <div id="google_translate_element"></div>
+                        </div>
+                                                    <div class="links_item">
+                                <a target="_blank" href="/vertimai-i-gestu-kalba/" aria-label="gestures">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" height="19"
+                                         viewBox="0 0 1024 1024"
+                                         version="1.1">
+                                        <path d="M249.177106 1004.729098h-5.692652c-39.161928 0-71.021543-31.877011-71.021544-71.059406 0-17.842367 7.063883-34.345226 18.827811-46.992267h-48.917106c-19.529799 0-38.413891-8.121981-51.80897-22.282493-13.509688-14.282285-20.348444-32.949436-19.257599-52.563146 1.537006-26.102495 17.480116-48.26833 40.096207-59.464323l-10.432607-1.28118c-19.436678-2.184759-36.696784-11.874445-48.612161-27.295669-11.893888-15.391549-16.886599-34.552957-14.060227-53.953819l0.066515-0.423649c5.737678-34.32169 36.392862-59.233056 72.892147-59.233056h6.495948l27.454282 3.423982a77.283154 77.283154 0 0 1-9.066493-10.009981c-11.587919-15.307637-16.391319-33.787524-13.524015-52.03512l0.032746-0.197498c5.79089-34.633798 35.347043-59.771315 70.280669-59.771315 4.54041 0 8.331759 0.532119 11.676947 1.001817l2.372024 0.326434 193.281052 41.417295-119.943766-132.071991c-1.76111-1.831718-2.917446-3.584642-3.641947-4.749164l-0.508583-0.674359c-23.315008-30.901801-17.073864-75.360362 13.900591-99.137904 14.171768-10.992355 31.559786-15.417131 48.739051-13.649882l-29.381168-39.005362c-11.891841-15.820314-16.647145-35.163871-13.402241-54.483892 3.226484-19.21462 13.96199-35.860742 30.233582-46.888913 15.431457-10.720156 34.323737-14.470573 53.220108-10.56052a75.152631 75.152631 0 0 1 18.915816 6.653537l-5.464456-9.491165c-9.914814-16.739243-12.614296-37.007869-7.404643-55.634088 5.252631-18.778692 17.676591-34.184567 34.984792-43.379997l0.127913-0.067538c33.465183-17.476023 76.380598-4.460592 95.664804 29.015847l13.063527 22.753214c2.361791-23.509437 15.21554-44.479027 36.108382-55.421241 17.394159-9.218966 37.217646-10.827603 55.824423-4.524036 18.443048 6.247284 33.686217 20.00359 41.830711 37.748742l101.526301 218.312144 45.741787 88.713485-5.499247-101.801571c-1.039679-19.631106 5.730515-38.305421 19.060101-52.605102 13.334703-14.303774 31.488155-22.367427 51.118238-22.706141l0.35304-0.00307c18.62008 0 36.299741 7.479345 49.779754 21.058618a75.253938 75.253938 0 0 1 21.74628 48.856732l7.909133 140.109038c1.684362 27.047006-0.38374 54.906517-6.15007 82.802867l-0.053212 0.248664-25.329898 115.327632c-5.446036 26.097378-21.748327 47.312562-45.914726 59.749825l-64.648392 32.946367-36.32737 208.313419c-5.938246 31.092136-31.061436 54.453193-62.519916 58.130955l-0.214894 0.02456-278.054807 29.532616-186.471972 16.951068zM78.772065 675.953096c-1.14508 8.243755 0.973164 16.33606 5.975084 22.808472 5.091972 6.589069 12.496615 10.727319 20.849864 11.654434l0.2415 0.027629 274.596032 33.729196-2.447748 40.779775-232.95361 0.537236c-17.20894 0-31.930223 12.866029-32.861431 28.680203-0.456395 8.199753 2.429329 16.070001 8.128121 22.095227 5.782703 6.113231 13.621229 9.479909 22.072714 9.479909h236.026598l2.503007 40.778752-136.991024 16.864086c-17.142425 2.049682-30.514991 15.346523-30.514991 30.280654 0 16.612353 13.497409 30.127158 30.089296 30.127157h3.836375l184.471408-16.766872 277.471522-29.474288c13.527085-1.623987 24.329105-11.649318 26.942629-24.99937l37.957497-217.678718c2.506077-13.598716-1.487887-28.106128-10.683317-38.807865l-76.985371-89.586364c-15.933901-18.48091-33.996279-34.429137-53.663201-47.376007l-117.096928-78.039377c-6.045693-4.022617-12.701277-6.062066-19.780509-6.062066-9.497305 0-18.244526 4.2897-23.397896 11.476379l-0.2722 0.369413c-4.926196 6.554276-6.901177 14.57802-5.560645 22.591531 1.388627 8.295943 6.099928 15.533788 13.265118 20.379143l97.984638 65.809845c10.982122 7.331989 16.931624 19.129686 16.505929 31.695886l53.06252 35.659151-63.235207-10.736528c-6.883781 7.479345-16.600073 11.955286-27.194362 11.955286-2.490727 0-4.532223-0.39295-5.843078-0.701988L435.272501 583.696925l-235.371682-50.435692-0.980327-0.1361c-2.499937-0.350994-4.306072-0.604774-5.990435-0.604774-14.818497 0-27.374464 10.715039-29.891797 25.490558-2.567475 16.766872 11.752672 30.895661 27.118638 34.882461l0.155542 0.040933 185.010691 49.556672-7.827269 40.078811-252.283864-31.458479h-3.953032c-16.33913 0-29.964452 10.434653-32.486901 24.841781z m728.33307-77.647451c10.190083 11.726066 17.443277 25.047466 21.565155 39.425941l30.087248-15.332197c12.922311-6.650467 21.655206-17.939581 24.517394-31.749098l0.051165-0.236384 25.326828-115.312282c5.0142-24.315802 6.816243-48.507784 5.352915-71.906703l-0.007163-0.12382-7.91425-140.179646c-0.961908-17.190521-14.619976-31.18014-30.486339-31.280424-8.351202 0.191358-16.053628 3.626597-21.702277 9.68764-5.686513 6.099928-8.573259 14.092973-8.127098 22.507619l6.376221 118.030184c0.982374 17.603937-10.340509 33.1981-27.536147 37.887912-17.276479 4.710278-35.071773-3.093455-43.276642-18.978237L727.889979 297.099558l-101.951997-219.231073c-3.515057-7.677866-9.827833-13.388938-17.773805-16.081257-7.838525-2.654456-16.200984-1.967818-23.548323 1.935072l-0.127913 0.067538c-14.792914 7.724938-17.46886 27.818579-11.511171 42.782386l71.64883 177.547719-36.728506 17.848506-127.080304-221.351363c-8.302083-14.413268-27.14422-20.444635-41.164538-13.175068-7.28901 3.891633-12.511965 10.361999-14.71105 18.226107-2.254344 8.058536-1.104147 16.514115 3.238764 23.807219l0.150426 0.257873 138.066519 239.792365-27.440979 18.168801a87.670735 87.670735 0 0 1 8.485255 5.125741l116.856451 77.917604c23.909549 15.724123 46.057989 35.204803 65.829288 57.902758l0.096191 0.11154 76.882018 89.553619z m-356.710215-70.308299l16.287965 2.764973-19.213597-12.913101c-19.736507-13.586436-33.409924-34.764781-37.516452-58.103326-3.497661-20.469194-0.008186-40.884153 9.830903-58.593489l-62.545499-64.76198c-10.470469-11.059893-29.085432-16.448624-42.10905-6.326079l-0.11461 0.088005c-13.042037 9.991562-15.922644 28.440749-6.603395 41.450041a29.40675 29.40675 0 0 1 2.53166 3.499707l124.643811 137.245827 14.808264 15.649422z m-85.396949-355.37787c-5.505387 0-10.876722 1.520633-15.445783 4.711302l-0.2722 0.187265c-6.953366 4.690836-11.531638 11.731182-12.890588 19.825534-1.36816 8.145517 0.671289 16.34834 5.742794 23.093974L453.645964 368.477212a84.729753 84.729753 0 0 1 42.307572-11.266601c9.837042 0 19.411095 1.484817 28.444842 4.368494l-132.282792-175.011966c-6.851035-9.010211-17.199731-13.947663-27.117615-13.947663z"
+                                              fill="currentColor"/>
+                                    </svg>
+                                </a>
+                            </div>
+                                                                            <div class="links_item">
+                                <a target="_blank" href="/informacija-lengvai-suprantama-kalba/" aria-label="book">
+                                    <svg xmlns:dc="http://purl.org/dc/elements/1.1/"
+                                         xmlns:cc="http://creativecommons.org/ns#"
+                                         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                                         xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg"
+                                         xmlns:xlink="http://www.w3.org/1999/xlink"
+                                         xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+                                         xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="19"
+                                         height="19" viewBox="0 0 150.10001 150.10001" version="1.1" id="svg8"
+                                         inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+                                         sodipodi:docname="Logo Facile à lire v2.svg">
+                                        <defs id="defs2"/>
+                                        <sodipodi:namedview id="base" pagecolor="#ffffff" bordercolor="#666666"
+                                                            borderopacity="1.0" inkscape:pageopacity="0.0"
+                                                            inkscape:pageshadow="2" inkscape:zoom="3.9598"
+                                                            inkscape:cx="-21.254"
+                                                            inkscape:cy="74.333" inkscape:document-units="px"
+                                                            inkscape:current-layer="layer2" showgrid="false"
+                                                            inkscape:snap-global="true" showguides="true"
+                                                            inkscape:guide-bbox="true" inkscape:window-width="1920"
+                                                            inkscape:window-height="1010" inkscape:window-x="0"
+                                                            inkscape:window-y="33" inkscape:window-maximized="1"
+                                                            units="px"
+                                                            fit-margin-top="0" fit-margin-left="0" fit-margin-right="0"
+                                                            fit-margin-bottom="0" inkscape:snap-bbox="true"
+                                                            inkscape:snap-page="true"/>
+                                        <metadata id="metadata5">
+                                            <rdf:RDF>
+                                                <cc:Work rdf:about="">
+                                                    <dc:format>image/svg+xml</dc:format>
+                                                    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+                                                    <dc:title/>
+                                                </cc:Work>
+                                            </rdf:RDF>
+                                        </metadata>
+                                        <g inkscape:groupmode="layer" id="layer2" inkscape:label="Calque 2">
+                                            <rect style="fill:#0a1396;stroke:none" id="rect827" width="150" height="150"
+                                                  x="0"
+                                                  y="0.1"/>
+                                            <ellipse style="fill:white;stroke:none" id="path829" ry="24.23835"
+                                                     rx="18.633421"
+                                                     cy="42.843105" cx="79.867"
+                                                     transform="matrix(0.99371808,0.11191239,-0.10811983,0.99413787,0,0)"/>
+                                            <path style="fill:white;stroke:#0a1396;stroke-width:4.2;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+                                                  d="m 74.294019,63.399331 c 25.63262,-5.30332 27.905461,-1.767798 50.381361,-9.091389 v 61.619268 c -17.93021,9.4281 -21.46574,4.58781 -50.381361,11.86938 z"
+                                                  id="path872"/>
+                                            <use x="0" y="0" xlink:href="#path872" id="use876"
+                                                 transform="matrix(-1,0,0,1,148.58804,0)"/>
+                                            <g id="g937"
+                                               style="fill:none;stroke:#0a1396;stroke-width:0.37;stroke-miterlimit:4;stroke-dasharray:none"
+                                               transform="matrix(3.7795276,0,0,3.7795276,0,0)">
+                                                <path id="path837"
+                                                      d="m 7.8297761,23.71042 2.1024931,0.0236 c -0.0149,-0.0508 1.9115618,-2.1292 2.8820678,-2.76395 0.29428,-0.19247 0.51127,-0.63235 0.614211,-0.96858 0.161369,-0.52706 -0.134965,-1.50378 0.02362,-1.60638 0.371589,-0.24041 1.522987,0.685 1.724516,1.58275 0.15116,0.67338 -0.145846,1.61267 -0.47247,2.22062 -0.238108,0.44319 -0.968564,1.15755 -0.968564,1.15755 1.168545,0.53032 2.471618,0.61221 3.472656,1.70089 0.389899,0.42403 0.712841,1.18465 -0.141741,1.7954 0.158374,0.59088 0.05006,1.09287 -0.732329,1.37017 0.261061,0.6805 -0.182727,1.04383 -1.181175,1.15755 0.218583,0.89547 -0.724583,1.0005 -1.299294,0.73231 l -1.063058,-0.49608 c -0.726548,0.5049 -1.171691,0.0775 -1.653645,-0.21252 -0.343437,-0.20668 -0.970734,-1.17126 -1.4646578,-1.79539 l -2.0079987,0.0236 C 7.3812804,26.50385 7.0703944,25.39044 7.8297721,23.71042 Z"
+                                                      style="fill:none;stroke:#0a1396;stroke-width:0.37042;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+                                                      inkscape:connector-curvature="0"/>
+                                                <path id="path839"
+                                                      d="m 17.066565,26.85232 c 0,0 -1.265912,0.22498 -1.819007,-0.0236 l -2.102492,-0.94493 c -0.01021,-0.796 0.352791,-1.11458 0.755952,-1.15756 0.752718,-0.0802 1.826749,0.684671 1.937128,0.75595"
+                                                      style="fill:none;stroke:#0a1396;stroke-width:0.37042;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"/>
+                                                <path d="m 16.334236,28.22249 c 0,0 -1.188034,0.18819 -1.724513,-0.0945 l -2.196986,-1.15754 c 0.04351,-0.75296 0.329449,-1.02596 0.732329,-1.08669"
+                                                      id="path841"/>
+                                                <path id="path843"
+                                                      d="m 15.138698,29.38004 c 0,0 -0.450852,-0.0565 -0.923556,-0.28349 l -2.115705,-1.0158 c 0,0 -0.01836,-1.04957 0.3133,-1.1103"
+                                                      style="fill:none;stroke:#0a1396;stroke-width:0.37042;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"/>
+                                                <path d="m 12.790709,29.61627 -0.957325,-0.59058 c -0.0322,0.0403 -0.261326,-0.63956 0.266053,-0.94494"
+                                                      id="path845"/>
+                                            </g>
+                                            <path style="fill:#0a1396;stroke:none"
+                                                  d="m 82.003568,72.471369 c 19.047622,-5.416668 15.952373,-0.364724 32.767852,-6.852661 v 4.084724 C 99.11666,75.59632 97.211899,71.757038 82.003564,77.203451 Z"
+                                                  id="path854"/>
+                                            <use x="0" y="0" xlink:href="#path854" id="use864"
+                                                 transform="translate(0,8.3149606)"/>
+                                            <use x="0" y="0" xlink:href="#path854" id="use866"
+                                                 transform="translate(0,16.629921)"/>
+                                            <use x="0" y="0" xlink:href="#path854" id="use868"
+                                                 transform="translate(0,33.259843)"/>
+                                            <use x="0" y="0" xlink:href="#path854" id="use870"
+                                                 transform="translate(0,41.574803)"/>
+                                            <ellipse
+                                                    transform="matrix(0.99365655,0.11245738,-0.10759533,0.99419477,0,0)"
+                                                    cx="71.348335" cy="37.217327" rx="2.4479799" ry="3.1996562"
+                                                    id="ellipse831-6"
+                                                    style="fill:#0a1396;fill-opacity:1;stroke:none;stroke-width:0.99999994"/>
+                                            <path style="fill:#0a1396;stroke:none"
+                                                  d="m 67.638471,52.780711 c 0,0 0.97152,4.974123 6.38854,5.855433 3.879499,0.631181 6.296375,-2.483414 6.296375,-3.261279 -2.335979,0.8928 -7.944317,2.045178 -12.684915,-2.594154 z"
+                                                  id="path835-5" inkscape:connector-curvature="0"/>
+                                            <use transform="translate(15.677261,2.2583215)" id="use907"
+                                                 xlink:href="#ellipse831-6" y="0" x="0"/>
+                                        </g>
+                                    </svg>
+                                </a>
+                            </div>
+                                                                            <div class="socials">
+                                <a href="https://www.facebook.com/p/Kretingos-Komunalininkas-100007739479172/?locale=lt_LT" target="_blank" aria-label="Facebook">
+                                    <svg width="13" height="22" viewBox="0 0 13 22" fill="none"
+                                         xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 1H9C7.67392 1 6.40215 1.52678 5.46447 2.46447C4.52678 3.40215 4 4.67392 4 6V9H1V13H4V21H8V13H11L12 9H8V6C8 5.73478 8.10536 5.48043 8.29289 5.29289C8.48043 5.10536 8.73478 5 9 5H12V1Z"
+                                              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                            </div>
+                                            </div>
+                </div>
+                <nav class="main-menu-container" aria-label="Pagrindinis meniu">
+    <ul class="main-menu">
+
+                                                    
+                        
+                                            
+            
+                                
+                                    <li class="">
+                        <a href="https://www.kretkom.lt/apie-mus/"><span>Apie mus</span></a>
+                                                                        
+                                            </li>
+                                        
+                                            
+            
+                                
+                                    <li class="selected has-submenu">
+                        <a href="https://www.kretkom.lt/gyventojams/"><span>Gyventojams</span></a>
+                                                                        <ul>
+                                
+        <li class="selected">
+            <a href="https://www.kretkom.lt/atlieku-isvezimo-grafikai/"><span>Atliekų išvežimo grafikai</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/dokumentu-formos/"><span>Dokumentų formos</span></a>
+            
+        </li>
+        
+    </ul>
+
+
+                                            </li>
+                                        
+                                            
+            
+                                
+                                    <li class=" has-submenu">
+                        <a href="https://www.kretkom.lt/paslaugos/"><span>Paslaugos</span></a>
+                                                                        <ul>
+                                
+        <li class="">
+            <a href="https://www.kretkom.lt/vietines-rinkliavos-administravimas/"><span>Vietinės rinkliavos administravimas</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/atlieku-tvarkymas/"><span>Atliekų tvarkymas</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/kapiniu-prieziura/"><span>Kapinių priežiūra</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/daugiabuciu-namu-renovacija/"><span>Daugiabučių namų renovacija</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/technikos-nuoma/"><span>Technikos nuoma</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/aplinkos-prieziura/"><span>Aplinkos priežiūra</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/turgus/"><span>Kretingos miesto turgus</span></a>
+            
+        </li>
+        
+    </ul>
+
+
+                                            </li>
+                                        
+                                            
+            
+                                
+                                    <li class="">
+                        <a href="https://www.kretkom.lt/karjera/"><span>Karjera</span></a>
+                                                                        
+                                            </li>
+                                        
+                                            
+            
+                                
+                                    <li class="">
+                        <a href="https://www.kretkom.lt/naujienos/"><span>Naujienos</span></a>
+                                                                        
+                                            </li>
+                                        
+                                            
+            
+                                
+                                    <li class=" has-submenu">
+                        <a href="https://www.kretkom.lt/kontaktai/"><span>Kontaktai</span></a>
+                                                                        <ul>
+                                
+        <li class="">
+            <a href="https://www.kretkom.lt/administracija/"><span>Administracija</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/buhalterija/"><span>Buhalterija</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/komunaliniu-atlieku-tvarkymo-skyrius/"><span>Komunalinių atliekų tvarkymo skyrius</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/vietines-rinkliavos-administravimo-skyrius/"><span>Vietinės rinkliavos administravimo skyrius</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/daugiabuciu-namu-renovacijos-skyrius/"><span>Daugiabučių namų renovacijos skyrius</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/miesto-tvarkymo-skyrius/"><span>Miesto tvarkymo skyrius</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/mechanines-dirbtuves/"><span>Mechaninės dirbtuvės</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/kretingos-miesto-kapiniu-prieziura/"><span>Kretingos miesto kapinių priežiūra</span></a>
+            
+        </li>
+        
+                            
+        <li class="">
+            <a href="https://www.kretkom.lt/kontaktai-turgus/"><span>Kretingos miesto turgus</span></a>
+            
+        </li>
+        
+    </ul>
+
+
+                                            </li>
+                                        
+            </ul>
+</nav>
+
+            </div>
+        </div>
+    </header>
+    <main>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+<section class="page-top-photo-section">
+    <div class="container">
+        <div class="cont">
+            <h1>
+                Atliekų išvežimo grafikai
+            </h1>
+        </div>
+    </div>
+</section>
+
+<section class="content-colls-section">
+    <div class="container">
+        <div class="content-colls">
+                <aside>
+    <div class="content-menu-container">
+        <button class="mobile-menu-toggler" style="display: none">
+            Atliekų išvežimo grafikai            <div class="mobile-menu-span">
+                <span></span>
+                <span></span>
+            </div>
+        </button>
+        <ul class="content-menu">
+                                                                
+                            <li class="selected ">
+                    <a href="https://www.kretkom.lt/atlieku-isvezimo-grafikai/"><span>Atliekų išvežimo grafikai</span></a>
+                                                                
+                                                            </li>
+                                                        
+                            <li class="">
+                    <a href="https://www.kretkom.lt/dokumentu-formos/"><span>Dokumentų formos</span></a>
+                                    </li>
+                        
+        </ul>
+    </div>
+</aside>
+
+
+            <div class="mainbar">
+
+
+                                    <div class="page-module">
+                                                    <div class="fr">
+                                <picture><source media="(max-width: 500px)" srcset="https://www.kretkom.lt/uploads/_CGSmartImage/onecalendar-b20dd7f33e8a173a5e1981bb11873a73.jpg 2x"><source media="(min-width: 501px)" srcset="https://www.kretkom.lt/uploads/_CGSmartImage/onecalendar-a182eec386d3892516c1f03b76e81ec2.jpg 2x"><img width="524" height="524" src="https://www.kretkom.lt/uploads/_CGSmartImage/onecalendar-a182eec386d3892516c1f03b76e81ec2.jpg"  alt="Atliekų išvežimo grafikai"  loading="lazy" /></picture>
+                            </div>
+                                                <p align="center">Įvesk savo adresą ir gauk susistemintą atliekų išvežimo grafikų informaciją! <br /><a href="https://www.manoatliekos.lt/lt" title="Atliekų išvežimo grafikų elektroninė platforma" target="_blank" rel="noopener"><strong>Atliekų išvežimo grafikų elektroninė platforma</strong></a> </p>
+<p><strong><br /><br />PASTABOS:<br /></strong>–  Konteineriai iš individualių valdų išstumiami prie gatvės arba sutartos su vežėju jų paėmimo vietos iki 7<sup>00 </sup>ryto, nustatyto maršruto dieną.<br />–  Primename, kad į mišrių komunalinių atliekų surinkimo konteinerius draudžiama pilti žemes, želdinių priežiūros ir tvarkymo atliekas, statybos ir griovimo atliekas, chemines buities, apdailos ir kitas medžiagas, skystas atliekas, degančias ar karštas atliekas, pakuočių atliekas, pavojingas atliekas.<br />–  Rūšiavimo konteineriai yra skirti pakuotėms (išimtis – laikraščiai, žurnalai, skrajutės, knygos). Tad prieš mesdami į rūšiavimo konteinerį vieną ar kitą atlieką pagalvokite, ar tai tikrai atlieka, į kurią kas nors buvo supakuota. Jei tai ne pakuotė, o pats produktas, jis, priklausomai nuo pobūdžio, turėtų būti išmetamas arba į mišrių komunalinių atliekų konteinerį, arba priduodamas į specialias atitinkamų atliekų surinkimo vietas. Iš išmetamų pakuočių rekomenduojama pašalinti maisto ir skysčių likučius, kad nebūtų suteptos kitos pakuotės.<u> <br /></u>–  Stambiagabarites atliekas rajono daugiabučių namų gyventojai turi palikti prie kolektyvinių mišrių komunalinių atliekų konteinerių, o individualių valdų gyventojai prie važiuojamosios kelio dalies (kur įprastai paliekami konteineriai ištuštinimui) iki 7<sup>00</sup> ryto, nustatyto maršruto dieną.<br />–  Siekiant užtikrinti tvarką, visų atliekų turėtojų prašome atliekas palikti jų surinkimo vietose likus ne daugiau nei 3 dienoms iki nurodytos surinkimo dienos, tačiau ne vėliau nei iki atliekų surinkimo dienos 7:00 val. ryto. Pažymime, kad atliekas draudžiama palikti po elektros laidais, medžiais, grioviuose, labai arti tvoros. Įspėjame, kad nesilaikant šio reikalavimo, atliekos nebus surenkamos.<br />–  Atkreipiame dėmesį, kad neturint galimybės didžiųjų atliekų palikti surinkimo vietose, jų surinkimo dieną, atliekas galima pristatyti į Ankštakių didžiųjų atliekų surinkimo aikštelę darbo laiku: II-V 9:00-18:00 val., VI 10:00-14:00 val. Ankštakių aikštelės telefonas pasiteirauti: 0 630 08993.<br />–  Primename, kad kiekvienas rajono gyventojas, mokantis vietinę rinkliavą už atliekų tvarkymą, gali nemokamai į Ankštakių aikštelę atiduoti iki 250 kg statybinių atliekų, o turintys vairuotojo pažymėjimą  gali nemokamai atiduoti ir 5 vnt. naudotų padangų (iki 1,2 m), per metus.<br />–  Dėl sulūžusio konteinerio pakeitimo, neišvežtų atliekų, dėl naujo konteinerio suteikimo prašome kreiptis tel. <strong>0 445 78 608</strong> arba el. p. atliekos@kretkom.lt, nurodant problemą ir kontaktinius duomenis.<br />–  Bendra informacija teikiama tel. 0 445 44 676, el. p. info@kretkom.lt arba adresu Vytauto g. 118, Kretinga.</p>
+<p> <a href="/uploads/Tekstil%C4%97.pdf"></a></p>
+<ul>
+<li><a href="/uploads/2026%20m-%20mi%C5%A1rios%20atliekos%20%20I%20pusmetis.pdf" title="2026 m. Mišrių komunalinių atliekų išvežimo grafikas (01-06 mėn.)">2026 m. Mišrių komunalinių atliekų išvežimo grafikas (01-06 mėn.)</a></li>
+<li><a href="/uploads/GRAFIKAS%202026%20m-%20mi%C5%A1rios%20atliekos%20%20II%20pusmetis%20(7-12%20m%C4%97n).pdf" title="2026 m. Mišrių komunalinių atliekų išvežimo grafikas (07-12 mėn.)">2026 m. Mišrių komunalinių atliekų išvežimo grafikas (07-12 mėn.)</a></li>
+<li><a href="/uploads/2026%20m-%20PA%20grafikas.pdf" title="2026 m. Stiklo pakuočių ir visų pakuočių, išskyrus stiklo, išvežimo grafikas iš privačių valdų (01–12 mėn.)">2026 m. Stiklo pakuočių ir visų pakuočių, išskyrus stiklo, išvežimo grafikas iš privačių valdų (01–12 mėn.)</a><a href="/uploads/Maisto%20atliek%C5%B3%20surinkimas%202025%20II%20pusmetis.pdf" title="2025 m. Maisto atliekų išvežimo grafikas (07-12 mėn.)"></a></li>
+<li><a href="/uploads/Maisto%20atliek%C5%B3%20surinkimas%202026%20m.pdf" title="2026 m. Maisto atliekų išvežimo grafikas (01-12 mėn.)">2026 m. Maisto atliekų išvežimo grafikas (01-12 mėn.)</a></li>
+<li><a href="/uploads/2026%20m-%20did%C5%BEiosios%20atliekos.pdf" title="2026 m. Didžiųjų atliekų surinkimo ir išvežimo grafikas">2026 m. Didžiųjų atliekų išvežimo grafikas</a></li>
+<li><a href="/uploads/%C5%A0ak%C5%B3%20i%C5%A1ve%C5%BEimo%20grafikas%202026%20m_.pdf" title="2026 m. Šakų išvežimo grafikas">2026 m. Šakų išvežimo grafikas</a></li>
+<li><a href="/uploads/%C5%BDali%C5%B3j%C5%B3-biri%C5%B3j%C5%B3%20atliek%C5%B3%20i%C5%A1ve%C5%BEimo%20grafikas%20Kretingos%20mieste%202026%20m-%2004-11%20m%C4%97n_.pdf" title="2026 m. Žaliųjų–biriųjų atliekų išvežimo grafikas">2026 m. Žaliųjų–biriųjų atliekų išvežimo grafikas</a></li>
+<li><a href="/uploads/Tekstil%C4%97.pdf" title="Tekstilės atliekoms surinkti skirtų konteinerių pastatymo vietos Kretingos rajone" target="blank">Tekstilės atliekų konteinerių pastatymo vietos Kretingos rajone.</a></li>
+<li><a href="/uploads/Naudoto%20kepimo%20aliejaus%20surinkimo%20konteineri%C5%B3%20viet%C5%B3%20s%C4%85ra%C5%A1as.pdf" title="Naudoto kepimo aliejaus surinkimo konteinerių vietų sąrašas.">Naudoto kepimo aliejaus surinkimo konteinerių vietų sąrašas.</a></li>
+</ul>
+                    </div>
+                                                                                        <br>
+                                                                    
+                                                                    <div class="custom-title-1 semi-black-color">
+                                        Komunalinių atliekų tvarkymo skyrius
+                                    </div>
+                                
+
+
+                                    <div class="contacts-container pure-g">
+                    <div class="pure-u-1-1 pure-u-md-1-2  pure-u-xl-1-3">
+                <div class="contacts-item">
+                    <div class="contacts-name">
+                        Sigita Sadauskienė
+                    </div>
+                                <div class="contacts-title">
+                        Vyr. vadybininkė
+                    </div>
+                                        <div class="contacts-info-list">
+                        <a href="tel:0 445 43 805"><img src="images/icons/svg/ico-19.svg" alt=""> <span>0 445 43 805</span></a>                                                <a href="mailto:atliekos@kretkom.lt sigita.sadauskiene@kretkom.lt "><img src="images/icons/svg/ico-20.svg" alt=""><span>atliekos@kretkom.lt sigita.sadauskiene@kretkom.lt </span></a>                    </div>
+                </div>
+            </div>
+
+
+                    <div class="pure-u-1-1 pure-u-md-1-2  pure-u-xl-1-3">
+                <div class="contacts-item">
+                    <div class="contacts-name">
+                        Vita Žutautienė
+                    </div>
+                                <div class="contacts-title">
+                        Vyresn. vadybininkė
+                    </div>
+                                        <div class="contacts-info-list">
+                        <a href="tel:0 445 78 608"><img src="images/icons/svg/ico-19.svg" alt=""> <span>0 445 78 608</span></a>                                                <a href="mailto:vita.zutautiene@kretkom.lt"><img src="images/icons/svg/ico-20.svg" alt=""><span>vita.zutautiene@kretkom.lt</span></a>                    </div>
+                </div>
+            </div>
+
+
+                    <div class="pure-u-1-1 pure-u-md-1-2  pure-u-xl-1-3">
+                <div class="contacts-item">
+                    <div class="contacts-name">
+                        Mindaugas Paulauskas
+                    </div>
+                                <div class="contacts-title">
+                        Vadybininkas
+                    </div>
+                                        <div class="contacts-info-list">
+                        <a href="tel:0 445 78 608"><img src="images/icons/svg/ico-19.svg" alt=""> <span>0 445 78 608</span></a>                                                <a href="mailto:atliekos@kretkom.lt"><img src="images/icons/svg/ico-20.svg" alt=""><span>atliekos@kretkom.lt</span></a>                    </div>
+                </div>
+            </div>
+
+
+            </div>
+
+
+
+                    
+                            </div>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+</main>
+
+<div class="misc-1">
+    
+        <section class="map-section">
+            <div class="container">
+                <div class="map-container">
+                    <div class="map-box pure-g">
+                        <div class="pure-u-1-1 pure-u-md-1-2">
+                            <div id="map" style="position: relative">
+                                
+
+                                <a href="https://www.google.com/maps?q=55.88785654068809, 21.271320111323057" target="_blank">
+                <picture><source media="(max-width: 500px)" srcset="https://www.kretkom.lt/uploads/_CGSmartImage/058c746a-c86a-4c31-8435-fd2edc8348dd-cc152f576491f6acf504f7ace003d736.png 2x"><source media="(min-width: 501px)" srcset="https://www.kretkom.lt/uploads/_CGSmartImage/058c746a-c86a-4c31-8435-fd2edc8348dd-aedc28f2f0528a072a953a17261c1033.png 2x"><img width="657" height="579" src="https://www.kretkom.lt/uploads/_CGSmartImage/058c746a-c86a-4c31-8435-fd2edc8348dd-aedc28f2f0528a072a953a17261c1033.png"  alt="Kretingos komunalininkas"  loading="lazy" /></picture>
+            </a>
+            
+
+
+
+
+
+
+                            </div>
+                        </div>
+                        <div class="pure-u-1-1 pure-u-md-1-2">
+                            <div class="contacts-info">
+                                                                <div class="custom-title-1 semi-black-color contact-title">
+                                    Susisiekite su mumis
+                                </div>
+                                                                    <style>
+        .form-delete-files {
+            color: red;
+            cursor: pointer;
+        }
+    </style>
+    <form method="post" class="cms_form" action="" id="reg2" enctype='multipart/form-data'>
+                <input type='hidden' name='m65244rez_form_id' id='form_id' value='1'/>
+
+        <input type="hidden" name="anticsrf" value="e1b8e233381e0d41900ac7ca5727e01b3428120eeeb5d5cf0192031901699068">
+
+                        
+        <div class="error full-error" style="display: none">
+            Laukeliai vardas, telefonas, el. paštas ir žinutė yra privalomi.
+            <br/>
+            <br/>
+        </div>
+
+        <div class="pure-g inputs-container">
+            <div class="pure-u-1-1 pure-u-md-1-2">
+                <input  type='text' name='m65244rez_vardas' id='vardas' value='' class='text'  aria-label="Vardas" aria-required="true" autocomplete="name"   required='1' placeholder='Vardas'/>
+            </div>
+
+            <div class="pure-u-1-1 pure-u-md-1-2">
+                <input  type='text' name='m65244rez_imone' id='imone' value='' class='text'  aria-label="Įmonė"  autocomplete="company"   placeholder='Įmonė'/>
+            </div>
+            <div class="pure-u-1-1 pure-u-md-1-2">
+                <input  type='text' name='m65244rez_telefonas' id='telefonas' value='' class='text'  aria-label="Telefonas" pattern="^(?:8|\(?\+\)?)\d{7,}" aria-required="true" autocomplete="tel"  required='1' placeholder='Telefonas'/>
+            </div>
+            <div class="pure-u-1-1 pure-u-md-1-2">
+                <input  type='email' name='m65244rez_el_pastas' id='el_pastas' value='' class='email'  aria-label="El. paštas" aria-required="true" autocomplete="email"  required='1' placeholder='El. paštas'/>
+            </div>
+
+            <div class="pure-u-1-1">
+                <textarea name='m65244rez_pastabos' id='pastabos' class='textarea'  aria-label="Žinutė" aria-required="true" autocomplete="off"  required='1' placeholder='Žinutė'></textarea>
+                                
+                <input type='hidden' name='m65244rez_fiskur' id='fiskur' value='https://www.kretkom.lt/atlieku-isvezimo-grafikai/'/>
+            </div>
+            
+
+
+
+
+            <div class="pure-u-1-1 checkbox-line">
+                <label for="privatumo_sutikimas" class="checkbox-container">Sutinku su privatumo politika ir slapukais
+                    <input type='hidden' name='privatumo_sutikimas' value='0'/>
+   <input type='checkbox' name='m65244rez_privatumo_sutikimas' id='privatumo_sutikimas' value='1' class='checkbox'  aria-label="Sutinku su privatumo politika ir slapukais" data-privacy-policy aria-required="true" autocomplete="off"  required='1'/>
+                    <span class="checkmark"></span>
+                </label>
+            </div>
+
+            <div class="pure-u-1-1">
+                <div id='recaptcha_1' class="g-c-elem"></div>
+            </div>
+
+            <div class="pure-u-1-1 action tac">
+                <button class="ext_button  blue-style rounded xsd">
+                    <span>Siųsti</span>
+                </button>
+            </div>
+        </div>
+    </form>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="footer-colls-section">
+        <div class="container">
+            <div class="footer-colls">
+                <div>
+                    <h4>Savivaldybės įmonė<br />„Kretingos komunalininkas“</h4>
+<p>Vytauto g. 118 LT-97134 Kretinga<br />Įm. k. 163934977<br />PVM mok. k. LT639349716<br />Duomenys kaupiami ir saugomi Juridinių asmenų registre<br />Tel. <a href="#">(0 445) 44 676</a><br />El. p. <a href="#">info@kretkom.lt</a></p>
+                </div>
+                <div>
+                                                    <h4>
+                Naudinga
+            </h4>
+        <ul aria-label="Susijusios nuorodos">
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/apie-mus/">Apie mus</a>
+    </li>
+
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/naujienos/">Naujienos</a>
+    </li>
+
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/nuorodos/">Nuorodos</a>
+    </li>
+
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/duk/">DUK</a>
+    </li>
+
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/atviri-duomenys/">Atviri duomenys</a>
+    </li>
+
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/konsultavimasis-su-visuomene/">Konsultavimasis su visuomene</a>
+    </li>
+
+    </ul>
+
+                </div>
+                <div>
+                                                    <h4>
+                Informacija
+            </h4>
+        <ul aria-label="Susijusios nuorodos">
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/administracine-informacija/">Administracinė informacija</a>
+    </li>
+
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/kontaktai/">Kontaktai</a>
+    </li>
+
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/paslaugos/">Paslaugos</a>
+    </li>
+
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/korupcijos-prevencija/">Korupcijos prevencija</a>
+    </li>
+
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/asmens-duomenu-apsauga/">Asmens duomenų apsauga</a>
+    </li>
+
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/paslaugos/">Veiklos sritys</a>
+    </li>
+
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/viesieji-pirkimai/">Viešieji pirkimai</a>
+    </li>
+
+                
+    <li class="">
+        <a href="https://www.kretinga.lt/praneseju-apsauga">Pranešėjų apsauga</a>
+    </li>
+
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/informacija-lengvai-suprantama-kalba/">Informacija lengvai suprantama kalba</a>
+    </li>
+
+                
+    <li class="">
+        <a href="https://www.kretkom.lt/prieinamumo-paraiska/">Prieinamumo paraiška</a>
+    </li>
+
+    </ul>
+
+                </div>
+                <div>
+                                        <h4>
+                        Mums rūpi Jūsų nuomonė
+                    </h4>
+                                        Kviečiame įvertinti savivaldybės įmonės „Kretingos komunalininkas“ paslaugų kokybę
+
+                                        <div class="footer-action">
+                        <a href="/paslaugu-vertinimas/" class="ext_button blue-style rounded">
+                            Vertinti
+                        </a>
+                    </div>
+                                    </div>
+            </div>
+        </div>
+    </section>
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    © 2024 Visos teisės saugomos
+                </div>
+                <div>
+                    
+        
+            <span class="cookie_no">
+               
+                <button href="#cookie_conf" class="fancy2">
+                    Slapukų parinktys
+                </button>
+               
+            </span>
+        
+        <span class="policy_link">
+   
+   <a href="/duomenu-apsauga/">
+    Duomenų apsauga
+   </a>
+  </span>
+    
+                </div>
+                <div>
+                    Sukurta: <a href="https://www.texus.lt" target="_blank" rel="noopener noreferrer" aria-label="Texus">TEXUS</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+</div>
+<script src="https://unpkg.com/split-type"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<link rel="stylesheet"  href="https://www.kretkom.lt/tmp/css/style_15.css?t=254991ac9d"/>
+<link rel="stylesheet"  href="https://www.kretkom.lt/tmp/css/style_17.css?t=2ac0e2790c"/>
+<link rel="stylesheet"  href="https://www.kretkom.lt/tmp/css/style_16.css?t=ec367db619"/>
+<script defer type="module" src="https://www.kretkom.lt/tmp/js/script_20.js?t=d30dff05be"></script>
+
+
+
+        <script defer src="/js/cookie.js?v=2" type="text/javascript"></script>
+        <link rel="stylesheet" href="/css/cookie.css?v=2">
+
+        <div class="cookie-section">
+            <div class="descr">
+                <p>Mūsų svetainė naudoja slapukus (angl. cookies). Šie slapukai naudojami statistikos ir rinkodaros tikslais.</p>
+<p>Jei Jūs sutinkate, kad šiems tikslams būtų naudojami slapukai, spauskite „Sutinku“ ir toliau naudokitės svetaine.</p>
+                
+            </div>
+            <div class="descr2" id="cookie_conf">
+                <div class="cblock-1">
+                    <div class="aditional_form_info">
+                                        <p>Kad veiktų užklausos forma, naudojame sistemą „Google ReCaptcha“, kuri padeda atskirti jus nuo interneto robotų, kurie siunčia brukalus (angl. spam) ir panašaus tipo informaciją. </p>
+<p>Taigi, kad šios užklausos forma užtikrintai veiktų, jūs turite pažymėti „Sutinku su našumo slapukais“.</p>
+                
+                    </div>
+                    <strong>Slapukų naudojimo parinktys</strong>
+<p>Jūs galite pasirinkti, kuriuos slapukus leidžiate naudoti. <br /><a href="/duomenu-apsauga/" rel="noopener noreferrer" target="_blank">Plačiau apie slapukų ir privatumo politiką</a>.</p>
+                
+
+                </div>
+
+                <div class="cblock-2">
+
+                    <table class="cookie-table" cellpadding="0" cellspacing="0">
+                        <tbody>
+                            <tr>
+                                <th>
+                                    Pasirinkimas
+                                </th>
+                                <th>
+                                    Paaiškinimas                 
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input type="checkbox" id="cookie_policy_1" name="cookie_policy_1" aria-label="Funkciniai slapukai (būtini)" value="1" checked disabled="disabled">
+                                </td>
+                                <td>
+                                    <label for="cookie_policy_1">                <strong>Funkciniai slapukai (būtini)</strong>
+<p>Šie slapukai yra būtini, kad veiktų svetainė, ir negali būti išjungti. Šie slapukai nesaugo jokių duomenų, pagal kuriuos būtų galima jus asmeniškai atpažinti, ir yra ištrinami išėjus iš svetainės.</p>
+                </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input type="checkbox" id="cookie_policy_2" name="cookie_policy_2" aria-label="Našumo slapukai"  value="2">
+                                </td>
+                                <td>
+    
+                                    <label for="cookie_policy_2">                <strong>Našumo slapukai</strong>
+<p>Šie slapukai leidžia apskaičiuoti, kaip dažnai lankomasi svetainėje, ir nustatyti duomenų srauto šaltinius – tik turėdami tokią informaciją galėsime patobulinti svetainės veikimą. Jie padeda mums atskirti, kurie puslapiai yra populiariausi, ir matyti, kaip vartotojai naudojasi svetaine. Tam mes naudojamės „Google Analytics“ statistikos sistema. Surinktos informacijos neplatiname. Surinkta informacija yra visiškai anonimiška ir tiesiogiai jūsų neidentifikuoja.</p>
+                </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input type="checkbox" id="cookie_policy_3" name="cookie_policy_3" aria-label="Reklaminiai slapukai"  value="3">
+                                </td>
+                                <td>
+                                    <label for="cookie_policy_3">                <strong>Reklaminiai slapukai</strong>
+<p>Šie slapukai yra naudojami trečiųjų šalių, kad būtų galima pateikti reklamą, atitinkančią jūsų poreikius. Mes naudojame slapukus, kurie padeda rinkti informaciją apie jūsų veiksmus internete ir leidžia sužinoti, kuo jūs domitės, taigi galime pateikti tik Jus dominančią reklamą. Jeigu nesutinkate, kad jums rodytume reklamą, palikite šį langelį nepažymėtą.</p>
+                </label>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+
+                <div class="cblock-3 descr3">
+                    <div class="pure-g">
+                        <div class="pure-u-1-1">
+                            <button class="ext_button f_11 uppercase blue-style rounded nowrap submit-part-cookie">
+
+                                Sutinku
+                            </button>
+
+                            <button class="ext_button f_11 uppercase blue-style rounded nowrap cookie-cancel submit-none-cookie">
+                                Nesutinku
+
+                            </button>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="cookie-block">
+                
+                    <button class="ext_button f_9 uppercase blue-style rounded nowrap submit-cookie" aria-label="Sutinku">
+                        Sutinku
+                    </button>
+              
+                    <button class="ext_button f_9 uppercase blue-style rounded nowrap cookie-cancel submit-none-cookie" aria-label="Nesutinku">
+                        Nesutinku
+                    </button>
+             
+                    <button href="#cookie_conf"
+                       class="ext_button f_9 uppercase blue-style nowrap rounded  fancy2" aria-label="Parinktys">
+                        Parinktys
+                    </button>
+
+            </div>
+        </div>
+    
+</body>
+</html>
+
+

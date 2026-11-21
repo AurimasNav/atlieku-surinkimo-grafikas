@@ -26,6 +26,7 @@ maatc.lt (pdf)                            Marijampolės sav., Vilkaviškio r., K
                                           Kazlų Rūdos sav., Šakių r.: site/maatc/
 rkp.lt (pdf)                              Raseinių r.: site/raseiniu-r/
 jonavospaslaugos.lt (pdf)                 Jonavos r.: site/jonavos-r/
+kretkom.lt (pdf)                          Kretingos r.: site/kretingos-r/
 kedainiai.lt (docx, pdf)                  Kėdainių r.: site/kedainiu-r/
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
