@@ -62,7 +62,7 @@ import sys
 import zipfile
 from collections import Counter, defaultdict
 from collections.abc import Callable
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from datetime import date
 from functools import cache, partial
 from html.parser import HTMLParser
@@ -184,19 +184,6 @@ def _dashes(text: str) -> list[str]:
     return [p.strip() for p in parts if p.strip()]
 
 
-@dataclass(eq=False)
-class _Place(_Stop):
-    """What a list says about one settlement. `fallback`: one of several settlements of its
-    name in the municipality, none of them in the eldership of most of the list: a row that
-    names it in its own eldership comes first, and the app asks between those that don't."""
-
-    fallback: bool = False
-
-    def clauses(self, area_id: str) -> list[Clause]:
-        found = super().clauses(area_id)
-        return [replace(c, fallback=True) for c in found] if self.fallback else found
-
-
 class Places(SectionRoutes):
     """Reads one row of the centre's schedules: settlements and streets of one municipality,
 
@@ -215,7 +202,8 @@ class Places(SectionRoutes):
     one of that name and no row of its kind names it in its own). A list without is read in the
     whole municipality: an eldership after a settlement ("Pagojų k. Kazliškio sen.", "Parovėja
     (Papilio sen.)") tells which, and of settlements of one name in several elderships the one
-    in the eldership of most of the list is meant; if none is, each is a fallback. Hyphens
+    in the eldership of most of the list, or around its town, is meant (which); if none is, the
+    name is reported and not read, rather than given to a village far away. Hyphens
     between names are commas, but in a name of the register ("G. Petkevičaitės-Bitės g.");
     "...-Ramybės gatvės" are streets of the municipality's town. Streets after a settlement are
     its streets: those of a route, with "išskyrus" those it leaves out, and with house numbers
@@ -443,6 +431,18 @@ class Places(SectionRoutes):
             hits += typed or found
         return list({s.code: s for s in hits}.values())
 
+    def which(self, places: list[Settlement]) -> str | None:
+        """Of settlements of one name in several elderships, the eldership meant: the one of
+        most of the list's other settlements, or the one around their town ("Bajorų k.,
+        Rokiškio m. - ...": Rokiškio kaimiškoji, not Kriaunų)."""
+        districts = {s.district for s in places}
+        chosen = next((d for d in self.common if d in districts), None)
+        if chosen is None:
+            stems = {fold(d).split()[0] for d in self.common}
+            around = [d for d in districts if fold(d).split()[0] in stems]
+            chosen = around[0] if len(around) == 1 else None
+        return chosen
+
     def elderships_of(self, text: str) -> list[str]:
         """The elderships of the settlements a list names that are of only one, most first."""
         counts: Counter[str] = Counter()
@@ -520,7 +520,7 @@ class Places(SectionRoutes):
                 targets = current
                 if not targets and self.town is not _NO_TOWN:
                     town = next((s for s in stops if s.settlement is self.town), None)
-                    targets = [town or _Place(self.town)]
+                    targets = [town or _Stop(self.town)]
                 loose = bool(kind or houses)
                 found = [(t, self.streets(t.settlement, head, name, kind, loose)) for t in targets]
                 if any(keys for _, keys in found):
@@ -543,16 +543,15 @@ class Places(SectionRoutes):
                 self.unknown.append(f"{where}: {head[:60]}")
                 current, last = [], []
                 continue
-            fallback = False
             if not here and len({s.district for s in places}) > 1:
-                chosen = next(
-                    (d for d in self.common if any(s.district == d for s in places)), None
-                )
-                if chosen:
-                    places = [s for s in places if s.district == chosen]
-                else:
-                    fallback = True
-            current, last = [_Place(s, fallback=fallback) for s in places], []
+                chosen = self.which(places)
+                if chosen is None:
+                    districts = ", ".join(sorted({f"{s.district} sen." for s in places}))
+                    self.unknown.append(f"{where}: {head[:60]} (in {districts})")
+                    current, last = [], []
+                    continue
+                places = [s for s in places if s.district == chosen]
+            current, last = [_Stop(s) for s in places], []
             stops += current
             if spec is not None:
                 self.spec(current, spec)

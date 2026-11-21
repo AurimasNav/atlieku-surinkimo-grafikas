@@ -5,6 +5,7 @@ import copy
 import dataclasses
 import io
 import json
+from collections import defaultdict
 from datetime import date
 from functools import cache
 from urllib.parse import unquote, urlsplit
@@ -15,7 +16,7 @@ from test_parsers import FIXTURES, fixture
 
 from schedule_pipeline import pratc, status
 from schedule_pipeline.build import build_dataset, merge_parts
-from schedule_pipeline.model import ParseResult, SourceFile
+from schedule_pipeline.model import Area, ParseResult, SourceFile
 from schedule_pipeline.registry import Registry
 
 TODAY = date(2026, 11, 21)
@@ -353,7 +354,7 @@ def test_counts(parts):
         ),
         "rokiskis": (
             {"household": 18, "packaging": 14, "glass": 42, "food": 2},
-            {"household": 249, "packaging": 352, "glass": 350, "food": 7},
+            {"household": 249, "packaging": 352, "glass": 350, "food": 6},
             20,
         ),
         "birzai": (
@@ -454,6 +455,24 @@ def test_an_eldership_after_a_settlement_tells_which(parts):
     assert area_of(data, place(data, "Parovėja", district="Parovėjos"))["name"].startswith(
         "Juodžioniai"
     )
+
+
+def test_villages_of_one_name_in_several_elderships(parts):
+    _, data, _ = parts["rokiskis"]
+    # Food waste "Bajorų k., Rokiškio m. - Aguonų g., ...": the Bajorai around Rokiškis, not
+    # the one of Kriaunų sen.
+    assert "food" in place(data, "Bajorai", district="Rokiškio kaimiškoji")["schedule"]
+    assert "food" not in place(data, "Bajorai", district="Kriaunų")["schedule"]
+    # Mixed waste: each in the route of the villages around it.
+    kriaunu = area_of(data, place(data, "Bajorai", district="Kriaunų"))["name"]
+    assert kriaunu.startswith("Rokiškėlių-Meldučių")
+    # A name the list can't tell is reported, not given to both.
+    reader = pratc.Places(
+        pratc.Index(registry(pratc.ROKISKIS)), pratc.ROKISKIS.provider, defaultdict(dict)
+    )
+    area = Area("household", "Bajorų k.", provider="rokiskis")
+    assert reader.clauses(area)[0] == []
+    assert reader.unknown == ["Rokiškio r.: Bajorų k. (in Kriaunų sen., Rokiškio kaimiškoji sen.)"]
 
 
 def test_gardens_are_streets_of_the_settlements_that_have_them(parts):
