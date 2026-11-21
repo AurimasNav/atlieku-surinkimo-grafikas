@@ -44,6 +44,22 @@ JURBARKO_ADDRESSES_FILE = DATA_DIR / "address-points-jurbarko-r.json"
 KAISIADORIU_MUNICIPALITY = ("Kaišiadorių rajono", 49)
 KAISIADORIU_REGISTRY_FILE = DATA_DIR / "registry-kaisiadoriu-r.json"
 KAISIADORIU_ADDRESSES_FILE = DATA_DIR / "address-points-kaisiadoriu-r.json"
+# Šiaulių r., Akmenės r., Joniškio r., Kelmės r. and Pakruojo r. (schedule_pipeline.sratc).
+SIAULIU_R_MUNICIPALITY = ("Šiaulių rajono", 91)
+SIAULIU_R_REGISTRY_FILE = DATA_DIR / "registry-siauliu-r.json"
+SIAULIU_R_ADDRESSES_FILE = DATA_DIR / "address-points-siauliu-r.json"
+AKMENES_R_MUNICIPALITY = ("Akmenės rajono", 32)
+AKMENES_R_REGISTRY_FILE = DATA_DIR / "registry-akmenes-r.json"
+AKMENES_R_ADDRESSES_FILE = DATA_DIR / "address-points-akmenes-r.json"
+JONISKIO_R_MUNICIPALITY = ("Joniškio rajono", 47)
+JONISKIO_R_REGISTRY_FILE = DATA_DIR / "registry-joniskio-r.json"
+JONISKIO_R_ADDRESSES_FILE = DATA_DIR / "address-points-joniskio-r.json"
+KELMES_R_MUNICIPALITY = ("Kelmės rajono", 54)
+KELMES_R_REGISTRY_FILE = DATA_DIR / "registry-kelmes-r.json"
+KELMES_R_ADDRESSES_FILE = DATA_DIR / "address-points-kelmes-r.json"
+PAKRUOJO_R_MUNICIPALITY = ("Pakruojo rajono", 65)
+PAKRUOJO_R_REGISTRY_FILE = DATA_DIR / "registry-pakruojo-r.json"
+PAKRUOJO_R_ADDRESSES_FILE = DATA_DIR / "address-points-pakruojo-r.json"
 # The six municipalities of Alytaus RATC (schedule_pipeline.aratc), in one file.
 ALYTUS_MUNICIPALITIES = (
     ("Alytaus rajono", 33),
@@ -121,6 +137,21 @@ def main() -> int:
             KAISIADORIU_MUNICIPALITY,
             KAISIADORIU_REGISTRY_FILE,
             KAISIADORIU_ADDRESSES_FILE,
+        ),
+        ("Šiaulių r.", SIAULIU_R_MUNICIPALITY, SIAULIU_R_REGISTRY_FILE, SIAULIU_R_ADDRESSES_FILE),
+        ("Akmenės r.", AKMENES_R_MUNICIPALITY, AKMENES_R_REGISTRY_FILE, AKMENES_R_ADDRESSES_FILE),
+        (
+            "Joniškio r.",
+            JONISKIO_R_MUNICIPALITY,
+            JONISKIO_R_REGISTRY_FILE,
+            JONISKIO_R_ADDRESSES_FILE,
+        ),
+        ("Kelmės r.", KELMES_R_MUNICIPALITY, KELMES_R_REGISTRY_FILE, KELMES_R_ADDRESSES_FILE),
+        (
+            "Pakruojo r.",
+            PAKRUOJO_R_MUNICIPALITY,
+            PAKRUOJO_R_REGISTRY_FILE,
+            PAKRUOJO_R_ADDRESSES_FILE,
         ),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)

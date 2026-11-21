@@ -207,18 +207,12 @@ KAUNO_SVARA_NAMES = ("Alytaus r. sav.", "Prienų r. sav.", "Druskininkų sav.", 
 
 @dataclass
 class ScheduleFile(SourceFile):
-    """A file of the page, with whom it serves and when it applies."""
+    """A file of the page, with when it applies; `municipality` is a Municipality.label,
+    `group` REMOTE_GROUP or "". A file that ends is in force for its municipality and group
+    until the next one is read, whatever the others' files (build.current_rows)."""
 
-    municipality: str = ""  # Municipality.label
-    group: str | None = None  # REMOTE_GROUP
     valid_from: date | None = None  # "galioja nuo 2026-12-01"
     valid_until: date | None = None  # "galioja iki 2026-11-30"
-
-    @property
-    def part(self) -> tuple[str, str | None]:
-        """Whose schedule it is, for build.current_rows: a file that ends is the newest of its
-        municipality and group until the next one is read, whatever the others' files."""
-        return self.municipality, self.group
 
 
 # --- the page ----------------------------------------------------------------
@@ -333,7 +327,7 @@ def find_files(html: str, page_url: str = PAGE_URL) -> list[ScheduleFile]:
                     url=url,
                     file_name=file_name(url),
                     municipality=municipality.label,
-                    group=REMOTE_GROUP if remote else None,
+                    group=REMOTE_GROUP if remote else "",
                     valid_from=validity.get("nuo"),
                     valid_until=validity.get("iki"),
                 )
@@ -758,8 +752,6 @@ def _records(source: SourceFile, content: bytes) -> list[tuple[_Record, str]]:
 
 def schedules(source: SourceFile, records: list[tuple[_Record, str]]) -> ParseResult:
     """The schedules of a file's rows: one per waste type of a row of places."""
-    municipality = getattr(source, "municipality", "")
-    group = getattr(source, "group", None)
     areas: dict[str, Area] = {}
     warnings: list[str] = []
     for record, where in records:
@@ -784,8 +776,8 @@ def schedules(source: SourceFile, records: list[tuple[_Record, str]]) -> ParseRe
             area = Area(
                 kind=kind,
                 name=name,
-                district=municipality or None,
-                group=group,
+                district=source.municipality or None,
+                group=source.group or None,
                 dates=dates,
                 provider=PROVIDER.id,
             )
@@ -940,7 +932,7 @@ class Routes(SectionRoutes):
         self.places = {
             m.label: [s for s in mine if s.district in m.elderships] for m in MUNICIPALITIES
         }
-        self.towns = {s.code for s in mine if s.abbr == "m."}
+        self.towns_by_street = {s.code for s in mine if s.abbr == "m."}
 
     def district(self, name: str) -> str | None:
         """The eldership of the row's municipality a section names ("SIMNO", "Naujosios

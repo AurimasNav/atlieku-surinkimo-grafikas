@@ -107,13 +107,13 @@ def merge_areas(areas: list[Area]) -> list[Area]:
 def current_rows(parsed: list[tuple[SourceFile, ParseResult]], today: date) -> set[str]:
     """Ids of the rows in the newest schedule of each kind: the files that still run past today,
     or, between the end of one period and the publication of the next, the latest ones."""
-    ends: dict[tuple, list[tuple[date, ParseResult]]] = {}
+    ends: dict[tuple[Kind, str, str], list[tuple[date, ParseResult]]] = {}
     for source, result in parsed:
         dates = [d for a in result.areas for d in a.dates]
         if dates:
-            # Of each kind, and of each part of the places where a provider publishes files for
-            # each (aratc.ScheduleFile.part: a municipality).
-            key = (source.kind, getattr(source, "part", None))
+            # Each municipality's files on their own (sratc: one is late with next year's), and
+            # each group's (aratc: Druskininkai's farmsteads).
+            key = (source.kind, source.municipality, source.group)
             ends.setdefault(key, []).append((max(dates), result))
     ids: set[str] = set()
     for files in ends.values():
@@ -214,9 +214,8 @@ def build_dataset(
             f"(expected at least {source.min_household_places})"
         )
     warnings += [f"not linked to any settlement: {u}" for u in report["unmatched"]]
-    whole_municipality = (
-        provider.route_town or provider.settlement_rows or provider.section_town or provider.reader
-    )
+    whole_municipality = provider.route_town or provider.settlement_rows or provider.section_town
+    whole_municipality = whole_municipality or provider.reader
     unknown = "a settlement or a street" if whole_municipality else "a settlement of the eldership"
     warnings += [f"not {unknown}: {u}" for u in report.get("unknownPlaces", [])]
 

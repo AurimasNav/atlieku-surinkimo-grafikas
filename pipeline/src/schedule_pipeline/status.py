@@ -32,19 +32,21 @@ def collect(site: Path) -> dict:
     """What each source published: when, how much, and how many warnings."""
     sources: dict[str, dict] = {}
     # Vilniaus r., then Mažeikių r. (schedule_pipeline.tratc), Klaipėdos r.
-    # (schedule_pipeline.gargzdu) and Jurbarko r. (schedule_pipeline.taurage): the same format.
-    # Alytaus RATC's six municipalities (schedule_pipeline.aratc) too, as one source, "alytus".
+    # (schedule_pipeline.gargzdu), Jurbarko r. (schedule_pipeline.taurage) and the five
+    # municipalities of Šiaulių RATC (schedule_pipeline.sratc): the same format. Alytaus RATC's
+    # six municipalities (schedule_pipeline.aratc) too, as one source, "alytus".
     for path in (
         site / "schedule.json",
         site / "mazeikiu-r" / "schedule.json",
         site / "klaipedos-r" / "schedule.json",
         site / "jurbarko-r" / "schedule.json",
+        site / "sratc" / "schedule.json",
         site / "alytaus-ratc" / "schedule.json",
     ):
         if not path.exists():
             continue
-        # Mažeikių r., Klaipėdos r. and Jurbarko r. list every settlement of the municipality:
-        # count those with a schedule, so the number moves when rows are lost.
+        # Mažeikių r., Klaipėdos r., Jurbarko r. and Šiaulių RATC list every settlement of their
+        # municipalities: count those with a schedule, so the number moves when rows are lost.
         served_only = path.parent != site
         data = json.loads(path.read_text(encoding="utf-8"))
         # Vilniaus r.: one file, a part per company (build.merge_parts). Rows and places of the
@@ -121,8 +123,8 @@ def metrics(status: dict) -> str:
             ],
         ),
         "siuksliaveze_data_places": (
-            "Settlements (nemencine, nemezio, mazeikiai, klaipedos, jurbarkas, alytus) or "
-            "addresses (kauno, kaisiadorys) the data covers.",
+            "Settlements (nemencine, nemezio, mazeikiai, klaipedos, jurbarkas, siauliai, alytus) "
+            "or addresses (kauno, kaisiadorys) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (

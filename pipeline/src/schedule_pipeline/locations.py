@@ -1028,7 +1028,7 @@ class SectionRoutes:
         # "Jurbarko m., privačių namų konteineriai gatvėse:"
         self.town_mark = re.compile(rf"\b{re.escape(self.town.genitive)}\s+m\.\s*(?:,[^,:]*)?:")
         # Towns whose routes name the streets of private houses (build_locations).
-        self.towns = {self.town.code}
+        self.towns_by_street = {self.town.code}
         self.unknown: list[str] = []
         # Settlements the rows of each kind name in their own eldership; None before prepare.
         self.named: dict[str, set[int]] | None = None
@@ -1295,12 +1295,14 @@ def build_locations(
         SettlementRows(index, provider, variants) if provider and provider.settlement_rows else None
     )
     sections = (
-        (provider.reader or SectionRoutes)(index, provider, variants)
-        if provider and (provider.section_town or provider.reader)
-        else None
+        SectionRoutes(index, provider, variants) if provider and provider.section_town else None
     )
+    # A provider's own reader (Provider.reader), e.g. sratc.Blocks, aratc.Routes.
+    own = provider.reader(index, provider, variants) if provider and provider.reader else None
+    # Towns whose routes name every street with a pickup (SectionRoutes and aratc.Routes).
+    towns_by_street = getattr(sections or own, "towns_by_street", set())
     # Readers of rows that cover the whole municipality, without an eldership column.
-    municipal = routes or rows or sections
+    municipal = routes or rows or sections or own
     reader = PlaceList(index, provider, variants, None) if provider and place_lists else None
     kinds = list(provider.kinds) if provider else KINDS
     if reader:
@@ -1310,6 +1312,8 @@ def build_locations(
         reader.gardens = known_gardens(registry, variants)
     if sections:
         sections.prepare(areas)
+    if own:
+        own.prepare(areas)
 
     for area in areas:
         wholes: list = []
@@ -1354,7 +1358,7 @@ def build_locations(
 
         simplify = place_lists or bool(municipal)
         schedule = {kind: r for kind in kinds if (r := resolve(clauses.get(kind, []), simplify))}
-        town = sections is not None and settlement.code in sections.towns
+        town = settlement.code in towns_by_street
         if routes or town:
             # A route names every street it serves, so a street no route names has no pickup
             # (apartment buildings with shared containers, gardens without food waste). An
