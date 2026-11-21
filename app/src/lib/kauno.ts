@@ -161,14 +161,14 @@ export function kaunoAlias(index: KaunoIndex, addresses: KaunoAddresses, address
  */
 export async function loadKaunoAddress(
   address: KaunoAddress,
-): Promise<{ key: string; areas: Area[]; address: KaunoAddress } | undefined> {
+): Promise<{ key: string; areas: Area[]; address: KaunoAddress; generatedAt: string } | undefined> {
   const [index, addresses] = await Promise.all([fetchKaunoIndex(), fetchKaunoAddresses(address.eldership)]);
   const alias = addresses.towns[address.town]?.[address.street]?.[address.house] ? undefined : kaunoAlias(index, addresses, address);
   if (!alias) {
     const areas = kaunoAreas(index, addresses, address);
-    return areas && { key: kaunoKey(address), areas, address };
+    return areas && { key: kaunoKey(address), areas, address, generatedAt: index.generatedAt };
   }
   const file = alias.eldership === address.eldership ? addresses : await fetchKaunoAddresses(alias.eldership);
   const areas = kaunoAreas(index, file, alias);
-  return areas && { key: kaunoKey(alias), areas, address: alias };
+  return areas && { key: kaunoKey(alias), areas, address: alias, generatedAt: index.generatedAt };
 }

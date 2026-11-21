@@ -162,6 +162,7 @@ describe('refreshing a Kauno r. address', () => {
     expect(useSchedule.getState().data?.personal).toEqual({
       key: 'akademijos|Akademijos mstl.|Vynuogyno g.|9',
       areas: [expect.objectContaining({ kind: 'household', dates: ['2026-11-25'] })],
+      generatedAt: '',
     });
   });
 });

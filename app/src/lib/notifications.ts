@@ -7,6 +7,7 @@ import { useReminderActions } from '@/store/reminder-actions';
 import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
 
+import { describeChanges, type PickupChange } from './changes';
 import { toIsoDate } from './dates';
 import { daysAhead, type Pickup, planReminders, snoozeMinutes } from './reminders';
 import { resolvePlace } from './resolve';
@@ -105,6 +106,21 @@ export async function syncReminders(now = new Date()): Promise<number> {
     });
   }
   return plan.length;
+}
+
+/** Tells the user right away that a refresh moved, cancelled or added pickups of theirs. */
+export async function notifyScheduleChanges(changes: PickupChange[]): Promise<void> {
+  if (!supported || !changes.length || !(await hasNotificationPermission())) return;
+  const lang = resolveLanguage(useSettings.getState().language);
+  const t = i18n.getFixedT(lang);
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: t('notifications.changedTitle'),
+      body: describeChanges(changes, t, lang).join('\n'),
+      data: { type: 'changes' },
+    },
+    trigger: { channelId: CHANNEL_ID },
+  });
 }
 
 function pickupOf(response: Notifications.NotificationResponse): Pickup | undefined {

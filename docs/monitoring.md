@@ -6,6 +6,10 @@ source fails **and yesterday's data stays published**, so nothing breaks for use
 GitHub emails the repository owner about the failed run, but the reliable signal is the data
 itself: it stops getting newer.
 
+Users see it too: when the data of the company behind their schedule hasn't been rebuilt for 7
+days (`providers[].generatedAt`, or Kauno švara's `generatedAt`), the app shows a warning with a
+link to the company's official schedule (`app/src/lib/freshness.ts`).
+
 There are four sources, each built on its own:
 
 | `source` | Company | Published in |

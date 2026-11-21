@@ -21,6 +21,7 @@ import { registerBackgroundRefresh } from '@/lib/background';
 import { installCrashRecorder } from '@/lib/crash';
 import { appVersion, formatError, openIssue } from '@/lib/feedback';
 import { configureNotifications, handleReminderAction, syncReminders } from '@/lib/notifications';
+import { refreshSchedule } from '@/lib/refresh';
 import { useSchedule } from '@/store/schedule';
 import { useSettings } from '@/store/settings';
 import { spacing, useTheme } from '@/theme';
@@ -77,7 +78,7 @@ export default function RootLayout() {
   }, [language]);
 
   useEffect(() => {
-    const refreshAndSync = () => useSchedule.getState().refresh().finally(() => syncReminders());
+    const refreshAndSync = () => refreshSchedule().finally(() => syncReminders());
 
     configureNotifications().then(refreshAndSync);
     registerBackgroundRefresh().catch(() => {});
