@@ -87,7 +87,8 @@
             "extraProguardRules": "# WorkManager (expo-background-task) creates its Room database and its workers by reflection; R8 removed WorkDatabase_Impl's constructor and the app crashed on start.\n-keep class * extends androidx.room.RoomDatabase { <init>(); }\n-keep class * extends androidx.work.ListenableWorker { public <init>(android.content.Context, androidx.work.WorkerParameters); }\n"
           }
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "reactCompiler": true

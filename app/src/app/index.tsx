@@ -10,7 +10,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EkonovusLink } from '@/components/ekonovus-link';
 import { KindFilter } from '@/components/kind-filter';
-import { AppText, Button, IconButton, KindBadge, KindIcon, Notice, PressableScale } from '@/components/ui';
+import { MonthCalendar } from '@/components/month-calendar';
+import { AppText, Button, Chip, IconButton, KindBadge, KindIcon, Notice, PressableScale } from '@/components/ui';
 import { activeChanges, describeChanges } from '@/lib/changes';
 import { clearLastCrash, lastCrash } from '@/lib/crash';
 import { toIsoDate } from '@/lib/dates';
@@ -41,6 +42,7 @@ export default function Home() {
   const onboarded = useSettings((s) => s.onboarded);
   const place = useSettings((s) => s.place);
   const reminder = useSettings((s) => s.reminder);
+  const homeView = useSettings((s) => s.homeView);
   const doneKeys = useReminderActions((s) => s.done);
   const { data, refreshing, error, refresh, lastChecked, changes, dismissChanges } = useSchedule();
   const [filter, setFilter] = useState<Filter>('all');
@@ -56,14 +58,14 @@ export default function Home() {
   const activeKinds = shownKinds.filter((kind) => resolved.kinds[kind].status === 'ok');
   const label = placeLabel(place, resolved);
   const allPickups = useMemo(() => upcomingPickups(resolved.areas, new Date()), [resolved]);
-  const pickups = useMemo(
+  const filtered = useMemo(
     () =>
-      (filter === 'all'
+      filter === 'all'
         ? allPickups
-        : allPickups.filter((p) => p.kinds.includes(filter)).map((p) => ({ ...p, kinds: [filter] }))
-      ).slice(0, UPCOMING_LIMIT),
+        : allPickups.filter((p) => p.kinds.includes(filter)).map((p) => ({ ...p, kinds: [filter] })),
     [allPickups, filter],
   );
+  const pickups = filtered.slice(0, UPCOMING_LIMIT);
 
   if (!onboarded) return <Redirect href="/onboarding" />;
 
@@ -295,8 +297,17 @@ export default function Home() {
               />
             )}
 
+            {next && (
+              <View style={styles.viewToggle}>
+                <Chip label={t('home.viewList')} selected={homeView === 'list'} onPress={() => useSettings.getState().setHomeView('list')} />
+                <Chip label={t('home.viewMonth')} selected={homeView === 'month'} onPress={() => useSettings.getState().setHomeView('month')} />
+              </View>
+            )}
+
+            {homeView === 'month' && next && <MonthCalendar key={filter} pickups={filtered} />}
+
             {/* Timeline */}
-            {months.map((month) => (
+            {homeView === 'list' && months.map((month) => (
               <Animated.View key={`${filter}-${month.key}`} layout={motion(LinearTransition.springify())} style={styles.month}>
                 <AppText variant="overline" muted style={styles.monthTitle}>
                   {month.label}
@@ -421,4 +432,5 @@ const styles = StyleSheet.create({
   footer: { textAlign: 'center' },
   reportLink: { marginTop: spacing.md },
   noticeActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  viewToggle: { flexDirection: 'row', gap: spacing.sm },
 });

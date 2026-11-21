@@ -14,6 +14,8 @@ type SettingsState = {
   language: Language | 'system';
   place: Place | null;
   reminder: ReminderSettings;
+  /** How home lists the coming pickups. */
+  homeView: 'list' | 'month';
   setOnboarded: () => void;
   setLanguage: (language: Language | 'system') => void;
   /** Starts over with a new location; earlier per-kind answers no longer apply. */
@@ -31,6 +33,7 @@ type SettingsState = {
   /** Starts a place without an official location, for users who set their own schedules. */
   startCustomPlace: () => void;
   setReminder: (reminder: ReminderSettings) => void;
+  setHomeView: (homeView: 'list' | 'month') => void;
 };
 
 export const useSettings = create<SettingsState>()(
@@ -74,6 +77,8 @@ export const useSettings = create<SettingsState>()(
         }),
       startCustomPlace: () => set((state) => ({ place: { choices: {}, custom: state.place?.custom ?? {} } })),
       setReminder: (reminder) => set({ reminder }),
+      homeView: 'list',
+      setHomeView: (homeView) => set({ homeView }),
     }),
     {
       name: 'settings',
