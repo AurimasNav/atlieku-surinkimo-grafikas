@@ -1,7 +1,7 @@
 # Šiukšliavežė
 
 Android app that reminds you when waste is collected at your address, based on the
-schedules the waste companies publish. It covers 20 municipalities:
+schedules the waste companies publish. It covers 33 municipalities:
 
 - **Vilnius district**: mixed waste, packaging and glass, from the schedule files of
   [UAB "Nemenčinės komunalininkas"](https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/)
@@ -20,23 +20,38 @@ schedules the waste companies publish. It covers 20 municipalities:
   the municipality's waste administrator,
   [VšĮ "Gargždų švara"](https://www.gargzdusvara.eu/komunaliniu-atlieku-tvarkymo-grafikai/).
   The waste is collected by UAB "Ekonovus".
-- **Jurbarkas district**: mixed waste, packaging and glass, and green waste in Jurbarkas town,
-  from the PDFs of the regional waste centre,
+- **Jurbarkas, Tauragė and Šilalė districts and Pagėgiai municipality**: mixed waste, packaging
+  and glass, green waste in some towns and villages, and food waste in and around Tauragė, from
+  the PDFs of the regional waste centre,
   [UAB "Tauragės regiono atliekų tvarkymo centras"](https://www.uabtratc.lt/atlieku-surinkimo-grafikai/).
-  The waste is collected by UAB "Ecoservice" and UAB "Jurbarko komunalininkas".
-- **Šiauliai, Akmenė, Joniškis, Kelmė and Pakruojis districts**: mixed waste, packaging and
-  glass, green waste in some places and food waste in Joniškis and Žagarė, from the PDFs of the
-  regional waste centre,
+  Mixed and green waste are collected by UAB "Ecoservice", packaging and glass by UAB "Jurbarko
+  komunalininkas" in Jurbarkas district and UAB "Dunokai" in Tauragė and Šilalė districts.
+- **Šiauliai, Akmenė, Joniškis, Kelmė, Pakruojis and Radviliškis districts**: mixed waste,
+  packaging and glass, green waste in some places and food waste in Joniškis and Žagarė, from the
+  PDFs of the regional waste centre,
   [UAB "Šiaulių regiono atliekų tvarkymo centras"](https://www.sratc.lt/kalendoriaus-grafikai/).
   The files of Šiauliai and Pakruojis districts name the collectors, UAB "Kuršėnų komunalinis
-  ūkis" and UAB "Pakruojo komunalinis ūkis".
+  ūkis" and UAB "Pakruojo komunalinis ūkis". In Radviliškis district mixed waste is collected by
+  UAB "Svarinta" and packaging and glass by UAB "Ecoservice".
 - **Alytus, Prienai, Lazdijai and Varėna districts and Druskininkai and Birštonas
   municipalities**: mixed waste, packaging and glass, and food waste in towns and some villages,
   for private houses, from the PDFs of the regional waste centre,
   [UAB "Alytaus regiono atliekų tvarkymo centras"](https://www.aratc.lt/atlieku-surinkimo-grafikai/),
   which publishes the schedules of every company that empties the containers.
+- **Biržai, Pasvalys and Rokiškis districts, and packaging and glass in Panevėžys district**:
+  mixed waste, packaging and glass, and food waste in parts of Biržai, Pasvalys and Rokiškis and a
+  few villages, for private houses, from the spreadsheets of the regional waste centre,
+  [UAB "Panevėžio regiono atliekų tvarkymo centras"](https://www.pratc.lt/atlieku-isvezimas-atlieku-isvezimas/).
+  Panevėžys district publishes its mixed waste schedule as a document of rules that the app
+  doesn't read, so only its packaging and glass are in the app.
+- **Marijampolė, Kalvarija and Kazlų Rūda municipalities and Vilkaviškis and Šakiai
+  districts**: mixed waste, packaging and glass, and food waste in the towns and a few villages,
+  for private houses, from the PDFs of the regional waste centre,
+  [UAB "Marijampolės apskrities atliekų tvarkymo centras"](https://maatc.lt/atlieku-isvezimo-grafikai/).
+  Mixed waste is collected by UAB "Ecoservice", packaging and glass by UAB "Ecoservice" and, in
+  Šakiai district, UAB "Ekonovus", which also collects the food waste.
 
-The cities of Vilnius, Kaunas, Klaipėda, Šiauliai and Alytus aren't covered.
+The cities of Vilnius, Kaunas, Klaipėda, Šiauliai, Panevėžys and Alytus aren't covered.
 
 Available in Lithuanian, English, Russian and Polish.
 
