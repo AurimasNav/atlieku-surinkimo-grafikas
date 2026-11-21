@@ -36,6 +36,25 @@ the 2026 PDFs for private houses of its five municipalities, downloaded on 2026-
 `pakruojo-r-2026.pdf` "2026 m grafikai/2026 m- pakruojo individualiu valdu grafikas.pdf". With
 the Address Register extract for the five municipalities of the same day, in one file.
 
+`aratc/` has the schedule page of UAB "Alytaus regiono atliekų tvarkymo centras" at
+<https://www.aratc.lt/atlieku-surinkimo-grafikai/> and the PDFs of individual houses it links,
+downloaded on 2026-11-21, renamed (the page links them under `uploads/Grafikai/`):
+`alytaus-r-mka.pdf` is "Alytaus r 2026-2027 MA MKA gyventojai.pdf", `alytaus-r-pa.pdf` "Alytaus
+r 2026-2028 PA STKL individualūs.pdf", `prienu-r-mka.pdf` "Prienu r MA MKA 2026-2027
+gyventojai.pdf", `prienu-r-pa.pdf` "Prienu r 2026 12-2028 03  PA STKL individualus.pdf",
+`lazdiju-mka.pdf` "Lazdiju r 2026-2027 MKA individualūs.pdf", `lazdiju-ma.pdf` "Lazdiju r
+2026-2027 MA individualus 2026-06-30.pdf", `lazdiju-pa.pdf` "Lazdiju r 2026 08 - 2027 02 PA STKL
+individualus namai.pdf", `varenos-mka.pdf` "Varenos r 2026-2027 MKA individualūs.pdf",
+`varenos-ma.pdf` "Varėnos rajono savivaldybės maisto atliekų konteinerių aptarnavimo grafikas
+2026 - 2027 metams.pdf", `varenos-pa.pdf` "Varenos r 2026-2027 PA STKL individualūs.pdf",
+`druskininku-mka.pdf` "Druskininku sav 2026 04-2027 - 02 MA MKA gyventojai individualus.pdf",
+`druskininku-sodai.pdf` "SODŲ, VIENKIEMIŲ IR SUNKIAI PRIVAŽIUOJAMŲ INDIVIDUALIŲ VALDŲ MIŠRIŲ
+KOMUNALINIŲ ATLIEKŲ SURINKIMO DRUSKININKŲ SAVIVALDYBĖS TERITORIJOJE GRAFIKAS 2026 - 2027 M.pdf",
+`druskininku-pa.pdf` "Druskininku sav PA STKL 2026-2027 Individualus namai 2026.06.30.pdf",
+`birstono-mka.pdf` "Birstono sav 2026-2027 MA MKA gyventojai.pdf" and `birstono-pa.pdf`
+"Birstono sav 2026-2027 PA STKL gyventojai.pdf". With the Address Register extract for the six
+municipalities of the same day.
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 

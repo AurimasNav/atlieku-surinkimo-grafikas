@@ -69,6 +69,16 @@ def fetch(municipality_code: int = MUNICIPALITY_CODE) -> list[AddressPoint]:
     return parse(points, _download(NUMBERS_FILE), municipality_code)
 
 
+def fetch_all(municipality_codes: list[int]) -> list[AddressPoint]:
+    """Several municipalities, downloading the country's house numbers once."""
+    numbers = _download(NUMBERS_FILE)
+    return [
+        point
+        for code in municipality_codes
+        for point in parse(_download(f"adr_gra_{code}.json"), numbers, code)
+    ]
+
+
 def build_addresses(
     points: list[AddressPoint], registry: Registry, served: set[str], generated_at: str
 ) -> dict:

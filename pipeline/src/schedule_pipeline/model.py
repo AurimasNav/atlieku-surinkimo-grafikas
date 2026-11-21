@@ -83,8 +83,9 @@ class Provider:
     # Places the rows name in a way the register can't tell apart, as the rows write them and
     # as the register's genitive with its type: ("Naukaimio k. (Vytėnų)", "Naukaimio II k.").
     aliases: tuple[tuple[str, str], ...] = ()
-    # Reads the rows itself (sratc.Blocks): a class called with (index, provider, variants) whose
-    # instances have clauses(area), unknown and prepare(areas), like locations.SectionRoutes.
+    # Reads the rows itself (sratc.Blocks, aratc.Routes): a class called with (index, provider,
+    # variants) whose instances have clauses(area), unknown and prepare(areas), like
+    # locations.SectionRoutes.
     reader: Callable[..., Any] | None = None
     kinds: tuple[Kind, ...] = ("household", "packaging", "glass")
     # The first provider, published before there were several: its rows, places and files carry
@@ -103,6 +104,9 @@ class SourceFile:
     # The municipality the file is for, where one source has files for several (sratc): each
     # one's files run out on their own (build.current_rows).
     municipality: str = ""
+    # A group of its places with files of their own (aratc: Druskininkai's farmsteads), which
+    # also run out on their own.
+    group: str = ""
 
 
 @dataclass
