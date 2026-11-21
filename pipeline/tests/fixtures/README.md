@@ -157,6 +157,13 @@ food waste) and `zaliosios-2026.pdf` "Žaliųjų-biriųjų atliekų išvežimo g
 2026 m- 04-11 mėn_.pdf" (Kretinga's green waste, April-November). With the Address Register
 extract for Kretingos r. of the same day.
 
+`moletai/` has the schedule page of UAB "Molėtų švara" (Molėtų r.) at
+<https://www.moletusvara.lt/atlieku-surinkimo-grafikai/> and the twelve 2026 PDFs it links,
+downloaded on 2026-11-21 and renamed after their elderships: `alantos.pdf` is
+"2026_ALANTOS_SEN_grafikas.pdf", `luokesos.pdf` "2026_LUOKESOS_SEN_ir_dalies_GIEDRAICIU_SEN_
+grafikas.pdf", `moletu-m.pdf` "2026_MOLETU_MIESTAS_(1).pdf" (the town) and so on
+(`test_moletai.COPIES`). With the Address Register extract for Molėtų r. of the same day.
+
 `skuodas/` has the schedule page of Skuodo rajono savivaldybė (Skuodo r.) at
 <https://skuodas.lt/atlieku-tvarkymas-ir-surinkimo-grafikai-2025-m/> and the 2026 spreadsheets
 it links, downloaded on 2026-11-21 and renamed: `misrios-2026.xls` is "cia-1.xls" (mixed waste,
