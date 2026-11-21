@@ -16,6 +16,12 @@ komunalininkas" at <https://www.nkom.lt/kita.html>, downloaded on 2026-11-17:
 2026 and 2027 spreadsheets it links (mixed, food and green, packaging and glass), downloaded on
 2026-11-17, with the Address Register extract for Mažeikių r. of the same day.
 
+`gargzdu/` has the page of VšĮ "Gargždų švara" (Klaipėdos r.) at
+<https://www.gargzdusvara.eu/komunaliniu-atlieku-tvarkymo-grafikai/> and the 2026 spreadsheet it
+links, downloaded on 2026-11-21, with the Address Register extract for Klaipėdos r. of the same
+day. `2025 MKA+AZ (1).xlsx` is the 2025 spreadsheet, still on the site at the address the page
+linked in 2025 (other column titles, spaces in the lists of days, a second sheet).
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 

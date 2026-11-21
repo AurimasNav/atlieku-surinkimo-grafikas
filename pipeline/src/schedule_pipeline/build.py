@@ -31,7 +31,7 @@ from .xlsx_parser import DEFAULT_GROUP, parse_xlsx
 
 # Fewer areas than this means the format changed and the parser missed rows.
 MIN_AREAS: dict[Kind, int] = {"household": 100, "packaging": 10, "glass": 10}
-KINDS: tuple[Kind, ...] = ("household", "packaging", "glass", "food")
+KINDS: tuple[Kind, ...] = ("household", "packaging", "glass", "food", "green")
 # Share of household rows that must link to a register settlement; below it, matching broke.
 MIN_LINKED_HOUSEHOLD = 0.85
 # Served settlements had ~50k addresses in 2026; far fewer means the download went wrong.
@@ -211,7 +211,8 @@ def build_dataset(
             f"(expected at least {source.min_household_places})"
         )
     warnings += [f"not linked to any settlement: {u}" for u in report["unmatched"]]
-    unknown = "a settlement or a street" if provider.route_town else "a settlement of the eldership"
+    whole_municipality = provider.route_town or provider.settlement_rows
+    unknown = "a settlement or a street" if whole_municipality else "a settlement of the eldership"
     warnings += [f"not {unknown}: {u}" for u in report.get("unknownPlaces", [])]
 
     rows = sorted((a.to_json() for a in areas), key=_area_order)

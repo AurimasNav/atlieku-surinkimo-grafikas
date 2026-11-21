@@ -163,6 +163,27 @@ describe('resolvePlace', () => {
     expect(visibleKinds({ locationId: 'g1', choices: {} }, village)).toEqual(['household', 'packaging', 'glass']);
   });
 
+  it('adds green waste where the place has a schedule for it (Klaipėdos r.)', () => {
+    const village: Location = {
+      id: 'g10',
+      name: 'Ablinga',
+      type: 'k.',
+      district: 'Endriejavo',
+      provider: 'klaipedos',
+      schedule: { household: { area: 'h-house' }, green: { area: 'z-1' } },
+    };
+    // Green waste is collected from April to November: between seasons the row has only its
+    // last date, and the place still shows it.
+    const green = area('z-1', 'green', { dates: ['2026-09-25'], current: true });
+    const withGreen = { ...data, areas: [...areas, green], locations: [...locations, village] };
+    const r = resolvePlace(withGreen, { locationId: 'g10', choices: {} }, today);
+    expect(r.kinds.green).toMatchObject({ status: 'ok', area: { id: 'z-1' } });
+    expect(visibleKinds({ locationId: 'g10', choices: {} }, r)).toEqual(['household', 'packaging', 'glass', 'green']);
+    // Without a green waste container, the user turns it off.
+    const off = resolvePlace(withGreen, { locationId: 'g10', choices: { green: null } }, today);
+    expect(off.kinds.green).toEqual({ status: 'none', skipped: true });
+  });
+
   it('supports rows picked by hand without a location', () => {
     const r = resolvePlace(data, { choices: { household: 'h-house', glass: 'g-old' } }, today);
     expect(ids(r)).toEqual(['h-house']);
