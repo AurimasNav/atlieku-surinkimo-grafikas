@@ -134,7 +134,13 @@ it('asks for the street and the row when the place has several', async () => {
 
 it('offers to ask for the area when nothing is found', async () => {
   await renderRouter(routes, { initialUrl: '/setup/location' });
-  await search('Klaipėda');
+  await search('Trakai');
   expect(await screen.findByText(i18n.t('setup.locationNone'))).toBeOnTheScreen();
   expect(screen.getByText(i18n.t('feedback.area'))).toBeOnTheScreen();
+});
+
+it('says that Klaipėda city is not covered', async () => {
+  await renderRouter(routes, { initialUrl: '/setup/location' });
+  await search('Klaipėda');
+  expect(await screen.findByText(i18n.t('setup.locationKlaipedaCity'))).toBeOnTheScreen();
 });
