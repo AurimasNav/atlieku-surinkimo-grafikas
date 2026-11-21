@@ -19,6 +19,10 @@ schedules the waste companies publish:
   the municipality's waste administrator,
   [VšĮ "Gargždų švara"](https://www.gargzdusvara.eu/komunaliniu-atlieku-tvarkymo-grafikai/).
   The waste is collected by UAB "Ekonovus".
+- **Jurbarkas district**: mixed waste, packaging and glass, and green waste in Jurbarkas town,
+  from the PDFs of the regional waste centre,
+  [UAB "Tauragės regiono atliekų tvarkymo centras"](https://www.uabtratc.lt/atlieku-surinkimo-grafikai/).
+  The waste is collected by UAB "Ecoservice" and UAB "Jurbarko komunalininkas".
 
 Available in Lithuanian, English, Russian and Polish.
 
@@ -67,8 +71,9 @@ your own build, rename and rebrand it. See [TRADEMARKS.md](TRADEMARKS.md).
 
 This is an unofficial project, not affiliated with or endorsed by UAB "Nemenčinės
 komunalininkas", UAB "Nemėžio komunalininkas", UAB "Kauno švara", UAB "Ekonovus", UAB "Telšių
-regiono atliekų tvarkymo centras", UAB "Ecoservice", UAB "Virginijus ir Ko" or VšĮ "Gargždų
-švara". The schedule data belongs to its publishers. Settlement and street names
+regiono atliekų tvarkymo centras", UAB "Ecoservice", UAB "Virginijus ir Ko", VšĮ "Gargždų
+švara", UAB "Tauragės regiono atliekų tvarkymo centras" or UAB "Jurbarko komunalininkas". The
+schedule data belongs to its publishers. Settlement and street names
 come from the Address Register (Adresų registras) of VĮ Registrų centras, published as open
 data at [get.data.gov.lt](https://get.data.gov.lt/datasets/gov/rc/ar/:ns). Dates are converted
 automatically and may contain mistakes; always check the official schedule if in doubt.

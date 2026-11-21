@@ -15,10 +15,11 @@ export const EKONOVUS_SCHEDULES_URL = 'https://www.ekonovus.lt/aptarnavimo-grafi
 /**
  * Regions published as their own files in the format of schedule.json: <url>/schedule.json and,
  * for "use my location", <url>/addresses.json. Mažeikių r., from the files of the regional
- * waste centre (UAB „Telšių regiono atliekų tvarkymo centras“), and Klaipėdos r., from the
- * spreadsheet of VšĮ „Gargždų švara“.
+ * waste centre (UAB „Telšių regiono atliekų tvarkymo centras“), Klaipėdos r., from the
+ * spreadsheet of VšĮ „Gargždų švara“, and Jurbarko r., from the PDFs of the regional waste
+ * centre of Tauragė county (UAB „Tauragės regiono atliekų tvarkymo centras“).
  */
-export const REGION_URLS = [`${SITE_URL}/mazeikiu-r`, `${SITE_URL}/klaipedos-r`];
+export const REGION_URLS = [`${SITE_URL}/mazeikiu-r`, `${SITE_URL}/klaipedos-r`, `${SITE_URL}/jurbarko-r`];
 export const PRIVACY_URL = `${SITE_URL}/privacy/`;
 export const REPOSITORY_URL = 'https://github.com/AurimasNav/atlieku-surinkimo-grafikas';
 /**

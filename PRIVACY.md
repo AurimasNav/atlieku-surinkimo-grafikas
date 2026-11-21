@@ -32,8 +32,9 @@ deleted when you uninstall the app or clear its data.
 
 If you tap "Use my current location", the app asks for permission to read your position
 **once**. It then downloads the public lists of addresses (`addresses.json`,
-`mazeikiu-r/addresses.json`, `klaipedos-r/addresses.json` and `kauno-r/points.json`, the same
-files for every user) and finds the nearest address **on your phone**. Your position is never sent
+`mazeikiu-r/addresses.json`, `klaipedos-r/addresses.json`, `jurbarko-r/addresses.json` and
+`kauno-r/points.json`, the same files for every user) and finds the nearest address **on your
+phone**. Your position is never sent
 anywhere and is not stored; only the place you confirm is saved, as when you search by name.
 You can refuse the permission and search for your place instead.
 
@@ -58,8 +59,9 @@ push notifications, so no device token or identifier is sent anywhere.
 ## Network connections
 
 The app connects to the internet only to download the public collection schedules
-(`schedule.json`, `mazeikiu-r/schedule.json`, `klaipedos-r/schedule.json` and, when you choose a
-place, the list of places of Kaunas district, `kauno-r/schedule.json`) and, if you use GPS to find your address, the public
+(`schedule.json`, `mazeikiu-r/schedule.json`, `klaipedos-r/schedule.json`,
+`jurbarko-r/schedule.json` and, when you choose a place, the list of places of Kaunas district,
+`kauno-r/schedule.json`) and, if you use GPS to find your address, the public
 address lists from GitHub Pages, a hosting service operated by GitHub, Inc. Like any
 website, GitHub's servers receive the technical information included in every internet request,
 such as your IP address and the app's user agent, and may keep it in server logs for security
@@ -142,8 +144,8 @@ duomenis, jie pašalinami.
 
 Paspaudus „Naudoti mano buvimo vietą“, programėlė paprašo leidimo **vieną kartą** nustatyti
 jūsų buvimo vietą. Tada ji atsisiunčia viešus adresų sąrašus (`addresses.json`,
-`mazeikiu-r/addresses.json`, `klaipedos-r/addresses.json` ir `kauno-r/points.json`, visiems
-naudotojams tuos pačius failus) ir artimiausią adresą randa **jūsų telefone**. Jūsų buvimo vieta
+`mazeikiu-r/addresses.json`, `klaipedos-r/addresses.json`, `jurbarko-r/addresses.json` ir
+`kauno-r/points.json`, visiems naudotojams tuos pačius failus) ir artimiausią adresą randa **jūsų telefone**. Jūsų buvimo vieta
 niekur nesiunčiama ir nesaugoma; išsaugoma tik jūsų patvirtinta vietovė, kaip ir ieškant
 pagal pavadinimą. Leidimo galite neduoti ir vietovę surasti paieškoje.
 
@@ -169,8 +171,9 @@ pranešimų, todėl joks įrenginio identifikatorius niekur nesiunčiamas.
 ## Interneto ryšys
 
 Programėlė jungiasi prie interneto tik tam, kad atsisiųstų viešus išvežimo grafikus
-(`schedule.json`, `mazeikiu-r/schedule.json`, `klaipedos-r/schedule.json` ir, kai renkatės
-vietovę, Kauno rajono vietovių sąrašą `kauno-r/schedule.json`) ir, jei adresą ieškote pagal buvimo vietą, viešus adresų sąrašus
+(`schedule.json`, `mazeikiu-r/schedule.json`, `klaipedos-r/schedule.json`,
+`jurbarko-r/schedule.json` ir, kai renkatės vietovę, Kauno rajono vietovių sąrašą
+`kauno-r/schedule.json`) ir, jei adresą ieškote pagal buvimo vietą, viešus adresų sąrašus
 iš „GitHub Pages“ – „GitHub, Inc.“ valdomos talpinimo paslaugos. Kaip ir bet
 kuri svetainė, „GitHub“ serveriai gauna kiekvienoje interneto užklausoje esančią techninę
 informaciją, pvz., jūsų IP adresą, ir gali ją saugoti serverio žurnaluose saugumo tikslais. Mes
