@@ -37,6 +37,11 @@ const kaunoBag: Localized = {
   ru: 'В Каунасском районе собирайте пищевые отходы в бумажный или пластиковый пакет и завязывайте его, прежде чем выбросить.',
   pl: 'W rejonie kowieńskim zbieraj odpady spożywcze do papierowej lub plastikowej torebki i zawiąż ją przed wyrzuceniem.',
 };
+/**
+ * A tip about the food waste bin of Kauno švara's addresses: not shown where an address has none,
+ * as in Kaišiadorių r., where it collects mixed waste only.
+ */
+const kaunoFoodBin = (tip: Localized): Partial<GuideRule> => ({ tip, tipFor: 'food' });
 
 const leftoversTip: Localized = {
   en: 'Without packaging. Pour off liquids such as soup or milk first.',
@@ -115,7 +120,7 @@ export const GUIDE_ITEMS: GuideItem[] = [
       ru: ['Очистки фруктов и овощей', 'очистки', 'кожура', 'фрукты', 'овощи', 'банановая кожура', 'огрызок', 'картофельные очистки'],
       pl: ['Obierki owoców i warzyw', 'obierki', 'skórki', 'owoce', 'warzywa', 'skórka od banana', 'ogryzek', 'obierki z ziemniaków'],
     },
-    regions: { kauno: { tip: kaunoBag } },
+    regions: { kauno: kaunoFoodBin(kaunoBag) },
   },
   {
     id: 'leftovers',
@@ -128,7 +133,7 @@ export const GUIDE_ITEMS: GuideItem[] = [
       pl: ['Resztki jedzenia', 'resztki', 'gotowane jedzenie', 'ryż', 'makaron', 'zepsute jedzenie', 'spleśniałe jedzenie'],
     },
     tip: leftoversTip,
-    regions: { kauno: { tip: join(leftoversTip, kaunoBag) } },
+    regions: { kauno: kaunoFoodBin(join(leftoversTip, kaunoBag)) },
   },
   {
     id: 'meat-fish',
@@ -141,7 +146,7 @@ export const GUIDE_ITEMS: GuideItem[] = [
       pl: ['Mięso i ryby', 'mięso', 'ryba', 'surowe mięso', 'kurczak', 'skóra rybia', 'owoce morza', 'skorupki krewetek'],
     },
     regions: {
-      kauno: { tip: kaunoBag },
+      kauno: kaunoFoodBin(kaunoBag),
       // tratc.lt/atlieku-rusiavimas-2/zaliosios-atliekos: raw meat, fish and eggs are not accepted.
       mazeikiai: {
         to: ['household'],

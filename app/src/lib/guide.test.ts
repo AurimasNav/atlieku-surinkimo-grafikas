@@ -147,6 +147,18 @@ describe('advise', () => {
     expect(advise(item('leftovers'), 'nemencine', all).tip).toBe(item('leftovers').tip);
   });
 
+  it("gives Kauno švara's food waste bag tip only where the address has a food waste bin", () => {
+    const bag = item('peels').regions?.kauno?.tip;
+    expect(advise(item('peels'), 'kauno', kinds('household', 'food', 'packaging', 'glass')).tip).toBe(bag);
+    // Kaišiadorių r.: mixed waste only (and Ekonovus' glass and packaging).
+    const kaisiadorys = kinds('household', 'packaging', 'glass');
+    expect(advise(item('peels'), 'kauno', kaisiadorys)).toMatchObject({ to: ['compost', 'household'], tip: undefined });
+    expect(advise(item('meat-fish'), 'kauno', kaisiadorys).tip).toBeUndefined();
+    expect(advise(item('leftovers'), 'kauno', kaisiadorys).tip).toBe(item('leftovers').tip);
+    // Not a tip about the food waste bin.
+    expect(advise(item('tyres'), 'kauno', kaisiadorys).tip).toBe(item('tyres').regions?.kauno?.tip);
+  });
+
   it("says what to do without the container when the place's containers are unknown", () => {
     expect(advise(item('peels'), undefined, undefined)).toMatchObject({
       to: ['food'],
@@ -269,6 +281,18 @@ describe('availableKinds', () => {
     expect(availableKinds(noGlass, resolvePlace({ ...data, personal }, noGlass, today))).toEqual(
       kinds('household', 'food', 'packaging'),
     );
+  });
+
+  it('has no food waste bin at a Kaišiadorių r. address, so no food waste bag tip', () => {
+    const place: Place = {
+      kauno: { eldership: 'ziezmariu', eldershipName: 'Žiežmarių sen.', town: 'Žiežmarių mstl.', street: 'Vytauto g.', house: '1' },
+      choices: {},
+    };
+    const personal = { key: kaunoKey(place.kauno!), areas: [area('kh', 'household')] };
+    const resolved = resolvePlace({ ...data, personal }, place, today);
+    const available = availableKinds(place, resolved);
+    expect(available).toEqual(kinds('household', 'packaging', 'glass'));
+    expect(advise(item('peels'), regionOf(place, resolved), available)).toMatchObject({ missing: 'food', tip: undefined });
   });
 
   it("knows nothing without a place or before the place's schedules are loaded", () => {
