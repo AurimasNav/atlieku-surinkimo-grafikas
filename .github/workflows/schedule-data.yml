@@ -68,14 +68,15 @@ jobs:
             rm -rf "$out"
             echo "::warning::The Kauno r. build failed and there is no published data to keep."
           fi
-      # Mažeikių r., from the files of the regional waste centre (site/mazeikiu-r): the same
-      # rule, yesterday's files are kept if today's build fails.
-      - name: Build the Mažeikių r. schedule (TRATC)
+      # Mažeikių r., Telšių r., Plungės r. and Rietavo sav., from the files of the regional
+      # waste centre (site/mazeikiu-r, a part each): a municipality whose build fails keeps its
+      # part of yesterday's file; if none can be built, yesterday's files are kept.
+      - name: Build the Mažeikių r., Telšių r., Plungės r. and Rietavo sav. schedules (TRATC)
         id: mazeikiai
         if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.tratc --out ../site/mazeikiu-r
-      - name: Keep the published Mažeikių r. data if today's build failed
+      - name: Keep the published TRATC data if today's build failed
         if: steps.mazeikiai.outcome == 'failure'
         run: |
           base=https://aurimasnav.github.io/atlieku-surinkimo-grafikas/mazeikiu-r
@@ -84,14 +85,14 @@ jobs:
           get() { curl -sS --retry 3 --max-time 120 -o "$out/$1" -w '%{http_code}' "$base/$1" || true; }
           code=$(get schedule.json)
           if [ "$code" = 200 ] && [ "$(get addresses.json)" = 200 ]; then
-            echo "::warning::The Mažeikių r. build failed; yesterday's published data is kept."
+            echo "::warning::The TRATC build failed; yesterday's published data is kept."
           elif [ "$code" = 404 ]; then
             rm -rf "$out"
-            echo "::warning::The Mažeikių r. build failed and there is no published data to keep."
+            echo "::warning::The TRATC build failed and there is no published data to keep."
           else
-            # Publishing now would take the Mažeikių r. files off the site: fail, and the site
+            # Publishing now would take the TRATC files off the site: fail, and the site
             # keeps everything it has.
-            echo "::error::The Mažeikių r. build failed and the published data couldn't be downloaded (HTTP $code)."
+            echo "::error::The TRATC build failed and the published data couldn't be downloaded (HTTP $code)."
             exit 1
           fi
       # Klaipėdos r., from the spreadsheet of Gargždų švara (site/klaipedos-r): the same rule.

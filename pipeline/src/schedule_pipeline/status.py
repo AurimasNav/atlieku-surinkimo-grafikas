@@ -33,6 +33,7 @@ def collect(site: Path) -> dict:
     sources: dict[str, dict] = {}
     # Vilniaus r., then Mažeikių r. (schedule_pipeline.tratc), Klaipėdos r.
     # (schedule_pipeline.gargzdu) and Jurbarko r. (schedule_pipeline.taurage): the same format.
+    # mazeikiu-r also has Telšių r., Plungės r. and Rietavo sav., a provider each.
     for path in (
         site / "schedule.json",
         site / "mazeikiu-r" / "schedule.json",
@@ -119,8 +120,8 @@ def metrics(status: dict) -> str:
             ],
         ),
         "siuksliaveze_data_places": (
-            "Settlements (nemencine, nemezio, mazeikiai, klaipedos, jurbarkas) or addresses "
-            "(kauno, kaisiadorys) the data covers.",
+            "Settlements (nemencine, nemezio, mazeikiai, telsiai, plunge, rietavas, klaipedos, "
+            "jurbarkas) or addresses (kauno, kaisiadorys) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (
