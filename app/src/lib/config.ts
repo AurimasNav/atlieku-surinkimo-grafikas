@@ -1,8 +1,14 @@
 // Forks should point these at their own GitHub Pages site (see TRADEMARKS.md).
-const SITE_URL =
+export const SITE_URL =
   process.env.EXPO_PUBLIC_SITE_URL ?? 'https://aurimasnav.github.io/atlieku-surinkimo-grafikas';
 
 export const SCHEDULE_URL = `${SITE_URL}/schedule.json`;
+/**
+ * The region folders the site publishes (pipeline/src/schedule_pipeline/regions.py). The app
+ * downloads those in the format of schedule.json next to REGION_URLS, so a new folder needs no
+ * app update (lib/regions.ts).
+ */
+export const REGIONS_URL = `${SITE_URL}/regions.json`;
 /** Only downloaded when the user asks to find their address by GPS. */
 export const ADDRESSES_URL = `${SITE_URL}/addresses.json`;
 /**
@@ -34,6 +40,9 @@ export const EKONOVUS_SCHEDULES_URL = 'https://www.ekonovus.lt/aptarnavimo-grafi
  * - alytaus-ratc: Alytaus r., Prienų r., Lazdijų r., Varėnos r., Druskininkų sav. and Birštono
  *   sav., from the PDFs of the regional waste centre of Alytus county (UAB „Alytaus regiono atliekų
  *   tvarkymo centras“).
+ *
+ * Built in, so the app finds them without regions.json (offline, or before it was published);
+ * folders added later come from regions.json only.
  */
 export const REGION_URLS = ['mazeikiu-r', 'klaipedos-r', 'jurbarko-r', 'sratc', 'alytaus-ratc'].map(
   (folder) => `${SITE_URL}/${folder}`,
@@ -70,3 +79,5 @@ export const COMPANIES = [
 
 /** Highest schedule.json schemaVersion this app version understands. */
 export const SUPPORTED_SCHEMA_VERSION = 1;
+/** Highest regions.json schemaVersion this app version understands; a newer index is ignored. */
+export const SUPPORTED_REGIONS_SCHEMA_VERSION = 1;

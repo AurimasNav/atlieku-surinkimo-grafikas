@@ -100,11 +100,16 @@ type Download = { data: ScheduleData; etag?: string };
 /** Vilniaus r. Returns null if the file hasn't changed since `etag`. */
 export const fetchSchedule = (etag?: string): Promise<Download | null> => download(SCHEDULE_URL, etag);
 
-/** Another region's file (config.REGION_URLS), in the same format. */
+/** Another region's file (config.REGION_URLS, or listed in regions.json), in the same format. */
 export const fetchRegion = (url: string, etag?: string): Promise<Download | null> =>
   download(`${url}/schedule.json`, etag);
 
-async function download(url: string, etag?: string): Promise<Download | null> {
+/**
+ * Downloads a JSON file, or returns null if it hasn't changed since `etag` (the server answers
+ * 304, and nothing is read or parsed). GitHub Pages gives every file an ETag; it changes with
+ * every deploy of the site.
+ */
+export async function downloadIfChanged(url: string, etag?: string): Promise<{ json: unknown; etag?: string } | null> {
   const response = await fetch(url, {
     headers: etag ? { 'If-None-Match': etag } : undefined,
   });
@@ -112,13 +117,19 @@ async function download(url: string, etag?: string): Promise<Download | null> {
     return null;
   }
   if (!response.ok) {
-    throw new Error(`Schedule download failed: HTTP ${response.status}`);
+    throw new Error(`Download failed: HTTP ${response.status}`);
   }
-  const data = (await response.json()) as ScheduleData;
+  return { json: await response.json(), etag: response.headers.get('etag') ?? undefined };
+}
+
+async function download(url: string, etag?: string): Promise<Download | null> {
+  const fresh = await downloadIfChanged(url, etag);
+  if (!fresh) return null;
+  const data = fresh.json as ScheduleData;
   if (data.schemaVersion > SUPPORTED_SCHEMA_VERSION) {
     throw new UnsupportedScheduleError();
   }
-  return { data, etag: response.headers.get('etag') ?? undefined };
+  return { data, etag: fresh.etag };
 }
 
 /** The rows, places and companies of a region: everything of the companies `ids`. */

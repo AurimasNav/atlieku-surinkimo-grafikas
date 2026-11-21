@@ -32,7 +32,13 @@ linked in 2025 (other column titles, spaces in the lists of days, a second sheet
 `taurage/` has the schedule page of UAB "Tauragės regiono atliekų tvarkymo centras" at
 <https://www.uabtratc.lt/atlieku-surinkimo-grafikai/> and the two 2026 PDFs of Jurbarko r. it
 links (mixed and green waste, packaging and glass), downloaded on 2026-11-21, with the Address
-Register extract for Jurbarko r. of the same day.
+Register extract for Jurbarko r. of the same day. Also the 2026 PDFs of the other three
+municipalities on that page, downloaded on 2026-11-21: Tauragės r. (the villages' mixed waste
+`Taurages-rajonas_MKA_2026_suderintas-naujas-1.pdf`, the town's mixed waste and food waste
+`Taurages-miestas_MKA_2026_suderintas.pdf` and `Taurages-miestas_ZA_2026_suderintas.pdf`,
+packaging and glass of both `Taurages-miestas-ir-rajonas_pakuotes_2026_suderintas-03-10.pdf`),
+Šilalės r. (mixed and green waste, packaging and glass) and Pagėgių sav. (every kind in one
+file); and the Address Register extracts for the three of that day.
 
 `sratc/` has the pages of Šiaulių r. and Akmenės r. of UAB "Šiaulių regiono atliekų tvarkymo
 centras" (<https://www.sratc.lt/grafikai-siauliu-rajonas/>, `.../grafikai-akmenes-rajonas/`) and

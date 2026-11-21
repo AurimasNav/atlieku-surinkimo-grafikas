@@ -88,7 +88,7 @@ export default function ChooseLocation() {
     setGps(null);
     setLocating(true);
     try {
-      const result = await locateHome();
+      const result = await locateHome(useSchedule.getState().index);
       // The address is in a region whose schedules aren't on the phone yet (their download
       // failed earlier): fetch them now, or say that it didn't work.
       const known = (id: string) => useSchedule.getState().data?.locations?.some((loc) => loc.id === id);
