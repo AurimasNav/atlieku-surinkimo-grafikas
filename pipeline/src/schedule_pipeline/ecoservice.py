@@ -12,7 +12,9 @@
 
 The files are found by the texts of their links (or the heading before a link that says
 nothing), then by the year in the file's name (tratc.select_files). A new year's files are
-posted in December or January.
+posted in December or January. silute.lt refuses GitHub's runners (HTTP 403, as the Address
+Register's sites do): when it doesn't answer, the page and file are read from the copy in
+pipeline/data that `python -m schedule_pipeline.snapshot` takes, with a warning of its age.
 
 The files are tables Excel made, in the style of the Ecoservice files of Marijampolė county
 (maatc.py), read with pdfplumber's table finder from the upright letters only, under a row of
@@ -550,13 +552,79 @@ def find_files(html: str, page_url: str) -> list[SourceFile]:
     return files
 
 
+# Copies of the page and files of a site that refuses GitHub's runners, taken from a machine
+# it answers (snapshot.py), as the Address Register's: silute.lt answers them HTTP 403.
+COPIES = {"silute": snapshot.SILUTE_COPY_DIR}
+COPY_INDEX = "copy.json"
+
+
+def _live(url: str) -> bytes:
+    return http.get(url, timeout=60)
+
+
+def _copied(folder: Path, url: str) -> bytes:
+    """A page or file from its copy in `folder` (FileNotFoundError, an OSError, if none)."""
+    name = PurePosixPath(unquote(urlsplit(url).path)).name
+    page = json.loads((folder / COPY_INDEX).read_text(encoding="utf-8"))["page"]
+    return (folder / ("page.html" if url == page else name)).read_bytes()
+
+
+def _download(
+    municipality: maatc.Municipality, today: date, get
+) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
+    page = municipality.provider.url
+    html = get(page).decode("utf-8", errors="replace")
+    files, warnings = tratc.select_files(find_files(html, page), today)
+    return [(f, get(f.url)) for f in files], warnings
+
+
 def download(
     municipality: maatc.Municipality, today: date, keep_days: int
 ) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
+    """The municipality's page and the files it links, or where the site doesn't answer and
+    there is a copy (COPIES), the copy's, with a warning that says how old it is."""
+    try:
+        return _download(municipality, today, _live)
+    except OSError as error:
+        folder = COPIES.get(municipality.provider.id)
+        if folder is None or not (folder / COPY_INDEX).exists():
+            raise
+        files, warnings = _download(municipality, today, partial(_copied, folder))
+        taken = json.loads((folder / COPY_INDEX).read_text(encoding="utf-8"))["takenAt"]
+        age = snapshot.age_days(taken, today)
+        note = (
+            f"{municipality.provider.url}: unavailable ({error}); used the copy from {taken} "
+            f"({age} days old)"
+        )
+        if age > snapshot.MAX_AGE_DAYS:
+            note += (
+                " - please refresh it: cd pipeline && uv run python -m schedule_pipeline.snapshot"
+            )
+        print(note, file=sys.stderr)
+        return files, [note, *warnings]
+
+
+def save_copy(municipality: maatc.Municipality, folder: Path, today: date | None = None) -> None:
+    """Saves the municipality's page and the files it links in `folder`, for download when
+    the site doesn't answer: python -m schedule_pipeline.snapshot."""
     page = municipality.provider.url
-    html = http.get(page, timeout=60).decode("utf-8", errors="replace")
-    files, warnings = tratc.select_files(find_files(html, page), today)
-    return [(f, http.get(f.url, timeout=60)) for f in files], warnings
+    html = _live(page)
+    files, _ = tratc.select_files(
+        find_files(html.decode("utf-8", "replace"), page), today or date.today()
+    )
+    contents = [(f.file_name, _live(f.url)) for f in files]
+    folder.mkdir(parents=True, exist_ok=True)
+    for old in folder.iterdir():
+        old.unlink()
+    (folder / "page.html").write_bytes(html)
+    for name, content in contents:
+        (folder / name).write_bytes(content)
+    index = {
+        "takenAt": (today or date.today()).isoformat(),
+        "page": page,
+        "files": [n for n, _ in contents],
+    }
+    (folder / COPY_INDEX).write_bytes((json.dumps(index, ensure_ascii=False) + "\n").encode())
 
 
 # --- the tables ------------------------------------------------------------------

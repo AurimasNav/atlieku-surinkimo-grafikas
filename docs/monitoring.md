@@ -117,7 +117,11 @@ The schedules UAB „Ecoservice“ publishes for Šilutės r. (on the municipali
 Trakų r. and Šalčininkų r. (on ecoservice.lt), are built by one module, a step per folder:
 `silutes-r/` and `ecoservice/`, a part per municipality. A municipality whose files can't be
 read keeps its part of yesterday's file; if none of a folder's can be built, yesterday's folder
-is kept. Installed apps find both through `regions.json`.
+is kept. Installed apps find both through `regions.json`. silute.lt refuses GitHub's runners
+(HTTP 403), so `silute` is built from the copy of its page and file in `pipeline/data` that the
+snapshot refresh takes (`uv run python -m schedule_pipeline.snapshot`), with a build warning
+that says how old it is: next year's file reaches the site only with a refresh, and
+`ScheduleDataRunsOut` fires for `silute` in late December until one is done.
 
 The job therefore publishes the state of the data with every run:
 

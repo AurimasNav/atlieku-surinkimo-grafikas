@@ -135,6 +135,37 @@ def test_the_kind_of_a_file_by_its_text(text, kind):
     assert ecoservice.file_kind(text) == kind
 
 
+def test_a_site_that_refuses_the_runners_is_read_from_its_copy(monkeypatch, tmp_path):
+    monkeypatch.setattr(ecoservice.http, "get", serve)
+    ecoservice.save_copy(ecoservice.SILUTE, tmp_path, TODAY)
+    assert sorted(p.name for p in tmp_path.iterdir()) == [
+        "copy.json",
+        "isvezimai_valdos_2026silute.pdf",
+        "page.html",
+    ]
+
+    def refused(url, timeout=0):
+        raise OSError("HTTP Error 403: Forbidden")
+
+    monkeypatch.setattr(ecoservice.http, "get", refused)
+    monkeypatch.setitem(ecoservice.COPIES, "silute", tmp_path)
+    files, warnings = ecoservice.download(ecoservice.SILUTE, date(2026, 12, 1), 31)
+    assert [(f.file_name, content) for f, content in files] == [
+        ("isvezimai_valdos_2026silute.pdf", fixture("ecoservice/silute-household.pdf"))
+    ]
+    assert warnings == [
+        f"{ecoservice.SILUTE_PAGE}: unavailable (HTTP Error 403: Forbidden); used the copy "
+        "from 2026-11-21 (10 days old)"
+    ]
+    # A site without a copy fails, and the municipality keeps yesterday's part.
+    with pytest.raises(OSError, match="403"):
+        ecoservice.download(ecoservice.TRAKAI, TODAY, 31)
+    # The committed copy is one the module can read.
+    monkeypatch.setitem(ecoservice.COPIES, "silute", ecoservice.snapshot.SILUTE_COPY_DIR)
+    files, _ = ecoservice.download(ecoservice.SILUTE, TODAY, 31)
+    assert [f.kind for f, _ in files] == ["household"]
+
+
 def test_other_files_are_not_read():
     html = (
         '<p>2026 m. Trakų r. mišrių komunalinių atliekų surinkimo grafikas</p><script>"a"</script>'

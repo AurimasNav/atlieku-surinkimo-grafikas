@@ -24,7 +24,8 @@ pratc.lt (xlsx)                           Pasvalio r., Rokiškio r., Biržų r.,
                                           site/panevezio-ratc/
 maatc.lt (pdf)                            Marijampolės sav., Vilkaviškio r., Kalvarijos sav.,
                                           Kazlų Rūdos sav., Šakių r.: site/maatc/
-silute.lt (pdf)                           Šilutės r.: site/silutes-r/
+silute.lt (pdf)                           Šilutės r.: site/silutes-r/ (from a copy in
+                                          pipeline/data when the site refuses the runners)
 ecoservice.lt (pdf)                       Trakų r., Šalčininkų r.: site/ecoservice/
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
