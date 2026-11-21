@@ -1,6 +1,6 @@
 import { SCHEDULE_URL, SUPPORTED_SCHEMA_VERSION } from './config';
 
-/** Food and green waste are collected separately in Kauno r. and in Mažeikiai (as food). */
+/** Food and green waste are collected separately in Kauno r., in Mažeikiai (food) and in Klaipėdos r. (green). */
 export const WASTE_KINDS = ['household', 'packaging', 'glass', 'food', 'green'] as const;
 export type WasteKind = (typeof WASTE_KINDS)[number];
 
