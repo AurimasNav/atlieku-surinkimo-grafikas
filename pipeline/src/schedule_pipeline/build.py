@@ -273,6 +273,29 @@ def published_part(published: dict, provider: Provider) -> dict | None:
     }
 
 
+def published_rows(published: dict, provider: Provider, keep: Callable[[dict], bool]) -> list[Area]:
+    """The rows of a provider's part of the data published before that `keep` selects, as they
+    were: for a file of a source that can't be read today, so its places keep yesterday's rows
+    and the other files are still updated (raseiniai, jonava)."""
+    part = published_part(published, provider)
+    rows: list[Area] = []
+    for row in part["areas"] if part else []:
+        area = Area(
+            kind=row["kind"],
+            name=row["name"],
+            district=row.get("district"),
+            group=row.get("group"),
+            weekday=row.get("weekday"),
+            note=row.get("note"),
+            dates={date.fromisoformat(d) for d in row["dates"]},
+            provider=row.get("provider"),
+        )
+        # The same id, or it isn't the same row.
+        if keep(row) and area.id == row["id"]:
+            rows.append(area)
+    return rows
+
+
 def merge_parts(parts: list[tuple[Provider, dict]], source: str = PAGE_URL) -> dict:
     """schedule.json from the providers' parts. `source`, `files`, `coverage` and `matching`
     keep their meaning for the first provider's data; `providers` has each part's own."""

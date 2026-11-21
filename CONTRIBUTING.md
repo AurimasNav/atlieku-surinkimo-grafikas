@@ -24,6 +24,8 @@ pratc.lt (xlsx)                           Pasvalio r., Rokiškio r., Biržų r.,
                                           site/panevezio-ratc/
 maatc.lt (pdf)                            Marijampolės sav., Vilkaviškio r., Kalvarijos sav.,
                                           Kazlų Rūdos sav., Šakių r.: site/maatc/
+rkp.lt (pdf)                              Raseinių r.: site/raseiniu-r/
+jonavospaslaugos.lt (pdf)                 Jonavos r.: site/jonavos-r/
 kretkom.lt (pdf)                          Kretingos r.: site/kretingos-r/
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
