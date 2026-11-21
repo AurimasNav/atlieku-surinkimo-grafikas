@@ -108,6 +108,22 @@ BIRZU_R_ADDRESSES_FILE = DATA_DIR / "address-points-birzu-r.json"
 PANEVEZIO_R_MUNICIPALITY = ("Panevėžio rajono", 66)
 PANEVEZIO_R_REGISTRY_FILE = DATA_DIR / "registry-panevezio-r.json"
 PANEVEZIO_R_ADDRESSES_FILE = DATA_DIR / "address-points-panevezio-r.json"
+# The five municipalities of Marijampolė county (schedule_pipeline.maatc, a part each).
+MARIJAMPOLE_MUNICIPALITY = ("Marijampolės", 18)
+MARIJAMPOLE_REGISTRY_FILE = DATA_DIR / "registry-marijampoles-sav.json"
+MARIJAMPOLE_ADDRESSES_FILE = DATA_DIR / "address-points-marijampoles-sav.json"
+VILKAVISKIS_MUNICIPALITY = ("Vilkaviškio rajono", 39)
+VILKAVISKIS_REGISTRY_FILE = DATA_DIR / "registry-vilkaviskio-r.json"
+VILKAVISKIS_ADDRESSES_FILE = DATA_DIR / "address-points-vilkaviskio-r.json"
+KALVARIJA_MUNICIPALITY = ("Kalvarijos", 48)
+KALVARIJA_REGISTRY_FILE = DATA_DIR / "registry-kalvarijos-sav.json"
+KALVARIJA_ADDRESSES_FILE = DATA_DIR / "address-points-kalvarijos-sav.json"
+KAZLU_RUDA_MUNICIPALITY = ("Kazlų Rūdos", 58)
+KAZLU_RUDA_REGISTRY_FILE = DATA_DIR / "registry-kazlu-rudos-sav.json"
+KAZLU_RUDA_ADDRESSES_FILE = DATA_DIR / "address-points-kazlu-rudos-sav.json"
+SAKIAI_MUNICIPALITY = ("Šakių rajono", 84)
+SAKIAI_REGISTRY_FILE = DATA_DIR / "registry-sakiu-r.json"
+SAKIAI_ADDRESSES_FILE = DATA_DIR / "address-points-sakiu-r.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -221,6 +237,31 @@ def main() -> int:
             PANEVEZIO_R_REGISTRY_FILE,
             PANEVEZIO_R_ADDRESSES_FILE,
         ),
+        (
+            "Marijampolės sav.",
+            MARIJAMPOLE_MUNICIPALITY,
+            MARIJAMPOLE_REGISTRY_FILE,
+            MARIJAMPOLE_ADDRESSES_FILE,
+        ),
+        (
+            "Vilkaviškio r.",
+            VILKAVISKIS_MUNICIPALITY,
+            VILKAVISKIS_REGISTRY_FILE,
+            VILKAVISKIS_ADDRESSES_FILE,
+        ),
+        (
+            "Kalvarijos sav.",
+            KALVARIJA_MUNICIPALITY,
+            KALVARIJA_REGISTRY_FILE,
+            KALVARIJA_ADDRESSES_FILE,
+        ),
+        (
+            "Kazlų Rūdos sav.",
+            KAZLU_RUDA_MUNICIPALITY,
+            KAZLU_RUDA_REGISTRY_FILE,
+            KAZLU_RUDA_ADDRESSES_FILE,
+        ),
+        ("Šakių r.", SAKIAI_MUNICIPALITY, SAKIAI_REGISTRY_FILE, SAKIAI_ADDRESSES_FILE),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)

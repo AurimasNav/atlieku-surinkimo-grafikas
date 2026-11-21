@@ -22,6 +22,8 @@ aratc.lt (pdf)                            Alytaus r., Prienų r., Lazdijų r., V
                                           Druskininkai, Birštonas: site/alytaus-ratc/
 pratc.lt (xlsx)                           Pasvalio r., Rokiškio r., Biržų r., Panevėžio r.:
                                           site/panevezio-ratc/
+maatc.lt (pdf)                            Marijampolės sav., Vilkaviškio r., Kalvarijos sav.,
+                                          Kazlų Rūdos sav., Šakių r.: site/maatc/
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
 pipeline/   Python: scrape → parse → validate → schedule.json

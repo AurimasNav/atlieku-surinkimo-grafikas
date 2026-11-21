@@ -1,6 +1,6 @@
 name: Schedule data
 
-# Scrapes nemenkom.lt, nkom.lt, Kauno švara, tratc.lt, gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt and pratc.lt daily and
+# Scrapes nemenkom.lt, nkom.lt, Kauno švara, tratc.lt, gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt and maatc.lt daily and
 # publishes the data + the privacy policy to GitHub Pages. If parsing or validation fails, nothing is deployed and the last good
 # data stays live; a provider whose build fails keeps its part of yesterday's data instead.
 on:
@@ -216,6 +216,32 @@ jobs:
             echo "::warning::The Panevėžio RATC build failed and there is no published data to keep."
           else
             echo "::error::The Panevėžio RATC build failed and the published data couldn't be downloaded (HTTP $code)."
+            exit 1
+          fi
+      # Marijampolės sav., Vilkaviškio r., Kalvarijos sav., Kazlų Rūdos sav. and Šakių r., from the
+      # PDFs on the pages of the regional waste centre (site/maatc, a part each): a municipality
+      # whose build fails keeps its part of yesterday's file; if none can be built, yesterday's
+      # files are kept.
+      - name: Build the Marijampolės AATC schedules (five municipalities)
+        id: marijampole
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: uv run python -m schedule_pipeline.maatc --out ../site/maatc
+      - name: Keep the published Marijampolės AATC data if today's build failed
+        if: steps.marijampole.outcome == 'failure'
+        run: |
+          base=https://aurimasnav.github.io/atlieku-surinkimo-grafikas/maatc
+          out=../site/maatc
+          rm -rf "$out" && mkdir -p "$out"
+          get() { curl -sS --retry 3 --max-time 120 -o "$out/$1" -w '%{http_code}' "$base/$1" || true; }
+          code=$(get schedule.json)
+          if [ "$code" = 200 ] && [ "$(get addresses.json)" = 200 ]; then
+            echo "::warning::The Marijampolės AATC build failed; yesterday's published data is kept."
+          elif [ "$code" = 404 ]; then
+            rm -rf "$out"
+            echo "::warning::The Marijampolės AATC build failed and there is no published data to keep."
+          else
+            echo "::error::The Marijampolės AATC build failed and the published data couldn't be downloaded (HTTP $code)."
             exit 1
           fi
       # status.json and metrics.txt for monitoring (docs/monitoring.md).
