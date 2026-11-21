@@ -31,7 +31,7 @@ import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 
-from .model import Area, Kind, Provider
+from .model import Area, Kind, Provider, clean_text
 from .registry import Registry, Settlement, Street, fold
 
 KINDS: list[Kind] = ["household", "packaging", "glass"]
@@ -55,6 +55,9 @@ class Clause:
     # Only some houses of these streets ("Durpių g. 7, 10", a shared container site): one more
     # choice for the street, next to the row that serves the rest of it.
     extra: bool = False
+    # Streets left out of a row of the whole settlement ("Dituvos k. išskyrus Žiemos g."): they
+    # get the rows that name them, or none.
+    excluded: frozenset[str] = frozenset()
 
 
 @dataclass
@@ -135,6 +138,14 @@ def _one_off(a: str, b: str) -> bool:
         return False
     n = len(_common_prefix(a, b))
     return a[n + 1 :] == b[n + 1 :] or a[n:] == b[n + 1 :] or a[n + 1 :] == b[n:]
+
+
+def _typo(a: str, b: str) -> bool:
+    """One letter off, or two neighbouring letters swapped ("Klipčšių" for "Klipščių")."""
+    if a == b or _one_off(a, b):
+        return a != b
+    n = len(_common_prefix(a, b))
+    return len(a) == len(b) >= 7 and a[n : n + 2] == b[n : n + 2][::-1] and a[n + 2 :] == b[n + 2 :]
 
 
 def _common_prefix(a: str, b: str) -> str:
@@ -690,6 +701,207 @@ class RouteList:
         )
 
 
+# --- Gargždų švara: a settlement per row ------------------------------------------------
+
+# "Aukštkiemių k.", "Klemiškės II k.", "Saulažolių k.- (...)": the genitive and the type.
+_ROW_HEAD = re.compile(r"^(?P<name>.+?)\s+(?P<type>k|vs|mstl|m)\s*\.(?=[\s(\-–]|$)", re.U)
+# Rows of businesses ("įmonės", "Gobergiškės įm."), a military area, a filling station.
+_NOT_HOMES_ROW = re.compile(r"(?i:\bįmon\w*|\bįm\.|\bpoligon\w*|\bdegalin\w*)")
+_SHARED_ROW = re.compile(r"(?i:\bbendr\w*\s+naudojim\w*)")
+_ELDERSHIP_ONLY = re.compile(rf"^\(?\s*({_WORD})\s+sen\b\.?\s*\)?$", re.U)
+# "Dituvos g. (nuo Nidos g. link Priekulės m.)": the street is listed in full in every row that
+# has a part of it, and the user picks the row; the streets named for the range aren't in it.
+_RANGE_BRACKET = re.compile(r"\([^()]*\b(?:nuo|iki)\b[^()]*\)", re.I)
+# "J. Basanavičiaus g. ( Išskyrus Basanavičiaus g. 68, ...)": a few houses left out; the
+# street stays in the row.
+_HOUSES_LEFT_OUT = re.compile(r"\(\s*i[sš]+kyrus\b[^()]*\d[^()]*\)", re.I)
+# "Gedimino g. 17", "Smilgų g. poriniai namai": some houses of the street.
+_SOME_HOUSES = re.compile(r"\b(?:g|pl|al|skg|sk|aklg|tak|kel)\s*\.?\s*\d|porin", re.I)
+# Street types as the schedule writes them (folded) and as the register abbreviates them.
+_STREET_TYPES = {
+    "g": "g",
+    "gatve": "g",
+    "skg": "skg",
+    "sk": "skg",
+    "skr": "skg",
+    "tak": "tak",
+    "takas": "tak",
+    "al": "al",
+    "aleja": "al",
+    "aklg": "aklg",
+    "akl": "aklg",
+    "pl": "pl",
+    "a": "a",
+    "kel": "kel",
+    "kelias": "kel",
+}
+_STREET_TYPE = re.compile(rf" ({'|'.join(_STREET_TYPES)})(?: \d+ ?[a-z]?)?(?= )")
+
+
+def _street_type(street: Street) -> str:
+    abbr = fold(street.abbr)
+    return _STREET_TYPES.get(abbr, abbr)
+
+
+class SettlementRows:
+    """Reads one row of a schedule whose rows are one settlement each, in the genitive with its
+    type, then which of its streets the row is for:
+
+        Ablingos k.
+        Aukštkiemių k. - tik Airių g., Architektų a., ...       only these streets
+        Aukštkiemių k. (išskyrus Aukštučių g., Gavaitės g.)    the rest of the settlement
+        Girininkų k. - Judrėnų sen.                            of two villages of that name
+        Kiškėnų k. - (tik SB "Tolupis")                        a garden community
+        Dovilų mstl. - tik bendro naudojimo                    shared containers
+        Kalotės k. - naujoji Kalotė                            a part named in words
+
+    A row for the rest of a settlement leaves its excluded streets to the rows that name them.
+    A part named in words is one more candidate row for the settlement: the user picks it by
+    its name. The lists of streets leave out new streets, so a street no row names is offered
+    the settlement's rows of that kind to choose from. Rows of businesses aren't homes and are
+    skipped.
+    """
+
+    def __init__(self, index: Index, provider: Provider, variants: dict[int, dict[str, str]]):
+        self.index = index
+        self.provider = provider
+        self.variants = variants
+        self.places = [s for s in index.registry.settlements if s.district in provider.elderships]
+        self.unknown: list[str] = []
+
+    def settlements(self, name: str, abbr: str | None) -> list[Settlement]:
+        key = fold(name)
+        hits = [s for s in self.places if key in (fold(s.genitive), fold(s.name))]
+        if not hits:
+            # A typo ("Gargdždų m.", "Klipčšių k."), if only one name is that close.
+            near = [s for s in self.places if _typo(key, fold(s.genitive))]
+            if len({s.genitive for s in near}) == 1:
+                hits = near
+        typed = [s for s in hits if abbr and s.abbr == f"{abbr}."]
+        return typed or hits
+
+    def street(self, part: str, settlement: Settlement) -> set[str]:
+        """The streets of `settlement` one part of a list names ("tik Airių g.", "Gedimino sk.
+        34"). Only parts with a street type: "naujoji Kalotė" isn't "Naujoji g."."""
+        folded = f" {fold(part)} "
+        types = {_STREET_TYPES[m.group(1)] for m in _STREET_TYPE.finditer(folded)}
+        if not types:
+            return set()
+        found = streets_in(part, settlement, loose=True)
+
+        def written_with_its_type(street: Street) -> bool:
+            # "Gedimino g." isn't "Gedimino skg.", which streets_in can't tell apart.
+            kind = _street_type(street)
+            last = fold(street.name).split()[-1]
+            return any(
+                f" {last} {spelling} " in folded
+                for spelling, same in _STREET_TYPES.items()
+                if same == kind
+            )
+
+        typed = {
+            street_key(t)
+            for t in settlement.streets
+            if street_key(t) in found and written_with_its_type(t)
+        }
+        if typed or found:
+            return typed or found
+        # A typo in the name ("Moctaičių g." for "Mostaičių g."), if only one street of that
+        # type is that close.
+        words = fold(re.sub(r"\d.*$", "", part)).split()
+        close = {
+            street_key(t)
+            for t in settlement.streets
+            if _street_type(t) in types
+            and (n := len(fold(t.name).split())) < len(words)
+            and _typo(" ".join(words[-n - 1 : -1]), fold(t.name))
+        }
+        return close if len(close) == 1 else set()
+
+    def streets(self, text: str, settlement: Settlement, where: str) -> tuple[set[str], list]:
+        """The streets a list names, and its gardens (variant key, label). Parts that look like
+        a street but name none of the settlement's are reported."""
+        keys: set[str] = set()
+        gardens: list[tuple[str, str]] = []
+        for part in re.split(r"[,;()]", text):
+            part = part.strip(" .-–:")
+            if not part:
+                continue
+            if garden := garden_label(part):
+                gardens.append(garden)
+                continue
+            found = self.street(part, settlement)
+            keys |= found
+            if not found and _STREET_TYPE.search(f" {fold(part)} "):
+                self.unknown.append(f"{where}: {part[:60]}")
+        return keys, gardens
+
+    def row_clauses(self, area: Area, settlement: Settlement, spec: str, shared: bool) -> list:
+        """What one row says about `settlement`, from the text after its name."""
+        where = f"{settlement.genitive} {settlement.abbr}"
+        if fold(spec).startswith("nuo "):
+            # "nuo Klaipėdos pusės iki Pervalkos g.": a part named in words.
+            return [Clause(area.id, None, extra=shared)]
+        text = _HOUSES_LEFT_OUT.sub(" ", _RANGE_BRACKET.sub(" ", spec))
+        before, after = text, None
+        if match := _EXCEPT.search(text):
+            before = text[: match.start()]
+            # Streets left out only in part ("Smilgų g. poriniai namai") stay in the row.
+            after = ",".join(
+                p for p in re.split(r"[,;()]", text[match.end() :]) if not _SOME_HOUSES.search(p)
+            )
+        named, gardens = self.streets(before, settlement, where)
+        excluded, gardens_out = self.streets(after, settlement, where) if after else (set(), [])
+        # Garden communities are choices next to the streets: 'Kiškėnų k. - (tik SB "Tolupis")',
+        # or the gardens a list of streets names ('..., Žvejų g., SB "Minija"').
+        for key, label in gardens + gardens_out:
+            self.variants[settlement.code].setdefault(key, label)
+        mine = {key for key, _ in gardens}
+        if named or (mine and after is None):
+            # "Gargždų m. - (..., Žiburių g., išskyrus Rasos g., ...)"
+            return [Clause(area.id, (named - excluded) | mine, extra=shared)]
+        if after is not None:
+            # "Dituvos k. (išskyrus Žiemos g., ...)", 'Kiškėnų k. - (išskyrus SB "Tolupis")'.
+            excluded |= {key for key, _ in gardens_out}
+            rest = Clause(area.id, None, extra=shared, excluded=frozenset(excluded))
+            return [rest] + ([Clause(area.id, mine, extra=shared)] if mine else [])
+        if _STREET_TYPE.search(f" {fold(text)} "):
+            return [Clause(area.id, set(), extra=shared)]  # streets we don't recognise
+        # "naujoji Kalotė", "tik bendro naudojimo", or nothing: the whole settlement.
+        return [Clause(area.id, None, extra=shared)]
+
+    def clauses(self, area: Area) -> tuple[list[tuple[Settlement, Clause]], bool]:
+        """Returns the clauses and whether the row is for something other than homes."""
+        self.unknown = []
+        text = clean_text(area.name)
+        if _NOT_HOMES_ROW.search(text):
+            return [], True
+        shared = bool(_SHARED_ROW.search(text))
+        head = _ROW_HEAD.match(text)
+        if not head:
+            # 'SB "Vaiteliai" (Bendro naudojimo konteineriai)': the garden of the village of its
+            # name.
+            garden = garden_label(text) if fold(text).startswith("sb ") else None
+            hits = self.settlements(garden[1][4:-1], None) if garden else []
+            if garden and len(hits) == 1:
+                self.variants[hits[0].code].setdefault(*garden)
+                return [(hits[0], Clause(area.id, {garden[0]}, extra=shared))], False
+            self.unknown.append(text[:80])
+            return [], False
+        hits = self.settlements(head.group("name"), head.group("type"))
+        if not hits:
+            self.unknown.append(head.group(0))
+            return [], False
+        spec = text[head.end() :].strip(" -–:")
+        if match := _ELDERSHIP_ONLY.match(spec):
+            district = self.index.district(match.group(1))
+            hits = [s for s in hits if s.district == district]
+            if not hits:
+                self.unknown.append(text[:80])
+            return [(s, Clause(area.id, None, extra=shared)) for s in hits], False
+        return [(s, c) for s in hits for c in self.row_clauses(area, s, spec, shared)], False
+
+
 def resolve(clauses: list[Clause], simplify: bool = False) -> dict | None:
     """Turns everything the rows say about one settlement into what the app needs.
 
@@ -705,6 +917,9 @@ def resolve(clauses: list[Clause], simplify: bool = False) -> dict | None:
     for c in named:
         for key in c.streets or ():
             by_street[key].add(c.area_id)
+    for c in named:
+        for key in c.excluded:
+            by_street.setdefault(key, set())  # so the row of the whole doesn't apply to it
     fallback = sorted({c.area_id for c in clauses if c.fallback})
     # Rows limited to streets we couldn't recognise: better than nothing if no other row applies.
     unknown = sorted({c.area_id for c in named if c.streets is not None and not c.streets})
@@ -765,6 +980,11 @@ def build_locations(
     served: set[str] = set()
     place_lists = bool(provider and provider.place_lists)
     routes = RouteList(index, provider, variants) if provider and provider.route_town else None
+    rows = (
+        SettlementRows(index, provider, variants) if provider and provider.settlement_rows else None
+    )
+    # Readers of rows that cover the whole municipality, without an eldership column.
+    municipal = routes or rows
     reader = PlaceList(index, provider, variants, None) if provider and place_lists else None
     kinds = list(provider.kinds) if provider else KINDS
     if reader:
@@ -776,9 +996,9 @@ def build_locations(
     for area in areas:
         wholes: list = []
         skipped = False
-        if routes:
-            found, skipped = routes.clauses(area)
-            unknown_parts += [f"{area.kind}: {part[:80]}" for part in routes.unknown]
+        if municipal:
+            found, skipped = municipal.clauses(area)
+            unknown_parts += [f"{area.kind}: {part[:80]}" for part in municipal.unknown]
             served |= provider.elderships
         elif reader:
             found, skipped = reader.clauses(area)
@@ -814,12 +1034,14 @@ def build_locations(
                 if district == settlement.district and settlement.code not in excluded:
                     clauses[kind].append(Clause(area_id, None, fallback=True))
 
-        simplify = place_lists or bool(routes)
+        simplify = place_lists or bool(municipal)
         schedule = {kind: r for kind in kinds if (r := resolve(clauses.get(kind, []), simplify))}
         if routes:
             # A route names every street it serves, so a street no route names has no pickup
             # (apartment buildings with shared containers, gardens without food waste). An
-            # empty list says so; without it the app would offer every row of the town.
+            # empty list says so; without it the app would offer every row of the town. Not
+            # for SettlementRows: its lists of streets leave out new streets, whose houses
+            # are served, so the app offers the settlement's rows.
             every = [street_key(t) for t in settlement.streets] + sorted(variants[settlement.code])
             for r in schedule.values():
                 if set(r) == {"streets"}:
@@ -858,6 +1080,6 @@ def build_locations(
     stats["locations"] = len(locations)
     stats["unmatchedRows"] = len(unmatched)
     report = {"stats": dict(sorted(stats.items())), "unmatched": unmatched}
-    if reader or routes:
+    if reader or municipal:
         report["unknownPlaces"] = unknown_parts
     return locations, report
