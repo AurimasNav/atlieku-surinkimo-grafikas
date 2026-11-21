@@ -20,7 +20,7 @@ import { openIssue } from '@/lib/feedback';
 import { type GeolocateResult, locateHome } from '@/lib/geolocate';
 import {
   fetchKaunoIndex,
-  isKaunasCitySearch,
+  uncoveredCitySearch,
   type KaunoTown,
   kaunoTowns,
   loadKaunoAddress,
@@ -253,7 +253,13 @@ export default function ChooseLocation() {
           ListEmptyComponent={
             deferred && !found ? (
               <AppText muted style={styles.empty}>
-                {isKaunasCitySearch(deferred, results.length) ? t('setup.locationKaunasCity') : t('setup.locationNone')}
+                {
+                  {
+                    kaunas: t('setup.locationKaunasCity'),
+                    klaipeda: t('setup.locationKlaipedaCity'),
+                    none: t('setup.locationNone'),
+                  }[uncoveredCitySearch(deferred, results.length) ?? 'none']
+                }
               </AppText>
             ) : undefined
           }
