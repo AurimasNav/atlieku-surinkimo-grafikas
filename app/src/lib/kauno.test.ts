@@ -9,6 +9,7 @@ import {
   kaunoKey,
   kaunoTowns,
   loadKaunoAddress,
+  municipalityOf,
   searchKaunoTowns,
 } from './kauno';
 import { placeLabel, resolvePlace, visibleKinds } from './resolve';
@@ -81,6 +82,32 @@ describe('Kauno r. addresses', () => {
   it('works with data that has no register names', () => {
     expect(kaunoTowns(index)[0]).toEqual({ eldership: 'ringaudu', eldershipName: 'Ringaudų sen.', town: 'Karkiškių k.' });
     expect(searchKaunoTowns(kaunoTowns(index), 'Karkiškės')).toEqual([]);
+  });
+
+  it('tells the municipality of a town: Kaišiadorių r., or Kauno r. when the data names none', () => {
+    const towns = kaunoTowns({
+      ...index,
+      elderships: [
+        ...index.elderships,
+        {
+          id: 'ziezmariu',
+          name: 'Žiežmarių sen.',
+          municipality: 'Kaišiadorių r.',
+          towns: ['Žiežmarių mstl.'],
+          registerNames: { 'Žiežmarių mstl.': 'Žiežmariai' },
+        },
+      ],
+    });
+    const [ziezmariai] = searchKaunoTowns(towns, 'Žiežmariai');
+    expect(ziezmariai).toEqual({
+      eldership: 'ziezmariu',
+      eldershipName: 'Žiežmarių sen.',
+      town: 'Žiežmarių mstl.',
+      registerName: 'Žiežmariai',
+      municipality: 'Kaišiadorių r.',
+    });
+    expect(municipalityOf(ziezmariai)).toBe('Kaišiadorių r.');
+    expect(municipalityOf(searchKaunoTowns(towns, 'Karkiškių')[0])).toBe('Kauno r.');
   });
 
   it('gives one schedule per waste type', () => {
@@ -222,30 +249,46 @@ describe('an address saved with a spelling that was merged', () => {
 describe('a search for Kaunas city', () => {
   it('is recognised in every spelling', () => {
     for (const query of ['Kaunas', 'kaunas', ' KAUNAS ', 'Kauno m.', 'kauno m', 'Kauno miestas', 'Kauno miesto sav.', 'kauno mies', 'Kaunas m.', 'Kaune', 'Kowno', 'Каунас']) {
-      expect([query, isKaunasCitySearch(query, 0)]).toEqual([query, true]);
+      expect([query, isKaunasCitySearch(query)]).toEqual([query, true]);
     }
   });
 
   it('is not the district or another place', () => {
     for (const query of ['Kauno r.', 'kauno raj', 'Kaunas r.', 'Kaunas district', 'Kauno rajonas', 'Kauno', 'kaun', 'Kauno marios', 'Akademija', 'Vilnius', '']) {
-      expect([query, isKaunasCitySearch(query, 0)]).toEqual([query, false]);
+      expect([query, isKaunasCitySearch(query)]).toEqual([query, false]);
     }
-  });
-
-  it('is not said when the search found something', () => {
-    expect(isKaunasCitySearch('kaunas', 1)).toBe(false);
   });
 });
 
 describe('a search for Klaipėda city', () => {
   it('is recognised, and is not the district', () => {
     for (const query of ['Klaipėda', 'klaipeda', 'Klaipėdos m.', 'Klaipėdos miestas', 'Klaipėdoje', 'Kłajpeda', 'Клайпеда']) {
-      expect([query, uncoveredCitySearch(query, 0)]).toEqual([query, 'klaipeda']);
+      expect([query, uncoveredCitySearch(query)]).toEqual([query, 'klaipeda']);
     }
     for (const query of ['Klaipėdos r.', 'Klaipėda district', 'Klaipėdos rajonas', 'Gargždai']) {
-      expect([query, uncoveredCitySearch(query, 0)]).toEqual([query, undefined]);
+      expect([query, uncoveredCitySearch(query)]).toEqual([query, undefined]);
     }
-    expect(uncoveredCitySearch('Kaunas', 0)).toBe('kaunas');
-    expect(uncoveredCitySearch('Klaipėda', 2)).toBeUndefined();
+    expect(uncoveredCitySearch('Kaunas')).toBe('kaunas');
+  });
+});
+
+describe('a search for Šiauliai or Alytus city', () => {
+  it('is recognised in every spelling', () => {
+    for (const query of ['Šiauliai', 'siauliai', 'Šiaulių m.', 'Šiaulių miestas', 'Šiauliuose', 'Szawle', 'Шяуляй', 'Шауляй']) {
+      expect([query, uncoveredCitySearch(query)]).toEqual([query, 'siauliai']);
+    }
+    for (const query of ['Alytus', 'alytus', 'Alytaus m.', 'Alytaus miesto sav.', 'Alytuje', 'Olita', 'Алитус']) {
+      expect([query, uncoveredCitySearch(query)]).toEqual([query, 'alytus']);
+    }
+  });
+
+  it('is not the district, its elderships or other places', () => {
+    // "Šiaulių" and "Alytaus" alone are also the elderships Šiaulių kaimiškoji and Alytaus sen.
+    for (const query of ['Šiaulių r.', 'Šiauliai district', 'Šiaulių rajonas', 'Šiaulių', 'Šiauliškiai', 'Kuršėnai']) {
+      expect([query, uncoveredCitySearch(query)]).toEqual([query, undefined]);
+    }
+    for (const query of ['Alytaus r.', 'Alytus district', 'Alytaus rajonas', 'Alytaus', 'Alytupis', 'Druskininkai', 'Birštonas']) {
+      expect([query, uncoveredCitySearch(query)]).toEqual([query, undefined]);
+    }
   });
 });

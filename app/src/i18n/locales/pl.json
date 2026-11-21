@@ -28,20 +28,24 @@
     "retry": "Spróbuj ponownie",
     "skip": "Nie mam takiego pojemnika"
   },
+  "coverage": {
+    "areas": "rejony janiski, jurborski, kielmeński, kłajpedzki, koszedarski, kowieński, łoździejski, możejski, okmiański, olicki, orański, płungiański, pokrojski, preński, szawelski, telszański i wileński oraz samorządy birsztański, druskienicki i retowski"
+  },
   "onboarding": {
     "title": "Pojemniki.\nNa czas.",
-    "body": "Przypomnienia o odbiorze odpadów dla Twojego adresu w rejonach wileńskim, kowieńskim, możejskim, kłajpedzkim i jurborskim.",
+    "body": "Przypomnienia o odbiorze odpadów dla Twojego adresu według harmonogramu firmy, która je odbiera.",
+    "areas": "Obejmuje {{areas}}.",
     "featurePlace": "Miejscowość wybierasz raz",
     "featureReminder": "Przypomnienie wieczorem dzień wcześniej",
     "featurePrivate": "Wszystkie dane zostają na telefonie",
-    "disclaimer": "Nieoficjalna aplikacja stworzona przez wolontariuszy. Daty pochodzą z harmonogramów UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Telšių regiono atliekų tvarkymo centras“, VšĮ „Gargždų švara“ i UAB „Tauragės regiono atliekų tvarkymo centras“ i mogą zawierać błędy.",
+    "disclaimer": "Nieoficjalna aplikacja stworzona przez wolontariuszy. Daty pochodzą z harmonogramów firm odbierających odpady i mogą zawierać błędy.",
     "start": "Zaczynamy"
   },
   "setup": {
     "locationTitle": "Gdzie mieszkasz?",
     "locationHint": "Pozwól nam znaleźć Twoją miejscowość albo wyszukaj wieś lub miasto.",
     "locationPlaceholder": "np. Riešė",
-    "locationNone": "Nic nie znaleziono. Wyświetlamy tylko miejscowości rejonów wileńskiego, kowieńskiego, możejskiego, kłajpedzkiego i jurborskiego, dla których mamy harmonogramy.",
+    "locationNone": "Nic nie znaleziono. Wyświetlamy tylko miejscowości, dla których mamy harmonogramy. Aplikacja obejmuje {{areas}}.",
     "locationKaunasCity": "Miasta Kowna nie obejmujemy, tylko rejon kowieński (Kauno r.).",
     "manualLink": "Nie możesz znaleźć? Wybierz wiersze harmonogramu ręcznie",
     "streetTitle": "Przy jakiej ulicy?",
@@ -76,7 +80,7 @@
     "locationDenied": "Dostęp do lokalizacji jest wyłączony. Wyszukaj miejscowość poniżej lub zezwól na lokalizację w ustawieniach telefonu.",
     "locationUnavailable": "Nie udało się ustalić lokalizacji. Wyszukaj miejscowość poniżej.",
     "locationOffline": "Nie udało się pobrać listy adresów. Sprawdź połączenie z internetem.",
-    "locationFar": "W pobliżu nie ma adresów, dla których mamy harmonogramy (rejony wileński, kowieński, możejski, kłajpedzki i jurborski). Jeśli nie jesteś w domu, wyszukaj miejscowość poniżej.",
+    "locationFar": "W pobliżu nie ma adresów, dla których mamy harmonogramy. Aplikacja obejmuje {{areas}}. Jeśli nie jesteś w domu, wyszukaj miejscowość poniżej.",
     "orSearch": "lub wyszukaj",
     "locationServicesOff": "Lokalizacja w telefonie jest wyłączona. Włącz ją i spróbuj ponownie lub wyszukaj miejscowość poniżej.",
     "addressHint": "Dni odbioru w {{place}} zależą od adresu.",
@@ -85,7 +89,9 @@
     "noStreet": "Bez nazwy ulicy",
     "noHouse": "Bez numeru domu",
     "addressesFailed": "Nie udało się pobrać adresów. Sprawdź połączenie z internetem.",
-    "locationKlaipedaCity": "Miasta Kłajpedy nie obejmujemy, tylko rejon kłajpedzki (Klaipėdos r.)."
+    "locationKlaipedaCity": "Miasta Kłajpedy nie obejmujemy, tylko rejon kłajpedzki (Klaipėdos r.).",
+    "locationSiauliaiCity": "Miasta Szawli nie obejmujemy, tylko rejon szawelski (Šiaulių r.).",
+    "locationAlytusCity": "Miasta Olity nie obejmujemy, tylko rejon olicki (Alytaus r.)."
   },
   "select": {
     "title": "{{kind}}: Twoja miejscowość",
@@ -152,7 +158,7 @@
     "sourceCode": "Kod źródłowy",
     "addressSource": "Adresy: {{source}}",
     "disclaimerTitle": "Bez gwarancji",
-    "disclaimer": "Aplikacja jest udostępniana bezpłatnie, w stanie „takim, jaka jest”, bez żadnych gwarancji. Autorzy nie ponoszą odpowiedzialności za pominięte lub błędne przypomnienia ani za żadne skutki polegania na nich. Aplikacja nie jest powiązana z UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“, UAB „Virginijus ir Ko“, VšĮ „Gargždų švara“, UAB „Tauragės regiono atliekų tvarkymo centras“ ani UAB „Jurbarko komunalininkas“.",
+    "disclaimer": "Aplikacja jest udostępniana bezpłatnie, w stanie „takim, jaka jest”, bez żadnych gwarancji. Autorzy nie ponoszą odpowiedzialności za pominięte lub błędne przypomnienia ani za żadne skutki polegania na nich. Aplikacja nie jest powiązana z żadną z tych firm i instytucji: {{companies}}.",
     "version": "Wersja {{version}}",
     "addReminder": "Dodaj kolejne przypomnienie",
     "removeReminder": "Usuń to przypomnienie",

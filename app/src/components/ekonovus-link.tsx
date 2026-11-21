@@ -9,9 +9,10 @@ import { spacing, useTheme } from '@/theme';
 import { AppText, KindIcon, PressableScale } from './ui';
 
 /**
- * Kauno r.: glass and packaging containers are emptied by UAB „Ekonovus“, not Kauno švara, and
- * its schedules are only published on its website. A row like the waste types next to it that
- * opens them. `size` is the size of the waste type icons around it.
+ * Kauno r. (and Kaišiadorių r., the other municipality of the Kauno švara data): glass and
+ * packaging containers are emptied by UAB „Ekonovus“, not Kauno švara, and its schedules are only
+ * published on its website. A row like the waste types next to it that opens them. `size` is the
+ * size of the waste type icons around it.
  */
 export function EkonovusLink({ size = 44, variant = 'row' }: { size?: number; variant?: 'row' | 'compact' }) {
   const { t } = useTranslation();

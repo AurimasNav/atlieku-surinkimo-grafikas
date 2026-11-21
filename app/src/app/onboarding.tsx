@@ -4,7 +4,7 @@ import { router, useIsFocused } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -90,12 +90,16 @@ export default function Welcome() {
         ))}
       </Animated.View>
 
-      <View style={styles.body}>
+      {/* Scrolls on short screens: otherwise the features ran under the button. */}
+      <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
         <Animated.View entering={motion(FadeInDown.delay(120).duration(500))}>
           <AppText variant="display" style={styles.title}>
             {t('onboarding.title')}
           </AppText>
           <AppText style={styles.subtitle}>{t('onboarding.body')}</AppText>
+          <AppText variant="caption" style={styles.areas}>
+            {t('onboarding.areas', { areas: t('coverage.areas') })}
+          </AppText>
         </Animated.View>
 
         <View style={styles.features}>
@@ -110,7 +114,7 @@ export default function Welcome() {
             </Animated.View>
           ))}
         </View>
-      </View>
+      </ScrollView>
 
       <Animated.View entering={motion(FadeInDown.delay(520).duration(450))} style={styles.footer}>
         <Button variant="inverse" title={t('onboarding.start')} icon="arrow-forward" onPress={() => router.push('/setup/location')} />
@@ -147,9 +151,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  body: { flex: 1, gap: spacing.xl },
+  body: { flex: 1 },
+  bodyContent: { gap: spacing.xl, paddingBottom: spacing.lg },
   title: { color: '#FFFFFF', fontSize: 52, lineHeight: 56 },
   subtitle: { color: 'rgba(255,255,255,0.78)', fontSize: 18, lineHeight: 26, marginTop: spacing.md },
+  areas: { color: 'rgba(255,255,255,0.66)', marginTop: spacing.sm },
   features: { gap: spacing.md },
   feature: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   featureIcon: {
@@ -161,6 +167,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   featureText: { color: '#FFFFFF', flex: 1 },
-  footer: { gap: spacing.md },
+  footer: { gap: spacing.md, paddingTop: spacing.sm },
   disclaimer: { color: 'rgba(255,255,255,0.55)', textAlign: 'center' },
 });

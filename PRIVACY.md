@@ -31,10 +31,10 @@ deleted when you uninstall the app or clear its data.
 ## Finding your address with GPS (optional)
 
 If you tap "Use my current location", the app asks for permission to read your position
-**once**. It then downloads the public lists of addresses (`addresses.json`,
-`mazeikiu-r/addresses.json`, `klaipedos-r/addresses.json`, `jurbarko-r/addresses.json` and
-`kauno-r/points.json`, the same files for every user) and finds the nearest address **on your
-phone**. Your position is never sent
+**once**. It then downloads the public lists of addresses (`addresses.json`, the
+`addresses.json` of each region folder, `mazeikiu-r/`, `klaipedos-r/`, `jurbarko-r/`, `sratc/`
+and `alytaus-ratc/`, and `kauno-r/points.json`, the same files for every user) and finds the
+nearest address **on your phone**. Your position is never sent
 anywhere and is not stored; only the place you confirm is saved, as when you search by name.
 You can refuse the permission and search for your place instead.
 
@@ -59,9 +59,9 @@ push notifications, so no device token or identifier is sent anywhere.
 ## Network connections
 
 The app connects to the internet only to download the public collection schedules
-(`schedule.json`, `mazeikiu-r/schedule.json`, `klaipedos-r/schedule.json`,
-`jurbarko-r/schedule.json` and, when you choose a place, the list of places of Kaunas district,
-`kauno-r/schedule.json`) and, if you use GPS to find your address, the public
+(`schedule.json`, the `schedule.json` of the same region folders and, when you choose a place,
+the list of places of Kaunas and Kaišiadorys districts, `kauno-r/schedule.json`) and, if you use
+GPS to find your address, the public
 address lists from GitHub Pages, a hosting service operated by GitHub, Inc. Like any
 website, GitHub's servers receive the technical information included in every internet request,
 such as your IP address and the app's user agent, and may keep it in server logs for security
@@ -69,16 +69,16 @@ and operations. We have no access to those logs. See the
 [GitHub General Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
 The requests contain nothing about your address or settings, and every user downloads the same
-files, with one exception. In Kaunas district the schedules are published per address, so the
-app downloads the address list of your **eldership** (seniūnija, for example
+files, with one exception. In Kaunas and Kaišiadorys districts the schedules are published per
+address, so the app downloads the address list of your **eldership** (seniūnija, for example
 `kauno-r/addresses/ringaudu.json`): when you choose your address and each time the schedule
 is refreshed. GitHub's servers can therefore see which eldership a request is for, together
 with the technical information above. Your town, street and house number are looked up on
 your phone and are never sent.
 
 If you tap a link in the app (privacy policy, official schedule, the glass and packaging schedules
-of UAB „Ekonovus“ in Kaunas district, source code), it opens in your browser, and that website's
-own privacy policy applies.
+of UAB „Ekonovus“ in Kaunas and Kaišiadorys districts, source code), it opens in your browser,
+and that website's own privacy policy applies.
 
 ## Permissions
 
@@ -143,9 +143,10 @@ duomenis, jie pašalinami.
 ## Adreso paieška pagal GPS (neprivaloma)
 
 Paspaudus „Naudoti mano buvimo vietą“, programėlė paprašo leidimo **vieną kartą** nustatyti
-jūsų buvimo vietą. Tada ji atsisiunčia viešus adresų sąrašus (`addresses.json`,
-`mazeikiu-r/addresses.json`, `klaipedos-r/addresses.json`, `jurbarko-r/addresses.json` ir
-`kauno-r/points.json`, visiems naudotojams tuos pačius failus) ir artimiausią adresą randa **jūsų telefone**. Jūsų buvimo vieta
+jūsų buvimo vietą. Tada ji atsisiunčia viešus adresų sąrašus (`addresses.json`, kiekvieno
+regiono aplanko – `mazeikiu-r/`, `klaipedos-r/`, `jurbarko-r/`, `sratc/` ir `alytaus-ratc/` –
+`addresses.json` ir `kauno-r/points.json`, visiems naudotojams tuos pačius failus) ir artimiausią
+adresą randa **jūsų telefone**. Jūsų buvimo vieta
 niekur nesiunčiama ir nesaugoma; išsaugoma tik jūsų patvirtinta vietovė, kaip ir ieškant
 pagal pavadinimą. Leidimo galite neduoti ir vietovę surasti paieškoje.
 
@@ -171,9 +172,9 @@ pranešimų, todėl joks įrenginio identifikatorius niekur nesiunčiamas.
 ## Interneto ryšys
 
 Programėlė jungiasi prie interneto tik tam, kad atsisiųstų viešus išvežimo grafikus
-(`schedule.json`, `mazeikiu-r/schedule.json`, `klaipedos-r/schedule.json`,
-`jurbarko-r/schedule.json` ir, kai renkatės vietovę, Kauno rajono vietovių sąrašą
-`kauno-r/schedule.json`) ir, jei adresą ieškote pagal buvimo vietą, viešus adresų sąrašus
+(`schedule.json`, tų pačių regionų aplankų `schedule.json` ir, kai renkatės vietovę, Kauno ir
+Kaišiadorių rajonų vietovių sąrašą `kauno-r/schedule.json`) ir, jei adresą ieškote pagal buvimo
+vietą, viešus adresų sąrašus
 iš „GitHub Pages“ – „GitHub, Inc.“ valdomos talpinimo paslaugos. Kaip ir bet
 kuri svetainė, „GitHub“ serveriai gauna kiekvienoje interneto užklausoje esančią techninę
 informaciją, pvz., jūsų IP adresą, ir gali ją saugoti serverio žurnaluose saugumo tikslais. Mes
@@ -181,16 +182,16 @@ prie šių žurnalų prieigos neturime. Žr.
 [„GitHub“ privatumo pareiškimą](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement).
 
 Užklausose nėra jokios informacijos apie jūsų adresą ar nustatymus, ir visi naudotojai
-atsisiunčia tuos pačius failus, išskyrus vieną atvejį. Kauno rajone grafikai skelbiami
-kiekvienam adresui atskirai, todėl programėlė atsisiunčia jūsų **seniūnijos** adresų sąrašą
+atsisiunčia tuos pačius failus, išskyrus vieną atvejį. Kauno ir Kaišiadorių rajonuose grafikai
+skelbiami kiekvienam adresui atskirai, todėl programėlė atsisiunčia jūsų **seniūnijos** adresų sąrašą
 (pvz., `kauno-r/addresses/ringaudu.json`): kai pasirenkate adresą ir kaskart atnaujinant
 grafiką. Taigi „GitHub“ serveriai gali matyti, kurios seniūnijos failo prašoma, kartu su
 aukščiau minėta technine informacija. Jūsų gyvenvietė, gatvė ir namo numeris surandami
 jūsų telefone ir niekur nesiunčiami.
 
 Paspaudus nuorodą programėlėje (privatumo politika, oficialus grafikas, UAB „Ekonovus“ stiklo ir
-pakuočių grafikai Kauno rajone, programos kodas), ji atidaroma naršyklėje, ir taikoma tos svetainės
-privatumo politika.
+pakuočių grafikai Kauno ir Kaišiadorių rajonuose, programos kodas), ji atidaroma naršyklėje, ir
+taikoma tos svetainės privatumo politika.
 
 ## Leidimai
 

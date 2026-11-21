@@ -7,7 +7,7 @@ import { type AddressTable, findNearest, type NearestAddress, nearestPoint, stre
 /** Further than this from any served address: probably not at home, or not served here. */
 const MAX_DISTANCE_M = 400;
 
-/** kauno-r/points.json: the addresses of Kauno r. with coordinates. */
+/** kauno-r/points.json: the addresses of Kauno r. and Kaišiadorių r. with coordinates. */
 type KaunoPoints = {
   /** [eldership file, eldership, town, street] */
   places: [string, string, string, string][];

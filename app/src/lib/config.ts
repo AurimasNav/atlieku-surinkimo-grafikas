@@ -5,21 +5,39 @@ const SITE_URL =
 export const SCHEDULE_URL = `${SITE_URL}/schedule.json`;
 /** Only downloaded when the user asks to find their address by GPS. */
 export const ADDRESSES_URL = `${SITE_URL}/addresses.json`;
-/** Kauno r. (UAB „Kauno švara“): schedule.json and addresses/<eldership>.json. */
+/**
+ * Kauno r. and Kaišiadorių r. (UAB „Kauno švara“): schedule.json and addresses/<eldership>.json.
+ * The folder is named after Kauno r., which came first.
+ */
 export const KAUNO_URL = `${SITE_URL}/kauno-r`;
 /** Only downloaded when the user asks to find their address by GPS. */
 export const KAUNO_POINTS_URL = `${KAUNO_URL}/points.json`;
 export const KAUNO_SOURCE_PAGE_URL = 'https://grafikai.svara.lt/';
-/** Glass and packaging in Kauno r. are emptied by UAB „Ekonovus“; its schedules are only on its site. */
+/**
+ * Glass and packaging in Kauno r. are emptied by UAB „Ekonovus“; its schedules are only on its
+ * site. The company is also licensed to collect glass packaging in Kaišiadorių r., so the link is
+ * shown for every address of the Kauno švara data.
+ */
 export const EKONOVUS_SCHEDULES_URL = 'https://www.ekonovus.lt/aptarnavimo-grafikai/';
 /**
  * Regions published as their own files in the format of schedule.json: <url>/schedule.json and,
- * for "use my location", <url>/addresses.json. Mažeikių r., from the files of the regional
- * waste centre (UAB „Telšių regiono atliekų tvarkymo centras“), Klaipėdos r., from the
- * spreadsheet of VšĮ „Gargždų švara“, and Jurbarko r., from the PDFs of the regional waste
- * centre of Tauragė county (UAB „Tauragės regiono atliekų tvarkymo centras“).
+ * for "use my location", <url>/addresses.json. Each file lists its companies (`providers`), with
+ * their names and official schedule pages:
+ * - mazeikiu-r: Mažeikių r., Telšių r., Plungės r. and Rietavo sav., from the files of the regional
+ *   waste centre of Telšiai county (UAB „Telšių regiono atliekų tvarkymo centras“), a provider per
+ *   municipality;
+ * - klaipedos-r: Klaipėdos r., from the spreadsheet of VšĮ „Gargždų švara“;
+ * - jurbarko-r: Jurbarko r., from the PDFs of the regional waste centre of Tauragė county (UAB
+ *   „Tauragės regiono atliekų tvarkymo centras“);
+ * - sratc: Šiaulių r., Akmenės r., Joniškio r., Kelmės r. and Pakruojo r., from the PDFs of the
+ *   regional waste centre of Šiauliai county (UAB „Šiaulių regiono atliekų tvarkymo centras“);
+ * - alytaus-ratc: Alytaus r., Prienų r., Lazdijų r., Varėnos r., Druskininkų sav. and Birštono
+ *   sav., from the PDFs of the regional waste centre of Alytus county (UAB „Alytaus regiono atliekų
+ *   tvarkymo centras“).
  */
-export const REGION_URLS = [`${SITE_URL}/mazeikiu-r`, `${SITE_URL}/klaipedos-r`, `${SITE_URL}/jurbarko-r`];
+export const REGION_URLS = ['mazeikiu-r', 'klaipedos-r', 'jurbarko-r', 'sratc', 'alytaus-ratc'].map(
+  (folder) => `${SITE_URL}/${folder}`,
+);
 export const PRIVACY_URL = `${SITE_URL}/privacy/`;
 export const REPOSITORY_URL = 'https://github.com/AurimasNav/atlieku-surinkimo-grafikas';
 /**
@@ -28,6 +46,27 @@ export const REPOSITORY_URL = 'https://github.com/AurimasNav/atlieku-surinkimo-g
  */
 export const SOURCE_PAGE_URL =
   'https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/';
+/**
+ * The companies whose schedules the app shows or links to: the publishers, and the companies
+ * that collect the waste where the schedules name them. Named in the disclaimer in settings; add a
+ * new one here, not to each translation.
+ */
+export const COMPANIES = [
+  'UAB „Nemenčinės komunalininkas“',
+  'UAB „Nemėžio komunalininkas“',
+  'UAB „Kauno švara“',
+  'UAB „Ekonovus“',
+  'UAB „Telšių regiono atliekų tvarkymo centras“',
+  'UAB „Ecoservice“',
+  'UAB „Virginijus ir Ko“',
+  'VšĮ „Gargždų švara“',
+  'UAB „Tauragės regiono atliekų tvarkymo centras“',
+  'UAB „Jurbarko komunalininkas“',
+  'UAB „Šiaulių regiono atliekų tvarkymo centras“',
+  'UAB „Kuršėnų komunalinis ūkis“',
+  'UAB „Pakruojo komunalinis ūkis“',
+  'UAB „Alytaus regiono atliekų tvarkymo centras“',
+];
 
 /** Highest schedule.json schemaVersion this app version understands. */
 export const SUPPORTED_SCHEMA_VERSION = 1;
