@@ -101,28 +101,42 @@ export function searchKaunoTowns(towns: KaunoTown[], query: string): KaunoTown[]
     .sort((a, b) => Number(starts(b)) - Number(starts(a)) || a.town.localeCompare(b.town, 'lt'));
 }
 
-/** "Kaunas" (and "in Kaunas") in the app's languages, as normalizeForSearch writes it. */
-const KAUNAS = ['kaunas', 'kaune', 'kowno', 'каунас'];
-/** The word after it that makes it the district; normalizeForSearch drops the breve of "й". */
+/**
+ * Cities next to a covered district that aren't covered themselves: their names (and "in ...")
+ * in the app's languages, and the genitive of "Kauno m.", as normalizeForSearch writes them
+ * (it drops the breve of "й"; the Polish "ł" stays).
+ */
+const CITIES = {
+  kaunas: { names: ['kaunas', 'kaune', 'kowno', 'каунас'], genitive: 'kauno' },
+  klaipeda: { names: ['klaipeda', 'klaipedoje', 'kłajpeda', 'клаипеда'], genitive: 'klaipedos' },
+} as const;
+export type UncoveredCity = keyof typeof CITIES;
+/** The word after it that makes it the district. */
 const DISTRICT = /^(r|raj|rajon\p{L}*|rejon\p{L}*|district|раион\p{L}*)$/u;
 
 /**
- * Whether a search that found nothing was for Kaunas city ("Kaunas", "Kauno m.", "kauno
- * miestas"), which the app doesn't cover: only Kauno r., the district around it, is. The app
- * then says so instead of the general "nothing found". `found` is how many places the search
- * listed, so a town of Kauno r. that matches is shown as usual.
+ * Whether a search that found nothing was for Kaunas or Klaipėda city ("Kaunas", "Kauno m.",
+ * "klaipedos miestas"), which the app doesn't cover: only the districts around them (Kauno r.,
+ * Klaipėdos r.) are. The app then says so instead of the general "nothing found". `found` is
+ * how many places the search listed, so a place of the district that matches is shown as usual.
  */
-export function isKaunasCitySearch(query: string, found: number): boolean {
-  if (found > 0) return false;
+export function uncoveredCitySearch(query: string, found: number): UncoveredCity | undefined {
+  if (found > 0) return undefined;
   const [first, second, ...rest] = normalizeForSearch(query)
     .split(/[^\p{L}\p{N}]+/u)
     .filter(Boolean);
-  // "Kaunas", "Kaunas m.", "Kowno", "Каунас", but not "Kaunas r." or "Kaunas district".
-  if (KAUNAS.includes(first)) return !second || !DISTRICT.test(second);
-  // "Kauno m.", "Kauno miestas", "Kauno miesto sav.", also while it is typed ("kauno mies").
-  const city = Boolean(second) && ['miestas', 'miesto'].some((word) => word.startsWith(second));
-  return first === 'kauno' && city && rest.length <= 1;
+  for (const [city, { names, genitive }] of Object.entries(CITIES) as [UncoveredCity, (typeof CITIES)[UncoveredCity]][]) {
+    // "Kaunas", "Kaunas m.", "Kowno", "Каунас", but not "Kaunas r." or "Kaunas district".
+    if ((names as readonly string[]).includes(first)) return !second || !DISTRICT.test(second) ? city : undefined;
+    // "Kauno m.", "Kauno miestas", "Kauno miesto sav.", also while it is typed ("kauno mies").
+    const isCity = Boolean(second) && ['miestas', 'miesto'].some((word) => word.startsWith(second));
+    if (first === genitive && isCity && rest.length <= 1) return city;
+  }
+  return undefined;
 }
+
+/** {@link uncoveredCitySearch} for Kaunas. */
+export const isKaunasCitySearch = (query: string, found: number) => uncoveredCitySearch(query, found) === 'kaunas';
 
 /**
  * The schedules of one address as one area per waste type: an address can have several

@@ -84,7 +84,8 @@
     "housePlaceholder": "Ieškoti numerio",
     "noStreet": "Be gatvės pavadinimo",
     "noHouse": "Be namo numerio",
-    "addressesFailed": "Nepavyko atsisiųsti adresų. Patikrinkite interneto ryšį."
+    "addressesFailed": "Nepavyko atsisiųsti adresų. Patikrinkite interneto ryšį.",
+    "locationKlaipedaCity": "Klaipėdos miesto grafikų neturime, tik Klaipėdos rajono."
   },
   "select": {
     "title": "{{kind}}: jūsų vietovė",

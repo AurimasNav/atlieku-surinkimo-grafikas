@@ -84,7 +84,8 @@
     "housePlaceholder": "Search numbers",
     "noStreet": "No street name",
     "noHouse": "No house number",
-    "addressesFailed": "Couldn't download the addresses. Check your internet connection."
+    "addressesFailed": "Couldn't download the addresses. Check your internet connection.",
+    "locationKlaipedaCity": "Klaipėda city isn't covered, only Klaipėda district (Klaipėdos r.)."
   },
   "select": {
     "title": "{{kind}}: your area",
