@@ -700,3 +700,18 @@ def test_one_file_for_the_four_municipalities(part, parts, tmp_path):
     for key in ("telsiai", "plunge", "rietavas"):
         assert f'siuksliaveze_data_areas{{source="{key}",kind="household"}}' in text
     assert 'siuksliaveze_data_areas{source="plunge",kind="food"} 5' in text
+
+
+def test_a_live_source_that_failed_is_not_tried_again():
+    # The register's sites block cloud servers; each try costs its retries.
+    calls = []
+
+    def blocked():
+        calls.append(1)
+        raise OSError("HTTP Error 403: Forbidden")
+
+    down: set[str] = set()
+    for _ in range(3):
+        with pytest.raises(OSError):
+            tratc._once(blocked, "points", down)()
+    assert len(calls) == 1 and down == {"points"}

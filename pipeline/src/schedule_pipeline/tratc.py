@@ -656,6 +656,23 @@ SOURCE = source(MAZEIKIAI)
 # --- the output ------------------------------------------------------------------
 
 
+def _once(fetch, source: str, down: set[str]):
+    """`fetch`, unless `source` already failed for another municipality (added to `down`): the
+    register's sites block cloud servers such as GitHub Actions runners, and each try costs
+    its retries."""
+
+    def live():
+        if source in down:
+            raise OSError("unavailable for the municipality before; not tried again")
+        try:
+            return fetch()
+        except OSError:
+            down.add(source)
+            raise
+
+    return live
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=(__doc__ or "").split("\n")[0])
     parser.add_argument("--out", type=Path, required=True, help="directory for the output files")
@@ -679,17 +696,18 @@ def main(argv: list[str] | None = None) -> int:
     registries: list[tuple[Municipality, Registry]] = []
     points: list[address_points.AddressPoint] = []
     notes: list[str] = []
+    down: set[str] = set()  # live sources that failed
     try:
         for municipality in MUNICIPALITIES:
             name, code = municipality.register
             registry, registry_note = build.live_or_snapshot(
                 f"Address Register ({municipality.label})",
-                partial(address_register.fetch, name),
+                _once(partial(address_register.fetch, name), "register", down),
                 partial(snapshot.load_registry, municipality.registry_file),
             )
             found, points_note = build.live_or_snapshot(
                 f"Address points ({municipality.label})",
-                partial(address_points.fetch, code),
+                _once(partial(address_points.fetch, code), "points", down),
                 partial(snapshot.load_points, municipality.addresses_file),
             )
             notes += [n for n in (registry_note, points_note) if n]
