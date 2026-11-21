@@ -184,6 +184,37 @@ describe('resolvePlace', () => {
     expect(off.kinds.green).toEqual({ status: 'none', skipped: true });
   });
 
+  it('tells a street without pickups from one the routes leave out (Jurbarkas)', () => {
+    const town: Location = {
+      id: 'g11',
+      name: 'Jurbarkas',
+      type: 'm.',
+      district: 'Jurbarko miesto',
+      provider: 'jurbarkas',
+      streets: [
+        ['s1', 'Dainių g.'],
+        ['s2', 'Bočių g.'],
+        ['s3', 'Savanorių g.'],
+      ],
+      schedule: {
+        household: { streets: { s1: ['h-akaciju'], s3: [] } },
+        green: { streets: { s1: ['z-1'], s2: ['z-1'], s3: [] } },
+      },
+    };
+    const routes = { ...data, areas: [...areas, area('z-1', 'green')], locations: [...locations, town] };
+    const listed = resolvePlace(routes, { locationId: 'g11', street: 's1', choices: {} }, today);
+    expect(ids(listed)).toEqual(['h-akaciju', 'z-1']);
+    // No route of any kind names Savanorių g. (apartment buildings): no mixed or green waste pickup.
+    const flats = resolvePlace(routes, { locationId: 'g11', street: 's3', choices: {} }, today);
+    expect(flats.kinds.household).toEqual({ status: 'none' });
+    expect(flats.kinds.green).toEqual({ status: 'none' });
+    // Bočių g. has green waste but is in no mixed waste route: the town's routes are offered.
+    const twoRoutes = { ...town, schedule: { ...town.schedule, household: { streets: { s1: ['h-akaciju'], s3: [], s4: ['h-durpiu'] } } } };
+    const left = resolvePlace({ ...routes, locations: [...locations, twoRoutes] }, { locationId: 'g11', street: 's2', choices: {} }, today);
+    expect(left.kinds.household).toMatchObject({ status: 'choose', candidates: [{ id: 'h-akaciju' }, { id: 'h-durpiu' }] });
+    expect(left.kinds.green).toMatchObject({ status: 'ok', area: { id: 'z-1' } });
+  });
+
   it('supports rows picked by hand without a location', () => {
     const r = resolvePlace(data, { choices: { household: 'h-house', glass: 'g-old' } }, today);
     expect(ids(r)).toEqual(['h-house']);

@@ -85,7 +85,7 @@ export function resolvePlace(data: ScheduleData | null, place: Place | null, tod
       continue;
     }
     // Food and green waste have schedules in few places (Kauno r., Mažeikiai town, green waste in
-    // Klaipėdos r.): nothing to ask about elsewhere.
+    // Klaipėdos r. and in Jurbarkas): nothing to ask about elsewhere.
     if (!BASE_KINDS.includes(kind) && !location?.schedule?.[kind] && !choice) {
       kinds[kind] = { status: 'none' };
       continue;
@@ -128,8 +128,8 @@ export function isHousingChoice(candidates: Area[]): boolean {
 
 /**
  * The waste types to show for a place: its provider's, plus any other the place has a schedule
- * for (a few Kauno r. addresses have glass, Mažeikiai has food waste, Klaipėdos r. green waste;
- * own schedules can be set for any type).
+ * for (a few Kauno r. addresses have glass, Mažeikiai has food waste, Klaipėdos r. and Jurbarkas
+ * green waste; own schedules can be set for any type).
  */
 export function visibleKinds(place: Place | null, resolved: Resolved): WasteKind[] {
   const usual = place?.kauno ? KAUNO_KINDS : BASE_KINDS;

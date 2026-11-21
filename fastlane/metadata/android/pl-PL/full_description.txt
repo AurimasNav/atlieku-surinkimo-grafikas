@@ -1,9 +1,10 @@
-Šiukšliavežė przypomni wieczorem dzień wcześniej, że przyjedzie śmieciarka, więc już nie przegapisz odbioru odpadów. Aplikacja działa w czterech rejonach.
+Šiukšliavežė przypomni wieczorem dzień wcześniej, że przyjedzie śmieciarka, więc już nie przegapisz odbioru odpadów. Aplikacja działa w pięciu rejonach.
 
 • Rejon wileński: odpady zmieszane, opakowania i szkło w ponad 1000 wsiach i miasteczkach obsługiwanych przez UAB „Nemenčinės komunalininkas“ i UAB „Nemėžio komunalininkas“, m.in. w Niemenczynie, Rzeszy, Awiżeniach, Mejszagole, Niemieżu, Pogirach, Czarnym Borze, Mickunach i Rudominie.
-• Rejon kowieński: odpady zmieszane, spożywcze i zielone pod około 39 000 adresów obsługiwanych przez UAB „Kauno švara“, m.in. w miejscowościach Garliava, Domeikava, Ringaudai, Raudondvaris, Užliedžiai i Akademija. Szkło i opakowania odbiera tam UAB „Ekonovus“; aplikacja zawiera link do jej harmonogramów.
+• Rejon kowieński: odpady zmieszane, spożywcze i zielone pod około 39 000 adresów obsługiwanych przez UAB „Kauno švara“, m.in. w miejscowościach Garliava, Domeikava, Ringaudai i Raudondvaris. Szkło i opakowania odbiera tam UAB „Ekonovus“; aplikacja zawiera link do jej harmonogramów.
 • Rejon możejski: odpady zmieszane, opakowania i szkło w Możejkach, Wiekszniach, Siadach, Tyrkszlach, Żydykach i około 150 wsiach, a w mieście Możejki także odpady spożywcze. Harmonogramy publikuje UAB „Telšių regiono atliekų tvarkymo centras“; odpady odbierają UAB „Ecoservice“ i UAB „Virginijus ir Ko“.
 • Rejon kłajpedzki: odpady zmieszane, opakowania, szkło i odpady zielone w miejscowościach Gargždai, Priekulė, Dovilai, Kretingalė i Vėžaičiai oraz w około 270 wsiach. Harmonogramy publikuje VšĮ „Gargždų švara“; odpady odbiera UAB „Ekonovus“.
+• Rejon jurborski: odpady zmieszane w miejscowościach Jurbarkas, Smalininkai, Seredžius i około 340 wsiach, opakowania i szkło w około 120 z nich, odpady zielone w mieście Jurbarkas. Harmonogramy publikuje UAB „Tauragės regiono atliekų tvarkymo centras“.
 
 W aplikacji miejscowości mają oficjalne litewskie nazwy (np. Nemenčinė, Riešė).
 
@@ -27,6 +28,6 @@ Prywatność
 Bezpłatna i open source
 Aplikacja jest bezpłatna, a jej kod źródłowy jest otwarty (Apache 2.0) i dostępny na GitHubie: github.com/AurimasNav/atlieku-surinkimo-grafikas. Widzisz błędne daty albo brakuje adresu? Zgłoś to prosto z aplikacji.
 
-Harmonogramy pochodzą z plików publikowanych na nemenkom.lt, nkom.lt, tratc.lt i gargzdusvara.eu oraz z otwartych danych UAB „Kauno švara“; są sprawdzane codziennie. Nazwy miejscowości i ulic pochodzą z Rejestru Adresów VĮ Registrų centras (otwarte dane).
+Harmonogramy pochodzą z plików publikowanych na nemenkom.lt, nkom.lt, tratc.lt, gargzdusvara.eu i uabtratc.lt oraz z otwartych danych UAB „Kauno švara“; są sprawdzane codziennie. Nazwy miejscowości i ulic pochodzą z Rejestru Adresów VĮ Registrų centras (otwarte dane).
 
-Nieoficjalna aplikacja stworzona przez wolontariuszy, niepowiązana z UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“, UAB „Virginijus ir Ko“ ani VšĮ „Gargždų švara“. Daty pochodzą z publikowanych przez nich harmonogramów i mogą zawierać błędy; w razie wątpliwości sprawdź oficjalny harmonogram. Udostępniana bezpłatnie, bez żadnych gwarancji.
+Nieoficjalna aplikacja stworzona przez wolontariuszy, niepowiązana z UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“, UAB „Virginijus ir Ko“, VšĮ „Gargždų švara“, UAB „Tauragės regiono atliekų tvarkymo centras“ ani UAB „Jurbarko komunalininkas“. Daty pochodzą z publikowanych przez nich harmonogramów i mogą zawierać błędy; w razie wątpliwości sprawdź oficjalny harmonogram. Udostępniana bezpłatnie, bez żadnych gwarancji.
