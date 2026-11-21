@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Literal
+from typing import Any, Literal
 
 Kind = Literal["household", "packaging", "glass", "food", "green"]
 
@@ -82,6 +83,9 @@ class Provider:
     # Places the rows name in a way the register can't tell apart, as the rows write them and
     # as the register's genitive with its type: ("Naukaimio k. (Vytėnų)", "Naukaimio II k.").
     aliases: tuple[tuple[str, str], ...] = ()
+    # Rows read by a subclass of locations.SectionRoutes of the provider's own, built like it
+    # (aratc.Routes: several municipalities, each with its towns).
+    reader: Callable[..., Any] | None = None
     kinds: tuple[Kind, ...] = ("household", "packaging", "glass")
     # The first provider, published before there were several: its rows, places and files carry
     # no `provider` field, and its row ids stay as they were.

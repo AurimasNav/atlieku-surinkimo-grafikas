@@ -76,6 +76,8 @@ tests:
         values: "518400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jurbarkas",kind="packaging"}'
         values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="household"}'
+        values: "518400x20"
       # Ends in 30 days: no alert.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="glass"}'
         values: "2592000x20"
@@ -95,6 +97,13 @@ tests:
         values: "172800x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="nemencine",kind="household"}'
         values: "259200x20"
+      # Alytaus RATC's food waste, packaging and glass: not watched.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="food"}'
+        values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="packaging"}'
+        values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="glass"}'
+        values: "86400x20"
     alert_rule_test:
       - eval_time: 40m
         alertname: ScheduleDataRunsOut
@@ -122,6 +131,13 @@ tests:
               severity: warning
             exp_annotations:
               summary: "jurbarkas: the packaging schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: alytus
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "alytus: the household schedule ends within a week"
 
   - name: fewer places and more warnings than a day before
     interval: 15m
@@ -199,6 +215,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="klaipedos",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jurbarkas",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="household"}'
         values: "25920000x191"
       - series: 'up{job="siuksliaveze-data"}'
         values: "1x191"

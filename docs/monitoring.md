@@ -10,7 +10,7 @@ Users see it too: when the data of the company behind their schedule hasn't been
 days (`providers[].generatedAt`, or Kauno švara's `generatedAt`), the app shows a warning with a
 link to the company's official schedule (`app/src/lib/freshness.ts`).
 
-There are seven sources:
+There are eight sources:
 
 | `source` | Company | Published in |
 |---|---|---|
@@ -21,6 +21,7 @@ There are seven sources:
 | `mazeikiai` | UAB „Telšių regiono atliekų tvarkymo centras“, Mažeikių r. | `mazeikiu-r/` |
 | `klaipedos` | VšĮ „Gargždų švara“, Klaipėdos r. | `klaipedos-r/` |
 | `jurbarkas` | UAB „Tauragės regiono atliekų tvarkymo centras“, Jurbarko r. | `jurbarko-r/` |
+| `alytus` | UAB „Alytaus regiono atliekų tvarkymo centras“, Alytaus r., Prienų r., Lazdijų r., Varėnos r., Druskininkų and Birštono sav. | `alytaus-ratc/` (rows with the municipality in `district`) |
 
 The two Vilniaus r. companies share one `schedule.json`, so the app needs one download. When
 one of them fails, its part of yesterday's file is kept (its `providers[].generatedAt` stays
@@ -35,6 +36,11 @@ no published part to keep, the file is published without it.
 understood), Kauno r. is published without them: `kaisiadorys` disappears from `metrics.txt`
 and `ScheduleDataSourceMissing` fires.
 
+`alytus` is one source for the six municipalities of Alytaus RATC: one page, one company behind
+the schedules, one build step. A file of any of them that can't be read fails the build, and
+yesterday's `alytaus-ratc/` is kept for all six. Its last pickup date per waste type is the
+latest of the six.
+
 The job therefore publishes the state of the data with every run:
 
 - `https://aurimasnav.github.io/atlieku-surinkimo-grafikas/metrics.txt` (Prometheus format)
@@ -42,9 +48,9 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
-| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `klaipedos` / `jurbarkas` was built |
+| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `klaipedos` / `jurbarkas` / `alytus` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
-| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `klaipedos` and `jurbarkas` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
+| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `klaipedos`, `jurbarkas` and `alytus` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
 | `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead) |
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
@@ -104,11 +110,18 @@ groups:
       # or five times a year and green waste from April to November, and Jurbarko r. glass four
       # times a year (last on 3 December 2026) and green waste last in mid-December, before
       # next year's files are usually posted: so only their mixed waste and packaging.
+      # Alytaus RATC's contract year runs from March to February. The last mixed waste pickups
+      # of its six municipalities fall between 9 and 27 February 2027, and `alytus` has the
+      # latest of them: the alert means none of next year's mixed waste files has been read.
+      # Not its packaging and glass: those of Alytaus r. and Prienų r. run to March 2028 (a new
+      # contract from December 2026), which hides the others' February ends.
       - alert: ScheduleDataRunsOut
         expr: |-
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="mazeikiai"}[30m]) - time() < 7 * 86400
             or
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"klaipedos|jurbarkas",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
+            or
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="alytus",kind="household"}[30m]) - time() < 7 * 86400
         for: 1h
         labels: { severity: warning }
         annotations:
@@ -151,5 +164,5 @@ Add the [Infinity](https://grafana.com/grafana/plugins/yesoreyeram-infinity-data
 source, query `status.json` (type JSON, URL above) and alert when
 `sources.nemencine.generatedAt`, `sources.nemezio.generatedAt`, `sources.kauno.generatedAt`,
 `sources.kaisiadorys.generatedAt`, `sources.mazeikiai.generatedAt`,
-`sources.klaipedos.generatedAt` or `sources.jurbarkas.generatedAt` is older than 30 hours (or
-missing).
+`sources.klaipedos.generatedAt`, `sources.jurbarkas.generatedAt` or
+`sources.alytus.generatedAt` is older than 30 hours (or missing).
