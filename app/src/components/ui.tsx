@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { router } from 'expo-router';
+import { router, useCanGoBack } from 'expo-router';
 import type { ReactNode } from 'react';
 import {
   Platform,
@@ -275,10 +275,12 @@ export function ScreenHeader({
 }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  // A hook, unlike the imperative router, works while the very first screen renders.
+  const canGoBack = useCanGoBack();
   return (
     <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
       <View style={styles.headerBar}>
-        {back && router.canGoBack() ? (
+        {back && canGoBack ? (
           <PressableScale
             onPress={() => router.back()}
             accessibilityRole="button"
