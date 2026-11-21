@@ -10,7 +10,7 @@ Users see it too: when the data of the company behind their schedule hasn't been
 days (`providers[].generatedAt`, or Kauno švara's `generatedAt`), the app shows a warning with a
 link to the company's official schedule (`app/src/lib/freshness.ts`).
 
-There are twenty-five sources:
+There are twenty-six sources:
 
 | `source` | Company | Published in |
 |---|---|---|
@@ -39,6 +39,7 @@ There are twenty-five sources:
 | `kalvarija` | UAB „Marijampolės apskrities atliekų tvarkymo centras“, Kalvarijos sav. | `maatc/` (`provider: "kalvarija"`) |
 | `kazluruda` | UAB „Marijampolės apskrities atliekų tvarkymo centras“, Kazlų Rūdos sav. | `maatc/` (`provider: "kazluruda"`) |
 | `sakiai` | UAB „Marijampolės apskrities atliekų tvarkymo centras“, Šakių r. | `maatc/` (`provider: "sakiai"`) |
+| `kedainiai` | Kėdainių rajono savivaldybės administracija (collected by UAB „Ekonovus“), Kėdainių r. | `kedainiu-r/` (`provider: "kedainiai"`) |
 
 The two Vilniaus r. companies share one `schedule.json`, so the app needs one download. When
 one of them fails, its part of yesterday's file is kept (its `providers[].generatedAt` stays
@@ -110,6 +111,16 @@ schedules of UAB „Ecoservice“ and UAB „Ekonovus“): a municipality whose 
 keeps its part of yesterday's file, the others are still updated. Installed apps find `maatc/`
 through `regions.json` (below).
 
+`kedainiai` is Kėdainių r.: a file per eldership, eleven of them, linked from the municipality's
+page under the heading of their year (Word documents, and a PDF for Josvainių sen. in 2026),
+built by one step into `kedainiu-r/` with a part of its own. The files are posted together and
+in one template, so they are one source: if any of them can't be read, the part of yesterday's
+file is kept for all eleven (its `generatedAt` stays old, so `ScheduleDataStale` fires) and the
+run gets a warning annotation; an eldership missing from the page is a build warning ("no file
+for Vilainių sen. on the page"). The glass days are the packaging days printed in red, so a
+file that stops marking them in red, or marks other days red, fails the build. Installed apps
+find `kedainiu-r/` through `regions.json` (below).
+
 The job therefore publishes the state of the data with every run:
 
 - `https://aurimasnav.github.io/atlieku-surinkimo-grafikas/metrics.txt` (Prometheus format)
@@ -117,9 +128,9 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
-| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `taurage` / `silale` / `pagegiai` / `siauliai` / `radviliskis` / `alytus` / `pasvalys` / `rokiskis` / `birzai` / `panevezio-r` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` was built |
+| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `taurage` / `silale` / `pagegiai` / `siauliai` / `radviliskis` / `alytus` / `pasvalys` / `rokiskis` / `birzai` / `panevezio-r` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` / `kedainiai` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
-| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai`, `radviliskis`, `alytus`, `pasvalys`, `rokiskis`, `birzai`, `panevezio-r`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda` and `sakiai` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
+| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai`, `radviliskis`, `alytus`, `pasvalys`, `rokiskis`, `birzai`, `panevezio-r`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda`, `sakiai` and `kedainiai` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
 | `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead) |
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
@@ -231,6 +242,14 @@ groups:
       # December (the 2026 PDFs were made between 2 and 16 December 2025). Mixed waste,
       # packaging and food waste end on 28-31 December everywhere. Not glass: every four weeks,
       # last on 18 December 2026 in Kazlų Rūdos sav. and on 24 December in Vilkaviškio r.
+      # Kėdainių r. gets calendar-year files: the latest mixed waste pickup is on 31 December
+      # 2026 (Kėdainiai, every two weeks), packaging on 28 December, so this fires from 24
+      # December if next year's files aren't read by then. In January the last date stays 31
+      # December, in the past, so it keeps firing, rightly: the app has no dates until they
+      # are. The 2026 files were made on 8 December 2025; the page with 2025's was dated 3
+      # January 2025 (web archive). It was last edited on 23 February 2026, for a corrected
+      # Surviliškio sen. file.
+      # Not glass: four times a year, last in October.
       - alert: ScheduleDataRunsOut
         expr: |-
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"mazeikiai|telsiai|plunge"}[30m]) - time() < 7 * 86400
@@ -250,6 +269,8 @@ groups:
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"pasvalys|rokiskis|birzai|panevezio-r",kind=~"household|packaging|glass"}[30m]) - time() < 7 * 86400
             or
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"marijampole|vilkaviskis|kalvarija|kazluruda|sakiai",kind=~"household|packaging|food"}[30m]) - time() < 7 * 86400
+            or
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="kedainiai",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
         for: 1h
         labels: { severity: warning }
         annotations:
@@ -299,5 +320,6 @@ source, query `status.json` (type JSON, URL above) and alert when
 `sources.alytus.generatedAt`, `sources.pasvalys.generatedAt`, `sources.rokiskis.generatedAt`,
 `sources.birzai.generatedAt`, `sources.panevezio-r.generatedAt`,
 `sources.marijampole.generatedAt`, `sources.vilkaviskis.generatedAt`,
-`sources.kalvarija.generatedAt`, `sources.kazluruda.generatedAt` or
-`sources.sakiai.generatedAt` is older than 30 hours (or missing).
+`sources.kalvarija.generatedAt`, `sources.kazluruda.generatedAt`,
+`sources.sakiai.generatedAt` or `sources.kedainiai.generatedAt` is older than 30 hours (or
+missing).
