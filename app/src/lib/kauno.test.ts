@@ -1,5 +1,6 @@
 import {
   isKaunasCitySearch,
+  uncoveredCitySearch,
   type KaunoAddress,
   type KaunoAddresses,
   kaunoAlias,
@@ -233,5 +234,18 @@ describe('a search for Kaunas city', () => {
 
   it('is not said when the search found something', () => {
     expect(isKaunasCitySearch('kaunas', 1)).toBe(false);
+  });
+});
+
+describe('a search for Klaipėda city', () => {
+  it('is recognised, and is not the district', () => {
+    for (const query of ['Klaipėda', 'klaipeda', 'Klaipėdos m.', 'Klaipėdos miestas', 'Klaipėdoje', 'Kłajpeda', 'Клайпеда']) {
+      expect([query, uncoveredCitySearch(query, 0)]).toEqual([query, 'klaipeda']);
+    }
+    for (const query of ['Klaipėdos r.', 'Klaipėda district', 'Klaipėdos rajonas', 'Gargždai']) {
+      expect([query, uncoveredCitySearch(query, 0)]).toEqual([query, undefined]);
+    }
+    expect(uncoveredCitySearch('Kaunas', 0)).toBe('kaunas');
+    expect(uncoveredCitySearch('Klaipėda', 2)).toBeUndefined();
   });
 });

@@ -84,7 +84,8 @@
     "housePlaceholder": "Szukaj numeru",
     "noStreet": "Bez nazwy ulicy",
     "noHouse": "Bez numeru domu",
-    "addressesFailed": "Nie udało się pobrać adresów. Sprawdź połączenie z internetem."
+    "addressesFailed": "Nie udało się pobrać adresów. Sprawdź połączenie z internetem.",
+    "locationKlaipedaCity": "Miasta Kłajpedy nie obejmujemy, tylko rejon kłajpedzki (Klaipėdos r.)."
   },
   "select": {
     "title": "{{kind}}: Twoja miejscowość",
