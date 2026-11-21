@@ -9,11 +9,14 @@ W aplikacji miejscowości mają oficjalne litewskie nazwy (np. Nemenčinė, Rie�
 
 Jak to działa
 • Raz wybierz swoją wieś lub miasteczko albo pozwól aplikacji znaleźć Twój adres. Jeśli dni odbioru zależą od ulicy lub rodzaju domu, aplikacja o to zapyta.
-• Wszystkie odbiory w jednym miejscu: najbliższy, ile dni zostało i kolejne daty.
-• Przypomnienie wieczorem dzień wcześniej albo rano w dniu odbioru, o wybranej godzinie.
-• Nowe harmonogramy wczytują się automatycznie, więc przypomnienia są zawsze aktualne.
-• Nie ma Twojej miejscowości albo pojemnik jest opróżniany w inne dni? Ustaw własny harmonogram: co 1–4 tygodnie lub co 1–3 miesiące.
+• Odbiory na liście lub w kalendarzu miesięcznym; możesz je też dodać do swojego kalendarza.
+• Widżet na ekranie głównym pokazuje najbliższy odbiór.
+• Przypomnienia wieczorem dzień wcześniej, rano w dniu odbioru albo oba, o wybranej godzinie. Szkło odbierane jest rzadko? Dodaj mu dodatkowe przypomnienie. Oznacz „Już wystawione” albo odłóż na później prosto z przypomnienia.
+• Nowe harmonogramy wczytują się automatycznie, a o zmianie terminu odbioru dowiesz się od razu.
+• Zapisz kilka miejsc, np. działkę, i otrzymuj przypomnienia dla każdego.
+• Nie ma Twojej miejscowości albo pojemnik jest opróżniany w inne dni? Ustaw własny harmonogram – co 1–4 tygodnie lub co 1–3 miesiące – i pomijaj lub przenoś pojedyncze terminy w święta.
 • Nie masz pojemnika na szkło lub opakowania? Wyłącz jego przypomnienia.
+• Nie wiesz, do którego pojemnika coś wrzucić? Sprawdź w przewodniku segregacji.
 • Po litewsku, angielsku, rosyjsku i polsku.
 
 Prywatność
