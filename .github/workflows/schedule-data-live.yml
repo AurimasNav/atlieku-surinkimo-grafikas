@@ -31,7 +31,7 @@ jobs:
         # --strict: a company whose build fails fails the check, instead of keeping its part of
         # the published data as the daily job does.
         run: uv run python -m schedule_pipeline --strict --out "$RUNNER_TEMP/site/schedule.json"
-      - name: Build the Kauno r. schedule from Kauno švara's open-data file
+      - name: Build the Kauno r. and Kaišiadorių r. schedules from Kauno švara's open-data file
         run: uv run python -m schedule_pipeline.svara --out "$RUNNER_TEMP/site/kauno-r"
       - name: Build the Mažeikių r. schedule from the files on tratc.lt
         run: uv run python -m schedule_pipeline.tratc --out "$RUNNER_TEMP/site/mazeikiu-r"

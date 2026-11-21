@@ -83,6 +83,15 @@ def collect(site: Path) -> dict:
             "places": data["stats"]["addresses"],
             "warnings": data.get("warnings", 0),
         }
+        # The other municipalities of Kauno švara's file, published with Kauno r. (Kaišiadorių
+        # r.: "kaisiadorys"): built together, counted apart.
+        for part in data.get("otherMunicipalities", []):
+            sources[part["id"]] = {
+                "generatedAt": data["generatedAt"],
+                "areas": part["stats"]["areas"],
+                "places": part["stats"]["addresses"],
+                "warnings": part["warnings"],
+            }
     return {"checkedAt": datetime.now(UTC).isoformat(timespec="seconds"), "sources": sources}
 
 
@@ -111,7 +120,7 @@ def metrics(status: dict) -> str:
         ),
         "siuksliaveze_data_places": (
             "Settlements (nemencine, nemezio, mazeikiai, klaipedos, jurbarkas) or addresses "
-            "(kauno) the data covers.",
+            "(kauno, kaisiadorys) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (
