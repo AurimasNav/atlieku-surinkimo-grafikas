@@ -10,7 +10,7 @@ Users see it too: when the data of the company behind their schedule hasn't been
 days (`providers[].generatedAt`, or Kauno švara's `generatedAt`), the app shows a warning with a
 link to the company's official schedule (`app/src/lib/freshness.ts`).
 
-There are thirty-one sources:
+There are thirty-two sources:
 
 | `source` | Company | Published in |
 |---|---|---|
@@ -45,6 +45,7 @@ There are thirty-one sources:
 | `silute` | UAB „Ecoservice“, Šilutės r. | `silutes-r/` (`provider: "silute"`) |
 | `trakai` | UAB „Ecoservice“, Trakų r. | `ecoservice/` (`provider: "trakai"`) |
 | `salcininkai` | UAB „Ecoservice“, Šalčininkų r. | `ecoservice/` (`provider: "salcininkai"`) |
+| `moletai` | UAB „Molėtų švara“, Molėtų r. | `moletu-r/` (`provider: "moletai"`) |
 
 The two Vilniaus r. companies share one `schedule.json`, so the app needs one download. When
 one of them fails, its part of yesterday's file is kept (its `providers[].generatedAt` stays
@@ -147,6 +148,15 @@ snapshot refresh takes (`uv run python -m schedule_pipeline.snapshot`), with a b
 that says how old it is: next year's file reaches the site only with a refresh, and
 `ScheduleDataRunsOut` fires for `silute` in late December until one is done.
 
+`moletai` is Molėtų r., from a PDF per eldership and the town's (12 files) of the company that
+collects its waste: mixed waste, packaging and glass a year at a time, and the town's green
+waste. Its own step builds `moletu-r/`. As for `raseiniai` and `jonava`, a file that can't be
+downloaded or read keeps its rows of yesterday's data, with a warning, and the other files are
+still read; a page that no longer links a file of every eldership fails the build, and
+yesterday's folder is kept. A notice next to a file on the page other than the one it had in
+2026 is a build warning (`ScheduleDataMoreWarnings`). Installed apps find `moletu-r/` through
+`regions.json` (below).
+
 The job therefore publishes the state of the data with every run:
 
 - `https://aurimasnav.github.io/atlieku-surinkimo-grafikas/metrics.txt` (Prometheus format)
@@ -154,9 +164,9 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
-| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `taurage` / `silale` / `pagegiai` / `siauliai` / `radviliskis` / `alytus` / `pasvalys` / `rokiskis` / `birzai` / `panevezio-r` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` / `raseiniai` / `jonava` / `kretinga` / `silute` / `trakai` / `salcininkai` was built |
+| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `taurage` / `silale` / `pagegiai` / `siauliai` / `radviliskis` / `alytus` / `pasvalys` / `rokiskis` / `birzai` / `panevezio-r` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` / `raseiniai` / `jonava` / `kretinga` / `silute` / `trakai` / `salcininkai` / `moletai` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
-| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai`, `radviliskis`, `alytus`, `pasvalys`, `rokiskis`, `birzai`, `panevezio-r`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda`, `sakiai`, `raseiniai`, `jonava`, `kretinga`, `silute`, `trakai` and `salcininkai` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
+| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai`, `radviliskis`, `alytus`, `pasvalys`, `rokiskis`, `birzai`, `panevezio-r`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda`, `sakiai`, `raseiniai`, `jonava`, `kretinga`, `silute`, `trakai`, `salcininkai` and `moletai` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
 | `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead) |
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
@@ -285,6 +295,10 @@ groups:
       # the last week). The 2026 files of Šilutės r. and Šalčininkų r. were made on 17-18
       # December 2025, Trakų r.'s on 15 January 2026, so expect this to fire for `trakai` from
       # about 24 December until next year's file is read.
+      # Molėtų r.: calendar-year files (the 2026 PDFs were made on 18 December 2025). Mixed
+      # waste ends on 1-14 December 2026 and packaging on 15-31 December, so this fires from 7
+      # December until next year's files are read. Not glass (four times a year, last on 30
+      # October) nor the town's green waste (last on 17 December).
       - alert: ScheduleDataRunsOut
         expr: |-
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"mazeikiai|telsiai|plunge"}[30m]) - time() < 7 * 86400
@@ -312,6 +326,8 @@ groups:
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="kretinga",kind=~"household|packaging|food"}[30m]) - time() < 2 * 86400
             or
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"silute|trakai|salcininkai"}[30m]) - time() < 7 * 86400
+            or
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="moletai",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
         for: 1h
         labels: { severity: warning }
         annotations:
@@ -363,5 +379,6 @@ source, query `status.json` (type JSON, URL above) and alert when
 `sources.marijampole.generatedAt`, `sources.vilkaviskis.generatedAt`,
 `sources.kalvarija.generatedAt`, `sources.kazluruda.generatedAt`,
 `sources.sakiai.generatedAt`, `sources.raseiniai.generatedAt`, `sources.jonava.generatedAt`,
-`sources.kretinga.generatedAt`, `sources.silute.generatedAt`, `sources.trakai.generatedAt`
-or `sources.salcininkai.generatedAt` is older than 30 hours (or missing).
+`sources.kretinga.generatedAt`, `sources.silute.generatedAt`, `sources.trakai.generatedAt`,
+`sources.salcininkai.generatedAt` or `sources.moletai.generatedAt` is older than 30 hours (or
+missing).
