@@ -2,7 +2,7 @@ import { KAUNO_SOURCE_PAGE_URL, SOURCE_PAGE_URL } from './config';
 import { customDates, type CustomSchedule } from './custom-schedule';
 import { parseIsoDate } from './dates';
 import { type KaunoAddress, kaunoKey } from './kauno';
-import { type Area, isCurrent, type Location, type ScheduleData, WASTE_KINDS, type WasteKind } from './schedule';
+import { type Area, isCurrent, type Location, personalsOf, type ScheduleData, WASTE_KINDS, type WasteKind } from './schedule';
 
 /** What the user picked, stored on the phone. */
 export type Place = {
@@ -64,8 +64,8 @@ export function resolvePlace(data: ScheduleData | null, place: Place | null, tod
     return area && isCurrent(area, today) ? area : undefined;
   };
   // The schedules of a Kauno r. address, if the saved ones belong to this address.
-  const personal =
-    place?.kauno && data?.personal?.key === kaunoKey(place.kauno) ? data.personal.areas : undefined;
+  const key = place?.kauno && kaunoKey(place.kauno);
+  const personal = key ? personalsOf(data).find((p) => p.key === key)?.areas : undefined;
 
   for (const kind of WASTE_KINDS) {
     const custom = place?.custom?.[kind];
@@ -84,8 +84,8 @@ export function resolvePlace(data: ScheduleData | null, place: Place | null, tod
       kinds[kind] = area ? { status: 'ok', area } : { status: 'none' };
       continue;
     }
-    // Food and green waste have schedules in few places (Kauno r., Mažeikiai town): nothing to
-    // ask about elsewhere.
+    // Food and green waste have schedules in few places (Kauno r., Mažeikiai town, green waste in
+    // Klaipėdos r.): nothing to ask about elsewhere.
     if (!BASE_KINDS.includes(kind) && !location?.schedule?.[kind] && !choice) {
       kinds[kind] = { status: 'none' };
       continue;
@@ -128,8 +128,8 @@ export function isHousingChoice(candidates: Area[]): boolean {
 
 /**
  * The waste types to show for a place: its provider's, plus any other the place has a schedule
- * for (a few Kauno r. addresses have glass, Mažeikiai has food waste; own schedules can be set
- * for any type).
+ * for (a few Kauno r. addresses have glass, Mažeikiai has food waste, Klaipėdos r. green waste;
+ * own schedules can be set for any type).
  */
 export function visibleKinds(place: Place | null, resolved: Resolved): WasteKind[] {
   const usual = place?.kauno ? KAUNO_KINDS : BASE_KINDS;

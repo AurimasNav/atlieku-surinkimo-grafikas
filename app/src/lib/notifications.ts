@@ -5,12 +5,14 @@ import { Platform } from 'react-native';
 import i18n, { resolveLanguage } from '@/i18n';
 import { useReminderActions } from '@/store/reminder-actions';
 import { useSchedule } from '@/store/schedule';
-import { useSettings } from '@/store/settings';
+import { allPlaces, useSettings } from '@/store/settings';
 
+import { describeChanges, type PickupChange } from './changes';
 import { toIsoDate } from './dates';
-import { daysAhead, type Pickup, planReminders, snoozeMinutes } from './reminders';
+import { placeName } from './places';
+import { type PickupData, pickupFromContent } from './reminder-data';
+import { daysAhead, planReminders, snoozeMinutes } from './reminders';
 import { resolvePlace } from './resolve';
-import { WASTE_KINDS, type WasteKind } from './schedule';
 
 const CHANNEL_ID = 'pickup-reminders';
 const supported = Platform.OS !== 'web';
@@ -19,8 +21,6 @@ const supported = Platform.OS !== 'web';
 const CATEGORY = { evening: 'pickup_evening', morning: 'pickup_morning' } as const;
 export const ACTION = { done: 'done', snooze: 'snooze' } as const;
 
-/** What a pickup reminder carries, so its buttons know which pickup they're about. */
-type PickupData = { type: 'pickup'; date: string; kinds: WasteKind[] };
 
 export async function configureNotifications(): Promise<void> {
   if (!supported) return;
@@ -71,11 +71,16 @@ async function registerCategories(t: TFunction): Promise<void> {
 export async function syncReminders(now = new Date()): Promise<number> {
   if (!supported) return 0;
   const { data } = useSchedule.getState();
-  const { place, reminder, language } = useSettings.getState();
+  const settings = useSettings.getState();
+  const { reminder, language } = settings;
   useReminderActions.getState().prune(now);
   const { done, snoozed } = useReminderActions.getState();
   const t = i18n.getFixedT(resolveLanguage(language));
-  const plan = planReminders(resolvePlace(data, place, toIsoDate(now)).areas, reminder, now, { done, snoozed });
+  // Every saved place gets reminders; with more than one, each says which place it's for.
+  const places = allPlaces(settings).filter((saved) => saved.place);
+  const sources = places.map((saved) => ({ place: saved.id, areas: resolvePlace(data, saved.place, toIsoDate(now)).areas }));
+  const names = new Map(places.map((saved) => [saved.id, placeName(saved, data, now) ?? t('custom.title')]));
+  const plan = planReminders(sources, reminder, now, { done, snoozed });
 
   await Notifications.cancelAllScheduledNotificationsAsync();
   if (!(await hasNotificationPermission())) return 0;
@@ -89,9 +94,17 @@ export async function syncReminders(now = new Date()): Promise<number> {
             title: t(ahead >= 1 ? 'notifications.titleTomorrow' : 'notifications.titleToday', {
               kinds: item.pickup.kinds.map((kind) => t(`kinds.${kind}`)).join(', '),
             }),
-            body: t('notifications.body'),
+            body:
+              places.length > 1 && item.pickup.place
+                ? t('notifications.bodyAtPlace', { place: names.get(item.pickup.place) ?? '' })
+                : t('notifications.body'),
             categoryIdentifier: ahead >= 1 ? CATEGORY.evening : CATEGORY.morning,
-            data: { type: 'pickup', date: item.pickup.date, kinds: item.pickup.kinds } satisfies PickupData,
+            data: {
+              type: 'pickup',
+              date: item.pickup.date,
+              kinds: item.pickup.kinds,
+              ...(item.pickup.place ? { place: item.pickup.place } : {}),
+            } satisfies PickupData,
           }
         : { title: t('notifications.refreshTitle'), body: t('notifications.refreshBody') };
 
@@ -107,11 +120,21 @@ export async function syncReminders(now = new Date()): Promise<number> {
   return plan.length;
 }
 
-function pickupOf(response: Notifications.NotificationResponse): Pickup | undefined {
-  const data = response.notification.request.content.data as Partial<PickupData> | undefined;
-  if (data?.type !== 'pickup' || typeof data.date !== 'string' || !Array.isArray(data.kinds)) return undefined;
-  return { date: data.date, kinds: data.kinds.filter((kind) => (WASTE_KINDS as readonly string[]).includes(kind)) };
+/** Tells the user right away that a refresh moved, cancelled or added pickups of theirs. */
+export async function notifyScheduleChanges(changes: PickupChange[]): Promise<void> {
+  if (!supported || !changes.length || !(await hasNotificationPermission())) return;
+  const lang = resolveLanguage(useSettings.getState().language);
+  const t = i18n.getFixedT(lang);
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: t('notifications.changedTitle'),
+      body: describeChanges(changes, t, lang).join('\n'),
+      data: { type: 'changes' },
+    },
+    trigger: { channelId: CHANNEL_ID },
+  });
 }
+
 
 /**
  * Handles the "Bins are out" and "Later" buttons. Runs in the app, or in the background task
@@ -119,7 +142,7 @@ function pickupOf(response: Notifications.NotificationResponse): Pickup | undefi
  * Returns whether the response was a button press it handled.
  */
 export async function handleReminderAction(response: Notifications.NotificationResponse, now = new Date()): Promise<boolean> {
-  const pickup = pickupOf(response);
+  const pickup = pickupFromContent(response.notification.request.content);
   if (!pickup || (response.actionIdentifier !== ACTION.done && response.actionIdentifier !== ACTION.snooze)) return false;
   const id = response.notification.request.identifier;
   if (response.actionIdentifier === ACTION.done) {

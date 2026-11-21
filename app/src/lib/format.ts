@@ -30,6 +30,10 @@ export const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase() +
 export const longDate = (lang: string, iso: string) =>
   new Intl.DateTimeFormat(lang, { weekday: 'long', month: 'long', day: 'numeric' }).format(parseIsoDate(iso));
 
+/** "Thu, December 4": a pickup date in a list of changes. */
+export const shortDayDate = (lang: string, iso: string) =>
+  new Intl.DateTimeFormat(lang, { weekday: 'short', month: 'long', day: 'numeric' }).format(parseIsoDate(iso));
+
 /** Locale-aware date helpers bound to the current app language. */
 export function useDateFormat() {
   const { t, i18n } = useTranslation();

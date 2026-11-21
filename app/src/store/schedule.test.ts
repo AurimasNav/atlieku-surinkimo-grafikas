@@ -1,4 +1,4 @@
-import type { KaunoAddress } from '@/lib/kauno';
+import { type KaunoAddress, kaunoKey } from '@/lib/kauno';
 import type { ScheduleData } from '@/lib/schedule';
 
 import { useSchedule } from './schedule';
@@ -63,6 +63,7 @@ describe('other regions', () => {
   afterEach(() => {
     files['schedule.json'] = data;
     delete files['mazeikiu-r/schedule.json'];
+    delete files['klaipedos-r/schedule.json'];
   });
 
   it('are merged into one list of places and rows', async () => {
@@ -81,6 +82,24 @@ describe('other regions', () => {
     expect(useSchedule.getState().data?.areas[1].dates).toEqual(['2026-12-08']);
   });
 
+  it('are merged each on its own', async () => {
+    files['klaipedos-r/schedule.json'] = {
+      ...data,
+      providers: [{ id: 'klaipedos', name: 'Gargždų švara', url: 'https://www.gargzdusvara.eu/' }],
+      areas: [{ id: 'z-1', kind: 'green', name: 'Ablingos k.', dates: ['2026-11-27'], provider: 'klaipedos' }],
+      locations: [{ id: 'g3', name: 'Ablinga', type: 'k.', district: 'Endriejavo', provider: 'klaipedos' }],
+    };
+    await useSchedule.getState().refresh();
+    expect(ids()).toEqual(['h-1', 'f-1', 'z-1']);
+    // One region's file can't be downloaded: its saved part stays, the other one is updated.
+    delete files['klaipedos-r/schedule.json'];
+    files['mazeikiu-r/schedule.json'] = region(['2026-12-08']);
+    expect(await useSchedule.getState().refresh()).toBe(true);
+    expect(ids()).toEqual(['h-1', 'f-1', 'z-1']);
+    expect(useSchedule.getState().data?.areas[1].dates).toEqual(['2026-12-08']);
+    expect(useSchedule.getState().data?.providers?.map((provider) => provider.id)).toEqual(['mazeikiai', 'klaipedos']);
+  });
+
   it('keep their saved part when their file cannot be downloaded', async () => {
     await useSchedule.getState().refresh();
     delete files['mazeikiu-r/schedule.json'];
@@ -96,7 +115,8 @@ describe('other regions', () => {
     const etags: Record<string, string> = { 'schedule.json': 'm1', 'mazeikiu-r/schedule.json': 'r1' };
     const sent: Record<string, string | undefined> = {};
     globalThis.fetch = jest.fn(async (url: string, init?: { headers?: Record<string, string> }) => {
-      const name = Object.keys(etags).find((file) => String(url).endsWith(`atlieku-surinkimo-grafikas/${file}`))!;
+      const name = Object.keys(etags).find((file) => String(url).endsWith(`atlieku-surinkimo-grafikas/${file}`));
+      if (!name) return { ok: false, status: 404, headers: { get: (): null => null } }; // the other regions
       sent[name] = init?.headers?.['If-None-Match'];
       const headers = { get: () => etags[name] };
       return sent[name] === etags[name]
@@ -159,9 +179,28 @@ describe('refreshing a Kauno r. address', () => {
     expect(place?.kauno).toEqual({ ...saved, town: 'Akademijos mstl.' });
     // Answers given for the address stay.
     expect(place?.choices).toEqual({ green: null });
-    expect(useSchedule.getState().data?.personal).toEqual({
-      key: 'akademijos|Akademijos mstl.|Vynuogyno g.|9',
-      areas: [expect.objectContaining({ kind: 'household', dates: ['2026-11-25'] })],
+    expect(useSchedule.getState().data?.personals).toEqual([
+      {
+        key: 'akademijos|Akademijos mstl.|Vynuogyno g.|9',
+        areas: [expect.objectContaining({ kind: 'household', dates: ['2026-11-25'] })],
+        generatedAt: '',
+      },
+    ]);
+  });
+
+  it('keeps the schedules of every saved place, and those of a place it could not download', async () => {
+    const other = { ...saved, town: 'Akademijos mstl.', house: '11' };
+    const keptAreas = [{ id: 'old', kind: 'household' as const, name: '', dates: ['2026-11-30'] }];
+    useSettings.setState({
+      place: { kauno: saved, choices: {} },
+      otherPlaces: [{ id: 'summer', place: { kauno: other, choices: {} } }],
     });
+    useSchedule.setState({ data: { ...data, personal: { key: kaunoKey(other), areas: keptAreas } }, etag: undefined });
+    await useSchedule.getState().refresh();
+    const personals = useSchedule.getState().data?.personals ?? [];
+    expect(personals.map((p) => p.key)).toEqual(['akademijos|Akademijos mstl.|Vynuogyno g.|9', kaunoKey(other)]);
+    // House 11 isn't in the address file: the dates saved before stay.
+    expect(personals[1].areas).toEqual(keptAreas);
+    expect(useSchedule.getState().data?.personal).toBeUndefined();
   });
 });

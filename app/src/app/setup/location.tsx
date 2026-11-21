@@ -16,10 +16,11 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { AppText, Button, ListRow, PressableScale, ScreenHeader, SearchField } from '@/components/ui';
+import { openIssue } from '@/lib/feedback';
 import { type GeolocateResult, locateHome } from '@/lib/geolocate';
 import {
   fetchKaunoIndex,
-  isKaunasCitySearch,
+  uncoveredCitySearch,
   type KaunoTown,
   kaunoTowns,
   loadKaunoAddress,
@@ -107,7 +108,7 @@ export default function ChooseLocation() {
       setConfirming(false);
       if (!personal) return askAddress();
       useSettings.getState().setKaunoAddress(personal.address);
-      useSchedule.getState().setPersonal({ key: personal.key, areas: personal.areas });
+      useSchedule.getState().setPersonal({ key: personal.key, areas: personal.areas, generatedAt: personal.generatedAt });
       return router.push('/setup/done');
     }
     // Only pass the street when we trust it; otherwise the street step asks.
@@ -252,7 +253,13 @@ export default function ChooseLocation() {
           ListEmptyComponent={
             deferred && !found ? (
               <AppText muted style={styles.empty}>
-                {isKaunasCitySearch(deferred, results.length) ? t('setup.locationKaunasCity') : t('setup.locationNone')}
+                {
+                  {
+                    kaunas: t('setup.locationKaunasCity'),
+                    klaipeda: t('setup.locationKlaipedaCity'),
+                    none: t('setup.locationNone'),
+                  }[uncoveredCitySearch(deferred, results.length) ?? 'none']
+                }
               </AppText>
             ) : undefined
           }
@@ -273,6 +280,14 @@ export default function ChooseLocation() {
                   title={t('setup.manualLink')}
                   onPress={() => router.push({ pathname: '/select/[kind]', params: { kind: 'household', flow: 'manual' } })}
                 />
+                {deferred && !results.length && (
+                  <Button
+                    variant="ghost"
+                    icon="megaphone-outline"
+                    title={t('feedback.area')}
+                    onPress={() => openIssue('area_request', { search: deferred })}
+                  />
+                )}
               </View>
             )
           }

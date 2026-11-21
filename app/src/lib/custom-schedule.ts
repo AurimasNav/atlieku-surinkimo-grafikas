@@ -11,6 +11,10 @@ export type CustomSchedule = {
    * (the 5th occurrence becomes "the last"), because collections follow weekdays, not dates.
    */
   unit: 'week' | 'month';
+  /** Regular dates that don't happen, e.g. moved because of a holiday. */
+  skip?: string[];
+  /** Pickups outside the rhythm, e.g. the day a skipped one moved to. */
+  extra?: string[];
 };
 
 export const REPEAT_OPTIONS: { every: number; unit: CustomSchedule['unit'] }[] = [
@@ -40,6 +44,37 @@ function nthWeekdayOfMonth(year: number, month: number, weekday: number, nth: nu
 
 /** Pickup dates from `from` (inclusive) for about a year, as YYYY-MM-DD strings. */
 export function customDates(schedule: CustomSchedule, from: Date): string[] {
+  const skip = new Set(schedule.skip);
+  const fromIso = toIsoDate(from);
+  const extra = (schedule.extra ?? []).filter((date) => date >= fromIso);
+  return [...new Set([...regularDates(schedule, from).filter((date) => !skip.has(date)), ...extra])].sort();
+}
+
+export type PreviewDate = { date: string; status: 'regular' | 'skipped' | 'extra' };
+
+/** The next `count` dates for the editor, skipped ones included so they can be brought back. */
+export function customPreview(schedule: CustomSchedule, from: Date, count: number): PreviewDate[] {
+  const skip = new Set(schedule.skip);
+  const fromIso = toIsoDate(from);
+  const regular = regularDates(schedule, from).map((date): PreviewDate => ({ date, status: skip.has(date) ? 'skipped' : 'regular' }));
+  const extra = (schedule.extra ?? [])
+    .filter((date) => date >= fromIso && !regular.some((r) => r.date === date && r.status === 'regular'))
+    .map((date): PreviewDate => ({ date, status: 'extra' }));
+  return [...regular, ...extra].sort((a, b) => a.date.localeCompare(b.date)).slice(0, count);
+}
+
+/** Drops exceptions that no longer matter: past dates, and skips the rhythm doesn't have. */
+export function tidyExceptions(schedule: CustomSchedule, from: Date): CustomSchedule {
+  const fromIso = toIsoDate(from);
+  const regular = new Set(regularDates(schedule, from));
+  const skip = (schedule.skip ?? []).filter((date) => date >= fromIso && regular.has(date));
+  const extra = (schedule.extra ?? []).filter((date) => date >= fromIso && !regular.has(date));
+  const { skip: _skip, extra: _extra, ...rule } = schedule;
+  return { ...rule, ...(skip.length ? { skip } : {}), ...(extra.length ? { extra } : {}) };
+}
+
+/** The dates of the rhythm alone, without the user's exceptions. */
+function regularDates(schedule: CustomSchedule, from: Date): string[] {
   const start = parseIsoDate(schedule.start);
   const fromDay = new Date(from.getFullYear(), from.getMonth(), from.getDate());
   const until = new Date(fromDay);

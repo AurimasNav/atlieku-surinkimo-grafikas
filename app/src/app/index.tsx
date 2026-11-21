@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, router } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Linking, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
@@ -9,13 +10,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EkonovusLink } from '@/components/ekonovus-link';
 import { KindFilter } from '@/components/kind-filter';
-import { AppText, Button, IconButton, KindBadge, KindIcon, Notice, PressableScale } from '@/components/ui';
+import { MonthCalendar } from '@/components/month-calendar';
+import { AppText, Button, Chip, IconButton, KindBadge, KindIcon, Notice, PressableScale } from '@/components/ui';
+import { activeChanges, describeChanges } from '@/lib/changes';
 import { clearLastCrash, lastCrash } from '@/lib/crash';
 import { toIsoDate } from '@/lib/dates';
 import { openIssue } from '@/lib/feedback';
 import { formatTime, useDateFormat } from '@/lib/format';
+import { checkOverdue, staleSources } from '@/lib/freshness';
 import { hasNotificationPermission } from '@/lib/notifications';
 import { doneKey, type Pickup, sortTimes, timesFor, upcomingPickups } from '@/lib/reminders';
+import { refreshSchedule } from '@/lib/refresh';
 import { pendingKinds, placeLabel, resolvePlace, visibleKinds } from '@/lib/resolve';
 import { useMotion } from '@/lib/motion';
 import type { WasteKind } from '@/lib/schedule';
@@ -37,8 +42,11 @@ export default function Home() {
   const onboarded = useSettings((s) => s.onboarded);
   const place = useSettings((s) => s.place);
   const reminder = useSettings((s) => s.reminder);
+  const homeView = useSettings((s) => s.homeView);
+  const placeId = useSettings((s) => s.placeId);
+  const placeNickname = useSettings((s) => s.placeName);
   const doneKeys = useReminderActions((s) => s.done);
-  const { data, refreshing, error, refresh } = useSchedule();
+  const { data, refreshing, error, refresh, lastChecked, changes, dismissChanges } = useSchedule();
   const [filter, setFilter] = useState<Filter>('all');
   const [notificationsOn, setNotificationsOn] = useState(true);
   const [crash, setCrash] = useState(lastCrash);
@@ -52,33 +60,38 @@ export default function Home() {
   const activeKinds = shownKinds.filter((kind) => resolved.kinds[kind].status === 'ok');
   const label = placeLabel(place, resolved);
   const allPickups = useMemo(() => upcomingPickups(resolved.areas, new Date()), [resolved]);
-  const pickups = useMemo(
+  const filtered = useMemo(
     () =>
-      (filter === 'all'
+      filter === 'all'
         ? allPickups
-        : allPickups.filter((p) => p.kinds.includes(filter)).map((p) => ({ ...p, kinds: [filter] }))
-      ).slice(0, UPCOMING_LIMIT),
+        : allPickups.filter((p) => p.kinds.includes(filter)).map((p) => ({ ...p, kinds: [filter] })),
     [allPickups, filter],
   );
+  const pickups = filtered.slice(0, UPCOMING_LIMIT);
 
   if (!onboarded) return <Redirect href="/onboarding" />;
 
   const [next, ...rest] = pickups;
   const pending = pendingKinds(resolved);
   const placeName =
+    placeNickname ??
     label.name ??
     (place?.custom && Object.keys(place.custom).length ? t('custom.title') : t('home.choosePlace'));
   const notes = resolved.areas.filter((area) => area.note && !area.dates.length);
   // Served, but the last pickup has passed and the next schedule isn't published yet.
   const today = toIsoDate(new Date());
   const waiting = resolved.areas.filter((area) => !area.note && (area.dates.at(-1) ?? today) < today);
+  const now = new Date();
+  const stale = staleSources(data, place, resolved, now);
+  const overdue = checkOverdue(lastChecked, now);
+  const shownChanges = activeChanges(changes, today);
   // The reminders of the next pickup: its waste types may have their own.
   const nextTimes = next
     ? sortTimes(
         [...new Map(next.kinds.flatMap((kind) => timesFor(reminder, kind)).map((time) => [JSON.stringify(time), time])).values()],
       )
     : [];
-  const nextDone = next?.kinds.every((kind) => doneKeys.includes(doneKey(next.date, kind)));
+  const nextDone = next?.kinds.every((kind) => doneKeys.includes(doneKey(next.date, kind, placeId)));
   const reminderText = nextDone
     ? t('home.markedDone')
     : nextTimes.length === 0
@@ -114,7 +127,7 @@ export default function Home() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={async () => {
-              await refresh();
+              await refreshSchedule();
             }}
             tintColor={theme.primary}
           />
@@ -123,7 +136,7 @@ export default function Home() {
         <View style={styles.topBar}>
           <PressableScale
             haptic="light"
-            onPress={() => router.push('/setup/location')}
+            onPress={() => router.push('/places')}
             accessibilityRole="button"
             wrapperStyle={styles.placeWrapper}
             style={[styles.placePill, { backgroundColor: theme.surface }]}>
@@ -212,7 +225,27 @@ export default function Home() {
                 {t('home.nextNotAnnounced', { kind: t(`kinds.${area.kind}`), date: date.dayMonth(area.dates.at(-1)!) })}
               </Notice>
             ))}
-            {error && <Notice>{error === 'unsupported' ? t('errors.unsupported') : t('home.refreshFailed')}</Notice>}
+            {shownChanges.length > 0 && (
+              <Notice tone="info" action={<Button variant="secondary" title={t('home.changesDismiss')} onPress={dismissChanges} />}>
+                {[t('home.changesTitle'), ...describeChanges(shownChanges, t, i18n.language)].join('\n')}
+              </Notice>
+            )}
+            {stale.map((source) => (
+              <Notice
+                key={source.name}
+                action={
+                  <Button variant="secondary" title={t('settings.source')} onPress={() => WebBrowser.openBrowserAsync(source.url)} />
+                }>
+                {t('home.staleData', { company: source.name, date: date.dayMonth(toIsoDate(new Date(source.since))) })}
+              </Notice>
+            ))}
+            {error === 'unsupported' ? (
+              <Notice>{t('errors.unsupported')}</Notice>
+            ) : overdue ? (
+              <Notice>{t('home.checkOverdue', { date: date.dayMonth(toIsoDate(new Date(lastChecked!))) })}</Notice>
+            ) : (
+              error && <Notice>{t('home.refreshFailed')}</Notice>
+            )}
 
             {/* Hero: the next pickup */}
             {next ? (
@@ -267,8 +300,17 @@ export default function Home() {
               />
             )}
 
+            {next && (
+              <View style={styles.viewToggle}>
+                <Chip label={t('home.viewList')} selected={homeView === 'list'} onPress={() => useSettings.getState().setHomeView('list')} />
+                <Chip label={t('home.viewMonth')} selected={homeView === 'month'} onPress={() => useSettings.getState().setHomeView('month')} />
+              </View>
+            )}
+
+            {homeView === 'month' && next && <MonthCalendar key={filter} pickups={filtered} />}
+
             {/* Timeline */}
-            {months.map((month) => (
+            {homeView === 'list' && months.map((month) => (
               <Animated.View key={`${filter}-${month.key}`} layout={motion(LinearTransition.springify())} style={styles.month}>
                 <AppText variant="overline" muted style={styles.monthTitle}>
                   {month.label}
@@ -326,6 +368,7 @@ export default function Home() {
               }
               style={styles.reportLink}
             />
+            <Button variant="ghost" icon="leaf-outline" title={t('guide.entry')} onPress={() => router.push('/guide')} />
             <AppText variant="caption" muted style={styles.footer}>
               {t('home.updated', {
                 date: new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }).format(new Date(data.generatedAt)),
@@ -393,4 +436,5 @@ const styles = StyleSheet.create({
   footer: { textAlign: 'center' },
   reportLink: { marginTop: spacing.md },
   noticeActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  viewToggle: { flexDirection: 'row', gap: spacing.sm },
 });

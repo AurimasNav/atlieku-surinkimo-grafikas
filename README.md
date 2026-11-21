@@ -15,6 +15,10 @@ schedules the waste companies publish:
   from the spreadsheets of the regional waste centre,
   [UAB "Telšių regiono atliekų tvarkymo centras"](https://tratc.lt/atlieku-surinkimo-grafikai/atlieku-surinkimo-grafikai-mazeikiai/).
   The waste is collected by UAB "Ecoservice" and UAB "Virginijus ir Ko".
+- **Klaipėda district**: mixed waste, packaging, glass and green waste, from the spreadsheet of
+  the municipality's waste administrator,
+  [VšĮ "Gargždų švara"](https://www.gargzdusvara.eu/komunaliniu-atlieku-tvarkymo-grafikai/).
+  The waste is collected by UAB "Ekonovus".
 
 Available in Lithuanian, English, Russian and Polish.
 
@@ -63,7 +67,8 @@ your own build, rename and rebrand it. See [TRADEMARKS.md](TRADEMARKS.md).
 
 This is an unofficial project, not affiliated with or endorsed by UAB "Nemenčinės
 komunalininkas", UAB "Nemėžio komunalininkas", UAB "Kauno švara", UAB "Ekonovus", UAB "Telšių
-regiono atliekų tvarkymo centras", UAB "Ecoservice" or UAB "Virginijus ir Ko". The schedule data belongs to its publishers. Settlement and street names
+regiono atliekų tvarkymo centras", UAB "Ecoservice", UAB "Virginijus ir Ko" or VšĮ "Gargždų
+švara". The schedule data belongs to its publishers. Settlement and street names
 come from the Address Register (Adresų registras) of VĮ Registrų centras, published as open
 data at [get.data.gov.lt](https://get.data.gov.lt/datasets/gov/rc/ar/:ns). Dates are converted
 automatically and may contain mistakes; always check the official schedule if in doubt.
