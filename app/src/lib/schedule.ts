@@ -57,6 +57,8 @@ export type Provider = {
   name: string;
   /** The company's official schedule page. */
   url: string;
+  /** When its part of the data was last built; stays old while its source can't be read. */
+  generatedAt?: string;
 };
 
 export type ScheduleData = {
@@ -73,8 +75,11 @@ export type ScheduleData = {
    * Not part of the download: the schedules of the user's own address in Kauno r., kept by the
    * app next to the data (see lib/kauno.ts). `key` says which address they belong to.
    */
-  personal?: { key: string; areas: Area[] };
+  personal?: Personal;
 };
+
+/** The schedules of one Kauno r. address, and when Kauno švara's data they come from was built. */
+export type Personal = { key: string; areas: Area[]; generatedAt?: string };
 
 export class UnsupportedScheduleError extends Error {}
 

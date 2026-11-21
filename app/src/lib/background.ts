@@ -3,9 +3,8 @@ import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import { Platform } from 'react-native';
 
-import { useSchedule } from '@/store/schedule';
-
 import { handleReminderAction, syncReminders } from './notifications';
+import { refreshSchedule } from './refresh';
 
 const TASK_NAME = 'refresh-schedule';
 /** Android runs it when a notification button is pressed while the app is closed. */
@@ -15,7 +14,7 @@ const NOTIFICATION_TASK_NAME = 'reminder-action';
 if (Platform.OS !== 'web') {
   TaskManager.defineTask(TASK_NAME, async () => {
     try {
-      await useSchedule.getState().refresh();
+      await refreshSchedule();
       // Re-plan even if the data didn't change: it moves the 60-reminder window forward.
       await syncReminders();
       return BackgroundTask.BackgroundTaskResult.Success;

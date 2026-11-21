@@ -119,7 +119,11 @@
     "reminderShortEvening": "evening before {{time}}",
     "reminderShortMorning": "that morning {{time}}",
     "noReminder": "Reminders are off for this pickup",
-    "markedDone": "You've put the bins out"
+    "markedDone": "You've put the bins out",
+    "staleData": "The schedule of {{company}} couldn't be checked for changes since {{date}}. If the company has changed it, the dates here may be out of date.",
+    "checkOverdue": "The app hasn't been able to check for a new schedule since {{date}}. Connect to the internet and pull down to refresh.",
+    "changesTitle": "The schedule changed:",
+    "changesDismiss": "Got it"
   },
   "settings": {
     "title": "Settings",
@@ -156,7 +160,8 @@
     "refreshBody": "Open the app so it can load the next schedule.",
     "done": "Bins are out",
     "snoozeHour": "In an hour",
-    "snoozeShort": "In 15 min"
+    "snoozeShort": "In 15 min",
+    "changedTitle": "Pickup dates changed"
   },
   "errors": {
     "loadFailed": "Couldn't load the schedule. Check your internet connection.",
@@ -220,5 +225,10 @@
   "kauno": {
     "glassPackaging": "Glass and packaging",
     "ekonovus": "Collected by UAB „Ekonovus“: see its schedule"
+  },
+  "changes": {
+    "moved": "{{kind}}: {{from}} → {{to}}",
+    "cancelled": "{{kind}}: no pickup on {{date}}",
+    "added": "{{kind}}: extra pickup on {{date}}"
   }
 }

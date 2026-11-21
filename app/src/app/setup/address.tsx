@@ -71,6 +71,7 @@ export default function ChooseAddress() {
     useSchedule.getState().setPersonal({
       key: kaunoKey(address),
       areas: kaunoAreas(files.index, files.addresses, address) ?? [],
+      generatedAt: files.index.generatedAt,
     });
     router.push('/setup/done');
   };
