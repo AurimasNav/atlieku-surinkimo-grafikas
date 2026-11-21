@@ -103,6 +103,10 @@ tests:
         values: "518400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="sakiai",kind="food"}'
         values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="raseiniai",kind="glass"}'
+        values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jonava",kind="packaging"}'
+        values: "518400x20"
       # Ends in 30 days: no alert.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="glass"}'
         values: "2592000x20"
@@ -166,6 +170,12 @@ tests:
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="vilkaviskis",kind="packaging"}'
         values: "2592000x20"
+      # Raseinių r. green waste (to November) and Jonavos r. glass (four times a year): not
+      # watched.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="raseiniai",kind="green"}'
+        values: "172800x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jonava",kind="glass"}'
+        values: "86400x20"
     alert_rule_test:
       - eval_time: 40m
         alertname: ScheduleDataRunsOut
@@ -284,6 +294,20 @@ tests:
               severity: warning
             exp_annotations:
               summary: "sakiai: the food schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: raseiniai
+              kind: glass
+              severity: warning
+            exp_annotations:
+              summary: "raseiniai: the glass schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: jonava
+              kind: packaging
+              severity: warning
+            exp_annotations:
+              summary: "jonava: the packaging schedule ends within a week"
 
   - name: fewer places and more warnings than a day before
     interval: 15m
@@ -375,6 +399,10 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="rokiskis",kind="glass"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kalvarija",kind="packaging"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="raseiniai",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jonava",kind="household"}'
         values: "25920000x191"
       - series: 'up{job="siuksliaveze-data"}'
         values: "1x191"
