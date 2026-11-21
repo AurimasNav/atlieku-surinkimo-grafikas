@@ -1295,8 +1295,10 @@ def build_locations(
     sections = (
         SectionRoutes(index, provider, variants) if provider and provider.section_town else None
     )
+    # A provider's own reader (Provider.reader), e.g. sratc.Blocks.
+    own = provider.reader(index, provider, variants) if provider and provider.reader else None
     # Readers of rows that cover the whole municipality, without an eldership column.
-    municipal = routes or rows or sections
+    municipal = routes or rows or sections or own
     reader = PlaceList(index, provider, variants, None) if provider and place_lists else None
     kinds = list(provider.kinds) if provider else KINDS
     if reader:
@@ -1306,6 +1308,8 @@ def build_locations(
         reader.gardens = known_gardens(registry, variants)
     if sections:
         sections.prepare(areas)
+    if own:
+        own.prepare(areas)
 
     for area in areas:
         wholes: list = []
