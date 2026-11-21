@@ -273,9 +273,9 @@ def select_files(
 
 
 def _get(url: str) -> bytes:
-    # The site answers GitHub's runners 403 for unknown user agents, as registrucentras.lt does
-    # (addresses.py): present a browser one.
-    return http.get(url, timeout=60, user_agent="Mozilla/5.0")
+    # With the project's own user agent (http.USER_AGENT). kedainiai.lt answers GitHub's
+    # runners 403 whatever the user agent; it serves a machine in Lithuania.
+    return http.get(url, timeout=60)
 
 
 def download(today: date, keep_days: int) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
