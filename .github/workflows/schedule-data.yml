@@ -1,7 +1,7 @@
 name: Schedule data
 
-# Scrapes nemenkom.lt, nkom.lt, Kauno švara and tratc.lt daily and publishes the data + the privacy
-# policy to GitHub Pages. If parsing or validation fails, nothing is deployed and the last good
+# Scrapes nemenkom.lt, nkom.lt, Kauno švara, tratc.lt and gargzdusvara.eu daily and publishes the
+# data + the privacy policy to GitHub Pages. If parsing or validation fails, nothing is deployed and the last good
 # data stays live; a provider whose build fails keeps its part of yesterday's data instead.
 on:
   schedule:
@@ -91,6 +91,29 @@ jobs:
             # Publishing now would take the Mažeikių r. files off the site: fail, and the site
             # keeps everything it has.
             echo "::error::The Mažeikių r. build failed and the published data couldn't be downloaded (HTTP $code)."
+            exit 1
+          fi
+      # Klaipėdos r., from the spreadsheet of Gargždų švara (site/klaipedos-r): the same rule.
+      - name: Build the Klaipėdos r. schedule (Gargždų švara)
+        id: klaipedos
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: uv run python -m schedule_pipeline.gargzdu --out ../site/klaipedos-r
+      - name: Keep the published Klaipėdos r. data if today's build failed
+        if: steps.klaipedos.outcome == 'failure'
+        run: |
+          base=https://aurimasnav.github.io/atlieku-surinkimo-grafikas/klaipedos-r
+          out=../site/klaipedos-r
+          rm -rf "$out" && mkdir -p "$out"
+          get() { curl -sS --retry 3 --max-time 120 -o "$out/$1" -w '%{http_code}' "$base/$1" || true; }
+          code=$(get schedule.json)
+          if [ "$code" = 200 ] && [ "$(get addresses.json)" = 200 ]; then
+            echo "::warning::The Klaipėdos r. build failed; yesterday's published data is kept."
+          elif [ "$code" = 404 ]; then
+            rm -rf "$out"
+            echo "::warning::The Klaipėdos r. build failed and there is no published data to keep."
+          else
+            echo "::error::The Klaipėdos r. build failed and the published data couldn't be downloaded (HTTP $code)."
             exit 1
           fi
       # status.json and metrics.txt for monitoring (docs/monitoring.md).

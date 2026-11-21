@@ -31,12 +31,17 @@ def _timestamp(iso: str) -> int:
 def collect(site: Path) -> dict:
     """What each source published: when, how much, and how many warnings."""
     sources: dict[str, dict] = {}
-    # Vilniaus r., then Mažeikių r. (schedule_pipeline.tratc): the same format.
-    for path in (site / "schedule.json", site / "mazeikiu-r" / "schedule.json"):
+    # Vilniaus r., then Mažeikių r. (schedule_pipeline.tratc) and Klaipėdos r.
+    # (schedule_pipeline.gargzdu): the same format.
+    for path in (
+        site / "schedule.json",
+        site / "mazeikiu-r" / "schedule.json",
+        site / "klaipedos-r" / "schedule.json",
+    ):
         if not path.exists():
             continue
-        # Mažeikių r. lists every settlement of the municipality: count those with a schedule,
-        # so the number moves when routes are lost.
+        # Mažeikių r. and Klaipėdos r. list every settlement of the municipality: count those
+        # with a schedule, so the number moves when rows are lost.
         served_only = path.parent != site
         data = json.loads(path.read_text(encoding="utf-8"))
         # Vilniaus r.: one file, a part per company (build.merge_parts). Rows and places of the
@@ -104,7 +109,8 @@ def metrics(status: dict) -> str:
             ],
         ),
         "siuksliaveze_data_places": (
-            "Settlements (nemencine, nemezio, mazeikiai) or addresses (kauno) the data covers.",
+            "Settlements (nemencine, nemezio, mazeikiai, klaipedos) or addresses (kauno) the data "
+            "covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (
