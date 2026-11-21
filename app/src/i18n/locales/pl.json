@@ -123,7 +123,11 @@
     "reminderShortEvening": "dzień wcześniej o {{time}}",
     "reminderShortMorning": "rano o {{time}}",
     "noReminder": "Przypomnienia dla tego odbioru są wyłączone",
-    "markedDone": "Pojemniki są już wystawione"
+    "markedDone": "Pojemniki są już wystawione",
+    "staleData": "Od {{date}} nie udaje się sprawdzić zmian w harmonogramie {{company}}. Jeśli firma go zmieniła, daty tutaj mogą być nieaktualne.",
+    "checkOverdue": "Od {{date}} aplikacja nie może sprawdzić, czy jest nowy harmonogram. Połącz się z internetem i przeciągnij ekran w dół.",
+    "changesTitle": "Harmonogram się zmienił:",
+    "changesDismiss": "Rozumiem"
   },
   "settings": {
     "title": "Ustawienia",
@@ -160,7 +164,8 @@
     "refreshBody": "Otwórz aplikację, aby wczytała nowy harmonogram.",
     "done": "Już wystawione",
     "snoozeHour": "Za godzinę",
-    "snoozeShort": "Za 15 min"
+    "snoozeShort": "Za 15 min",
+    "changedTitle": "Zmieniły się terminy odbioru"
   },
   "errors": {
     "loadFailed": "Nie udało się wczytać harmonogramu. Sprawdź połączenie z internetem.",
@@ -269,5 +274,10 @@
       "orangeBag": "Pomarańczowy worek do zmieszanych",
       "orangeBagHint": "W rejonie wileńskim odpady spożywcze wkłada się do bezpłatnego pomarańczowego worka (dostępne w starostwach i punktach odpadów wielkogabarytowych), zawiązuje i wyrzuca do pojemnika na odpady zmieszane."
     }
+  },
+  "changes": {
+    "moved": "{{kind}}: {{from}} → {{to}}",
+    "cancelled": "{{kind}}: {{date}} odbioru nie będzie",
+    "added": "{{kind}}: dodatkowy odbiór {{date}}"
   }
 }

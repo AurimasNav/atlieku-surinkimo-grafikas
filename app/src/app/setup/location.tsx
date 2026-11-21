@@ -107,7 +107,7 @@ export default function ChooseLocation() {
       setConfirming(false);
       if (!personal) return askAddress();
       useSettings.getState().setKaunoAddress(personal.address);
-      useSchedule.getState().setPersonal({ key: personal.key, areas: personal.areas });
+      useSchedule.getState().setPersonal({ key: personal.key, areas: personal.areas, generatedAt: personal.generatedAt });
       return router.push('/setup/done');
     }
     // Only pass the street when we trust it; otherwise the street step asks.

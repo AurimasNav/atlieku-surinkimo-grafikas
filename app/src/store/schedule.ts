@@ -1,13 +1,15 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { activeChanges, type PickupChange } from '@/lib/changes';
+import { toIsoDate } from '@/lib/dates';
 import { kaunoKey, loadKaunoAddress } from '@/lib/kauno';
 import { REGION_URLS } from '@/lib/config';
 import {
-  type Area,
   fetchRegion,
   fetchSchedule,
   regionPart,
+  type Personal,
   type ScheduleData,
   UnsupportedScheduleError,
   withRegion,
@@ -28,7 +30,11 @@ type ScheduleState = {
   /** Downloads schedule.json; keeps the saved copy if that fails. Returns true if it changed. */
   refresh: () => Promise<boolean>;
   /** Keeps the schedules of the user's Kauno r. address next to the data. */
-  setPersonal: (personal: { key: string; areas: Area[] }) => void;
+  setPersonal: (personal: Personal) => void;
+  /** Pickups of the user's that a refresh moved, cancelled or added (lib/refresh.ts). */
+  changes: PickupChange[];
+  addChanges: (changes: PickupChange[]) => void;
+  dismissChanges: () => void;
 };
 
 export const useSchedule = create<ScheduleState>()(
@@ -37,6 +43,14 @@ export const useSchedule = create<ScheduleState>()(
       data: null,
       refreshing: false,
       error: null,
+      changes: [],
+      addChanges: (changes) => {
+        const known = activeChanges(get().changes, toIsoDate(new Date()));
+        const key = (c: PickupChange) => `${c.kind}|${c.from ?? ''}|${c.to ?? ''}`;
+        const seen = new Set(known.map(key));
+        set({ changes: [...known, ...changes.filter((c) => !seen.has(key(c)))] });
+      },
+      dismissChanges: () => set({ changes: [] }),
       setPersonal: (personal) => {
         const data = get().data;
         if (data) set({ data: { ...data, personal } });
@@ -50,7 +64,7 @@ export const useSchedule = create<ScheduleState>()(
           const found = kauno ? await loadKaunoAddress(kauno).catch(() => undefined) : undefined;
           // The saved spelling of the address was merged into another one: save that instead.
           if (kauno && found && found.key !== kaunoKey(kauno)) useSettings.getState().moveKaunoAddress(found.address);
-          const personal = found && { key: found.key, areas: found.areas };
+          const personal = found && { key: found.key, areas: found.areas, generatedAt: found.generatedAt };
           const keep = (data: ScheduleData): ScheduleData => ({ ...data, personal: personal ?? get().data?.personal });
           // Only send the ETag when we actually have the data it refers to.
           const previous = get().data;
@@ -92,7 +106,7 @@ export const useSchedule = create<ScheduleState>()(
       name: 'schedule',
       version: 1,
       storage: createJSONStorage(() => storage),
-      partialize: ({ data, etag, regions, lastChecked }) => ({ data, etag, regions, lastChecked }),
+      partialize: ({ data, etag, regions, lastChecked, changes }) => ({ data, etag, regions, lastChecked, changes }),
     },
   ),
 );

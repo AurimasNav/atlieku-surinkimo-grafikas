@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, router } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Linking, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
@@ -10,12 +11,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EkonovusLink } from '@/components/ekonovus-link';
 import { KindFilter } from '@/components/kind-filter';
 import { AppText, Button, IconButton, KindBadge, KindIcon, Notice, PressableScale } from '@/components/ui';
+import { activeChanges, describeChanges } from '@/lib/changes';
 import { clearLastCrash, lastCrash } from '@/lib/crash';
 import { toIsoDate } from '@/lib/dates';
 import { openIssue } from '@/lib/feedback';
 import { formatTime, useDateFormat } from '@/lib/format';
+import { checkOverdue, staleSources } from '@/lib/freshness';
 import { hasNotificationPermission } from '@/lib/notifications';
 import { doneKey, type Pickup, sortTimes, timesFor, upcomingPickups } from '@/lib/reminders';
+import { refreshSchedule } from '@/lib/refresh';
 import { pendingKinds, placeLabel, resolvePlace, visibleKinds } from '@/lib/resolve';
 import { useMotion } from '@/lib/motion';
 import type { WasteKind } from '@/lib/schedule';
@@ -38,7 +42,7 @@ export default function Home() {
   const place = useSettings((s) => s.place);
   const reminder = useSettings((s) => s.reminder);
   const doneKeys = useReminderActions((s) => s.done);
-  const { data, refreshing, error, refresh } = useSchedule();
+  const { data, refreshing, error, refresh, lastChecked, changes, dismissChanges } = useSchedule();
   const [filter, setFilter] = useState<Filter>('all');
   const [notificationsOn, setNotificationsOn] = useState(true);
   const [crash, setCrash] = useState(lastCrash);
@@ -72,6 +76,10 @@ export default function Home() {
   // Served, but the last pickup has passed and the next schedule isn't published yet.
   const today = toIsoDate(new Date());
   const waiting = resolved.areas.filter((area) => !area.note && (area.dates.at(-1) ?? today) < today);
+  const now = new Date();
+  const stale = staleSources(data, place, resolved, now);
+  const overdue = checkOverdue(lastChecked, now);
+  const shownChanges = activeChanges(changes, today);
   // The reminders of the next pickup: its waste types may have their own.
   const nextTimes = next
     ? sortTimes(
@@ -114,7 +122,7 @@ export default function Home() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={async () => {
-              await refresh();
+              await refreshSchedule();
             }}
             tintColor={theme.primary}
           />
@@ -212,7 +220,27 @@ export default function Home() {
                 {t('home.nextNotAnnounced', { kind: t(`kinds.${area.kind}`), date: date.dayMonth(area.dates.at(-1)!) })}
               </Notice>
             ))}
-            {error && <Notice>{error === 'unsupported' ? t('errors.unsupported') : t('home.refreshFailed')}</Notice>}
+            {shownChanges.length > 0 && (
+              <Notice tone="info" action={<Button variant="secondary" title={t('home.changesDismiss')} onPress={dismissChanges} />}>
+                {[t('home.changesTitle'), ...describeChanges(shownChanges, t, i18n.language)].join('\n')}
+              </Notice>
+            )}
+            {stale.map((source) => (
+              <Notice
+                key={source.name}
+                action={
+                  <Button variant="secondary" title={t('settings.source')} onPress={() => WebBrowser.openBrowserAsync(source.url)} />
+                }>
+                {t('home.staleData', { company: source.name, date: date.dayMonth(toIsoDate(new Date(source.since))) })}
+              </Notice>
+            ))}
+            {error === 'unsupported' ? (
+              <Notice>{t('errors.unsupported')}</Notice>
+            ) : overdue ? (
+              <Notice>{t('home.checkOverdue', { date: date.dayMonth(toIsoDate(new Date(lastChecked!))) })}</Notice>
+            ) : (
+              error && <Notice>{t('home.refreshFailed')}</Notice>
+            )}
 
             {/* Hero: the next pickup */}
             {next ? (

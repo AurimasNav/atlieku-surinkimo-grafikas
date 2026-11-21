@@ -123,7 +123,11 @@
     "reminderShortEvening": "vakare prieš {{time}}",
     "reminderShortMorning": "tą rytą {{time}}",
     "noReminder": "Šiam išvežimui priminimai išjungti",
-    "markedDone": "Konteinerius jau išstūmėte"
+    "markedDone": "Konteinerius jau išstūmėte",
+    "staleData": "{{company}} grafiko pakeitimų nepavyksta patikrinti nuo {{date}}. Jei įmonė grafiką pakeitė, čia rodomos datos gali būti pasenusios.",
+    "checkOverdue": "Programėlei nepavyksta patikrinti, ar yra naujas grafikas, nuo {{date}}. Prisijunkite prie interneto ir patraukite ekraną žemyn.",
+    "changesTitle": "Grafikas pasikeitė:",
+    "changesDismiss": "Supratau"
   },
   "settings": {
     "title": "Nustatymai",
@@ -160,7 +164,8 @@
     "refreshBody": "Atidarykite programėlę, kad ji įkeltų naują grafiką.",
     "done": "Jau išstūmiau",
     "snoozeHour": "Po valandos",
-    "snoozeShort": "Po 15 min."
+    "snoozeShort": "Po 15 min.",
+    "changedTitle": "Pasikeitė išvežimo datos"
   },
   "errors": {
     "loadFailed": "Nepavyko įkelti grafiko. Patikrinkite interneto ryšį.",
@@ -269,5 +274,10 @@
       "orangeBag": "Oranžinis maišelis į mišrias atliekas",
       "orangeBagHint": "Vilniaus rajone maisto atliekas sudėkite į nemokamą oranžinį maišelį (jų yra seniūnijose ir didelių gabaritų atliekų aikštelėse), užriškite ir išmeskite į mišrių atliekų konteinerį."
     }
+  },
+  "changes": {
+    "moved": "{{kind}}: {{from}} → {{to}}",
+    "cancelled": "{{kind}}: {{date}} išvežimo nebus",
+    "added": "{{kind}}: papildomas išvežimas {{date}}"
   }
 }
