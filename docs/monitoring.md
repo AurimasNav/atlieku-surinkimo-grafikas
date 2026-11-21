@@ -118,8 +118,11 @@ in one template, so they are one source: if any of them can't be read, the part 
 file is kept for all eleven (its `generatedAt` stays old, so `ScheduleDataStale` fires) and the
 run gets a warning annotation; an eldership missing from the page is a build warning ("no file
 for Vilainių sen. on the page"). The glass days are the packaging days printed in red, so a
-file that stops marking them in red, or marks other days red, fails the build. Installed apps
-find `kedainiu-r/` through `regions.json` (below).
+file that stops marking them in red, or marks other days red, fails the build. Next year's
+files are read as soon as the page links them; if it links them instead of this year's before
+31 December, this year's last pickups are lost, with a warning per eldership ("no 2026 schedule
+for Dotnuvos sen. on the page"). Installed apps find `kedainiu-r/` through `regions.json`
+(below).
 
 The job therefore publishes the state of the data with every run:
 
