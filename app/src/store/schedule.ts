@@ -4,7 +4,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { activeChanges, type PickupChange } from '@/lib/changes';
 import { toIsoDate } from '@/lib/dates';
 import { kaunoKey, loadKaunoAddress } from '@/lib/kauno';
-import { REGION_URLS } from '@/lib/config';
+import { fetchRegionIndex, type RegionIndex, regionUrls } from '@/lib/regions';
 import {
   fetchRegion,
   fetchSchedule,
@@ -24,12 +24,21 @@ export type RefreshError = 'loadFailed' | 'unsupported';
 type ScheduleState = {
   data: ScheduleData | null;
   etag?: string;
-  /** Other regions merged into `data` (config.REGION_URLS): the file's ETag and its companies. */
+  /**
+   * Other regions merged into `data` (config.REGION_URLS and those of regions.json), by URL: the
+   * file's ETag and its companies.
+   */
   regions?: Record<string, { etag?: string; providers: string[] }>;
+  /** The last regions.json that could be read (lib/regions.ts), and its ETag. */
+  index?: RegionIndex;
+  indexEtag?: string;
   lastChecked?: string;
   refreshing: boolean;
   error: RefreshError | null;
-  /** Downloads schedule.json; keeps the saved copy if that fails. Returns true if it changed. */
+  /**
+   * Downloads schedule.json, regions.json and the regions; keeps the saved copy of a file that
+   * fails. Returns true if the data changed.
+   */
   refresh: () => Promise<boolean>;
   /** Keeps the schedules of the user's Kauno r. address next to the data. */
   setPersonal: (personal: Personal) => void;
@@ -77,14 +86,31 @@ export const useSchedule = create<ScheduleState>()(
           const keep = (data: ScheduleData): ScheduleData => withPersonals(data, personals);
           // Only send the ETag when we actually have the data it refers to.
           const previous = get().data;
-          const result = await fetchSchedule(previous ? get().etag : undefined);
+          const savedIndex = get().index;
+          // regions.json says which regions there are besides the built-in ones. If it can't be
+          // downloaded or read, or hasn't changed (304), the one saved last time is used.
+          const [result, fresh] = await Promise.all([
+            fetchSchedule(previous ? get().etag : undefined),
+            fetchRegionIndex(savedIndex ? get().indexEtag : undefined).catch(() => null),
+          ]);
+          const index = fresh?.index ?? savedIndex;
+          const indexEtag = fresh ? fresh.etag : get().indexEtag;
           const lastChecked = new Date().toISOString();
           let data = result?.data ?? previous!;
           let changed = Boolean(result);
+          const regions = { ...get().regions };
+          const urls = regionUrls(index);
+          // A region a newer regions.json no longer lists was taken off the site on purpose (a
+          // failed build keeps yesterday's files), so its part goes. The built-in ones stay.
+          for (const [url, gone] of Object.entries(regions)) {
+            if (urls.includes(url)) continue;
+            data = withRegion(data, gone.providers, { areas: [], locations: [], providers: [] });
+            delete regions[url];
+            changed = true;
+          }
           // The other regions are merged in. One that can't be downloaded keeps the part saved
           // before, and doesn't hold back the rest.
-          const regions = { ...get().regions };
-          for (const url of REGION_URLS) {
+          for (const url of urls) {
             const known = regions[url];
             let part = known && previous ? regionPart(previous, known.providers) : undefined;
             const region = await fetchRegion(url, part?.areas.length ? known?.etag : undefined).catch(() => null);
@@ -99,10 +125,18 @@ export const useSchedule = create<ScheduleState>()(
             if (part && regions[url]) data = withRegion(data, ids, part);
           }
           if (!changed) {
-            set({ refreshing: false, lastChecked, ...(loaded ? { data: keep(data) } : {}) });
+            set({ refreshing: false, lastChecked, index, indexEtag, ...(loaded ? { data: keep(data) } : {}) });
             return loaded;
           }
-          set({ data: keep(data), etag: result ? result.etag : get().etag, regions, lastChecked, refreshing: false });
+          set({
+            data: keep(data),
+            etag: result ? result.etag : get().etag,
+            regions,
+            index,
+            indexEtag,
+            lastChecked,
+            refreshing: false,
+          });
           return true;
         } catch (error) {
           const code = error instanceof UnsupportedScheduleError ? 'unsupported' : 'loadFailed';
@@ -115,7 +149,15 @@ export const useSchedule = create<ScheduleState>()(
       name: 'schedule',
       version: 1,
       storage: createJSONStorage(() => storage),
-      partialize: ({ data, etag, regions, lastChecked, changes }) => ({ data, etag, regions, lastChecked, changes }),
+      partialize: ({ data, etag, regions, index, indexEtag, lastChecked, changes }) => ({
+        data,
+        etag,
+        regions,
+        index,
+        indexEtag,
+        lastChecked,
+        changes,
+      }),
     },
   ),
 );

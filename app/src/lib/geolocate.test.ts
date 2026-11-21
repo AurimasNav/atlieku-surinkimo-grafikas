@@ -2,6 +2,7 @@ import * as Location from 'expo-location';
 
 import { locateHome } from './geolocate';
 import { type AddressTable, streetConfidence } from './nearest';
+import { parseRegionIndex } from './regions';
 
 jest.mock('expo-location', () => ({
   Accuracy: { High: 4 },
@@ -123,6 +124,35 @@ describe('locateHome', () => {
     const fresh = freshModule();
     fresh.standAt(here);
     expect(await fresh.locateHome()).toMatchObject({ ok: true, address: { locationId: 'g23467' } });
+  });
+
+  it('finds addresses of the regions regions.json lists with an addresses.json', async () => {
+    const index = parseRegionIndex({
+      schemaVersion: 1,
+      regions: [
+        { path: 'panevezio-ratc/', kind: 'settlements', files: ['schedule.json', 'addresses.json'] },
+        { path: 'marijampoles-r/', kind: 'settlements', files: ['schedule.json'] },
+      ],
+    });
+    const panevezys: AddressTable = {
+      generatedAt: '',
+      source: '',
+      places: [['g30001', 's1700001', 'Velžio g.']],
+      points: [[5574000, 2436000, 0, '1']],
+    };
+    const requested: string[] = [];
+    globalThis.fetch = jest.fn(async (url: string) => {
+      requested.push(String(url));
+      return {
+        ok: true,
+        json: async () =>
+          String(url).includes('panevezio-ratc') ? panevezys : String(url).includes('kauno-r') ? kaunoPoints : table,
+      };
+    }) as unknown as typeof fetch;
+    const fresh = freshModule();
+    fresh.standAt(north(panevezys.points[0], 40));
+    expect(await fresh.locateHome(index)).toMatchObject({ ok: true, address: { locationId: 'g30001', number: '1' } });
+    expect(requested.filter((url) => url.includes('marijampoles-r'))).toEqual([]);
   });
 
   it("says the download failed when a region's table is missing and nothing is near", async () => {
