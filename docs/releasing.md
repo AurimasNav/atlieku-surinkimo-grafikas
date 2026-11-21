@@ -24,7 +24,7 @@ feature branch ──PR──▶ main ──▶ Release workflow (GitHub Actions
    |---|---|---|
    | `app/`, `fastlane/tools/` | **App Android build** (about 30 minutes) | Builds the release APK without the upload key, installs it on an Android emulator and goes through the main screens in all four languages (`fastlane/tools/smoke.mjs`); fails on a crash or a JavaScript error. The APK and the screens are under the run's *Artifacts*. The APK installs on a phone too; uninstall the Google Play copy first, the signatures differ. |
    | `.github/workflows/release.yml` | **Release** (dry run) | The whole release, built and signed, without uploading. |
-   | `pipeline/` | **Schedule data live build** | Builds `schedule.json` from today's files on nemenkom.lt and nkom.lt (and the Kauno r. and Mažeikių r. data) and compares `schedule.json` with the published data; fails if a source can't be read or much less is parsed. Nothing is deployed. |
+   | `pipeline/` | **Schedule data live build** | Builds `schedule.json` from today's files on nemenkom.lt and nkom.lt (and the Kauno r., Mažeikių r. and Klaipėdos r. data) and compares `schedule.json` with the published data; fails if a source can't be read or much less is parsed. Nothing is deployed. |
    | `fastlane/tools/` | **Store tools** | Renders the store graphics again. |
 
    These also cover Renovate's dependency updates. Packages pinned by the Expo SDK only change
@@ -60,8 +60,9 @@ See [Versions](#versions) for how releases are numbered.
   *Merge pull request* → edit the message). Only merge commit messages are read.
 - **Releases upload one at a time.** If several merges are waiting, the newest one replaces the
   older waiting ones; testers only need the newest build.
-- To see the version of the current commit: `gitversion /showvariable MajorMinorPatch`
-  (Windows: `winget install GitTools.GitVersion`).
+- To see the version of the current commit: `gitversion --show-variable MajorMinorPatch`
+  with GitVersion 7 (Windows: `winget install GitTools.GitVersion`). It may send usage data
+  unless you add `--telemetry-opt-out` or set `DO_NOT_TRACK=1`; the Release workflow turns it off.
 - **Version codes** (Android `versionCode`, which Google Play requires to increase with every
   upload) are the number of commits on `main`, which only grows. Don't rewrite `main`'s
   history once releases exist.

@@ -32,6 +32,10 @@ KAUNO_ADDRESSES_FILE = DATA_DIR / "address-points-kauno-r.json"
 MAZEIKIAI_MUNICIPALITY = ("Mažeikių rajono", 61)
 MAZEIKIAI_REGISTRY_FILE = DATA_DIR / "registry-mazeikiu-r.json"
 MAZEIKIAI_ADDRESSES_FILE = DATA_DIR / "address-points-mazeikiu-r.json"
+# Klaipėdos r. (schedule_pipeline.gargzdu).
+KLAIPEDOS_MUNICIPALITY = ("Klaipėdos rajono", 55)
+KLAIPEDOS_REGISTRY_FILE = DATA_DIR / "registry-klaipedos-r.json"
+KLAIPEDOS_ADDRESSES_FILE = DATA_DIR / "address-points-klaipedos-r.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -91,6 +95,7 @@ def main() -> int:
     for label, (name, code), registry_file, addresses_file in (
         ("Kauno r.", KAUNO_MUNICIPALITY, KAUNO_REGISTRY_FILE, KAUNO_ADDRESSES_FILE),
         ("Mažeikių r.", MAZEIKIAI_MUNICIPALITY, MAZEIKIAI_REGISTRY_FILE, MAZEIKIAI_ADDRESSES_FILE),
+        ("Klaipėdos r.", KLAIPEDOS_MUNICIPALITY, KLAIPEDOS_REGISTRY_FILE, KLAIPEDOS_ADDRESSES_FILE),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)

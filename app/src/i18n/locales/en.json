@@ -20,27 +20,29 @@
     "greenShort": "Green"
   },
   "common": {
-    "retry": "Try again",
+    "cancel": "Cancel",
+    "change": "Change",
     "continue": "Continue",
     "done": "Done",
-    "skip": "I don't have this container",
     "openSettings": "Open settings",
-    "change": "Change"
+    "retry": "Try again",
+    "skip": "I don't have this container"
   },
   "onboarding": {
     "title": "Bins out.\nOn time.",
-    "body": "Pickup reminders for your address in Vilnius, Kaunas and Mažeikiai districts.",
+    "body": "Pickup reminders for your address in Vilnius, Kaunas, Mažeikiai and Klaipėda districts.",
     "featurePlace": "Choose your place once",
     "featureReminder": "Get a reminder the evening before",
     "featurePrivate": "Everything stays on your phone",
-    "disclaimer": "Unofficial app made by volunteers. Dates come from the schedules published by UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“ and UAB „Telšių regiono atliekų tvarkymo centras“ and may contain mistakes.",
+    "disclaimer": "Unofficial app made by volunteers. Dates come from the schedules published by UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Telšių regiono atliekų tvarkymo centras“ and VšĮ „Gargždų švara“, and may contain mistakes.",
     "start": "Get started"
   },
   "setup": {
     "locationTitle": "Where do you live?",
     "locationHint": "Let us find your place, or search for your village or town.",
     "locationPlaceholder": "e.g. Riešė",
-    "locationNone": "Nothing found. Only places in Vilnius, Kaunas and Mažeikiai districts that we have schedules for are listed.",
+    "locationNone": "Nothing found. Only places in Vilnius, Kaunas, Mažeikiai and Klaipėda districts that we have schedules for are listed.",
+    "locationKaunasCity": "Kaunas city isn't covered, only Kaunas district (Kauno r.).",
     "manualLink": "Can't find it? Pick schedule rows by hand",
     "streetTitle": "Which street?",
     "streetHint": "Pickup days in {{place}} depend on the street.",
@@ -74,7 +76,7 @@
     "locationDenied": "Location access is off. Search for your place below, or allow location in the phone's settings.",
     "locationUnavailable": "Couldn't get your location. Search for your place below.",
     "locationOffline": "Couldn't download the address list. Check your internet connection.",
-    "locationFar": "There's no address we have a schedule for near you (Vilnius, Kaunas and Mažeikiai districts). If you're not at home, search for your place below.",
+    "locationFar": "There's no address we have a schedule for near you (Vilnius, Kaunas, Mažeikiai and Klaipėda districts). If you're not at home, search for your place below.",
     "orSearch": "or search",
     "locationServicesOff": "Location is turned off on your phone. Turn it on and try again, or search for your place below.",
     "addressHint": "Pickup days in {{place}} depend on the address.",
@@ -82,7 +84,8 @@
     "housePlaceholder": "Search numbers",
     "noStreet": "No street name",
     "noHouse": "No house number",
-    "addressesFailed": "Couldn't download the addresses. Check your internet connection."
+    "addressesFailed": "Couldn't download the addresses. Check your internet connection.",
+    "locationKlaipedaCity": "Klaipėda city isn't covered, only Klaipėda district (Klaipėdos r.)."
   },
   "select": {
     "title": "{{kind}}: your area",
@@ -113,7 +116,18 @@
     "updated": "Schedule updated {{date}}",
     "refreshFailed": "Couldn't check for a new schedule. Showing the saved one.",
     "settings": "Settings",
-    "choosePlace": "Choose your place"
+    "choosePlace": "Choose your place",
+    "reminders": "Reminders: {{list}}",
+    "reminderShortEvening": "evening before {{time}}",
+    "reminderShortMorning": "that morning {{time}}",
+    "noReminder": "Reminders are off for this pickup",
+    "markedDone": "You've put the bins out",
+    "staleData": "The schedule of {{company}} couldn't be checked for changes since {{date}}. If the company has changed it, the dates here may be out of date.",
+    "checkOverdue": "The app hasn't been able to check for a new schedule since {{date}}. Connect to the internet and pull down to refresh.",
+    "changesTitle": "The schedule changed:",
+    "changesDismiss": "Got it",
+    "viewList": "List",
+    "viewMonth": "Calendar"
   },
   "settings": {
     "title": "Settings",
@@ -134,8 +148,17 @@
     "sourceCode": "Source code",
     "addressSource": "Addresses: {{source}}",
     "disclaimerTitle": "No guarantees",
-    "disclaimer": "This app is provided free of charge, as is, without any warranty. The authors are not responsible for missed or wrong reminders, or for any consequences of relying on them. It is not affiliated with UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“ or UAB „Virginijus ir Ko“.",
-    "version": "Version {{version}}"
+    "disclaimer": "This app is provided free of charge, as is, without any warranty. The authors are not responsible for missed or wrong reminders, or for any consequences of relying on them. It is not affiliated with UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“, UAB „Virginijus ir Ko“ or VšĮ „Gargždų švara“.",
+    "version": "Version {{version}}",
+    "addReminder": "Add another reminder",
+    "removeReminder": "Remove this reminder",
+    "otherTime": "Other time",
+    "perKindHint": "To be reminded of one waste type differently, or not at all, tap it under “Your place”.",
+    "calendar": "Calendar",
+    "exportCalendar": "Add to my calendar app",
+    "exportHint": "Saves the pickup dates known now as a calendar file (.ics), with your reminders as alarms. Your calendar won't follow later changes, so add it again when a new schedule is published.",
+    "allPlaces_one": "All my places ({{count}})",
+    "allPlaces_other": "All my places ({{count}})"
   },
   "notifications": {
     "channelName": "Pickup reminders",
@@ -143,7 +166,12 @@
     "titleToday": "Today: {{kinds}}",
     "body": "Put your bins out by 7:00.",
     "refreshTitle": "Your schedule is running out",
-    "refreshBody": "Open the app so it can load the next schedule."
+    "refreshBody": "Open the app so it can load the next schedule.",
+    "done": "Bins are out",
+    "snoozeHour": "In an hour",
+    "snoozeShort": "In 15 min",
+    "changedTitle": "Pickup dates changed",
+    "bodyAtPlace": "{{place}}: put your bins out by 7:00."
   },
   "errors": {
     "loadFailed": "Couldn't load the schedule. Check your internet connection.",
@@ -155,7 +183,8 @@
     "schedule": "Wrong dates or address",
     "idea": "Suggest an idea",
     "githubNote": "Opens a form on GitHub (a free account is needed). Nothing is sent until you submit it.",
-    "wrongDates": "Dates look wrong? Let us know"
+    "wrongDates": "Dates look wrong? Let us know",
+    "area": "Ask for my area to be added"
   },
   "crash": {
     "title": "Something went wrong",
@@ -185,7 +214,14 @@
     "remove": "Remove my schedule",
     "notSet": "Not set",
     "set": "Set schedule",
-    "needOne": "Set at least one schedule to continue."
+    "needOne": "Set at least one schedule to continue.",
+    "skipDate": "Skip this date",
+    "unskipDate": "Bring this date back",
+    "removeDate": "Remove this date",
+    "addDate": "Add a pickup date",
+    "skipped": "Skipped",
+    "extra": "extra date",
+    "exceptionsHint": "Holiday week? Skip the usual date with ×, then add the day it moved to."
   },
   "manage": {
     "useOfficial": "Use the official schedule for my place",
@@ -197,10 +233,85 @@
     "statusNone": "Not in the official schedule for your place",
     "statusSkipped": "You don't have this container",
     "statusPending": "Several schedule rows match your place",
-    "hint": "Changes apply to your reminders right away."
+    "hint": "Changes apply to your reminders right away.",
+    "reminders": "Reminders",
+    "remindersDefault": "Like the others",
+    "remindersOwn": "Own times",
+    "remindersOff": "Off",
+    "remindersHint": "Glass is collected only a few times a year, so it's easy to forget: give it an extra reminder. Or turn reminders off for a type you put out anyway."
   },
   "kauno": {
     "glassPackaging": "Glass and packaging",
     "ekonovus": "Collected by UAB „Ekonovus“: see its schedule"
+  },
+  "guide": {
+    "entry": "Which bin? Sorting guide",
+    "title": "Which bin?",
+    "subtitle": "Search for an item to see where it goes.",
+    "searchPlaceholder": "e.g. pizza box, batteries",
+    "popular": "Common questions",
+    "noResults": "Nothing found. Try another word or browse a category.",
+    "forPlace": "Rules for {{place}}",
+    "general": "General rules. Choose your place to see what's collected there.",
+    "notCollected": "{{kind}}: not collected at your place. Instead:",
+    "withoutContainer": "{{kind}}: no container?",
+    "or": "or",
+    "locations": "Show locations",
+    "disclaimer": "Rules can differ between waste companies and change over time. Your collector's official page has the final word.",
+    "officialPage": "Official page",
+    "categories": {
+      "food": "Food",
+      "paper": "Paper",
+      "packaging": "Plastic and metal",
+      "glass": "Glass",
+      "garden": "Garden",
+      "hazardous": "Hazardous and electronics",
+      "bulky": "Bulky and building",
+      "textile": "Textiles",
+      "other": "Other"
+    },
+    "dest": {
+      "deposit": "Deposit return",
+      "depositHint": "Return packaging with the deposit mark empty and uncrushed to a return machine in a shop and get 10 ct back.",
+      "shop": "Shop collection point",
+      "shopHint": "Shops that sell batteries, bulbs and electronics take old ones back free of charge.",
+      "site": "Bulky waste site",
+      "siteHint": "The regional waste centre's site takes it from residents free of charge, within yearly limits.",
+      "greenSite": "Green waste site",
+      "greenSiteHint": "The regional waste centre's composting site takes garden waste from residents free of charge.",
+      "textile": "Textile container",
+      "textileHint": "Clean and dry textiles, in a tied bag.",
+      "pharmacy": "Pharmacy",
+      "pharmacyHint": "Any pharmacy takes unwanted and expired medicines free of charge.",
+      "compost": "Home compost",
+      "compostHint": "Raw fruit and vegetable scraps, coffee, tea and garden waste. No meat, fish or cooked food.",
+      "orangeBag": "Orange bag in mixed waste",
+      "orangeBagHint": "In Vilnius district, put food waste in a free orange bag (from eldership offices and bulky waste sites), tie it and put it in the mixed waste container."
+    }
+  },
+  "changes": {
+    "moved": "{{kind}}: {{from}} → {{to}}",
+    "cancelled": "{{kind}}: no pickup on {{date}}",
+    "added": "{{kind}}: extra pickup on {{date}}"
+  },
+  "calendar": {
+    "previous": "Previous month",
+    "next": "Next month",
+    "noPickupsMonth": "No pickups this month in the published schedule."
+  },
+  "places": {
+    "title": "Your places",
+    "hint": "Every saved place gets reminders, e.g. home and a summer house. Tap one to see its pickups.",
+    "new": "New place",
+    "add": "Add another place",
+    "rename": "Name or change this place",
+    "namePlaceholder": "Name, e.g. Summer house",
+    "save": "Save",
+    "change": "Change address",
+    "remove": "Remove this place"
+  },
+  "widget": {
+    "choosePlace": "Open the app to choose your place.",
+    "nothing": "No upcoming pickups in the published schedule yet."
   }
 }

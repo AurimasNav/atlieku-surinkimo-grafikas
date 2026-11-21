@@ -20,27 +20,29 @@
     "greenShort": "Žaliosios"
   },
   "common": {
-    "retry": "Bandyti dar kartą",
+    "cancel": "Atšaukti",
+    "change": "Keisti",
     "continue": "Tęsti",
     "done": "Baigta",
-    "skip": "Tokio konteinerio neturiu",
     "openSettings": "Atidaryti nustatymus",
-    "change": "Keisti"
+    "retry": "Bandyti dar kartą",
+    "skip": "Tokio konteinerio neturiu"
   },
   "onboarding": {
     "title": "Konteineriai.\nLaiku.",
-    "body": "Atliekų išvežimo priminimai jūsų adresui Vilniaus, Kauno ir Mažeikių rajonuose.",
+    "body": "Atliekų išvežimo priminimai jūsų adresui Vilniaus, Kauno, Mažeikių ir Klaipėdos rajonuose.",
     "featurePlace": "Vietą pasirenkate vieną kartą",
     "featureReminder": "Priminimas vakare prieš išvežimą",
     "featurePrivate": "Visi duomenys lieka telefone",
-    "disclaimer": "Neoficiali savanorių sukurta programėlė. Datos paimtos iš UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“ ir UAB „Telšių regiono atliekų tvarkymo centras“ skelbiamų grafikų ir gali turėti klaidų.",
+    "disclaimer": "Neoficiali savanorių sukurta programėlė. Datos paimtos iš UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Telšių regiono atliekų tvarkymo centras“ ir VšĮ „Gargždų švara“ skelbiamų grafikų ir gali turėti klaidų.",
     "start": "Pradėti"
   },
   "setup": {
     "locationTitle": "Kur gyvenate?",
     "locationHint": "Leiskite rasti jūsų vietą arba ieškokite kaimo ar miesto.",
     "locationPlaceholder": "pvz. Riešė",
-    "locationNone": "Nieko nerasta. Rodomos tik Vilniaus, Kauno ir Mažeikių rajonų vietovės, kurių grafikus turime.",
+    "locationNone": "Nieko nerasta. Rodomos tik Vilniaus, Kauno, Mažeikių ir Klaipėdos rajonų vietovės, kurių grafikus turime.",
+    "locationKaunasCity": "Kauno miesto grafikų neturime, tik Kauno rajono.",
     "manualLink": "Neradote? Pasirinkite grafiko eilutes patys",
     "streetTitle": "Kurioje gatvėje?",
     "streetHint": "Vietovėje {{place}} išvežimo dienos priklauso nuo gatvės.",
@@ -74,7 +76,7 @@
     "locationDenied": "Prieiga prie buvimo vietos išjungta. Raskite vietovę paieškoje žemiau arba leiskite naudoti buvimo vietą telefono nustatymuose.",
     "locationUnavailable": "Nepavyko nustatyti buvimo vietos. Raskite vietovę paieškoje žemiau.",
     "locationOffline": "Nepavyko atsisiųsti adresų sąrašo. Patikrinkite interneto ryšį.",
-    "locationFar": "Šalia jūsų nėra adresų, kurių grafikus turime (Vilniaus, Kauno ir Mažeikių rajonai). Jei esate ne namuose, raskite vietovę paieškoje žemiau.",
+    "locationFar": "Šalia jūsų nėra adresų, kurių grafikus turime (Vilniaus, Kauno, Mažeikių ir Klaipėdos rajonai). Jei esate ne namuose, raskite vietovę paieškoje žemiau.",
     "orSearch": "arba ieškokite",
     "locationServicesOff": "Telefone išjungta buvimo vieta. Įjunkite ją ir bandykite dar kartą arba raskite vietovę paieškoje žemiau.",
     "addressHint": "Išvežimo dienos {{place}} priklauso nuo adreso.",
@@ -82,7 +84,8 @@
     "housePlaceholder": "Ieškoti numerio",
     "noStreet": "Be gatvės pavadinimo",
     "noHouse": "Be namo numerio",
-    "addressesFailed": "Nepavyko atsisiųsti adresų. Patikrinkite interneto ryšį."
+    "addressesFailed": "Nepavyko atsisiųsti adresų. Patikrinkite interneto ryšį.",
+    "locationKlaipedaCity": "Klaipėdos miesto grafikų neturime, tik Klaipėdos rajono."
   },
   "select": {
     "title": "{{kind}}: jūsų vietovė",
@@ -117,7 +120,18 @@
     "updated": "Grafikas atnaujintas {{date}}",
     "refreshFailed": "Nepavyko patikrinti naujo grafiko. Rodomas išsaugotas.",
     "settings": "Nustatymai",
-    "choosePlace": "Pasirinkite vietovę"
+    "choosePlace": "Pasirinkite vietovę",
+    "reminders": "Priminimai: {{list}}",
+    "reminderShortEvening": "vakare prieš {{time}}",
+    "reminderShortMorning": "tą rytą {{time}}",
+    "noReminder": "Šiam išvežimui priminimai išjungti",
+    "markedDone": "Konteinerius jau išstūmėte",
+    "staleData": "{{company}} grafiko pakeitimų nepavyksta patikrinti nuo {{date}}. Jei įmonė grafiką pakeitė, čia rodomos datos gali būti pasenusios.",
+    "checkOverdue": "Programėlei nepavyksta patikrinti, ar yra naujas grafikas, nuo {{date}}. Prisijunkite prie interneto ir patraukite ekraną žemyn.",
+    "changesTitle": "Grafikas pasikeitė:",
+    "changesDismiss": "Supratau",
+    "viewList": "Sąrašas",
+    "viewMonth": "Kalendorius"
   },
   "settings": {
     "title": "Nustatymai",
@@ -138,8 +152,19 @@
     "sourceCode": "Programos kodas",
     "addressSource": "Adresai: {{source}}",
     "disclaimerTitle": "Jokių garantijų",
-    "disclaimer": "Programėlė teikiama nemokamai, tokia, kokia yra, be jokių garantijų. Autoriai neatsako už praleistus ar klaidingus priminimus ir jokias pasekmes, kylančias juos naudojant. Programėlė nesusijusi su UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“ ir UAB „Virginijus ir Ko“.",
-    "version": "Versija {{version}}"
+    "disclaimer": "Programėlė teikiama nemokamai, tokia, kokia yra, be jokių garantijų. Autoriai neatsako už praleistus ar klaidingus priminimus ir jokias pasekmes, kylančias juos naudojant. Programėlė nesusijusi su UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“, UAB „Virginijus ir Ko“ ir VšĮ „Gargždų švara“.",
+    "version": "Versija {{version}}",
+    "addReminder": "Pridėti dar vieną priminimą",
+    "removeReminder": "Pašalinti šį priminimą",
+    "otherTime": "Kitas laikas",
+    "perKindHint": "Jei apie kurią nors atliekų rūšį norite priminimų kitu laiku arba visai jų nenorite, palieskite ją skiltyje „Jūsų vietovė“.",
+    "calendar": "Kalendorius",
+    "exportCalendar": "Įkelti į mano kalendorių",
+    "exportHint": "Dabar žinomas išvežimo datas išsaugo kalendoriaus faile (.ics), su jūsų priminimais. Vėlesnių pakeitimų kalendorius pats nesužinos, todėl paskelbus naują grafiką įkelkite jį dar kartą.",
+    "allPlaces_other": "Visos mano vietovės ({{count}})",
+    "allPlaces_few": "Visos mano vietovės ({{count}})",
+    "allPlaces_many": "Visos mano vietovės ({{count}})",
+    "allPlaces_one": "Visos mano vietovės ({{count}})"
   },
   "notifications": {
     "channelName": "Išvežimo priminimai",
@@ -147,7 +172,12 @@
     "titleToday": "Šiandien: {{kinds}}",
     "body": "Konteinerius išstumkite iki 7:00.",
     "refreshTitle": "Jūsų grafikas baigiasi",
-    "refreshBody": "Atidarykite programėlę, kad ji įkeltų naują grafiką."
+    "refreshBody": "Atidarykite programėlę, kad ji įkeltų naują grafiką.",
+    "done": "Jau išstūmiau",
+    "snoozeHour": "Po valandos",
+    "snoozeShort": "Po 15 min.",
+    "changedTitle": "Pasikeitė išvežimo datos",
+    "bodyAtPlace": "{{place}}: konteinerius išstumkite iki 7:00."
   },
   "errors": {
     "loadFailed": "Nepavyko įkelti grafiko. Patikrinkite interneto ryšį.",
@@ -159,7 +189,8 @@
     "schedule": "Neteisingos datos ar adresas",
     "idea": "Pasiūlyti idėją",
     "githubNote": "Atidaroma forma „GitHub“ svetainėje (reikia nemokamos paskyros). Niekas nesiunčiama, kol patys nepateiksite.",
-    "wrongDates": "Datos atrodo neteisingos? Praneškite"
+    "wrongDates": "Datos atrodo neteisingos? Praneškite",
+    "area": "Paprašyti pridėti mano vietovę"
   },
   "crash": {
     "title": "Kažkas nutiko",
@@ -189,7 +220,14 @@
     "remove": "Pašalinti mano grafiką",
     "notSet": "Nenustatyta",
     "set": "Nustatyti grafiką",
-    "needOne": "Nustatykite bent vieną grafiką, kad galėtumėte tęsti."
+    "needOne": "Nustatykite bent vieną grafiką, kad galėtumėte tęsti.",
+    "skipDate": "Praleisti šią datą",
+    "unskipDate": "Grąžinti šią datą",
+    "removeDate": "Pašalinti šią datą",
+    "addDate": "Pridėti išvežimo datą",
+    "skipped": "Praleista",
+    "extra": "papildoma data",
+    "exceptionsHint": "Šventinė savaitė? Įprastą datą praleiskite paspaudę ×, tada pridėkite dieną, į kurią išvežimas perkeltas."
   },
   "manage": {
     "useOfficial": "Naudoti oficialų mano vietovės grafiką",
@@ -201,10 +239,85 @@
     "statusNone": "Jūsų vietovės oficialiame grafike nėra",
     "statusSkipped": "Tokio konteinerio neturite",
     "statusPending": "Jūsų vietovei tinka kelios grafiko eilutės",
-    "hint": "Pakeitimai priminimams taikomi iš karto."
+    "hint": "Pakeitimai priminimams taikomi iš karto.",
+    "reminders": "Priminimai",
+    "remindersDefault": "Kaip kitų",
+    "remindersOwn": "Savas laikas",
+    "remindersOff": "Išjungti",
+    "remindersHint": "Stiklas išvežamas tik kelis kartus per metus, todėl jį lengva pamiršti – pridėkite jam papildomą priminimą. O rūšiai, kurią vis tiek išstumiate, priminimus galite išjungti."
   },
   "kauno": {
     "glassPackaging": "Stiklas ir pakuotės",
     "ekonovus": "Išveža UAB „Ekonovus“: žiūrėti jos grafiką"
+  },
+  "guide": {
+    "entry": "Kur mesti? Rūšiavimo gidas",
+    "title": "Kur mesti?",
+    "subtitle": "Įrašykite daiktą ir sužinokite, kur jį mesti.",
+    "searchPlaceholder": "pvz., picos dėžutė, baterijos",
+    "popular": "Dažni klausimai",
+    "noResults": "Nieko nerasta. Pabandykite kitą žodį arba pasirinkite kategoriją.",
+    "forPlace": "Taisyklės: {{place}}",
+    "general": "Bendrosios taisyklės. Pasirinkite savo vietovę, kad matytumėte, kas joje surenkama.",
+    "notCollected": "{{kind}}: jūsų vietovėje nesurenkama. Vietoj to:",
+    "withoutContainer": "{{kind}}: neturite konteinerio?",
+    "or": "arba",
+    "locations": "Rodyti vietas",
+    "disclaimer": "Skirtingų atliekų tvarkymo įmonių taisyklės gali skirtis ir keistis. Galutinis žodis – jūsų atliekų vežėjo oficialiame puslapyje.",
+    "officialPage": "Oficialus puslapis",
+    "categories": {
+      "food": "Maistas",
+      "paper": "Popierius",
+      "packaging": "Plastikas ir metalas",
+      "glass": "Stiklas",
+      "garden": "Sodas",
+      "hazardous": "Pavojingos ir elektronika",
+      "bulky": "Stambios ir statybinės",
+      "textile": "Tekstilė",
+      "other": "Kita"
+    },
+    "dest": {
+      "deposit": "Užstato sistema",
+      "depositHint": "Pakuotes su užstato ženklu tuščias ir nesuspaustas grąžinkite parduotuvės taromate ir atgausite 10 ct.",
+      "shop": "Surinkimo vieta parduotuvėje",
+      "shopHint": "Baterijas, lemputes ir elektroniką parduodančios parduotuvės senas priima nemokamai.",
+      "site": "Didelių gabaritų atliekų aikštelė",
+      "siteHint": "Regiono atliekų tvarkymo centro aikštelė iš gyventojų priima nemokamai, neviršijant metinių limitų.",
+      "greenSite": "Žaliųjų atliekų aikštelė",
+      "greenSiteHint": "Regiono atliekų tvarkymo centro kompostavimo aikštelė sodo atliekas iš gyventojų priima nemokamai.",
+      "textile": "Tekstilės konteineris",
+      "textileHint": "Švarią ir sausą tekstilę sudėkite į užrištą maišą.",
+      "pharmacy": "Vaistinė",
+      "pharmacyHint": "Bet kuri vaistinė nemokamai priima nereikalingus ir pasibaigusio galiojimo vaistus.",
+      "compost": "Namų kompostas",
+      "compostHint": "Žalios vaisių ir daržovių atliekos, kava, arbata, sodo atliekos. Be mėsos, žuvies ir virto maisto.",
+      "orangeBag": "Oranžinis maišelis į mišrias atliekas",
+      "orangeBagHint": "Vilniaus rajone maisto atliekas sudėkite į nemokamą oranžinį maišelį (jų yra seniūnijose ir didelių gabaritų atliekų aikštelėse), užriškite ir išmeskite į mišrių atliekų konteinerį."
+    }
+  },
+  "changes": {
+    "moved": "{{kind}}: {{from}} → {{to}}",
+    "cancelled": "{{kind}}: {{date}} išvežimo nebus",
+    "added": "{{kind}}: papildomas išvežimas {{date}}"
+  },
+  "calendar": {
+    "previous": "Ankstesnis mėnuo",
+    "next": "Kitas mėnuo",
+    "noPickupsMonth": "Paskelbtame grafike šį mėnesį išvežimų nėra."
+  },
+  "places": {
+    "title": "Jūsų vietovės",
+    "hint": "Priminimai siunčiami apie visas išsaugotas vietoves, pvz., namus ir sodybą. Palieskite vietovę, kad pamatytumėte jos išvežimus.",
+    "new": "Nauja vietovė",
+    "add": "Pridėti dar vieną vietovę",
+    "rename": "Pavadinti ar keisti šią vietovę",
+    "namePlaceholder": "Pavadinimas, pvz., Sodyba",
+    "save": "Išsaugoti",
+    "change": "Keisti adresą",
+    "remove": "Pašalinti šią vietovę"
+  },
+  "widget": {
+    "choosePlace": "Atidarykite programėlę ir pasirinkite vietovę.",
+    "nothing": "Paskelbtame grafike artimiausių išvežimų dar nėra."
   }
 }

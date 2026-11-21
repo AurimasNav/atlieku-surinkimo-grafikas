@@ -18,7 +18,8 @@ building under several house numbers (house 8 has the food bin, flats 8-1 and 8-
 ones). Spellings of one place are merged under the spelling most addresses use, checked
 against the Address Register, and every address gets the containers of its building. The other
 spellings stay in the address files as hidden aliases, so addresses saved under them keep
-working.
+working. The list of towns gives each town its name in the Address Register too
+("Akademijos mstl." is "Akademija"), which is what people type in the search.
 
 Writes <out>/schedule.json and <out>/addresses/<eldership>.json. Run:
     python -m schedule_pipeline.svara --out ../site/kauno-r
@@ -281,6 +282,32 @@ def _district(eldership: str) -> str:
     return re.sub(r"\s+sen$", "", fold(eldership))
 
 
+def _by_district(settlements: Iterable[Settlement]) -> dict[str, list[Settlement]]:
+    result: dict[str, list[Settlement]] = defaultdict(list)
+    for settlement in settlements:
+        result[fold(settlement.district)].append(settlement)
+    return result
+
+
+def register_names(index: Index, registry: Registry | None) -> dict[str, dict[str, str]]:
+    """eldership -> town -> the town's name in the Address Register, for towns the file writes
+    otherwise: "Akademijos mstl." -> "Akademija". People search for that name (the nominative),
+    and the genitive doesn't contain it. The settlement is looked up in the town's eldership,
+    then in the whole district; a town with no settlement of that name, or with settlements of
+    different names, gets none."""
+    if not registry:
+        return {}
+    in_district = _by_district(registry.settlements)
+    result: dict[str, dict[str, str]] = {}
+    for eldership, towns in index.items():
+        for town in towns:
+            found = find_settlements(in_district.get(_district(eldership), []), town)
+            names = {s.name for s in found or find_settlements(registry.settlements, town)}
+            if len(names) == 1 and (name := names.pop()) != town:
+                result.setdefault(eldership, {})[town] = name
+    return result
+
+
 def _same_places(
     names: dict[str, int], resolve: Callable[[str], int | None], types: dict[str, str]
 ) -> dict[str, str]:
@@ -328,9 +355,7 @@ def merge_spellings(index: Index, registry: Registry | None) -> Merged:
     certain (one settlement of that name in the district, and its streets are there); otherwise
     it stays, and is counted."""
     settlements = registry.settlements if registry else []
-    in_district: dict[str, list[Settlement]] = defaultdict(list)
-    for settlement in settlements:
-        in_district[fold(settlement.district)].append(settlement)
+    in_district = _by_district(settlements)
     elderships = {_district(name): name for name in index}
     counts: Counter[str] = Counter()
 
@@ -542,6 +567,7 @@ def build(
 
     files: dict[str, dict] = {}
     elderships = []
+    names = register_names(index, registry)
     for eldership, name in file_of.items():
         towns = index.get(eldership, {})
         files[name] = {
@@ -559,7 +585,11 @@ def build(
         }
         if eldership in aliases:
             files[name]["aliases"] = aliases[eldership]
-        elderships.append({"id": name, "name": eldership, "towns": sorted(towns, key=str.casefold)})
+        entry = {"id": name, "name": eldership, "towns": sorted(towns, key=str.casefold)}
+        # Added later: apps that don't know it search the town names only.
+        if eldership in names:
+            entry["registerNames"] = dict(sorted(names[eldership].items()))
+        elderships.append(entry)
 
     counts = Counter(s.kind for s in ordered)
     dataset = {
@@ -716,11 +746,13 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     stats = dataset["stats"]
+    named = sum(len(e.get("registerNames", {})) for e in dataset["elderships"])
     sizes = sorted((args.out / "addresses").glob("*.json"), key=lambda p: p.stat().st_size)
     lines = [
         "## Kauno r. (Kauno švara)",
         "",
         f"- {stats['rows']} containers at {stats['addresses']} addresses in {stats['towns']} towns",
+        f"- {named} towns can also be searched by their name in the Address Register",
         f"- schedules: {', '.join(f'{count} {kind}' for kind, count in stats['areas'].items())}",
         f"- {len(files)} address files, largest {sizes[-1].stat().st_size // 1024} KB"
         f" ({sizes[-1].name})",

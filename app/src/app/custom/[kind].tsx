@@ -1,19 +1,21 @@
+import { Ionicons } from '@expo/vector-icons';
+import { DateTimePicker } from '@expo/ui/community/datetime-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DateStrip } from '@/components/date-strip';
-import { AppText, Button, Card, Chip, ScreenHeader } from '@/components/ui';
-import { customDates, type CustomSchedule, REPEAT_OPTIONS } from '@/lib/custom-schedule';
-import { toIsoDate } from '@/lib/dates';
+import { AppText, Button, Card, Chip, IconButton, ScreenHeader } from '@/components/ui';
+import { customDates, customPreview, type CustomSchedule, REPEAT_OPTIONS, tidyExceptions } from '@/lib/custom-schedule';
+import { parseIsoDate, toIsoDate } from '@/lib/dates';
 import { useDateFormat } from '@/lib/format';
 import type { WasteKind } from '@/lib/schedule';
 import { useSettings } from '@/store/settings';
 import { spacing, useTheme } from '@/theme';
 
-const PREVIEW_COUNT = 4;
+const PREVIEW_COUNT = 8;
 
 /** Set up or edit the user's own schedule for one waste type. */
 export default function CustomScheduleEditor() {
@@ -32,14 +34,29 @@ export default function CustomScheduleEditor() {
     existing ? { every: existing.every, unit: existing.unit } : { every: 2, unit: 'week' },
   );
 
+  // Holiday shifts: regular dates that don't happen, and pickups outside the rhythm.
+  const [skip, setSkip] = useState<string[]>(existing?.skip ?? []);
+  const [extra, setExtra] = useState<string[]>(existing?.extra ?? []);
+  const [adding, setAdding] = useState(false);
+
   const preview = useMemo(
-    () => (start ? customDates({ start, ...repeat }, new Date()).slice(0, PREVIEW_COUNT) : []),
-    [start, repeat],
+    () => (start ? customPreview({ start, ...repeat, skip, extra }, new Date(), PREVIEW_COUNT) : []),
+    [start, repeat, skip, extra],
   );
+  const toggleSkip = (iso: string) =>
+    setSkip((dates) => (dates.includes(iso) ? dates.filter((d) => d !== iso) : [...dates, iso]));
+  const addExtra = (picked?: Date) => {
+    if (!picked) return;
+    const iso = toIsoDate(picked);
+    const regular = start ? customDates({ start, ...repeat }, parseIsoDate(iso)).includes(iso) : false;
+    // Adding a skipped regular date is bringing it back; a regular one is already there.
+    if (skip.includes(iso)) setSkip((dates) => dates.filter((d) => d !== iso));
+    else if (!regular) setExtra((dates) => [...new Set([...dates, iso])]);
+  };
 
   const save = () => {
     if (!start) return;
-    useSettings.getState().setCustom(kind, { start, ...repeat });
+    useSettings.getState().setCustom(kind, tidyExceptions({ start, ...repeat, skip, extra }, new Date()));
     router.back();
   };
   const remove = () => {
@@ -85,14 +102,64 @@ export default function CustomScheduleEditor() {
               <AppText variant="overline" style={{ color: theme.primary }}>
                 {t('custom.preview')}
               </AppText>
-              {preview.map((iso) => (
+              {preview.map(({ date: iso, status }) => (
                 <View key={iso} style={styles.previewRow}>
-                  <AppText variant="label">{date.long(iso)}</AppText>
-                  <AppText variant="caption" muted>
-                    {date.relative(iso)}
-                  </AppText>
+                  <View style={styles.previewText}>
+                    <AppText
+                      variant="label"
+                      muted={status === 'skipped'}
+                      style={status === 'skipped' && styles.skipped}>
+                      {date.long(iso)}
+                    </AppText>
+                    <AppText variant="caption" muted>
+                      {status === 'skipped'
+                        ? t('custom.skipped')
+                        : status === 'extra'
+                          ? `${date.relative(iso)} · ${t('custom.extra')}`
+                          : date.relative(iso)}
+                    </AppText>
+                  </View>
+                  {status === 'extra' ? (
+                    <IconButton
+                      icon="trash-outline"
+                      label={t('custom.removeDate')}
+                      onPress={() => setExtra((dates) => dates.filter((d) => d !== iso))}
+                    />
+                  ) : (
+                    <IconButton
+                      icon={status === 'skipped' ? 'arrow-undo' : 'close'}
+                      label={status === 'skipped' ? t('custom.unskipDate') : t('custom.skipDate')}
+                      onPress={() => toggleSkip(iso)}
+                    />
+                  )}
                 </View>
               ))}
+              {Platform.OS !== 'web' && (
+                <Button variant="ghost" icon="add" title={t('custom.addDate')} onPress={() => setAdding((open) => !open)} />
+              )}
+              {adding &&
+                (Platform.OS === 'android' ? (
+                  <DateTimePicker
+                    mode="date"
+                    positiveButton={{ label: t('common.done') }}
+                    negativeButton={{ label: t('common.cancel') }}
+                    value={new Date()}
+                    minimumDate={new Date()}
+                    onChange={(event, picked) => {
+                      setAdding(false);
+                      if (event.type === 'set') addExtra(picked);
+                    }}
+                    onDismiss={() => setAdding(false)}
+                  />
+                ) : (
+                  <View style={styles.inlinePicker}>
+                    <DateTimePicker mode="date" display="compact" value={new Date()} minimumDate={new Date()} onValueChange={(_, picked) => addExtra(picked)} />
+                    <Ionicons name="checkmark" size={22} color={theme.primary} onPress={() => setAdding(false)} />
+                  </View>
+                ))}
+              <AppText variant="caption" muted>
+                {t('custom.exceptionsHint')}
+              </AppText>
             </Card>
           )}
         </View>
@@ -112,7 +179,10 @@ const styles = StyleSheet.create({
   section: { gap: spacing.sm + 2 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   preview: { gap: spacing.sm },
-  previewRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: spacing.sm },
+  previewRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm },
+  previewText: { flex: 1, gap: 2 },
+  skipped: { textDecorationLine: 'line-through' },
+  inlinePicker: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   footer: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, gap: spacing.xs },
   disabled: { opacity: 0.4 },
 });

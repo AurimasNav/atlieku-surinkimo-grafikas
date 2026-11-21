@@ -20,27 +20,29 @@
     "greenShort": "Zielone"
   },
   "common": {
-    "retry": "Spróbuj ponownie",
+    "cancel": "Anuluj",
+    "change": "Zmień",
     "continue": "Dalej",
     "done": "Gotowe",
-    "skip": "Nie mam takiego pojemnika",
     "openSettings": "Otwórz ustawienia",
-    "change": "Zmień"
+    "retry": "Spróbuj ponownie",
+    "skip": "Nie mam takiego pojemnika"
   },
   "onboarding": {
     "title": "Pojemniki.\nNa czas.",
-    "body": "Przypomnienia o odbiorze odpadów dla Twojego adresu w rejonach wileńskim, kowieńskim i możejskim.",
+    "body": "Przypomnienia o odbiorze odpadów dla Twojego adresu w rejonach wileńskim, kowieńskim, możejskim i kłajpedzkim.",
     "featurePlace": "Miejscowość wybierasz raz",
     "featureReminder": "Przypomnienie wieczorem dzień wcześniej",
     "featurePrivate": "Wszystkie dane zostają na telefonie",
-    "disclaimer": "Nieoficjalna aplikacja stworzona przez wolontariuszy. Daty pochodzą z harmonogramów UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“ i UAB „Telšių regiono atliekų tvarkymo centras“ i mogą zawierać błędy.",
+    "disclaimer": "Nieoficjalna aplikacja stworzona przez wolontariuszy. Daty pochodzą z harmonogramów UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Telšių regiono atliekų tvarkymo centras“ i VšĮ „Gargždų švara“ i mogą zawierać błędy.",
     "start": "Zaczynamy"
   },
   "setup": {
     "locationTitle": "Gdzie mieszkasz?",
     "locationHint": "Pozwól nam znaleźć Twoją miejscowość albo wyszukaj wieś lub miasto.",
     "locationPlaceholder": "np. Riešė",
-    "locationNone": "Nic nie znaleziono. Wyświetlamy tylko miejscowości rejonów wileńskiego, kowieńskiego i możejskiego, dla których mamy harmonogramy.",
+    "locationNone": "Nic nie znaleziono. Wyświetlamy tylko miejscowości rejonów wileńskiego, kowieńskiego, możejskiego i kłajpedzkiego, dla których mamy harmonogramy.",
+    "locationKaunasCity": "Miasta Kowna nie obejmujemy, tylko rejon kowieński (Kauno r.).",
     "manualLink": "Nie możesz znaleźć? Wybierz wiersze harmonogramu ręcznie",
     "streetTitle": "Przy jakiej ulicy?",
     "streetHint": "W miejscowości {{place}} dni odbioru zależą od ulicy.",
@@ -74,7 +76,7 @@
     "locationDenied": "Dostęp do lokalizacji jest wyłączony. Wyszukaj miejscowość poniżej lub zezwól na lokalizację w ustawieniach telefonu.",
     "locationUnavailable": "Nie udało się ustalić lokalizacji. Wyszukaj miejscowość poniżej.",
     "locationOffline": "Nie udało się pobrać listy adresów. Sprawdź połączenie z internetem.",
-    "locationFar": "W pobliżu nie ma adresów, dla których mamy harmonogramy (rejony wileński, kowieński i możejski). Jeśli nie jesteś w domu, wyszukaj miejscowość poniżej.",
+    "locationFar": "W pobliżu nie ma adresów, dla których mamy harmonogramy (rejony wileński, kowieński, możejski i kłajpedzki). Jeśli nie jesteś w domu, wyszukaj miejscowość poniżej.",
     "orSearch": "lub wyszukaj",
     "locationServicesOff": "Lokalizacja w telefonie jest wyłączona. Włącz ją i spróbuj ponownie lub wyszukaj miejscowość poniżej.",
     "addressHint": "Dni odbioru w {{place}} zależą od adresu.",
@@ -82,7 +84,8 @@
     "housePlaceholder": "Szukaj numeru",
     "noStreet": "Bez nazwy ulicy",
     "noHouse": "Bez numeru domu",
-    "addressesFailed": "Nie udało się pobrać adresów. Sprawdź połączenie z internetem."
+    "addressesFailed": "Nie udało się pobrać adresów. Sprawdź połączenie z internetem.",
+    "locationKlaipedaCity": "Miasta Kłajpedy nie obejmujemy, tylko rejon kłajpedzki (Klaipėdos r.)."
   },
   "select": {
     "title": "{{kind}}: Twoja miejscowość",
@@ -117,7 +120,18 @@
     "updated": "Harmonogram zaktualizowano {{date}}",
     "refreshFailed": "Nie udało się sprawdzić nowego harmonogramu. Wyświetlamy zapisany.",
     "settings": "Ustawienia",
-    "choosePlace": "Wybierz miejscowość"
+    "choosePlace": "Wybierz miejscowość",
+    "reminders": "Przypomnienia: {{list}}",
+    "reminderShortEvening": "dzień wcześniej o {{time}}",
+    "reminderShortMorning": "rano o {{time}}",
+    "noReminder": "Przypomnienia dla tego odbioru są wyłączone",
+    "markedDone": "Pojemniki są już wystawione",
+    "staleData": "Od {{date}} nie udaje się sprawdzić zmian w harmonogramie {{company}}. Jeśli firma go zmieniła, daty tutaj mogą być nieaktualne.",
+    "checkOverdue": "Od {{date}} aplikacja nie może sprawdzić, czy jest nowy harmonogram. Połącz się z internetem i przeciągnij ekran w dół.",
+    "changesTitle": "Harmonogram się zmienił:",
+    "changesDismiss": "Rozumiem",
+    "viewList": "Lista",
+    "viewMonth": "Kalendarz"
   },
   "settings": {
     "title": "Ustawienia",
@@ -138,8 +152,19 @@
     "sourceCode": "Kod źródłowy",
     "addressSource": "Adresy: {{source}}",
     "disclaimerTitle": "Bez gwarancji",
-    "disclaimer": "Aplikacja jest udostępniana bezpłatnie, w stanie „takim, jaka jest”, bez żadnych gwarancji. Autorzy nie ponoszą odpowiedzialności za pominięte lub błędne przypomnienia ani za żadne skutki polegania na nich. Aplikacja nie jest powiązana z UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“ ani UAB „Virginijus ir Ko“.",
-    "version": "Wersja {{version}}"
+    "disclaimer": "Aplikacja jest udostępniana bezpłatnie, w stanie „takim, jaka jest”, bez żadnych gwarancji. Autorzy nie ponoszą odpowiedzialności za pominięte lub błędne przypomnienia ani za żadne skutki polegania na nich. Aplikacja nie jest powiązana z UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“, UAB „Virginijus ir Ko“ ani VšĮ „Gargždų švara“.",
+    "version": "Wersja {{version}}",
+    "addReminder": "Dodaj kolejne przypomnienie",
+    "removeReminder": "Usuń to przypomnienie",
+    "otherTime": "Inna godzina",
+    "perKindHint": "Aby przypomnienia o jednym rodzaju odpadów przychodziły o innej porze albo wcale, dotknij go w sekcji „Twoja miejscowość”.",
+    "calendar": "Kalendarz",
+    "exportCalendar": "Dodaj do mojego kalendarza",
+    "exportHint": "Zapisuje znane teraz terminy odbioru w pliku kalendarza (.ics) razem z Twoimi przypomnieniami. Kalendarz nie dowie się o późniejszych zmianach, więc po opublikowaniu nowego harmonogramu dodaj go ponownie.",
+    "allPlaces_other": "Wszystkie moje miejsca ({{count}})",
+    "allPlaces_few": "Wszystkie moje miejsca ({{count}})",
+    "allPlaces_many": "Wszystkie moje miejsca ({{count}})",
+    "allPlaces_one": "Wszystkie moje miejsca ({{count}})"
   },
   "notifications": {
     "channelName": "Przypomnienia o odbiorze",
@@ -147,7 +172,12 @@
     "titleToday": "Dzisiaj: {{kinds}}",
     "body": "Wystaw pojemniki do 7:00.",
     "refreshTitle": "Twój harmonogram się kończy",
-    "refreshBody": "Otwórz aplikację, aby wczytała nowy harmonogram."
+    "refreshBody": "Otwórz aplikację, aby wczytała nowy harmonogram.",
+    "done": "Już wystawione",
+    "snoozeHour": "Za godzinę",
+    "snoozeShort": "Za 15 min",
+    "changedTitle": "Zmieniły się terminy odbioru",
+    "bodyAtPlace": "{{place}}: wystaw pojemniki do 7:00."
   },
   "errors": {
     "loadFailed": "Nie udało się wczytać harmonogramu. Sprawdź połączenie z internetem.",
@@ -159,7 +189,8 @@
     "schedule": "Błędne daty lub adres",
     "idea": "Zaproponuj pomysł",
     "githubNote": "Otworzy się formularz na GitHubie (potrzebne darmowe konto). Nic nie zostanie wysłane, dopóki go nie wyślesz.",
-    "wrongDates": "Daty wyglądają na błędne? Daj nam znać"
+    "wrongDates": "Daty wyglądają na błędne? Daj nam znać",
+    "area": "Poproś o dodanie mojej miejscowości"
   },
   "crash": {
     "title": "Coś poszło nie tak",
@@ -189,7 +220,14 @@
     "remove": "Usuń mój harmonogram",
     "notSet": "Nie ustawiono",
     "set": "Ustaw harmonogram",
-    "needOne": "Ustaw co najmniej jeden harmonogram, aby kontynuować."
+    "needOne": "Ustaw co najmniej jeden harmonogram, aby kontynuować.",
+    "skipDate": "Pomiń tę datę",
+    "unskipDate": "Przywróć tę datę",
+    "removeDate": "Usuń tę datę",
+    "addDate": "Dodaj termin odbioru",
+    "skipped": "Pominięty",
+    "extra": "dodatkowy termin",
+    "exceptionsHint": "Tydzień ze świętem? Pomiń zwykły termin przyciskiem ×, a potem dodaj dzień, na który przeniesiono odbiór."
   },
   "manage": {
     "useOfficial": "Użyj oficjalnego harmonogramu mojej miejscowości",
@@ -201,10 +239,85 @@
     "statusNone": "Brak w oficjalnym harmonogramie Twojej miejscowości",
     "statusSkipped": "Nie masz takiego pojemnika",
     "statusPending": "Do Twojej miejscowości pasuje kilka wierszy harmonogramu",
-    "hint": "Zmiany od razu obowiązują dla przypomnień."
+    "hint": "Zmiany od razu obowiązują dla przypomnień.",
+    "reminders": "Przypomnienia",
+    "remindersDefault": "Jak pozostałe",
+    "remindersOwn": "Własne godziny",
+    "remindersOff": "Wyłączone",
+    "remindersHint": "Szkło odbierane jest tylko kilka razy w roku, łatwo o nim zapomnieć – dodaj mu dodatkowe przypomnienie. A dla rodzaju, który i tak wystawiasz, przypomnienia możesz wyłączyć."
   },
   "kauno": {
     "glassPackaging": "Szkło i opakowania",
     "ekonovus": "Odbiera UAB „Ekonovus“: zobacz jej harmonogram"
+  },
+  "guide": {
+    "entry": "Gdzie to wyrzucić? Przewodnik segregacji",
+    "title": "Gdzie to wyrzucić?",
+    "subtitle": "Wpisz przedmiot, aby sprawdzić, gdzie go wyrzucić.",
+    "searchPlaceholder": "np. pudełko po pizzy, baterie",
+    "popular": "Częste pytania",
+    "noResults": "Nic nie znaleziono. Spróbuj innego słowa lub wybierz kategorię.",
+    "forPlace": "Zasady dla: {{place}}",
+    "general": "Zasady ogólne. Wybierz swoją miejscowość, aby zobaczyć, co jest tam odbierane.",
+    "notCollected": "{{kind}}: brak odbioru w Twojej miejscowości. Zamiast tego:",
+    "withoutContainer": "{{kind}}: nie masz pojemnika?",
+    "or": "lub",
+    "locations": "Pokaż lokalizacje",
+    "disclaimer": "Zasady różnych firm odbierających odpady mogą się różnić i zmieniać. Ostateczne zdanie należy do oficjalnej strony Twojej firmy wywozowej.",
+    "officialPage": "Oficjalna strona",
+    "categories": {
+      "food": "Jedzenie",
+      "paper": "Papier",
+      "packaging": "Plastik i metal",
+      "glass": "Szkło",
+      "garden": "Ogród",
+      "hazardous": "Niebezpieczne i elektronika",
+      "bulky": "Wielkogabarytowe i budowlane",
+      "textile": "Tekstylia",
+      "other": "Inne"
+    },
+    "dest": {
+      "deposit": "Zwrot kaucji",
+      "depositHint": "Opakowania ze znakiem kaucji oddaj puste i niezgniecione do automatu w sklepie i odzyskaj 10 ct.",
+      "shop": "Punkt zbiórki w sklepie",
+      "shopHint": "Sklepy sprzedające baterie, żarówki i elektronikę bezpłatnie przyjmują zużyte.",
+      "site": "Punkt odpadów wielkogabarytowych",
+      "siteHint": "Punkt regionalnego centrum gospodarki odpadami przyjmuje je od mieszkańców bezpłatnie w ramach rocznych limitów.",
+      "greenSite": "Punkt odpadów zielonych",
+      "greenSiteHint": "Kompostownia regionalnego centrum gospodarki odpadami bezpłatnie przyjmuje odpady ogrodowe od mieszkańców.",
+      "textile": "Pojemnik na tekstylia",
+      "textileHint": "Czyste i suche tekstylia w zawiązanym worku.",
+      "pharmacy": "Apteka",
+      "pharmacyHint": "Każda apteka bezpłatnie przyjmuje niepotrzebne i przeterminowane leki.",
+      "compost": "Kompostownik przydomowy",
+      "compostHint": "Surowe resztki owoców i warzyw, kawa, herbata, odpady ogrodowe. Bez mięsa, ryb i gotowanego jedzenia.",
+      "orangeBag": "Pomarańczowy worek do zmieszanych",
+      "orangeBagHint": "W rejonie wileńskim odpady spożywcze wkłada się do bezpłatnego pomarańczowego worka (dostępne w starostwach i punktach odpadów wielkogabarytowych), zawiązuje i wyrzuca do pojemnika na odpady zmieszane."
+    }
+  },
+  "changes": {
+    "moved": "{{kind}}: {{from}} → {{to}}",
+    "cancelled": "{{kind}}: {{date}} odbioru nie będzie",
+    "added": "{{kind}}: dodatkowy odbiór {{date}}"
+  },
+  "calendar": {
+    "previous": "Poprzedni miesiąc",
+    "next": "Następny miesiąc",
+    "noPickupsMonth": "W opublikowanym harmonogramie w tym miesiącu nie ma odbiorów."
+  },
+  "places": {
+    "title": "Twoje miejsca",
+    "hint": "Przypomnienia przychodzą dla wszystkich zapisanych miejsc, np. domu i działki. Dotknij miejsca, aby zobaczyć jego odbiory.",
+    "new": "Nowe miejsce",
+    "add": "Dodaj kolejne miejsce",
+    "rename": "Nazwij lub zmień to miejsce",
+    "namePlaceholder": "Nazwa, np. Działka",
+    "save": "Zapisz",
+    "change": "Zmień adres",
+    "remove": "Usuń to miejsce"
+  },
+  "widget": {
+    "choosePlace": "Otwórz aplikację i wybierz miejsce.",
+    "nothing": "W opublikowanym harmonogramie nie ma jeszcze najbliższych odbiorów."
   }
 }

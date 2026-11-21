@@ -5,6 +5,10 @@
 # each release has its own version, without tags. For a bigger step, put "+semver: minor" (or
 # "+semver: major") on its own line in the PR's merge commit message. Only merge commits are
 # read, so a mention in an ordinary commit message (there is one in the history) changes nothing.
+#
+# GitVersion 7's layout: calculation settings sit under "calculation"
+# (gitversion config validate checks it).
 workflow: TrunkBased/preview1
-next-version: 0.0.1
-commit-message-incrementing: MergeMessageOnly
+calculation:
+  next-version: 0.0.1
+  commit-message-incrementing: MergeMessageOnly

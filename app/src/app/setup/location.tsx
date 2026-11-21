@@ -16,8 +16,16 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { AppText, Button, ListRow, PressableScale, ScreenHeader, SearchField } from '@/components/ui';
+import { openIssue } from '@/lib/feedback';
 import { type GeolocateResult, locateHome } from '@/lib/geolocate';
-import { fetchKaunoIndex, type KaunoTown, kaunoTowns, loadKaunoAddress, searchKaunoTowns } from '@/lib/kauno';
+import {
+  fetchKaunoIndex,
+  uncoveredCitySearch,
+  type KaunoTown,
+  kaunoTowns,
+  loadKaunoAddress,
+  searchKaunoTowns,
+} from '@/lib/kauno';
 import { type Location, searchLocations } from '@/lib/schedule';
 import { nextSetupStep } from '@/lib/setup-flow';
 import { useMotion } from '@/lib/motion';
@@ -100,7 +108,7 @@ export default function ChooseLocation() {
       setConfirming(false);
       if (!personal) return askAddress();
       useSettings.getState().setKaunoAddress(personal.address);
-      useSchedule.getState().setPersonal({ key: personal.key, areas: personal.areas });
+      useSchedule.getState().setPersonal({ key: personal.key, areas: personal.areas, generatedAt: personal.generatedAt });
       return router.push('/setup/done');
     }
     // Only pass the street when we trust it; otherwise the street step asks.
@@ -217,16 +225,22 @@ export default function ChooseLocation() {
             <Animated.View entering={motion(FadeIn.duration(180))}>
               <ListRow
                 title={item.location?.name ?? item.kauno?.town ?? ''}
+                // Kauno r.: the title is the town as the data writes it ("Akademijos mstl."), the
+                // subtitle starts with its usual name ("Akademija"), which the user may have typed.
                 subtitle={
                   item.location
                     ? `${item.location.district} sen. · ${item.location.type}`
-                    : `${item.kauno?.eldershipName} · Kauno r.`
+                    : [item.kauno?.registerName, item.kauno?.eldershipName, 'Kauno r.'].filter(Boolean).join(' · ')
                 }
                 selected={item.location ? item.location.id === current : false}
                 onPress={() =>
                   item.location
                     ? pick(item.location.id)
-                    : router.push({ pathname: '/setup/address', params: { ...item.kauno } })
+                    : item.kauno &&
+                      router.push({
+                        pathname: '/setup/address',
+                        params: { eldership: item.kauno.eldership, eldershipName: item.kauno.eldershipName, town: item.kauno.town },
+                      })
                 }
                 icon={
                   <View style={[styles.pin, { backgroundColor: theme.surfaceMuted }]}>
@@ -239,7 +253,13 @@ export default function ChooseLocation() {
           ListEmptyComponent={
             deferred && !found ? (
               <AppText muted style={styles.empty}>
-                {t('setup.locationNone')}
+                {
+                  {
+                    kaunas: t('setup.locationKaunasCity'),
+                    klaipeda: t('setup.locationKlaipedaCity'),
+                    none: t('setup.locationNone'),
+                  }[uncoveredCitySearch(deferred, results.length) ?? 'none']
+                }
               </AppText>
             ) : undefined
           }
@@ -260,6 +280,14 @@ export default function ChooseLocation() {
                   title={t('setup.manualLink')}
                   onPress={() => router.push({ pathname: '/select/[kind]', params: { kind: 'household', flow: 'manual' } })}
                 />
+                {deferred && !results.length && (
+                  <Button
+                    variant="ghost"
+                    icon="megaphone-outline"
+                    title={t('feedback.area')}
+                    onPress={() => openIssue('area_request', { search: deferred })}
+                  />
+                )}
               </View>
             )
           }

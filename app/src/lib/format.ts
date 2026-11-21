@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
 import { daysBetween, parseIsoDate } from './dates';
-import type { ReminderSettings } from './reminders';
+import type { ReminderTime } from './reminders';
 
 /** Reminder times offered in setup and settings. Bins must be out by 7:00 on the day. */
-export const REMINDER_TIMES: Record<ReminderSettings['daysBefore'], [number, number][]> = {
+export const REMINDER_TIMES: Record<ReminderTime['daysBefore'], [number, number][]> = {
   1: [
     [17, 0],
     [18, 0],
@@ -29,6 +29,10 @@ export const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase() +
  */
 export const longDate = (lang: string, iso: string) =>
   new Intl.DateTimeFormat(lang, { weekday: 'long', month: 'long', day: 'numeric' }).format(parseIsoDate(iso));
+
+/** "Thu, December 4": a pickup date in a list of changes. */
+export const shortDayDate = (lang: string, iso: string) =>
+  new Intl.DateTimeFormat(lang, { weekday: 'short', month: 'long', day: 'numeric' }).format(parseIsoDate(iso));
 
 /** Locale-aware date helpers bound to the current app language. */
 export function useDateFormat() {

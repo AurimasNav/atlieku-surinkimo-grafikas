@@ -1,6 +1,6 @@
 import { SCHEDULE_URL, SUPPORTED_SCHEMA_VERSION } from './config';
 
-/** Food and green waste are collected separately in Kauno r. and in Mažeikiai (as food). */
+/** Food and green waste are collected separately in Kauno r., in Mažeikiai (food) and in Klaipėdos r. (green). */
 export const WASTE_KINDS = ['household', 'packaging', 'glass', 'food', 'green'] as const;
 export type WasteKind = (typeof WASTE_KINDS)[number];
 
@@ -57,6 +57,8 @@ export type Provider = {
   name: string;
   /** The company's official schedule page. */
   url: string;
+  /** When its part of the data was last built; stays old while its source can't be read. */
+  generatedAt?: string;
 };
 
 export type ScheduleData = {
@@ -70,11 +72,26 @@ export type ScheduleData = {
   /** Added with a second company in Vilniaus r.; older data has only Nemenčinės komunalininkas. */
   providers?: Provider[];
   /**
-   * Not part of the download: the schedules of the user's own address in Kauno r., kept by the
-   * app next to the data (see lib/kauno.ts). `key` says which address they belong to.
+   * Not part of the download: the schedules of the user's own addresses in Kauno r., kept by
+   * the app next to the data (see lib/kauno.ts). `key` says which address they belong to.
    */
-  personal?: { key: string; areas: Area[] };
+  personals?: Personal[];
+  /** One address, as app versions before several places saved it (see `personalsOf`). */
+  personal?: Personal;
 };
+
+/** The schedules of one Kauno r. address, and when Kauno švara's data they come from was built. */
+export type Personal = { key: string; areas: Area[]; generatedAt?: string };
+
+/** The saved schedules of Kauno r. addresses, also those saved by older app versions. */
+export const personalsOf = (data: ScheduleData | null | undefined): Personal[] =>
+  data?.personals ?? (data?.personal ? [data.personal] : []);
+
+/** `data` with these Kauno r. addresses' schedules saved next to it. */
+export function withPersonals(data: ScheduleData, personals: Personal[]): ScheduleData {
+  const { personal: _old, ...rest } = data;
+  return { ...rest, personals };
+}
 
 export class UnsupportedScheduleError extends Error {}
 

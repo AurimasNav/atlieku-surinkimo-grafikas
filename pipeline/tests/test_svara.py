@@ -339,3 +339,49 @@ def test_fill_buildings_keeps_what_a_house_number_has():
     assert houses["10-1"] == {"mixed-a"}
     assert houses["10-2"] == {"mixed-b"}
     assert houses["12"] == {"mixed-a"}
+
+
+def test_towns_get_their_register_name_for_the_search(monkeypatch):
+    dataset, _, _ = build_spellings(monkeypatch)
+    names = {e["name"]: e.get("registerNames") for e in dataset["elderships"]}
+    # People type "Akademija"; the file writes the genitive and the type.
+    assert names["Akademijos sen."] == {"Akademijos mstl.": "Akademija"}
+    # Jonučiai isn't in Domeikavos sen.: both Jonučiai of the district have that name.
+    assert names["Domeikavos sen."] == {"Domeikavos k.": "Domeikava", "Jonučių k.": "Jonučiai"}
+    # No towns, no names; the list of towns stays as it was.
+    assert names["Vandžiogalos sen."] is None
+    assert next(e for e in dataset["elderships"] if e["name"] == "Akademijos sen.")["towns"] == [
+        "Akademijos mstl."
+    ]
+
+
+def test_register_names_only_where_they_are_certain_and_differ():
+    from schedule_pipeline.registry import Registry, Settlement
+
+    registry = Registry(
+        [
+            Settlement(1, "Akademija", "Akademijos", "mstl.", "Akademijos"),
+            Settlement(2, "Babtai", "Babtų", "mstl.", "Babtų"),
+            Settlement(3, "Babtai", "Babtų", "k.", "Babtų"),
+            # Two names with one genitive, both outside the town's eldership.
+            Settlement(4, "Pagiriai", "Pagirių", "k.", "Kulautuvos"),
+            Settlement(5, "Pagirys", "Pagirių", "k.", "Zapyškio"),
+            Settlement(6, "Pagiriai", "Pagirių", "k.", "Babtų"),
+        ]
+    )
+    index = {
+        "Akademijos sen.": {"Akademija": {}, "Kauno raj.": {}},
+        "Babtų sen.": {"Babtų mstl.": {}, "Babtų k.": {}, "Pagirių k.": {}},
+        "Lapių sen.": {"Pagirių k.": {}},
+    }
+    assert svara.register_names(index, registry) == {
+        # "Akademija" is the register's name already; "Kauno raj." is no settlement.
+        "Babtų sen.": {"Babtų mstl.": "Babtai", "Babtų k.": "Babtai", "Pagirių k.": "Pagiriai"},
+        # Not in Lapių sen., and the district has a Pagiriai and a Pagirys: no name.
+    }
+    assert svara.register_names(index, None) == {}
+
+
+def test_without_the_register_no_names_are_published(monkeypatch):
+    dataset, _, _ = build_spellings(monkeypatch, registry=False)
+    assert not any("registerNames" in e for e in dataset["elderships"])

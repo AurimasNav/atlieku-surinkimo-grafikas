@@ -12,6 +12,7 @@ import { ReminderPicker } from '@/components/reminder-picker';
 import { AppText, Button, Card, Chip, KindIcon, ListRow, PressableScale, ScreenHeader } from '@/components/ui';
 import { LANGUAGE_NAMES, LANGUAGES, type Language } from '@/i18n';
 import { PRIVACY_URL, REPOSITORY_URL } from '@/lib/config';
+import { canExportCalendar, exportCalendar } from '@/lib/export-calendar';
 import { toIsoDate } from '@/lib/dates';
 import { openIssue } from '@/lib/feedback';
 import { placeLabel, resolvePlace, sourcePageUrl, visibleKinds } from '@/lib/resolve';
@@ -23,7 +24,7 @@ export default function Settings() {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const { place, language, setLanguage } = useSettings();
+  const { place, placeName, otherPlaces, language, setLanguage } = useSettings();
   const data = useSchedule((s) => s.data);
   const resolved = resolvePlace(data, place, toIsoDate(new Date()));
   const label = placeLabel(place, resolved);
@@ -41,7 +42,8 @@ export default function Settings() {
               </View>
               <View style={styles.placeText}>
                 <AppText variant="heading">
-                  {label.name ??
+                  {placeName ??
+                    label.name ??
                     (place?.custom && Object.keys(place.custom).length ? t('custom.title') : t('settings.notSelected'))}
                 </AppText>
                 <AppText variant="caption" muted>
@@ -77,13 +79,40 @@ export default function Settings() {
               })}
               {place?.kauno && <EkonovusLink size={28} variant="compact" />}
             </View>
-            <Button variant="secondary" icon="swap-horizontal" title={t('settings.changeLocation')} onPress={() => router.push('/setup/location')} />
+            <Button
+              variant="secondary"
+              icon="swap-horizontal"
+              title={t('settings.changeLocation')}
+              onPress={() => router.push('/setup/location')}
+            />
+            <Button
+              variant="ghost"
+              icon="albums-outline"
+              title={otherPlaces.length ? t('settings.allPlaces', { count: otherPlaces.length + 1 }) : t('places.add')}
+              onPress={() => router.push('/places')}
+            />
           </Card>
         </Section>
 
         <Section title={t('settings.reminder')}>
           <ReminderPicker />
+          <AppText variant="caption" muted>
+            {t('settings.perKindHint')}
+          </AppText>
         </Section>
+
+        {canExportCalendar && (
+          <Section title={t('settings.calendar')}>
+            <ListRow
+              icon={<Ionicons name="calendar-number" size={22} color={theme.primary} />}
+              title={t('settings.exportCalendar')}
+              onPress={() => exportCalendar().catch(() => false)}
+            />
+            <AppText variant="caption" muted>
+              {t('settings.exportHint')}
+            </AppText>
+          </Section>
+        )}
 
         <Section title={t('settings.language')}>
           <View style={styles.chips}>
@@ -100,6 +129,11 @@ export default function Settings() {
 
         <Section title={t('feedback.title')}>
           <View style={styles.links}>
+            <ListRow
+              icon={<Ionicons name="leaf" size={22} color={theme.primary} />}
+              title={t('guide.entry')}
+              onPress={() => router.push('/guide')}
+            />
             <ListRow
               icon={<Ionicons name="bug" size={22} color={theme.primary} />}
               title={t('feedback.bug')}
@@ -119,6 +153,11 @@ export default function Settings() {
               icon={<Ionicons name="bulb" size={22} color={theme.primary} />}
               title={t('feedback.idea')}
               onPress={() => openIssue('feature_request')}
+            />
+            <ListRow
+              icon={<Ionicons name="megaphone" size={22} color={theme.primary} />}
+              title={t('feedback.area')}
+              onPress={() => openIssue('area_request')}
             />
           </View>
           <AppText variant="caption" muted>

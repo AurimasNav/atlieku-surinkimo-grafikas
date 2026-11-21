@@ -1,4 +1,6 @@
 import {
+  isKaunasCitySearch,
+  uncoveredCitySearch,
   type KaunoAddress,
   type KaunoAddresses,
   kaunoAlias,
@@ -44,6 +46,41 @@ describe('Kauno r. addresses', () => {
     expect(searchKaunoTowns(towns, 'karkisk').map((t) => t.town)).toEqual(['Karkiškių k.']);
     expect(searchKaunoTowns(towns, 'ringaud').map((t) => t.town)).toEqual(['Ringaudų k.', 'Karkiškių k.']);
     expect(searchKaunoTowns(towns, '')).toEqual([]);
+  });
+
+  it('finds towns by their name in the Address Register', () => {
+    // As kauno-r/schedule.json writes them: genitive and type, and the register's name.
+    const towns = kaunoTowns({
+      ...index,
+      elderships: [
+        { id: 'akademijos', name: 'Akademijos sen.', towns: ['Akademijos mstl.'], registerNames: { 'Akademijos mstl.': 'Akademija' } },
+        {
+          id: 'babtu',
+          name: 'Babtų sen.',
+          towns: ['Babtų k.', 'Babtų mstl.', 'Muniškių k.'],
+          registerNames: { 'Babtų k.': 'Babtai', 'Babtų mstl.': 'Babtai', 'Muniškių k.': 'Muniškiai' },
+        },
+        { id: 'uzliedziu', name: 'Užliedžių sen.', towns: ['Kauno raj.', 'Romainių k.'], registerNames: { 'Romainių k.': 'Romainiai' } },
+      ],
+    });
+    const search = (query: string) => searchKaunoTowns(towns, query).map((t) => t.town);
+    expect(search('Akademija')).toEqual(['Akademijos mstl.']);
+    expect(search('akademij')).toEqual(['Akademijos mstl.']);
+    expect(search('Babtai')).toEqual(['Babtų k.', 'Babtų mstl.']);
+    expect(search('muniskiai babtu')).toEqual(['Muniškių k.']);
+    // A match on the register's name counts as the start of the name: Babtai before the
+    // villages of Babtų sen.
+    expect(search('babt')).toEqual(['Babtų k.', 'Babtų mstl.', 'Muniškių k.']);
+    expect(search('romainiai')).toEqual(['Romainių k.']);
+    // The town is still the name the address files use.
+    expect(searchKaunoTowns(towns, 'Akademija')).toEqual([
+      { eldership: 'akademijos', eldershipName: 'Akademijos sen.', town: 'Akademijos mstl.', registerName: 'Akademija' },
+    ]);
+  });
+
+  it('works with data that has no register names', () => {
+    expect(kaunoTowns(index)[0]).toEqual({ eldership: 'ringaudu', eldershipName: 'Ringaudų sen.', town: 'Karkiškių k.' });
+    expect(searchKaunoTowns(kaunoTowns(index), 'Karkiškės')).toEqual([]);
   });
 
   it('gives one schedule per waste type', () => {
@@ -179,5 +216,36 @@ describe('an address saved with a spelling that was merged', () => {
 
   it('is still gone if no alias leads anywhere', async () => {
     expect(await loadKaunoAddress({ ...saved, house: '99' })).toBeUndefined();
+  });
+});
+
+describe('a search for Kaunas city', () => {
+  it('is recognised in every spelling', () => {
+    for (const query of ['Kaunas', 'kaunas', ' KAUNAS ', 'Kauno m.', 'kauno m', 'Kauno miestas', 'Kauno miesto sav.', 'kauno mies', 'Kaunas m.', 'Kaune', 'Kowno', 'Каунас']) {
+      expect([query, isKaunasCitySearch(query, 0)]).toEqual([query, true]);
+    }
+  });
+
+  it('is not the district or another place', () => {
+    for (const query of ['Kauno r.', 'kauno raj', 'Kaunas r.', 'Kaunas district', 'Kauno rajonas', 'Kauno', 'kaun', 'Kauno marios', 'Akademija', 'Vilnius', '']) {
+      expect([query, isKaunasCitySearch(query, 0)]).toEqual([query, false]);
+    }
+  });
+
+  it('is not said when the search found something', () => {
+    expect(isKaunasCitySearch('kaunas', 1)).toBe(false);
+  });
+});
+
+describe('a search for Klaipėda city', () => {
+  it('is recognised, and is not the district', () => {
+    for (const query of ['Klaipėda', 'klaipeda', 'Klaipėdos m.', 'Klaipėdos miestas', 'Klaipėdoje', 'Kłajpeda', 'Клайпеда']) {
+      expect([query, uncoveredCitySearch(query, 0)]).toEqual([query, 'klaipeda']);
+    }
+    for (const query of ['Klaipėdos r.', 'Klaipėda district', 'Klaipėdos rajonas', 'Gargždai']) {
+      expect([query, uncoveredCitySearch(query, 0)]).toEqual([query, undefined]);
+    }
+    expect(uncoveredCitySearch('Kaunas', 0)).toBe('kaunas');
+    expect(uncoveredCitySearch('Klaipėda', 2)).toBeUndefined();
   });
 });
