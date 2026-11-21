@@ -38,7 +38,7 @@ describe('staleSources', () => {
 
   it('uses the Kauno švara build time for a Kauno r. address', () => {
     const kauno = { eldership: 'e', eldershipName: 'E', town: 'T', street: '', house: '' };
-    const withPersonal = { ...data, personal: { key: 'k', areas: [], generatedAt: '2026-11-01T04:20:00Z' } };
+    const withPersonal = { ...data, personals: [{ key: 'e|T||', areas: [], generatedAt: '2026-11-01T04:20:00Z' }] };
     expect(staleSources(withPersonal, { kauno, choices: {} }, resolvedWith(), now)).toEqual([
       { name: 'UAB „Kauno švara“', url: 'https://grafikai.svara.lt/', since: '2026-11-01T04:20:00Z' },
     ]);

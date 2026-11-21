@@ -1,4 +1,4 @@
-import type { KaunoAddress } from '@/lib/kauno';
+import { type KaunoAddress, kaunoKey } from '@/lib/kauno';
 import type { ScheduleData } from '@/lib/schedule';
 
 import { useSchedule } from './schedule';
@@ -159,10 +159,28 @@ describe('refreshing a Kauno r. address', () => {
     expect(place?.kauno).toEqual({ ...saved, town: 'Akademijos mstl.' });
     // Answers given for the address stay.
     expect(place?.choices).toEqual({ green: null });
-    expect(useSchedule.getState().data?.personal).toEqual({
-      key: 'akademijos|Akademijos mstl.|Vynuogyno g.|9',
-      areas: [expect.objectContaining({ kind: 'household', dates: ['2026-11-25'] })],
-      generatedAt: '',
+    expect(useSchedule.getState().data?.personals).toEqual([
+      {
+        key: 'akademijos|Akademijos mstl.|Vynuogyno g.|9',
+        areas: [expect.objectContaining({ kind: 'household', dates: ['2026-11-25'] })],
+        generatedAt: '',
+      },
+    ]);
+  });
+
+  it('keeps the schedules of every saved place, and those of a place it could not download', async () => {
+    const other = { ...saved, town: 'Akademijos mstl.', house: '11' };
+    const keptAreas = [{ id: 'old', kind: 'household' as const, name: '', dates: ['2026-11-30'] }];
+    useSettings.setState({
+      place: { kauno: saved, choices: {} },
+      otherPlaces: [{ id: 'summer', place: { kauno: other, choices: {} } }],
     });
+    useSchedule.setState({ data: { ...data, personal: { key: kaunoKey(other), areas: keptAreas } }, etag: undefined });
+    await useSchedule.getState().refresh();
+    const personals = useSchedule.getState().data?.personals ?? [];
+    expect(personals.map((p) => p.key)).toEqual(['akademijos|Akademijos mstl.|Vynuogyno g.|9', kaunoKey(other)]);
+    // House 11 isn't in the address file: the dates saved before stay.
+    expect(personals[1].areas).toEqual(keptAreas);
+    expect(useSchedule.getState().data?.personal).toBeUndefined();
   });
 });

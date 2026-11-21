@@ -27,7 +27,7 @@ export type ReminderSettings = {
 
 /** What the user did with reminders that already went off ("Bins are out", "Later"). */
 export type ReminderActions = {
-  /** Pickups the user has dealt with, as `date|kind`: their remaining reminders are skipped. */
+  /** Pickups the user has dealt with (`doneKey`): their remaining reminders are skipped. */
   done: string[];
   /** Reminders put off by the user, keyed by the notification they came from. */
   snoozed: Snooze[];
@@ -35,7 +35,11 @@ export type ReminderActions = {
 
 export type Snooze = { id: string; fireAt: string; pickup: Pickup };
 
-export type Pickup = { date: string; kinds: WasteKind[] };
+/** `place`: the id of the saved place it's for, when reminders cover several. */
+export type Pickup = { date: string; kinds: WasteKind[]; place?: string };
+
+/** The schedules of one saved place. */
+export type PlaceAreas = { place?: string; areas: Area[] };
 
 export type PlannedReminder =
   | { type: 'pickup'; fireAt: Date; pickup: Pickup }
@@ -43,7 +47,8 @@ export type PlannedReminder =
 
 export const NO_ACTIONS: ReminderActions = { done: [], snoozed: [] };
 
-export const doneKey = (date: string, kind: WasteKind) => `${date}|${kind}`;
+/** Starts with the date, so old ones are easy to drop (`pruneActions`). */
+export const doneKey = (date: string, kind: WasteKind, place = '') => `${date}|${kind}|${place}`;
 
 /** The reminders that apply to one waste type. */
 export const timesFor = (settings: ReminderSettings, kind: WasteKind): ReminderTime[] =>
@@ -86,31 +91,39 @@ export const daysAhead = (fireAt: Date, date: string) => daysBetween(fireAt, par
 
 /**
  * Decides which notifications to schedule. Pure, so it can be unit tested; the caller
- * hands the result to the OS. Waste types reminded at the same moment share one notification.
+ * hands the result to the OS. Waste types reminded at the same moment for the same place
+ * share one notification. Takes the areas of one place, or of several (`PlaceAreas`).
  */
 export function planReminders(
-  selected: Area[],
+  selected: Area[] | PlaceAreas[],
   settings: ReminderSettings,
   now: Date,
   actions: ReminderActions = NO_ACTIONS,
 ): PlannedReminder[] {
+  const sources: PlaceAreas[] =
+    selected.length && 'areas' in selected[0] ? (selected as PlaceAreas[]) : [{ areas: selected as Area[] }];
   const done = new Set(actions.done);
   const byMoment = new Map<string, { fireAt: Date; pickup: Pickup }>();
-  const add = (fireAt: Date, date: string, kinds: WasteKind[]) => {
-    const open = kinds.filter((kind) => !done.has(doneKey(date, kind)));
+  const add = (fireAt: Date, date: string, kinds: WasteKind[], place?: string) => {
+    const open = kinds.filter((kind) => !done.has(doneKey(date, kind, place)));
     if (fireAt <= now || !open.length) return;
-    const key = `${fireAt.getTime()}|${date}`;
+    const key = `${fireAt.getTime()}|${date}|${place ?? ''}`;
     const known = byMoment.get(key);
     const merged = new Set([...(known?.pickup.kinds ?? []), ...open]);
-    byMoment.set(key, { fireAt, pickup: { date, kinds: WASTE_KINDS.filter((kind) => merged.has(kind)) } });
+    const kindsNow = WASTE_KINDS.filter((kind) => merged.has(kind));
+    byMoment.set(key, { fireAt, pickup: place ? { date, kinds: kindsNow, place } : { date, kinds: kindsNow } });
   };
 
-  for (const pickup of upcomingPickups(selected, now)) {
-    for (const kind of pickup.kinds) {
-      for (const time of timesFor(settings, kind)) add(fireTime(pickup.date, time), pickup.date, [kind]);
+  for (const { place, areas } of sources) {
+    for (const pickup of upcomingPickups(areas, now)) {
+      for (const kind of pickup.kinds) {
+        for (const time of timesFor(settings, kind)) add(fireTime(pickup.date, time), pickup.date, [kind], place);
+      }
     }
   }
-  for (const snooze of actions.snoozed) add(new Date(snooze.fireAt), snooze.pickup.date, snooze.pickup.kinds);
+  for (const snooze of actions.snoozed) {
+    add(new Date(snooze.fireAt), snooze.pickup.date, snooze.pickup.kinds, snooze.pickup.place);
+  }
 
   const planned: PlannedReminder[] = [...byMoment.values()]
     .sort((a, b) => a.fireAt.getTime() - b.fireAt.getTime())

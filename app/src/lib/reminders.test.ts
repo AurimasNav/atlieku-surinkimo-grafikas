@@ -128,3 +128,18 @@ describe('sortTimes', () => {
     expect(sortTimes([morning, { ...evening, hour: 21 }, evening])).toEqual([evening, { ...evening, hour: 21 }, morning]);
   });
 });
+
+describe('several places', () => {
+  it('reminds of each place on its own and marks done per place', () => {
+    const plan = planReminders(
+      [
+        { place: 'home', areas: [area('household', ['2026-10-14'])] },
+        { place: 'summer', areas: [area('household', ['2026-10-14'])] },
+      ],
+      settings,
+      new Date(2026, 9, 11),
+      { done: [doneKey('2026-10-14', 'household', 'summer')], snoozed: [] },
+    );
+    expect(pickupsOf(plan)).toEqual([{ at: new Date(2026, 9, 13, 19, 0), date: '2026-10-14', kinds: ['household'], place: 'home' }]);
+  });
+});

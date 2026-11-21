@@ -43,6 +43,8 @@ export default function Home() {
   const place = useSettings((s) => s.place);
   const reminder = useSettings((s) => s.reminder);
   const homeView = useSettings((s) => s.homeView);
+  const placeId = useSettings((s) => s.placeId);
+  const placeNickname = useSettings((s) => s.placeName);
   const doneKeys = useReminderActions((s) => s.done);
   const { data, refreshing, error, refresh, lastChecked, changes, dismissChanges } = useSchedule();
   const [filter, setFilter] = useState<Filter>('all');
@@ -72,6 +74,7 @@ export default function Home() {
   const [next, ...rest] = pickups;
   const pending = pendingKinds(resolved);
   const placeName =
+    placeNickname ??
     label.name ??
     (place?.custom && Object.keys(place.custom).length ? t('custom.title') : t('home.choosePlace'));
   const notes = resolved.areas.filter((area) => area.note && !area.dates.length);
@@ -88,7 +91,7 @@ export default function Home() {
         [...new Map(next.kinds.flatMap((kind) => timesFor(reminder, kind)).map((time) => [JSON.stringify(time), time])).values()],
       )
     : [];
-  const nextDone = next?.kinds.every((kind) => doneKeys.includes(doneKey(next.date, kind)));
+  const nextDone = next?.kinds.every((kind) => doneKeys.includes(doneKey(next.date, kind, placeId)));
   const reminderText = nextDone
     ? t('home.markedDone')
     : nextTimes.length === 0
@@ -133,7 +136,7 @@ export default function Home() {
         <View style={styles.topBar}>
           <PressableScale
             haptic="light"
-            onPress={() => router.push('/setup/location')}
+            onPress={() => router.push('/places')}
             accessibilityRole="button"
             wrapperStyle={styles.placeWrapper}
             style={[styles.placePill, { backgroundColor: theme.surface }]}>

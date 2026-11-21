@@ -1,4 +1,4 @@
-import { useSettings } from './settings';
+import { allPlaces, useSettings } from './settings';
 
 const saved: Record<string, string> = {};
 
@@ -31,5 +31,39 @@ describe('settings migration', () => {
     expect(state.onboarded).toBe(true);
     expect(state.place).toEqual({ locationId: 'x', choices: {} });
     expect(state.language).toBe('lt');
+  });
+});
+
+describe('saved places', () => {
+  beforeEach(() => {
+    useSettings.setState({ place: { locationId: 'home', choices: {} }, placeId: 'home', placeName: undefined, otherPlaces: [] });
+  });
+
+  it('adds a place to set up and switches back', () => {
+    useSettings.getState().addPlace();
+    const added = useSettings.getState();
+    expect(added.place).toBeNull();
+    expect(added.otherPlaces).toEqual([{ id: 'home', name: undefined, place: { locationId: 'home', choices: {} } }]);
+
+    useSettings.getState().setLocation('summer');
+    useSettings.getState().renamePlace(added.placeId, '  Sodyba ');
+    useSettings.getState().switchPlace('home');
+    const back = useSettings.getState();
+    expect(back.place).toEqual({ locationId: 'home', choices: {} });
+    expect(back.otherPlaces).toEqual([{ id: added.placeId, name: 'Sodyba', place: { locationId: 'summer', choices: {} } }]);
+    expect(allPlaces(back).map((saved) => saved.id)).toEqual(['home', added.placeId]);
+  });
+
+  it('drops a new place that was never set up', () => {
+    useSettings.getState().addPlace();
+    useSettings.getState().switchPlace('home');
+    expect(useSettings.getState().otherPlaces).toEqual([]);
+  });
+
+  it('shows the next place when the current one is removed', () => {
+    useSettings.setState({ otherPlaces: [{ id: 'summer', name: 'Sodyba', place: { locationId: 'summer', choices: {} } }] });
+    useSettings.getState().removePlace('home');
+    const state = useSettings.getState();
+    expect([state.placeId, state.placeName, state.place?.locationId, state.otherPlaces]).toEqual(['summer', 'Sodyba', 'summer', []]);
   });
 });

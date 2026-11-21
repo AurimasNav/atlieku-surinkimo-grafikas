@@ -10,11 +10,13 @@ import {
   fetchSchedule,
   regionPart,
   type Personal,
+  personalsOf,
   type ScheduleData,
   UnsupportedScheduleError,
+  withPersonals,
   withRegion,
 } from '@/lib/schedule';
-import { useSettings } from '@/store/settings';
+import { allPlaces, useSettings } from '@/store/settings';
 import { storage } from '@/lib/storage';
 
 export type RefreshError = 'loadFailed' | 'unsupported';
@@ -46,26 +48,33 @@ export const useSchedule = create<ScheduleState>()(
       changes: [],
       addChanges: (changes) => {
         const known = activeChanges(get().changes, toIsoDate(new Date()));
-        const key = (c: PickupChange) => `${c.kind}|${c.from ?? ''}|${c.to ?? ''}`;
+        const key = (c: PickupChange) => `${c.kind}|${c.from ?? ''}|${c.to ?? ''}|${c.place ?? ''}`;
         const seen = new Set(known.map(key));
         set({ changes: [...known, ...changes.filter((c) => !seen.has(key(c)))] });
       },
       dismissChanges: () => set({ changes: [] }),
       setPersonal: (personal) => {
         const data = get().data;
-        if (data) set({ data: { ...data, personal } });
+        if (data) set({ data: withPersonals(data, [...personalsOf(data).filter((p) => p.key !== personal.key), personal]) });
       },
       refresh: async () => {
         if (get().refreshing) return false;
         set({ refreshing: true, error: null });
         try {
-          // A Kauno r. address has its own, smaller download; a failure keeps the saved dates.
-          const kauno = useSettings.getState().place?.kauno;
-          const found = kauno ? await loadKaunoAddress(kauno).catch(() => undefined) : undefined;
-          // The saved spelling of the address was merged into another one: save that instead.
-          if (kauno && found && found.key !== kaunoKey(kauno)) useSettings.getState().moveKaunoAddress(found.address);
-          const personal = found && { key: found.key, areas: found.areas, generatedAt: found.generatedAt };
-          const keep = (data: ScheduleData): ScheduleData => ({ ...data, personal: personal ?? get().data?.personal });
+          // Each saved Kauno r. address has its own, smaller download; a failure keeps its saved
+          // dates.
+          const addresses = allPlaces(useSettings.getState()).flatMap((saved) => (saved.place?.kauno ? [saved.place.kauno] : []));
+          const found = await Promise.all(addresses.map((address) => loadKaunoAddress(address).catch(() => undefined)));
+          const saved = personalsOf(get().data);
+          const personals = addresses.flatMap((address, i): Personal[] => {
+            const result = found[i];
+            if (!result) return saved.filter((p) => p.key === kaunoKey(address));
+            // The saved spelling of the address was merged into another one: save that instead.
+            if (result.key !== kaunoKey(address)) useSettings.getState().moveKaunoAddress(kaunoKey(address), result.address);
+            return [{ key: result.key, areas: result.areas, generatedAt: result.generatedAt }];
+          });
+          const loaded = found.some(Boolean);
+          const keep = (data: ScheduleData): ScheduleData => withPersonals(data, personals);
           // Only send the ETag when we actually have the data it refers to.
           const previous = get().data;
           const result = await fetchSchedule(previous ? get().etag : undefined);
@@ -90,8 +99,8 @@ export const useSchedule = create<ScheduleState>()(
             if (part && regions[url]) data = withRegion(data, ids, part);
           }
           if (!changed) {
-            set({ refreshing: false, lastChecked, ...(personal ? { data: keep(data) } : {}) });
-            return Boolean(personal);
+            set({ refreshing: false, lastChecked, ...(loaded ? { data: keep(data) } : {}) });
+            return loaded;
           }
           set({ data: keep(data), etag: result ? result.etag : get().etag, regions, lastChecked, refreshing: false });
           return true;

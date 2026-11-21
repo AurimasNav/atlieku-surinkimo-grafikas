@@ -1,6 +1,7 @@
 import { KAUNO_SOURCE_PAGE_URL, SOURCE_PAGE_URL } from './config';
 import { isCustomArea, type Place, type Resolved } from './resolve';
-import type { ScheduleData } from './schedule';
+import { kaunoKey } from './kauno';
+import { personalsOf, type ScheduleData } from './schedule';
 
 /** The daily job rebuilds every source; a week without a new build means its source broke. */
 export const STALE_DATA_DAYS = 7;
@@ -19,7 +20,8 @@ const older = (iso: string | undefined, days: number, now: Date) =>
 export function staleSources(data: ScheduleData | null, place: Place | null, resolved: Resolved, now: Date): StaleSource[] {
   if (!data) return [];
   if (place?.kauno) {
-    const since = data.personal?.generatedAt;
+    const key = kaunoKey(place.kauno);
+    const since = personalsOf(data).find((p) => p.key === key)?.generatedAt;
     return older(since, STALE_DATA_DAYS, now) ? [{ name: 'UAB „Kauno švara“', url: KAUNO_SOURCE_PAGE_URL, since: since! }] : [];
   }
   // Rows without a provider are Nemenčinės komunalininkas', as in data published before.

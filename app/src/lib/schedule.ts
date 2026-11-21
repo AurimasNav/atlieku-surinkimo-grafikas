@@ -72,14 +72,26 @@ export type ScheduleData = {
   /** Added with a second company in Vilniaus r.; older data has only Nemenčinės komunalininkas. */
   providers?: Provider[];
   /**
-   * Not part of the download: the schedules of the user's own address in Kauno r., kept by the
-   * app next to the data (see lib/kauno.ts). `key` says which address they belong to.
+   * Not part of the download: the schedules of the user's own addresses in Kauno r., kept by
+   * the app next to the data (see lib/kauno.ts). `key` says which address they belong to.
    */
+  personals?: Personal[];
+  /** One address, as app versions before several places saved it (see `personalsOf`). */
   personal?: Personal;
 };
 
 /** The schedules of one Kauno r. address, and when Kauno švara's data they come from was built. */
 export type Personal = { key: string; areas: Area[]; generatedAt?: string };
+
+/** The saved schedules of Kauno r. addresses, also those saved by older app versions. */
+export const personalsOf = (data: ScheduleData | null | undefined): Personal[] =>
+  data?.personals ?? (data?.personal ? [data.personal] : []);
+
+/** `data` with these Kauno r. addresses' schedules saved next to it. */
+export function withPersonals(data: ScheduleData, personals: Personal[]): ScheduleData {
+  const { personal: _old, ...rest } = data;
+  return { ...rest, personals };
+}
 
 export class UnsupportedScheduleError extends Error {}
 

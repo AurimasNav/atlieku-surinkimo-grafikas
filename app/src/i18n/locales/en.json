@@ -154,7 +154,9 @@
     "perKindHint": "To be reminded of one waste type differently, or not at all, tap it under “Your place”.",
     "calendar": "Calendar",
     "exportCalendar": "Add to my calendar app",
-    "exportHint": "Saves the pickup dates known now as a calendar file (.ics), with your reminders as alarms. Your calendar won't follow later changes, so add it again when a new schedule is published."
+    "exportHint": "Saves the pickup dates known now as a calendar file (.ics), with your reminders as alarms. Your calendar won't follow later changes, so add it again when a new schedule is published.",
+    "allPlaces_one": "All my places ({{count}})",
+    "allPlaces_other": "All my places ({{count}})"
   },
   "notifications": {
     "channelName": "Pickup reminders",
@@ -166,7 +168,8 @@
     "done": "Bins are out",
     "snoozeHour": "In an hour",
     "snoozeShort": "In 15 min",
-    "changedTitle": "Pickup dates changed"
+    "changedTitle": "Pickup dates changed",
+    "bodyAtPlace": "{{place}}: put your bins out by 7:00."
   },
   "errors": {
     "loadFailed": "Couldn't load the schedule. Check your internet connection.",
@@ -248,5 +251,16 @@
     "previous": "Previous month",
     "next": "Next month",
     "noPickupsMonth": "No pickups this month in the published schedule."
+  },
+  "places": {
+    "title": "Your places",
+    "hint": "Every saved place gets reminders, e.g. home and a summer house. Tap one to see its pickups.",
+    "new": "New place",
+    "add": "Add another place",
+    "rename": "Name or change this place",
+    "namePlaceholder": "Name, e.g. Summer house",
+    "save": "Save",
+    "change": "Change address",
+    "remove": "Remove this place"
   }
 }

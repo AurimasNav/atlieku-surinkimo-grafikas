@@ -2,7 +2,7 @@ import { KAUNO_SOURCE_PAGE_URL, SOURCE_PAGE_URL } from './config';
 import { customDates, type CustomSchedule } from './custom-schedule';
 import { parseIsoDate } from './dates';
 import { type KaunoAddress, kaunoKey } from './kauno';
-import { type Area, isCurrent, type Location, type ScheduleData, WASTE_KINDS, type WasteKind } from './schedule';
+import { type Area, isCurrent, type Location, personalsOf, type ScheduleData, WASTE_KINDS, type WasteKind } from './schedule';
 
 /** What the user picked, stored on the phone. */
 export type Place = {
@@ -64,8 +64,8 @@ export function resolvePlace(data: ScheduleData | null, place: Place | null, tod
     return area && isCurrent(area, today) ? area : undefined;
   };
   // The schedules of a Kauno r. address, if the saved ones belong to this address.
-  const personal =
-    place?.kauno && data?.personal?.key === kaunoKey(place.kauno) ? data.personal.areas : undefined;
+  const key = place?.kauno && kaunoKey(place.kauno);
+  const personal = key ? personalsOf(data).find((p) => p.key === key)?.areas : undefined;
 
   for (const kind of WASTE_KINDS) {
     const custom = place?.custom?.[kind];
