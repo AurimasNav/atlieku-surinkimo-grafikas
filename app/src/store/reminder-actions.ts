@@ -22,7 +22,7 @@ export const useReminderActions = create<ReminderActionsState>()(
       ...NO_ACTIONS,
       markDone: (pickup) =>
         set((state) => ({
-          done: [...new Set([...state.done, ...pickup.kinds.map((kind) => doneKey(pickup.date, kind))])],
+          done: [...new Set([...state.done, ...pickup.kinds.map((kind) => doneKey(pickup.date, kind, pickup.place))])],
         })),
       snooze: (id, fireAt, pickup) =>
         set((state) => ({

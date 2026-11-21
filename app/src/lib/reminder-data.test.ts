@@ -8,7 +8,11 @@ describe('pickupFromContent', () => {
   });
 
   it('reads the JSON string the background task gets', () => {
-    expect(pickupFromContent({ dataString: JSON.stringify(data) })).toEqual({ date: '2026-11-26', kinds: ['household', 'glass'] });
+    expect(pickupFromContent({ dataString: JSON.stringify({ ...data, place: 'home' }) })).toEqual({
+      date: '2026-11-26',
+      kinds: ['household', 'glass'],
+      place: 'home',
+    });
   });
 
   it('ignores other notifications and broken data', () => {

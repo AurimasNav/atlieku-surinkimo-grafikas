@@ -2,7 +2,7 @@ import type { Pickup } from './reminders';
 import { WASTE_KINDS } from './schedule';
 
 /** What a pickup reminder carries, so its buttons know which pickup they're about. */
-export type PickupData = { type: 'pickup'; date: string; kinds: string[] };
+export type PickupData = { type: 'pickup'; date: string; kinds: string[]; place?: string };
 
 /**
  * The pickup a reminder is about, from the content of the notification a button was pressed on.
@@ -20,5 +20,6 @@ export function pickupFromContent(content: { data?: unknown; dataString?: unknow
     }
   }
   if (data?.type !== 'pickup' || typeof data.date !== 'string' || !Array.isArray(data.kinds)) return undefined;
-  return { date: data.date, kinds: WASTE_KINDS.filter((kind) => data.kinds!.includes(kind)) };
+  const kinds = WASTE_KINDS.filter((kind) => data.kinds!.includes(kind));
+  return typeof data.place === 'string' ? { date: data.date, kinds, place: data.place } : { date: data.date, kinds };
 }

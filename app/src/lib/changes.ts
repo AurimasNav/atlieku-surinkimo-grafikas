@@ -8,8 +8,11 @@ import { type Area, WASTE_KINDS, type WasteKind } from './schedule';
 /** How far ahead a changed date is worth an alert: later ones are seen in good time anyway. */
 export const CHANGE_WINDOW_DAYS = 21;
 
-/** A pickup that moved (`from` and `to`), was cancelled (`from`) or added (`to`). */
-export type PickupChange = { kind: WasteKind; from?: string; to?: string };
+/**
+ * A pickup that moved (`from` and `to`), was cancelled (`from`) or added (`to`); `place` names
+ * the saved place when it isn't the one shown.
+ */
+export type PickupChange = { kind: WasteKind; from?: string; to?: string; place?: string };
 
 /** Official pickup dates by waste type; the user's own schedules don't change on a refresh. */
 export function officialDates(areas: Area[]): Partial<Record<WasteKind, string[]>> {
@@ -70,11 +73,12 @@ export const activeChanges = (changes: PickupChange[], today: string) =>
 export function describeChanges(changes: PickupChange[], t: TFunction, lang: string): string[] {
   return changes.map((change) => {
     const kind = t(`kinds.${change.kind}`);
-    if (change.from && change.to) {
-      return t('changes.moved', { kind, from: shortDayDate(lang, change.from), to: shortDayDate(lang, change.to) });
-    }
-    return change.from
-      ? t('changes.cancelled', { kind, date: shortDayDate(lang, change.from) })
-      : t('changes.added', { kind, date: shortDayDate(lang, change.to!) });
+    const line =
+      change.from && change.to
+        ? t('changes.moved', { kind, from: shortDayDate(lang, change.from), to: shortDayDate(lang, change.to) })
+        : change.from
+          ? t('changes.cancelled', { kind, date: shortDayDate(lang, change.from) })
+          : t('changes.added', { kind, date: shortDayDate(lang, change.to!) });
+    return change.place ? `${change.place} · ${line}` : line;
   });
 }

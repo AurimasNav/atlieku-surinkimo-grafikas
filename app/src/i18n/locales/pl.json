@@ -159,7 +159,11 @@
     "perKindHint": "Aby przypomnienia o jednym rodzaju odpadów przychodziły o innej porze albo wcale, dotknij go w sekcji „Twoja miejscowość”.",
     "calendar": "Kalendarz",
     "exportCalendar": "Dodaj do mojego kalendarza",
-    "exportHint": "Zapisuje znane teraz terminy odbioru w pliku kalendarza (.ics) razem z Twoimi przypomnieniami. Kalendarz nie dowie się o późniejszych zmianach, więc po opublikowaniu nowego harmonogramu dodaj go ponownie."
+    "exportHint": "Zapisuje znane teraz terminy odbioru w pliku kalendarza (.ics) razem z Twoimi przypomnieniami. Kalendarz nie dowie się o późniejszych zmianach, więc po opublikowaniu nowego harmonogramu dodaj go ponownie.",
+    "allPlaces_other": "Wszystkie moje miejsca ({{count}})",
+    "allPlaces_few": "Wszystkie moje miejsca ({{count}})",
+    "allPlaces_many": "Wszystkie moje miejsca ({{count}})",
+    "allPlaces_one": "Wszystkie moje miejsca ({{count}})"
   },
   "notifications": {
     "channelName": "Przypomnienia o odbiorze",
@@ -171,7 +175,8 @@
     "done": "Już wystawione",
     "snoozeHour": "Za godzinę",
     "snoozeShort": "Za 15 min",
-    "changedTitle": "Zmieniły się terminy odbioru"
+    "changedTitle": "Zmieniły się terminy odbioru",
+    "bodyAtPlace": "{{place}}: wystaw pojemniki do 7:00."
   },
   "errors": {
     "loadFailed": "Nie udało się wczytać harmonogramu. Sprawdź połączenie z internetem.",
@@ -298,5 +303,16 @@
     "previous": "Poprzedni miesiąc",
     "next": "Następny miesiąc",
     "noPickupsMonth": "W opublikowanym harmonogramie w tym miesiącu nie ma odbiorów."
+  },
+  "places": {
+    "title": "Twoje miejsca",
+    "hint": "Przypomnienia przychodzą dla wszystkich zapisanych miejsc, np. domu i działki. Dotknij miejsca, aby zobaczyć jego odbiory.",
+    "new": "Nowe miejsce",
+    "add": "Dodaj kolejne miejsce",
+    "rename": "Nazwij lub zmień to miejsce",
+    "namePlaceholder": "Nazwa, np. Działka",
+    "save": "Zapisz",
+    "change": "Zmień adres",
+    "remove": "Usuń to miejsce"
   }
 }

@@ -159,7 +159,11 @@
     "perKindHint": "Jei apie kurią nors atliekų rūšį norite priminimų kitu laiku arba visai jų nenorite, palieskite ją skiltyje „Jūsų vietovė“.",
     "calendar": "Kalendorius",
     "exportCalendar": "Įkelti į mano kalendorių",
-    "exportHint": "Dabar žinomas išvežimo datas išsaugo kalendoriaus faile (.ics), su jūsų priminimais. Vėlesnių pakeitimų kalendorius pats nesužinos, todėl paskelbus naują grafiką įkelkite jį dar kartą."
+    "exportHint": "Dabar žinomas išvežimo datas išsaugo kalendoriaus faile (.ics), su jūsų priminimais. Vėlesnių pakeitimų kalendorius pats nesužinos, todėl paskelbus naują grafiką įkelkite jį dar kartą.",
+    "allPlaces_other": "Visos mano vietovės ({{count}})",
+    "allPlaces_few": "Visos mano vietovės ({{count}})",
+    "allPlaces_many": "Visos mano vietovės ({{count}})",
+    "allPlaces_one": "Visos mano vietovės ({{count}})"
   },
   "notifications": {
     "channelName": "Išvežimo priminimai",
@@ -171,7 +175,8 @@
     "done": "Jau išstūmiau",
     "snoozeHour": "Po valandos",
     "snoozeShort": "Po 15 min.",
-    "changedTitle": "Pasikeitė išvežimo datos"
+    "changedTitle": "Pasikeitė išvežimo datos",
+    "bodyAtPlace": "{{place}}: konteinerius išstumkite iki 7:00."
   },
   "errors": {
     "loadFailed": "Nepavyko įkelti grafiko. Patikrinkite interneto ryšį.",
@@ -298,5 +303,16 @@
     "previous": "Ankstesnis mėnuo",
     "next": "Kitas mėnuo",
     "noPickupsMonth": "Paskelbtame grafike šį mėnesį išvežimų nėra."
+  },
+  "places": {
+    "title": "Jūsų vietovės",
+    "hint": "Priminimai siunčiami apie visas išsaugotas vietoves, pvz., namus ir sodybą. Palieskite vietovę, kad pamatytumėte jos išvežimus.",
+    "new": "Nauja vietovė",
+    "add": "Pridėti dar vieną vietovę",
+    "rename": "Pavadinti ar keisti šią vietovę",
+    "namePlaceholder": "Pavadinimas, pvz., Sodyba",
+    "save": "Išsaugoti",
+    "change": "Keisti adresą",
+    "remove": "Pašalinti šią vietovę"
   }
 }
