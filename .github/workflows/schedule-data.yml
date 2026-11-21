@@ -1,7 +1,7 @@
 name: Schedule data
 
-# Scrapes nemenkom.lt, nkom.lt, Kauno švara, tratc.lt and gargzdusvara.eu daily and publishes the
-# data + the privacy policy to GitHub Pages. If parsing or validation fails, nothing is deployed and the last good
+# Scrapes nemenkom.lt, nkom.lt, Kauno švara, tratc.lt, gargzdusvara.eu and uabtratc.lt daily and
+# publishes the data + the privacy policy to GitHub Pages. If parsing or validation fails, nothing is deployed and the last good
 # data stays live; a provider whose build fails keeps its part of yesterday's data instead.
 on:
   schedule:
@@ -114,6 +114,29 @@ jobs:
             echo "::warning::The Klaipėdos r. build failed and there is no published data to keep."
           else
             echo "::error::The Klaipėdos r. build failed and the published data couldn't be downloaded (HTTP $code)."
+            exit 1
+          fi
+      # Jurbarko r., from the PDFs of Tauragės RATC (site/jurbarko-r): the same rule.
+      - name: Build the Jurbarko r. schedule (Tauragės RATC)
+        id: jurbarkas
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: uv run python -m schedule_pipeline.taurage --out ../site/jurbarko-r
+      - name: Keep the published Jurbarko r. data if today's build failed
+        if: steps.jurbarkas.outcome == 'failure'
+        run: |
+          base=https://aurimasnav.github.io/atlieku-surinkimo-grafikas/jurbarko-r
+          out=../site/jurbarko-r
+          rm -rf "$out" && mkdir -p "$out"
+          get() { curl -sS --retry 3 --max-time 120 -o "$out/$1" -w '%{http_code}' "$base/$1" || true; }
+          code=$(get schedule.json)
+          if [ "$code" = 200 ] && [ "$(get addresses.json)" = 200 ]; then
+            echo "::warning::The Jurbarko r. build failed; yesterday's published data is kept."
+          elif [ "$code" = 404 ]; then
+            rm -rf "$out"
+            echo "::warning::The Jurbarko r. build failed and there is no published data to keep."
+          else
+            echo "::error::The Jurbarko r. build failed and the published data couldn't be downloaded (HTTP $code)."
             exit 1
           fi
       # status.json and metrics.txt for monitoring (docs/monitoring.md).

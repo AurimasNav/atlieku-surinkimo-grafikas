@@ -22,6 +22,11 @@ links, downloaded on 2026-11-21, with the Address Register extract for Klaipėdo
 day. `2025 MKA+AZ (1).xlsx` is the 2025 spreadsheet, still on the site at the address the page
 linked in 2025 (other column titles, spaces in the lists of days, a second sheet).
 
+`taurage/` has the schedule page of UAB "Tauragės regiono atliekų tvarkymo centras" at
+<https://www.uabtratc.lt/atlieku-surinkimo-grafikai/> and the two 2026 PDFs of Jurbarko r. it
+links (mixed and green waste, packaging and glass), downloaded on 2026-11-21, with the Address
+Register extract for Jurbarko r. of the same day.
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 
