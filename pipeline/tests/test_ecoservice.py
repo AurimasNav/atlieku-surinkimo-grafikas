@@ -315,7 +315,7 @@ def test_counts(parts):
     assert counts == {
         "silute": (297, 271, 0, 26, 271, 6),
         "trakai": (437, 324, 0, 113, 324, 8),
-        "salcininkai": (444, 381, 3, 60, 302, 3),
+        "salcininkai": (444, 381, 3, 60, 315, 3),
     }
 
 
@@ -442,14 +442,33 @@ def test_salcininkai(parts):
     # "NEBIGĖNŲ K. - Negibėnų g." and "S GIRIOS K.": Negibėnai and Giria.
     assert schedule_of(data, "Negibėnai")["area"] and schedule_of(data, "Giria")["area"]
     # "RŪDNINKŲ K. - ..., Poligonas; Ryto g., ...": the streets after the military range.
-    rudninkai = place(data, "Rūdninkai")["schedule"]["household"]
-    assert "area" in rudninkai
+    assert schedule_of(data, "Rūdninkai")["area"]
+    assert not any("Vilkpėdės" in w or "Poligonas" in w for w in warnings)
     # Packaging and glass of whole elderships.
     assert row(data, schedule_of(data, "Akmenynė", "packaging")["area"])["name"] == (
         "Akmenynės sen."
     )
     assert "glass" in place(data, "Turgeliai")["schedule"]
+    # "Jašiūnų mstl.(Azalijų g., ..., Žalioji g., Keidžių k., ... Marazų k., ...": the bracket
+    # of the town's streets isn't closed; the villages after it are the route's.
+    marazai = row(data, schedule_of(data, "Marazai", "packaging")["area"])
+    assert marazai["name"].startswith("Jašiūnų sen.: Buikų k., Deguškių k.")
+    # "Krantinės g.,(nuo 27 namo nr. Lauko g., ...": nor is this one.
+    lauko = street_rows(data, "Šalčininkai", "packaging", "Lauko g.", "m.")
+    assert named(data, lauko)[0].startswith("Šalčininkų sen.: Milvydų k., Šalčininkų m.")
     assert "not a settlement or a street: household: Karmoniškių k.: Gėlių g." in warnings
+
+
+def test_brackets_left_open_are_closed_before_the_next_place():
+    assert ecoservice._close_brackets(
+        "Jašiūnų mstl.(Azalijų g., Beržų g., Keidžių k., Gojaus k."
+    ) == ("Jašiūnų mstl.(Azalijų g., Beržų g.), Keidžių k., Gojaus k.")
+    assert ecoservice._close_brackets("Lentvario m. (Gabijos g., Gėlių g.") == (
+        "Lentvario m. (Gabijos g., Gėlių g.)"
+    )
+    assert ecoservice._close_brackets("Varnikų k. (Pakrantės g.), Žydiškių k.") == (
+        "Varnikų k. (Pakrantės g.), Žydiškių k."
+    )
 
 
 # --- next year and the folders ---------------------------------------------------

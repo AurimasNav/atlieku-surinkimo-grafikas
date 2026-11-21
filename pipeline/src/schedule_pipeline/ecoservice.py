@@ -155,6 +155,13 @@ _FIXES: tuple[tuple[re.Pattern[str], str], ...] = (
         r"\1.",
     ),
     (re.compile(rf"\b({_STREET})(?:\.\s*|\s+)(?:nuo|iki)\b[^,;()]*\)?"), r"\1."),
+    # "Krantinės g.,(nuo 27 namo nr. Lauko g., ...": a bracket of houses that isn't closed.
+    (
+        re.compile(
+            rf"\(\s*(?:nuo|iki)\s+\d+\s*[a-zA-Z]?\s*(?:namo)?\s*(?:nr\.?)?\s*(?=[{_UPPER}])"
+        ),
+        "",
+    ),
     (re.compile(rf"\b({_WORD})\s+(?:nuo|iki)\s+\d+\s*\w*\s*namo\s*nr\.?\s+g\."), r"\1 g."),
     (re.compile(rf"\b({_STREET})\.\s*\d+\s*[A-Za-z]?\b\s*(?=[,;)]|$|[{_UPPER}])"), r"\1. "),
     (re.compile(r"\bk\.\s*,?\s*\(\s*([\d\s,;]+)\s*nam\w*\s*\)"), r"k. (\1)"),
@@ -182,6 +189,25 @@ _TOWN_PART = re.compile(
 )
 _TOWN_PART_MARK = re.compile(r"(?P<town>.+?)\s+m\.\s*\(⟦(?P<number>\d+)⟧\)")
 _THIRD = re.compile(r"\b3-(i?)asis\b")
+# The next place after the streets of a bracket that isn't closed: ", Keidžių k.".
+_NEXT_PLACE = re.compile(rf",\s*(?={_WORD}(?:\s+{_WORD})*\s+(?:k|vs|mstl|m)\.)")
+
+
+def _close_brackets(text: str) -> str:
+    """Closes a bracket of streets that isn't, before the next place: "Jašiūnų mstl.(Azalijų
+    g., ..., Žalioji g., Keidžių k., Krokšlių vs., ..." (Šalčininkų r. 2026 packaging), or at
+    the end."""
+    opened: list[int] = []
+    for i, ch in enumerate(text):
+        if ch == "(":
+            opened.append(i)
+        elif ch == ")" and opened:
+            opened.pop()
+    for start in reversed(opened):
+        after = _NEXT_PLACE.search(text, start)
+        end = after.start() if after else len(text)
+        text = f"{text[:end]}){text[end:]}"
+    return text
 
 
 class Routes(maatc.Routes):
@@ -205,6 +231,7 @@ class Routes(maatc.Routes):
     def spellings(self, text: str) -> str:
         for pattern, replacement in _FIXES:
             text = pattern.sub(replacement, text)
+        text = _close_brackets(text)
         self.town_parts = []
 
         def town_part(match: re.Match[str]) -> str:
