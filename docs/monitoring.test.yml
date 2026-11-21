@@ -103,6 +103,9 @@ tests:
         values: "518400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="sakiai",kind="food"}'
         values: "518400x20"
+      # Kretingos r.'s half-yearly mixed waste: ends tomorrow.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="household"}'
+        values: "86400x20"
       # Ends in 30 days: no alert.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="glass"}'
         values: "2592000x20"
@@ -166,6 +169,14 @@ tests:
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="vilkaviskis",kind="packaging"}'
         values: "2592000x20"
+      # Kretingos r.: its files are posted a week or two before their periods, so its food waste
+      # 3 days before its end raises nothing, nor do its glass and green waste.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="food"}'
+        values: "259200x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="glass"}'
+        values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="green"}'
+        values: "86400x20"
     alert_rule_test:
       - eval_time: 40m
         alertname: ScheduleDataRunsOut
@@ -284,6 +295,13 @@ tests:
               severity: warning
             exp_annotations:
               summary: "sakiai: the food schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: kretinga
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "kretinga: the household schedule ends within a week"
 
   - name: fewer places and more warnings than a day before
     interval: 15m
@@ -375,6 +393,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="rokiskis",kind="glass"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kalvarija",kind="packaging"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="household"}'
         values: "25920000x191"
       - series: 'up{job="siuksliaveze-data"}'
         values: "1x191"
