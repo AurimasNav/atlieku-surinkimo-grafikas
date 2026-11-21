@@ -2,7 +2,7 @@ name: Schedule data live build
 
 # Pull requests that change the pipeline (code or dependencies, e.g. a Renovate update of
 # openpyxl or pdfplumber) build the data from today's files on nemenkom.lt, nkom.lt, tratc.lt,
-# gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt and maatc.lt and from Kauno švara's open data, the way the daily job does, and compare
+# gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt and maatc.lt and from Kauno švara's open data, the way the daily job does, and compare
 # schedule.json with the published data. The unit tests in Schedule data / build only parse stored copies of the
 # files. Nothing is deployed.
 on:
@@ -45,6 +45,9 @@ jobs:
         run: uv run python -m schedule_pipeline.sratc --strict --out "$RUNNER_TEMP/site/sratc"
       - name: Build the Alytaus RATC schedule from the PDFs on aratc.lt
         run: uv run python -m schedule_pipeline.aratc --out "$RUNNER_TEMP/site/alytaus-ratc"
+      - name: Build the Pasvalio r., Rokiškio r., Biržų r. and Panevėžio r. schedules from the spreadsheets on pratc.lt
+        # --strict: a municipality whose build fails fails the check.
+        run: uv run python -m schedule_pipeline.pratc --strict --out "$RUNNER_TEMP/site/panevezio-ratc"
       - name: Build the Marijampolės AATC schedules (five municipalities) from the PDFs on maatc.lt
         # --strict: a municipality whose build fails fails the check.
         run: uv run python -m schedule_pipeline.maatc --strict --out "$RUNNER_TEMP/site/maatc"

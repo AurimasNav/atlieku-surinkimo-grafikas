@@ -83,6 +83,23 @@ konteineriu-grafikas-.pdf", `kalvarija-food.pdf` "2026-m.-Kalvarijos-sav.-indivi
 surinkimo-grafikas.pdf" and so on (`test_maatc.COPIES` lists all thirteen). With the Address
 Register extracts of the five municipalities of the same day.
 
+`pratc/` has the schedule page of UAB "Panevėžio regiono atliekų tvarkymo centras" at
+<https://www.pratc.lt/atlieku-isvezimas-atlieku-isvezimas/> and the 2026 spreadsheets of
+individual houses it links, downloaded on 2026-11-21, renamed (the page links them under
+`uploads/rinkliava/<municipality>/2026 grafikai/`, Biržų r.'s food waste file under `uploads/`):
+`pasvalio-r-mka.xlsx` is "Bendro ir individualaus naudojimo mišrių kom- atliekų kont- aptarnavimo
+grafikas.xlsx", `pasvalio-r-pakuotes.xlsx` "Individualaus naudojimo pakuočių konteinerių
+aptarnavimo grafikas.xlsx", `pasvalio-r-maistas.xlsx` "Maisto atliekų konteinerių aptarnavimo
+grafikas_Pasvalio r-.xlsx", `rokiskio-r-mka.xlsx` "Mišrių komunalinių atliekų surinkimo
+grafikas.xlsx", `rokiskio-r-pakuotes.xlsx` "Pakuočių konteinerių (individualių valdų) aptarnavimo
+grafikas.xlsx", `rokiskio-r-maistas.xlsx` "Maisto atliekų surinkimo grafikas_Rokiškio r-.xlsx",
+`birzu-r-individualios.xlsx` "INDIVIDUALIŲ VALDŲ mišrių kom- ir pakuočių atliekų kont-
+aptarnavimo grafikas.xlsx", `birzu-r-maistas.xlsx` "NAUJAS Maisto atliekų konteinerių
+aptranavimo grafikas_Biržų r-.xlsx", `panevezio-r-pakuotes.xlsx` "Pakuočių konteinerių
+(individualių valdų) aptarnavimo grafikas1.xlsx" and `panevezio-r-stiklas.xlsx` "Pakuočių stiklo
+konteinerių (individualių valdų) aptarnavimo grafikas.xlsx". With the Address Register extracts
+for Pasvalio r., Rokiškio r., Biržų r. and Panevėžio r. of the same day.
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 

@@ -86,6 +86,10 @@ tests:
         values: "518400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="household"}'
         values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="pasvalys",kind="household"}'
+        values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="panevezio-r",kind="glass"}'
+        values: "518400x20"
       # Radviliškio r.'s quarterly mixed waste: ends tomorrow.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="radviliskis",kind="household"}'
         values: "86400x20"
@@ -101,6 +105,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="jurbarkas",kind="household"}'
         values: "2592000x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="siauliai",kind="packaging"}'
+        values: "2592000x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="rokiskis",kind="packaging"}'
         values: "2592000x20"
       # Klaipėdos r. and Jurbarko r. glass and green waste, and the quarterly Vilniaus r. files,
       # routinely get this close to their last date: no alert.
@@ -138,6 +144,11 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="radviliskis",kind="glass"}'
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="radviliskis",kind="green"}'
+        values: "86400x20"
+      # Panevėžio RATC's food waste, last collected on 10-23 December: not watched.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="pasvalys",kind="food"}'
+        values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="birzai",kind="food"}'
         values: "86400x20"
       # Glass of Marijampolė county's municipalities (every four weeks): not watched.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kazluruda",kind="glass"}'
@@ -213,6 +224,20 @@ tests:
               severity: warning
             exp_annotations:
               summary: "radviliskis: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: pasvalys
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "pasvalys: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: panevezio-r
+              kind: glass
+              severity: warning
+            exp_annotations:
+              summary: "panevezio-r: the glass schedule ends within a week"
           - exp_labels:
               job: siuksliaveze-data
               source: marijampole
@@ -312,6 +337,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="radviliskis",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="rokiskis",kind="glass"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kalvarija",kind="packaging"}'
         values: "25920000x191"
