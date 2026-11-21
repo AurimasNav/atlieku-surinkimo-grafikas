@@ -38,7 +38,8 @@ def collect(site: Path) -> dict:
     # mazeikiu-r also has Telšių r., Plungės r. and Rietavo sav., a provider each; sratc has
     # Radviliškio r. next to the five ("radviliskis"); panevezio-ratc (schedule_pipeline.pratc)
     # a provider for each of its four municipalities; maatc the five municipalities of
-    # Marijampolė county (schedule_pipeline.maatc), a provider each.
+    # Marijampolė county (schedule_pipeline.maatc), a provider each; kedainiu-r Kėdainių r.
+    # (schedule_pipeline.kedainiai), "kedainiai".
     # jurbarko-r also has Tauragės r., Šilalės r. and Pagėgių sav., a provider each.
     for path in (
         site / "schedule.json",
@@ -49,6 +50,7 @@ def collect(site: Path) -> dict:
         site / "alytaus-ratc" / "schedule.json",
         site / "panevezio-ratc" / "schedule.json",
         site / "maatc" / "schedule.json",
+        site / "kedainiu-r" / "schedule.json",
     ):
         if not path.exists():
             continue
@@ -133,7 +135,7 @@ def metrics(status: dict) -> str:
             "Settlements (nemencine, nemezio, mazeikiai, telsiai, plunge, rietavas, klaipedos, "
             "jurbarkas, taurage, silale, pagegiai, siauliai, radviliskis, alytus, pasvalys, "
             "rokiskis, birzai, panevezio-r, marijampole, vilkaviskis, kalvarija, kazluruda, "
-            "sakiai) or addresses (kauno, kaisiadorys) the data covers.",
+            "sakiai, kedainiai) or addresses (kauno, kaisiadorys) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (
