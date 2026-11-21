@@ -147,6 +147,18 @@ describe('advise', () => {
     expect(advise(item('leftovers'), 'nemencine', all).tip).toBe(item('leftovers').tip);
   });
 
+  it("gives Kauno švara's food waste bag tip only where the address has a food waste bin", () => {
+    const bag = item('peels').regions?.kauno?.tip;
+    expect(advise(item('peels'), 'kauno', kinds('household', 'food', 'packaging', 'glass')).tip).toBe(bag);
+    // Kaišiadorių r.: mixed waste only (and Ekonovus' glass and packaging).
+    const kaisiadorys = kinds('household', 'packaging', 'glass');
+    expect(advise(item('peels'), 'kauno', kaisiadorys)).toMatchObject({ to: ['compost', 'household'], tip: undefined });
+    expect(advise(item('meat-fish'), 'kauno', kaisiadorys).tip).toBeUndefined();
+    expect(advise(item('leftovers'), 'kauno', kaisiadorys).tip).toBe(item('leftovers').tip);
+    // Not a tip about the food waste bin.
+    expect(advise(item('tyres'), 'kauno', kaisiadorys).tip).toBe(item('tyres').regions?.kauno?.tip);
+  });
+
   it("says what to do without the container when the place's containers are unknown", () => {
     expect(advise(item('peels'), undefined, undefined)).toMatchObject({
       to: ['food'],
@@ -245,6 +257,25 @@ describe('regionOf', () => {
     expect(advise(item('aerosol'), regionOf(...at({ locationId: 'simnas', choices: {} })), kinds('household')).to).toEqual(['site']);
   });
 
+  it('gives the general advice in the regions added later', () => {
+    const ids = ['radviliskis', 'pasvalys', 'rokiskis', 'birzai', 'panevezio-r', 'taurage', 'silale', 'pagegiai'];
+    ids.push('marijampole', 'vilkaviskis', 'kalvarija', 'kazluruda', 'sakiai');
+    for (const provider of ids) {
+      const location: Location = { id: provider, name: provider, type: 'k.', district: provider, provider, schedule: { glass: { area: `${provider}-g` } } };
+      const more = { ...data, areas: [...data.areas, area(`${provider}-g`, 'glass', { provider })], locations: [...data.locations!, location] };
+      const place: Place = { locationId: provider, choices: {} };
+      const resolved = resolvePlace(more, place, today);
+      const region = regionOf(place, resolved);
+      const available = availableKinds(place, resolved);
+      expect([provider, region]).toEqual([provider, undefined]);
+      // Panevėžio r. has no mixed waste data: the container every home has is still there.
+      expect(available).toEqual(kinds('household', 'glass'));
+      expect(advise(item('aerosol'), region, available).to).toEqual(['site']);
+      expect(advise(item('peels'), region, available)).toMatchObject({ to: ['compost', 'household'], missing: 'food' });
+      expect(locationsUrl('site', region)).toBeUndefined();
+    }
+  });
+
   it("gives TRATC's rules in all four of its municipalities", () => {
     const plunge = at({ locationId: 'plunge', choices: {} });
     expect(regionOf(...plunge)).toBe('mazeikiai');
@@ -269,6 +300,18 @@ describe('availableKinds', () => {
     expect(availableKinds(noGlass, resolvePlace({ ...data, personal }, noGlass, today))).toEqual(
       kinds('household', 'food', 'packaging'),
     );
+  });
+
+  it('has no food waste bin at a Kaišiadorių r. address, so no food waste bag tip', () => {
+    const place: Place = {
+      kauno: { eldership: 'ziezmariu', eldershipName: 'Žiežmarių sen.', town: 'Žiežmarių mstl.', street: 'Vytauto g.', house: '1' },
+      choices: {},
+    };
+    const personal = { key: kaunoKey(place.kauno!), areas: [area('kh', 'household')] };
+    const resolved = resolvePlace({ ...data, personal }, place, today);
+    const available = availableKinds(place, resolved);
+    expect(available).toEqual(kinds('household', 'packaging', 'glass'));
+    expect(advise(item('peels'), regionOf(place, resolved), available)).toMatchObject({ missing: 'food', tip: undefined });
   });
 
   it("knows nothing without a place or before the place's schedules are loaded", () => {
