@@ -37,6 +37,12 @@ that no route names are left to the app: the shared containers' files aren't rea
 says a street has none. Next year's files continue the routes of this year that cover the same
 places (tratc.combine).
 
+A file that can't be downloaded or read keeps its eldership's rows of yesterday's data
+(build.published_rows), and the others are still read. kedainiai.lt answers GitHub's runners
+403, so when the page can't be downloaded the job reads the copies of its files saved in
+pipeline/data/kedainiai from a machine in Lithuania (save_copies, with the Address Register
+snapshots), with a warning that says so.
+
 Writes <out>/schedule.json and <out>/addresses.json, in the format of the Vilniaus r. files.
 Run: python -m schedule_pipeline.kedainiai --out ../site/kedainiu-r
 """
@@ -49,9 +55,10 @@ import json
 import re
 import sys
 import zipfile
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
-from functools import partial
+from functools import cache, partial
 from html.parser import HTMLParser
 from pathlib import Path
 from types import SimpleNamespace
@@ -66,7 +73,7 @@ from . import registry as address_register
 from .dates import WEEKDAY_NAMES
 from .locations import _STREET_TYPE, Clause, Index, _section_parts
 from .model import Area, Kind, ParseResult, Provider, SourceFile, clean_text
-from .registry import Settlement, fold
+from .registry import Registry, Settlement, fold
 
 PAGE_URL = "https://www.kedainiai.lt/gyventojui/atlieku-tvarkymas/atlieku-isvezimo-grafikai/1538"
 # Yesterday's data, for a build that fails today.
@@ -278,18 +285,108 @@ def _get(url: str) -> bytes:
     return http.get(url, timeout=60)
 
 
-def download(today: date, keep_days: int) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
-    html = _get(PAGE_URL).decode("utf-8", errors="replace")
+def download(
+    today: date, keep_days: int, tolerant: bool = False
+) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
+    """The elderships' files in force, from the page. If the page can't be downloaded (the site
+    answers GitHub's runners 403), the copies saved in pipeline/data/kedainiai (save_copies)
+    are read instead; if a file can't be, its copy. A file without a copy is, `tolerant`, passed
+    on empty, and keeps its eldership's rows of yesterday's data (parse_or_keep)."""
+    try:
+        html = _get(PAGE_URL).decode("utf-8", errors="replace")
+    except OSError as error:
+        return read_copies(today, error)
     files, warnings = select_files(find_files(html), today)
     downloaded: list[tuple[SourceFile, bytes]] = []
     for file in files:
-        content = _get(file.url)
-        if content.startswith((b"PK", b"%PDF")):
-            downloaded.append((file, content))
+        try:
+            downloaded.append((file, _get(file.url)))
+            continue
+        except OSError as error:
+            reason = f"{file.file_name}: couldn't be downloaded ({error})"
+            failed = error
+        listing = _listing()
+        copy = (
+            next((e for e in listing["files"] if e["url"] == file.url), None) if listing else None
+        )
+        if listing and copy:
+            warnings.append(f"{reason}; {_read_note(listing['takenAt'], today)}")
+            downloaded.append((file, (COPIES_DIR / copy["copy"]).read_bytes()))
+        elif tolerant:
+            warnings.append(reason)
+            downloaded.append((file, b""))
         else:
-            # A page of the site, not a document: the list has changed.
-            warnings.append(f"{file.file_name}: {file.url} is neither a Word document nor a PDF")
+            raise failed
     return downloaded, warnings
+
+
+# --- the copies --------------------------------------------------------------------
+
+# The files of the page, saved from a machine in Lithuania: kedainiai.lt answers GitHub's
+# runners 403, whatever the user agent. Refreshed with the Address Register snapshots
+# (`uv run python -m schedule_pipeline.snapshot`).
+COPIES_DIR = snapshot.DATA_DIR / "kedainiai"
+COPIES_LIST = "files.json"
+
+
+def save_copies(today: date, folder: Path | None = None) -> int:
+    """Saves the files the daily job would read today, and a list of them with their links and
+    years, in `folder` (COPIES_DIR). Returns how many."""
+    folder = folder or COPIES_DIR
+    files, warnings = select_files(find_files(_get(PAGE_URL).decode("utf-8", "replace")), today)
+    for warning in warnings:
+        print(f"Kėdainių r.: {warning}", file=sys.stderr)
+    entries: list[dict] = []
+    contents: dict[str, bytes] = {}
+    for file in files:
+        content = _get(file.url)
+        if not content.startswith((b"PK", b"%PDF")):
+            raise ValueError(f"{file.file_name}: {file.url} is neither a Word document nor a PDF")
+        year = tratc.file_year(file.file_name)
+        suffix = "docx" if content.startswith(b"PK") else "pdf"
+        copy = f"{fold(file.group).replace(' ', '-')}-{year}.{suffix}"
+        contents[copy] = content
+        entry = {"eldership": file.group, "year": year, "name": file.file_name, "url": file.url}
+        entries.append({**entry, "copy": copy})
+    folder.mkdir(parents=True, exist_ok=True)
+    for old in folder.iterdir():
+        old.unlink()
+    for copy, content in contents.items():
+        (folder / copy).write_bytes(content)
+    listing = {"takenAt": today.isoformat(), "page": PAGE_URL, "files": entries}
+    (folder / COPIES_LIST).write_text(
+        json.dumps(listing, ensure_ascii=False, indent=1) + "\n", encoding="utf-8", newline="\n"
+    )
+    return len(entries)
+
+
+def _listing() -> dict | None:
+    """The list of the saved copies (save_copies), or None without one."""
+    path = COPIES_DIR / COPIES_LIST
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else None
+
+
+def _read_note(taken: str, today: date) -> str:
+    note = f"read the copies saved on {taken}"
+    if snapshot.age_days(taken, today) > snapshot.MAX_AGE_DAYS:
+        note += " - please refresh them: cd pipeline && uv run python -m schedule_pipeline.snapshot"
+    return note
+
+
+def read_copies(today: date, error: Exception) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
+    """The saved files in force today (save_copies), with a warning that says so and how old
+    they are. Raises `error` (the page's) without copies."""
+    listing = _listing()
+    if listing is None:
+        raise error
+    files = [
+        (SourceFile("household", e["url"], e["name"], group=e["eldership"]), e["year"])
+        for e in listing["files"]
+    ]
+    copies = {e["url"]: e["copy"] for e in listing["files"]}
+    selected, warnings = select_files(files, today)
+    note = f"kedainiai.lt unavailable ({error}); {_read_note(listing['takenAt'], today)}"
+    return [(f, (COPIES_DIR / copies[f.url]).read_bytes()) for f in selected], [note] + warnings
 
 
 # --- the tables ------------------------------------------------------------------
@@ -719,17 +816,60 @@ def parse_file(source: SourceFile, content: bytes) -> ParseResult:
     return ParseResult(areas=list(areas.values()), warnings=warnings)
 
 
+class _Kept(ParseResult):
+    """An eldership's rows of yesterday's data, for its file that can't be read today."""
+
+
+def parse_or_keep(
+    source: SourceFile, content: bytes, published: Callable[[], dict] | None = None
+) -> ParseResult:
+    """parse_file, or for a file that can't be read, its eldership's rows of yesterday's data
+    (`published`; None: raise instead), as jonava does."""
+    try:
+        return parse_file(source, content)
+    except Exception as error:  # any failure of one file must not stop the others
+        if published is None:
+            raise
+        kept = build.published_rows(
+            published(), PROVIDER, lambda row: row.get("district") == source.group
+        )
+        if not kept:
+            raise
+        return _Kept(
+            kept,
+            [
+                f"{source.file_name}: can't be read ({type(error).__name__}: {error}); "
+                f"yesterday's {len(kept)} rows of {source.group} sen. are kept"
+            ],
+        )
+
+
+def combine(
+    parsed: list[tuple[SourceFile, ParseResult]], registry: Registry, today: date
+) -> list[str]:
+    """tratc.combine of the files read today; rows kept from yesterday's data stay as they are
+    (they continue next year's routes already, if they did yesterday)."""
+    fresh = [(file, result) for file, result in parsed if not isinstance(result, _Kept)]
+    return tratc.combine(fresh, registry, today, MUNICIPALITY)
+
+
 # --- the source and the output ------------------------------------------------------
 
-SOURCE = build.Source(
-    PROVIDER,
-    download,
-    parse_file,
-    MUNICIPALITY.min_areas,
-    MUNICIPALITY.min_household_places,
-    FILE_KINDS,
-    partial(tratc.combine, municipality=MUNICIPALITY),
-)
+
+def source(published: Callable[[], dict] | None = None) -> build.Source:
+    """`published`: yesterday's data, for the files that can't be read (None: fail instead)."""
+    return build.Source(
+        PROVIDER,
+        partial(download, tolerant=published is not None),
+        partial(parse_or_keep, published=published),
+        MUNICIPALITY.min_areas,
+        MUNICIPALITY.min_household_places,
+        FILE_KINDS,
+        combine,
+    )
+
+
+SOURCE = source()
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -741,12 +881,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--published",
         default=PUBLISHED_URL,
-        help="site folder with yesterday's schedule.json, for a build that fails",
+        help="site folder with yesterday's schedule.json, for the files that can't be read",
     )
     parser.add_argument(
         "--strict",
         action="store_true",
-        help="fail if the build fails instead of keeping the published data",
+        help="fail if any file can't be read instead of keeping its published rows",
     )
     args = parser.parse_args(argv)
 
@@ -761,9 +901,11 @@ def main(argv: list[str] | None = None) -> int:
         partial(address_points.fetch, code),
         partial(snapshot.load_points, MUNICIPALITY.addresses_file),
     )
-    loader = None if args.strict else build.load_published(args.published)
+    loader = None if args.strict else cache(build.load_published(args.published))
     try:
-        results = build.build_parts((SOURCE,), registry, date.today(), args.keep_days, loader)
+        results = build.build_parts(
+            (source(loader),), registry, date.today(), args.keep_days, loader
+        )
         if not results[0].part:
             raise build.ValidationError(f"{results[0].error}; no published data to keep")
         dataset = build.merge_parts([(r.provider, r.part) for r in results if r.part], PAGE_URL)

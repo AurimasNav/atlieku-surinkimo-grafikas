@@ -79,6 +79,10 @@ uv run python -m schedule_pipeline.snapshot
 ```
 
 The job summary says which source was used and warns when the snapshot is over 60 days old.
+The same command saves the Kėdainių r. schedule files to `pipeline/data/kedainiai/`: kedainiai.lt
+refuses GitHub's runners too, so the job reads these copies (its build warning says how old they
+are). Refresh them also soon after the page gets next year's files (December or January) and
+after a corrected file (about once a year, in the first half).
 
 **Location matching** (`locations.py`) links each Address Register settlement and street to
 its row in every schedule. The job summary on the Actions tab shows how many places resolve

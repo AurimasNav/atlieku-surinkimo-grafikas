@@ -298,6 +298,11 @@ def main() -> int:
     save(registry, points, ALYTUS_REGISTRY_FILE, ALYTUS_ADDRESSES_FILE)
     count = f"{len(registry.settlements)} settlements and {len(points)} address points"
     print(f"Alytaus RATC: saved {count} to {DATA_DIR}")
+    # Kėdainių r.'s schedule files too: kedainiai.lt refuses GitHub's runners.
+    from . import kedainiai
+
+    count = kedainiai.save_copies(date.today())
+    print(f"Kėdainių r.: saved {count} schedule files to {kedainiai.COPIES_DIR}")
     return 0
 
 

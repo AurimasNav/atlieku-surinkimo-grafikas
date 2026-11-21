@@ -115,16 +115,26 @@ through `regions.json` (below).
 
 `kedainiai` is Kėdainių r.: a file per eldership, eleven of them, linked from the municipality's
 page under the heading of their year (Word documents, and a PDF for Josvainių sen. in 2026),
-built by one step into `kedainiu-r/` with a part of its own. The files are posted together and
-in one template, so they are one source: if any of them can't be read, the part of yesterday's
-file is kept for all eleven (its `generatedAt` stays old, so `ScheduleDataStale` fires) and the
-run gets a warning annotation; an eldership missing from the page is a build warning ("no file
-for Vilainių sen. on the page"). The glass days are the packaging days printed in red, so a
-file that stops marking them in red, or marks other days red, fails the build. Next year's
-files are read as soon as the page links them; if it links them instead of this year's before
-31 December, this year's last pickups are lost, with a warning per eldership ("no 2026 schedule
-for Dotnuvos sen. on the page"). Installed apps find `kedainiu-r/` through `regions.json`
-(below).
+built by one step into `kedainiu-r/` with a part of its own. A file that can't be downloaded is
+read from its copy (below); one that can't be read, or has no copy, keeps its eldership's rows
+of yesterday's data, as for `raseiniai` (below), and the build
+warns ("Dotnuvos seniūnija (2026): can't be read (...); yesterday's 6 rows of Dotnuvos sen. are
+kept"); if the build fails as a whole, the part of yesterday's file is kept (`ScheduleDataStale`).
+An eldership missing from the page is a build warning ("no file for Vilainių sen. on the page").
+The glass days are the packaging days printed in red, so a file that stops marking them in red,
+or marks other days red, can't be read.
+
+kedainiai.lt answers GitHub's runners 403 (their network, whatever the user agent), and no other
+official source has the files, so when the page can't be downloaded the job reads the copies in
+`pipeline/data/kedainiai/` with a build warning that gives their age ("kedainiai.lt unavailable
+(HTTP Error 403: Forbidden); read the copies saved on 2026-11-21") and, over 60 days, asks for a
+refresh. The live-build check reads them the same way, so it still tests the parser. `uv run python -m schedule_pipeline.snapshot` saves them
+with the Address Register snapshots, from a machine in Lithuania: refresh them when the page
+gets next year's files (expect `ScheduleDataRunsOut` in late December until then) or a
+corrected one. Next year's files are read as soon as the page (or the copies) has them; if the
+page links them instead of this year's before 31 December, this year's last pickups are lost,
+with a warning per eldership ("no 2026 schedule for Dotnuvos sen. on the page"). Installed apps
+find `kedainiu-r/` through `regions.json` (below).
 
 `raseiniai` and `jonava` are a folder each, `raseiniu-r/` and `jonavos-r/`, built by a step each
 from a PDF per eldership and kind (25 files of Raseinių r., 9 of Jonavos r.). A file that can't be
