@@ -131,6 +131,10 @@ RASEINIAI_ADDRESSES_FILE = DATA_DIR / "address-points-raseiniu-r.json"
 JONAVA_MUNICIPALITY = ("Jonavos rajono", 46)
 JONAVA_REGISTRY_FILE = DATA_DIR / "registry-jonavos-r.json"
 JONAVA_ADDRESSES_FILE = DATA_DIR / "address-points-jonavos-r.json"
+# Kretingos r. (schedule_pipeline.kretinga).
+KRETINGOS_MUNICIPALITY = ("Kretingos rajono", 56)
+KRETINGOS_REGISTRY_FILE = DATA_DIR / "registry-kretingos-r.json"
+KRETINGOS_ADDRESSES_FILE = DATA_DIR / "address-points-kretingos-r.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -276,6 +280,12 @@ def main() -> int:
             RASEINIAI_ADDRESSES_FILE,
         ),
         ("Jonavos r.", JONAVA_MUNICIPALITY, JONAVA_REGISTRY_FILE, JONAVA_ADDRESSES_FILE),
+        (
+            "Kretingos r.",
+            KRETINGOS_MUNICIPALITY,
+            KRETINGOS_REGISTRY_FILE,
+            KRETINGOS_ADDRESSES_FILE,
+        ),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)
