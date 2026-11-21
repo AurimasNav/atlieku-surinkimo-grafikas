@@ -1,15 +1,18 @@
-"""Jurbarko r.: the Tauragės RATC page, the two yearly PDFs, their routes and the joined years."""
+"""Tauragės RATC: the page, the yearly PDFs of Jurbarko r., Tauragės r., Šilalės r. and Pagėgių
+sav., their routes and the joined years."""
 
 import json
+from collections import defaultdict
 from dataclasses import replace
 from datetime import date, timedelta
+from functools import cache
 
 import pytest
 from test_parsers import FIXTURES, fixture
 
 from schedule_pipeline import status, taurage
 from schedule_pipeline.build import ValidationError, build_dataset, merge_parts
-from schedule_pipeline.locations import _section_parts
+from schedule_pipeline.locations import Index, _section_parts
 from schedule_pipeline.model import Area, ParseResult, SourceFile
 from schedule_pipeline.registry import Registry
 
@@ -545,3 +548,445 @@ def test_published_file_and_its_metrics(part, tmp_path):
         f'siuksliaveze_data_last_date_timestamp_seconds{{source="jurbarkas",kind="household"}} '
         f"{last}" in text
     )
+
+
+# --- Tauragės r., Šilalės r. and Pagėgių sav. ---------------------------------------
+
+OTHERS = {m.provider.id: m for m in taurage.MUNICIPALITIES if m is not taurage.JURBARKAS}
+OTHER_REGISTRIES = {
+    "taurage": "registry-taurages-r-2026-11-21.json",
+    "silale": "registry-silales-r-2026-11-21.json",
+    "pagegiai": "registry-pagegiu-sav-2026-11-21.json",
+}
+TAURAGES = {
+    "district": "Taurages-rajonas_MKA_2026_suderintas-naujas-1.pdf",
+    "town": "Taurages-miestas_MKA_2026_suderintas.pdf",
+    "food": "Taurages-miestas_ZA_2026_suderintas.pdf",
+    "packaging": "Taurages-miestas-ir-rajonas_pakuotes_2026_suderintas-03-10.pdf",
+}
+SILALES = {
+    "household": "Silales_MKA_grafikas_2026_suderintas.pdf",
+    "packaging": "Silale_pakuotes_2026_suderintas.pdf",
+}
+PAGEGIAI = "Pagegiai_bendras_2026_suderintas.pdf"
+
+
+def serve(url, timeout=0):
+    """The saved page and files, as taurage.http.get."""
+    if url == taurage.PAGE_URL:
+        return fixture("taurage/page.html")
+    return fixture(f"taurage/{taurage.file_name(url)}")
+
+
+@cache
+def parsed_other(key, name, kind):
+    file = SourceFile(kind, f"https://x/{name}", name)
+    return taurage.parse_file(file, fixture(f"taurage/{name}"), OTHERS[key])
+
+
+def of_kind(result, kind):
+    return [a for a in result.areas if a.kind == kind]
+
+
+@pytest.fixture(scope="module")
+def others():
+    """Each municipality's part, built as the daily job does from the page, with every date of
+    2026 kept."""
+    built = {}
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(taurage.http, "get", serve)
+        for key, municipality in OTHERS.items():
+            files, warnings = taurage.download(municipality, TODAY, 31)
+            registry = Registry.load(FIXTURES / "taurage" / OTHER_REGISTRIES[key])
+            data, more = build_dataset(files, registry, TODAY, 366, taurage.source(municipality))
+            built[key] = (files, data, warnings + more)
+    return built
+
+
+def other_place(data, name, kind=None):
+    return place(data, name, kind=kind)
+
+
+def street_rows(data, location, kind, label):
+    """The rows of a street; None if it's left to the app."""
+    key = streets(location)[label]
+    return location["schedule"][kind]["streets"].get(key)
+
+
+def test_finds_the_files_of_the_other_municipalities():
+    html = fixture("taurage/page.html").decode("utf-8")
+
+    def found(key):
+        return {(f.kind, f.group, f.file_name) for f, _ in taurage.find_files(html, OTHERS[key])}
+
+    # The town of Tauragė and its villages have mixed waste files of their own; the town's food
+    # waste ("maisto ir žaliųjų") has one; bulky waste ("apvažiavimo būdu") isn't read.
+    assert found("taurage") == {
+        ("household", "district", TAURAGES["district"]),
+        ("household", "town", TAURAGES["town"]),
+        ("food", "town", TAURAGES["food"]),
+        ("packaging", "", TAURAGES["packaging"]),
+    }
+    assert found("silale") == {
+        ("household", "district", SILALES["household"]),
+        ("packaging", "district", SILALES["packaging"]),
+    }
+    # One file, "mišrių/biologinių/pakuočių", of every kind.
+    assert found("pagegiai") == {("household", "", PAGEGIAI)}
+
+
+def test_the_town_and_the_villages_files_are_chosen_apart():
+    uploads = "https://x/uploads/2026"
+    town = SourceFile("household", f"{uploads}/01/m.pdf", "m.pdf", group="town")
+    villages = SourceFile("household", f"{uploads}/01/r.pdf", "r.pdf", group="district")
+    later = SourceFile("household", f"{uploads}/03/r2.pdf", "r2.pdf", group="district")
+    chosen, warnings = taurage.select_files([(town, 2026), (villages, 2026), (later, 2026)], TODAY)
+    # Not one of the town's and one of the villages' for the same year: a newer one each.
+    assert chosen == [later, town]
+    assert warnings == [
+        "r.pdf: not read, r2.pdf is a newer household schedule of the district for 2026"
+    ]
+
+
+def test_the_villages_of_taurages_r():
+    result = parsed_other("taurage", TAURAGES["district"], "household")
+    assert result.warnings == []
+    routes = of_kind(result, "household")
+    assert len(routes) == 12 and all(len(a.dates) in (26, 27) and a.weekday for a in routes)
+    first = routes[0]
+    assert first.name.startswith("1.Maršrutas. Žygaičių seniūnija. Aukštupių k.")
+    # The months in two rows of six: January to June, then July to December.
+    assert min(first.dates) == date(2026, 1, 14) and max(first.dates) == date(2026, 12, 30)
+    assert date(2026, 7, 29) in first.dates
+    # A table that lists two routes with the same dates: a row each.
+    two = [a for a in routes if a.name.startswith(("2.Maršrutas.", "3. Maršrutas."))]
+    assert len(two) == 2 and two[0].dates == two[1].dates
+    assert two[0].name.endswith("Žygaičių seniūnija. Kęsčių k., Leikiškių k.")
+    assert any(a.name == "8. Maršrutas. Skaudvilės miestas, Nosaičių k." for a in routes)
+    assert any(a.name.startswith("11 Maršrutas. Gaurės seniūnija.") for a in routes)
+
+
+def test_the_town_of_taurage():
+    household = of_kind(parsed_other("taurage", TAURAGES["town"], "household"), "household")
+    # A table per weekday heading ("PIRMADIENIS I"), each with several parts of the town.
+    assert len(household) == 5
+    assert household[0].name.startswith("Pramonė. Pramonės g.,")
+    assert "Senamiestis II. Bažnyčių g." in household[0].name
+    assert household[0].weekday == "Pirmadienis" and len(household[0].dates) == 26
+    # Food and green waste in one container, its label around the dates ("Žaliosios/maisto/"
+    # above, "virtuvės atliekos" below).
+    food = parsed_other("taurage", TAURAGES["food"], "food")
+    assert [a.kind for a in food.areas] == ["food"] * 5
+    pramone = food.areas[0]
+    assert pramone.name.startswith("Pramonė.") and pramone.weekday == "Penktadienis"
+    assert min(pramone.dates) == date(2026, 1, 2) and max(pramone.dates) == date(2026, 12, 18)
+    assert len(pramone.dates) == 23
+
+
+def test_taurages_packaging_and_glass():
+    result = parsed_other("taurage", TAURAGES["packaging"], "packaging")
+    assert result.warnings == []
+    packaging, glass = of_kind(result, "packaging"), of_kind(result, "glass")
+    assert len(packaging) == len(glass) == 18
+    assert all(len(a.dates) == 12 for a in packaging)
+    first = next(a for a in glass if a.name.startswith("(1) Tauragės m. Islandijos g."))
+    assert first.dates == {
+        date(2026, 2, 23),
+        date(2026, 5, 26),
+        date(2026, 8, 26),
+        date(2026, 11, 25),
+    }
+    # A table whose months and dates are on the next page.
+    route = next(a for a in packaging if a.name.startswith("(10) MAŽONŲ SENIŪNIJA"))
+    assert route.name.endswith("Šaukėnų k., Tuščių k.") and len(route.dates) == 12
+
+
+def test_silales_r_files():
+    mixed = parsed_other("silale", SILALES["household"], "household")
+    assert mixed.warnings == []
+    assert len(of_kind(mixed, "household")) == 10
+    # The weekday written letter by letter left of the labels isn't part of the places, nor is
+    # the notice above the first table.
+    assert all(" sen:" in a.name.split(",")[0] for a in mixed.areas)
+    assert not any("informuoja" in a.name or a.name.startswith("P ") for a in mixed.areas)
+    # Green waste of the town: its label below a row of weekdays ("Penktadienis").
+    (green,) = of_kind(mixed, "green")
+    assert green.name.startswith("Šilalės miesto sen: Šilalės m. privačių namų konteineriai.")
+    assert len(green.dates) == 22 and {date(2026, 11, 6), date(2026, 11, 20)} <= green.dates
+    packaging = parsed_other("silale", SILALES["packaging"], "packaging")
+    assert len(of_kind(packaging, "packaging")) == len(of_kind(packaging, "glass")) == 11
+
+
+def test_pagegiu_sav_file():
+    result = parsed_other("pagegiai", PAGEGIAI, "household")
+    assert result.warnings == []
+    kinds = [a.kind for a in result.areas]
+    assert {k: kinds.count(k) for k in set(kinds)} == {
+        "household": 7,
+        "green": 1,
+        "packaging": 3,
+        "glass": 3,
+    }
+    # Weekly in the town: a month's dates take two or three lines of its cell.
+    town = next(a for a in result.areas if a.name == "Pagėgių sen.: Benininkų k., Pagėgių m.")
+    assert town.kind == "household" and len(town.dates) == 52
+    assert {d.day for d in town.dates if d.month == 3} == {2, 9, 16, 23, 30}
+    # "M i šr io s": a label typed with spaces between its letters.
+    route = next(a for a in result.areas if a.name.startswith("Pagėgių sen.: Būbliškės k.;"))
+    assert route.kind == "household" and len(route.dates) == 26
+
+
+@pytest.mark.parametrize(
+    ("words", "kind"),
+    [
+        (["M", "i", "šr", "io", "s"], "household"),
+        (["Žaliosios/maisto/"], "food"),
+        (["komunalinės", "Žaliosios", "atliekos"], "green"),
+        (["Popierius,", "plastikas,"], "packaging"),
+        (["metalas", "Stiklas"], "glass"),
+        (["Mėnuo"], None),
+    ],
+)
+def test_the_kind_of_a_row_of_dates(words, kind):
+    assert taurage._label_kind(words) == kind
+
+
+def test_dates_of_no_waste_type_fail_below_the_places():
+    table = taurage._Table(None, [(150.0, 1), (200.0, 2)], 120.0, 1, lines=["Laukuvos sen:"])
+    with pytest.raises(ValueError, match="dates of no waste type"):
+        taurage._row(table, [word("14", 145)], 2026, "x")
+    # The label's words above the row give it, and the next line of the same cell has it too.
+    assert taurage._row(table, [word("Mišrios", 40)], 2026, "x")
+    assert taurage._row(table, [word("14,", 140), word("28", 160)], 2026, "x")
+    assert taurage._row(table, [word("3", 195)], 2026, "x")
+    assert table.dates == {"household": {date(2026, 1, 14), date(2026, 1, 28), date(2026, 2, 3)}}
+    # Anything else ends the table.
+    assert not taurage._row(table, [word("UAB", 40), word("Ecoservice", 150)], 2026, "x")
+
+
+def reader(key):
+    registry = Registry.load(FIXTURES / "taurage" / OTHER_REGISTRIES[key])
+    provider = OTHERS[key].provider
+    return provider.reader(Index(registry), provider, defaultdict(dict))
+
+
+@pytest.mark.parametrize(
+    ("text", "written"),
+    [
+        # A part of the town, a village written so, the brackets of which houses (also one
+        # left unclosed), a full stop after a bracket.
+        (
+            "Senamiestis I. Aušros g., D. Poškos g. (lyginiai 24-44, nelyginiai 23-51 (nuo "
+            "Vytauto g. iki Gedimino g.)), J. Tumo-Vaižganto g. (lyginiai 72-110, nelyginiai "
+            "77-101 (nuo Vytauto g. iki Gedimino g.), K. Donelaičio g. Taurai. Alėjos g. "
+            "Tauragės m. (Tarailiai). Akacijų g.",
+            "Tauragės m., Aušros g., D. Poškos g. , J. Tumo-Vaižganto g. , K. Donelaičio g. Taurų "
+            "k., Alėjos g. Tauragės m. (Tarailiai) Akacijų g.",
+        ),
+        # The packaging file: the route's number, houses from one to another, "sk.", "takas".
+        (
+            "(1) Tauragės m. T. Ivanausko sk., T. Ivanausko g. 52-95 (nuo Šilalės g. iki "
+            "Veterinarijos g.), V. Kudirkos g. 37 (46)-64, Šilalės g. 61A,B,C,D, 63 A,B,C, 85; "
+            "Mitaujos takas, Kundročių k. (tik 5, 5A, 6, 7). fPožerūnų k.",
+            "Tauragės m. T. Ivanausko skg., T. Ivanausko g., V. Kudirkos g., Šilalės g. 61A, "
+            "63A, 85; Mitaujos tak., Kundročių k. Požerūnų k.",
+        ),
+        (
+            "1.Maršrutas. Žygaičių seniūnija. Padrūtupių k Drūtaviškių k., Joniškės kolektyviniai "
+            "sodai",
+            "Žygaičių seniūnija. Padrūtupių k. Drūtaviškių k., Joniškės k.",
+        ),
+    ],
+)
+def test_spellings_of_taurages_r(text, written):
+    assert reader("taurage").written(text) == written
+
+
+def test_spellings_of_silales_r_and_pagegiai():
+    assert reader("silale").written(
+        "(1)Šilalės miesto gatvės: A. Rubšio g., Dyvyčio g. Šilalės miesto sen: Šilalės m. "
+        "privačių namų konteineriai. Kaltinėnų sen: Gedminiškės k. 11. Laukuvos sen: "
+        "Norvainių k. (tik 1,2)."
+    ) == (
+        "Šilalės m., A. Rubšio g., Dievyčio g. Šilalės miesto sen: Šilalės m. Kaltinėnų sen: "
+        "Gedminiškės k. 11 Laukuvos sen: Norvainių k."
+    )
+    assert (
+        reader("pagegiai").written("Vilkyškių sen.: Kalvaičių k.(0). Dinkių k.,(0) Tutlių k.")
+        == "Vilkyškių sen.: Kalvaičių k. Dinkių k., Tutlių k."
+    )
+
+
+def test_taurages_r_counts_and_villages(others):
+    _, data, _ = others["taurage"]
+    stats = data["matching"]
+    assert stats["locations"] == 299 and stats["unmatchedRows"] == 0
+    with_kind = {
+        kind: sum(1 for loc in data["locations"] if kind in loc.get("schedule", {}))
+        for kind in ("household", "packaging", "glass", "food")
+    }
+    assert with_kind == {"household": 277, "packaging": 275, "glass": 275, "food": 4}
+    town = other_place(data, "Žygaičiai", "mstl.")
+    route = area_of(data, town, "household")
+    assert route["name"].startswith("1.Maršrutas. Žygaičių seniūnija.")
+    assert route["dates"][0] == "2026-01-14" and route["dates"][-1] == "2026-12-30"
+    assert len(route["dates"]) == 26
+    # "8. Maršrutas. Skaudvilės miestas": the town, whole.
+    skaudvile = area_of(data, other_place(data, "Skaudvilė"), "household")
+    assert skaudvile["name"] == "8. Maršrutas. Skaudvilės miestas, Nosaičių k."
+    # "Kundročių k. (tik 5, 5A, 6, 7)" in one route, "(tik 1, 2, 3, 4)" in another: the app asks.
+    assert len(other_place(data, "Kundročiai")["schedule"]["packaging"]["candidates"]) == 2
+
+
+def test_taurage_by_street(others):
+    _, data, _ = others["taurage"]
+    town = other_place(data, "Tauragė")
+    assert set(town["schedule"]["household"]) == {"streets"}
+    pramone = street_rows(data, town, "household", "Pramonės g.")
+    assert rows(data, pramone)[0].startswith("Pramonė. Pramonės g.")
+    # Houses of one street in two routes ("Vytauto g. (nelyginiai 1-77 ...)", "(lyginiai
+    # 74-146 ...)"): the app asks.
+    assert len(street_rows(data, town, "household", "Vytauto g.")) == 2
+    # No route names Upokšnio g.: left to the app, which offers the town's routes. No street
+    # of the town is "no pickup".
+    assert street_rows(data, town, "household", "Upokšnio g.") is None
+    for schedule in town["schedule"].values():
+        assert all(schedule["streets"].values())
+    # Food waste of the town, by street too.
+    assert rows(data, street_rows(data, town, "food", "Pramonės g."))[0].startswith("Pramonė.")
+    # A village named before its streets ("Taurai. Alėjos g., ..."), and streets of Tauragės
+    # Dvaras among them ("Smilgų g., Tauragės Dvaro g.").
+    taurai = area_of(data, other_place(data, "Taurai"), "household")
+    assert taurai["name"].startswith("Taurai. Alėjos g.")
+    assert area_of(data, other_place(data, "Tauragės Dvaras"), "household") == taurai
+    # Norkaičiai: its village route, and streets in a route of the town.
+    norkaiciai = other_place(data, "Norkaičiai")
+    household = norkaiciai["schedule"]["household"]
+    assert row(data, household["area"])["name"].startswith("9. Maršrutas. Mažonų seniūnija.")
+    brolių = rows(data, street_rows(data, norkaiciai, "household", "Brolių g."))
+    assert brolių[0].startswith("Papušynė I.")
+
+
+def test_silales_r_town_and_villages(others):
+    _, data, _ = others["silale"]
+    assert data["matching"]["unmatchedRows"] == 0
+    assert sum(1 for loc in data["locations"] if "household" in loc.get("schedule", {})) == 357
+    # "Šilalės m. privačių namų konteineriai": the town, whole, for mixed and green waste; its
+    # streets in one packaging route.
+    town = other_place(data, "Šilalė")
+    for kind in ("household", "green"):
+        assert area_of(data, town, kind)["name"].startswith("Šilalės miesto sen: Šilalės m.")
+    assert area_of(data, town, "packaging")["name"].startswith("(1)Šilalės miesto gatvės:")
+    # "Dirkintų k. (tik Birutės g. ir Paupio g.)" in the town's route; the rest of the village
+    # in another.
+    dirkintai = other_place(data, "Dirkintai")
+    packaging = dirkintai["schedule"]["packaging"]
+    assert rows(data, street_rows(data, dirkintai, "packaging", "Paupio g."))[0].startswith("(1)")
+    assert row(data, packaging["area"])["name"].startswith("(8)Šilalės kaimiškoji sen:")
+    # "Dirkintų k. Birutės g. 1A, 9, ...": some houses, one more choice for that street.
+    assert len(street_rows(data, dirkintai, "household", "Birutės g.")) == 2
+    # "Katyčių k. 7, 11" in one route, Katyčiai in another: the app asks.
+    assert len(other_place(data, "Katyčiai")["schedule"]["household"]["candidates"]) == 2
+    village = area_of(data, other_place(data, "Laukuva"), "household")
+    assert village["dates"][0] == "2026-01-07" and village["dates"][-1] == "2026-12-23"
+
+
+def test_pagegiu_sav_towns_and_villages(others):
+    _, data, _ = others["pagegiai"]
+    assert data["matching"]["unmatchedRows"] == 0
+    town = other_place(data, "Pagėgiai", "m.")
+    household = area_of(data, town, "household")
+    assert household["weekday"] == "Pirmadienis" and len(household["dates"]) == 52
+    assert area_of(data, town, "green")["name"] == household["name"]
+    # The village of the same name, by its type.
+    village = area_of(data, other_place(data, "Pagėgiai", "k."), "household")
+    assert village["name"] == "Pagėgių sen.: Būbliškės k.; Pagėgių k., Plaušvarių k."
+    assert area_of(data, other_place(data, "Panemunė"), "household")["weekday"] == "Ketvirtadienis"
+    # "Kalvaičių k.(0)" in the packaging file: still the village's route.
+    assert "packaging" in other_place(data, "Kalvaičiai")["schedule"]
+    route = area_of(data, other_place(data, "Vilkyškiai"), "household")
+    assert route["dates"][0] == "2026-01-06" and route["dates"][-1] == "2026-12-22"
+
+
+def test_names_the_other_municipalities_dont_match_are_reported(others):
+    def warned(key):
+        return sorted({w.split(": ", 2)[2] for w in others[key][2] if w.startswith("not a")})
+
+    assert warned("taurage") == [
+        "Batakių sen.: Batakių gel. Stotis",
+        "Batakių sen.: Batakių glž. St.",
+        "Lauksargių sen.: Žilučių k.",
+        "Mažonų sen.: Ringių girininkija",
+        "Tauragės m.: Brolių g.",
+        "Tauragės m.: Miltaujos g.",
+        "Tauragės m.: Naujoji g.",
+        "Tauragės m.: Užuovėjos g.",
+        "Tauragės m.: Vakarų g.",
+        "Taurų k.: Geležinkelio g.",
+        "Žygaičių sen.: Pašikšnių k.",
+    ]
+    assert warned("silale") == [
+        "Upynos sen.: Brokštėnų k.",
+        "Šilalės kaimiškoji sen.: Pajėrubynio k.",
+        "Šilalės kaimiškoji sen.: Pajėrubynio k. 3",
+    ]
+    assert others["pagegiai"][2] == []
+
+
+def test_the_town_and_the_villages_run_out_apart():
+    municipality = replace(taurage.TAURAGE, min_areas={}, min_group_areas={})
+    file = SourceFile("household", "https://x/MKA_2026.pdf", "MKA_2026.pdf")
+    town, villages = replace(file, group="town"), replace(file, group="district")
+
+    def rows_of(year, *names):
+        return ParseResult(
+            [Area("household", n, dates={date(year, 12, 1)}, provider="taurage") for n in names]
+        )
+
+    registry = Registry.load(FIXTURES / "taurage" / OTHER_REGISTRIES["taurage"])
+    this_town = rows_of(2026, "Tauragės m.: Aušros g.")
+    this_villages = rows_of(2026, "Žygaičių seniūnija. Žygaičių mstl.")
+    next_villages = rows_of(2027, "ŽYGAIČIŲ SENIŪNIJA: Žygaičių mstl.")
+    parsed = [(town, this_town), (villages, this_villages), (villages, next_villages)]
+    assert taurage.combine(parsed, registry, TODAY, municipality) == []
+    assert this_villages.areas[0].dates == {date(2026, 12, 1), date(2027, 12, 1)}
+    # In January the villages' new routes take over; the town keeps its routes until its own
+    # file of the new year is read.
+    this_villages = rows_of(2026, "Žygaičių seniūnija. Žygaičių mstl.")
+    next_villages = rows_of(2027, "ŽYGAIČIŲ SENIŪNIJA: Žygaičių mstl.")
+    parsed = [(town, this_town), (villages, this_villages), (villages, next_villages)]
+    taurage.combine(parsed, registry, date(2027, 1, 2), municipality)
+    assert this_villages.areas == [] and len(next_villages.areas) == 1
+    assert len(this_town.areas) == 1
+    # Next year's file of the villages has its own minimum.
+    strict = replace(municipality, min_group_areas={("household", "district"): 2})
+    village = "Žygaičių seniūnija. Žygaičių mstl."
+    parsed = [(villages, rows_of(2026, village)), (villages, rows_of(2027, village))]
+    with pytest.raises(ValueError, match="only 1 household of the district routes in the 2027"):
+        taurage.combine(parsed, registry, TODAY, strict)
+
+
+def test_one_file_for_the_four_municipalities(part, others, tmp_path):
+    jurbarkas, warnings = part
+    built = [(taurage.JURBARKAS.provider, {**jurbarkas, "warnings": len(warnings)})]
+    built += [
+        (OTHERS[key].provider, {**data, "warnings": len(more)})
+        for key, (_, data, more) in others.items()
+    ]
+    dataset = merge_parts(built, taurage.PAGE_URL)
+    assert [p["id"] for p in dataset["providers"]] == ["jurbarkas", "taurage", "silale", "pagegiai"]
+    # Jurbarko r.'s part is as it was published on its own.
+    alone = merge_parts(built[:1], taurage.PAGE_URL)
+    for key in ("areas", "locations", "files"):
+        mine = [x for x in dataset[key] if x.get("provider") == "jurbarkas"]
+        assert mine == alone[key]
+    assert dataset["providers"][0] == {**alone["providers"][0]}
+    (tmp_path / "jurbarko-r").mkdir()
+    (tmp_path / "jurbarko-r" / "schedule.json").write_text(json.dumps(dataset), encoding="utf-8")
+    assert status.main(["--site", str(tmp_path)]) == 0
+    text = (tmp_path / "metrics.txt").read_text(encoding="utf-8")
+    # A source each, by its provider; `jurbarkas` still means Jurbarko r. alone.
+    assert 'siuksliaveze_data_areas{source="jurbarkas",kind="household"} 12' in text
+    assert 'siuksliaveze_data_areas{source="taurage",kind="food"} 5' in text
+    assert 'siuksliaveze_data_areas{source="silale",kind="green"} 1' in text
+    assert 'siuksliaveze_data_places{source="pagegiai"} 105' in text

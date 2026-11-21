@@ -93,6 +93,12 @@ tests:
       # Radviliškio r.'s quarterly mixed waste: ends tomorrow.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="radviliskis",kind="household"}'
         values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="taurage",kind="food"}'
+        values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="silale",kind="glass"}'
+        values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="pagegiai",kind="glass"}'
+        values: "518400x20"
       # Ends in 30 days: no alert.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="glass"}'
         values: "2592000x20"
@@ -141,6 +147,11 @@ tests:
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="radviliskis",kind="green"}'
         values: "86400x20"
+      # Tauragės r. glass (quarterly) and Pagėgių sav. green waste: not watched.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="taurage",kind="glass"}'
+        values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="pagegiai",kind="green"}'
+        values: "172800x20"
       # Panevėžio RATC's food waste, last collected on 10-23 December: not watched.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="pasvalys",kind="food"}'
         values: "86400x20"
@@ -215,6 +226,27 @@ tests:
               severity: warning
             exp_annotations:
               summary: "radviliskis: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: taurage
+              kind: food
+              severity: warning
+            exp_annotations:
+              summary: "taurage: the food schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: silale
+              kind: glass
+              severity: warning
+            exp_annotations:
+              summary: "silale: the glass schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: pagegiai
+              kind: glass
+              severity: warning
+            exp_annotations:
+              summary: "pagegiai: the glass schedule ends within a week"
           - exp_labels:
               job: siuksliaveze-data
               source: pasvalys
@@ -314,6 +346,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="alytus",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="radviliskis",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="silale",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="rokiskis",kind="glass"}'
         values: "25920000x191"

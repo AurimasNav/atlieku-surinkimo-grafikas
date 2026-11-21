@@ -85,6 +85,16 @@ PLUNGE_ADDRESSES_FILE = DATA_DIR / "address-points-plunges-r.json"
 RIETAVAS_MUNICIPALITY = ("Rietavo", 74)
 RIETAVAS_REGISTRY_FILE = DATA_DIR / "registry-rietavo-sav.json"
 RIETAVAS_ADDRESSES_FILE = DATA_DIR / "address-points-rietavo-sav.json"
+# Tauragės r., Šilalės r. and Pagėgių sav. (schedule_pipeline.taurage, next to Jurbarko r.).
+TAURAGES_MUNICIPALITY = ("Tauragės rajono", 77)
+TAURAGES_REGISTRY_FILE = DATA_DIR / "registry-taurages-r.json"
+TAURAGES_ADDRESSES_FILE = DATA_DIR / "address-points-taurages-r.json"
+SILALES_MUNICIPALITY = ("Šilalės rajono", 87)
+SILALES_REGISTRY_FILE = DATA_DIR / "registry-silales-r.json"
+SILALES_ADDRESSES_FILE = DATA_DIR / "address-points-silales-r.json"
+PAGEGIAI_MUNICIPALITY = ("Pagėgių", 63)
+PAGEGIAI_REGISTRY_FILE = DATA_DIR / "registry-pagegiu-sav.json"
+PAGEGIAI_ADDRESSES_FILE = DATA_DIR / "address-points-pagegiu-sav.json"
 # Pasvalio r., Rokiškio r., Biržų r. and Panevėžio r. (schedule_pipeline.pratc).
 PASVALIO_R_MUNICIPALITY = ("Pasvalio rajono", 67)
 PASVALIO_R_REGISTRY_FILE = DATA_DIR / "registry-pasvalio-r.json"
@@ -189,6 +199,9 @@ def main() -> int:
         ("Telšių r.", TELSIAI_MUNICIPALITY, TELSIAI_REGISTRY_FILE, TELSIAI_ADDRESSES_FILE),
         ("Plungės r.", PLUNGE_MUNICIPALITY, PLUNGE_REGISTRY_FILE, PLUNGE_ADDRESSES_FILE),
         ("Rietavo sav.", RIETAVAS_MUNICIPALITY, RIETAVAS_REGISTRY_FILE, RIETAVAS_ADDRESSES_FILE),
+        ("Tauragės r.", TAURAGES_MUNICIPALITY, TAURAGES_REGISTRY_FILE, TAURAGES_ADDRESSES_FILE),
+        ("Šilalės r.", SILALES_MUNICIPALITY, SILALES_REGISTRY_FILE, SILALES_ADDRESSES_FILE),
+        ("Pagėgių sav.", PAGEGIAI_MUNICIPALITY, PAGEGIAI_REGISTRY_FILE, PAGEGIAI_ADDRESSES_FILE),
         (
             "Pasvalio r.",
             PASVALIO_R_MUNICIPALITY,

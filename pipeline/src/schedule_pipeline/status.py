@@ -38,6 +38,7 @@ def collect(site: Path) -> dict:
     # mazeikiu-r also has Telšių r., Plungės r. and Rietavo sav., a provider each; sratc has
     # Radviliškio r. next to the five ("radviliskis"); panevezio-ratc (schedule_pipeline.pratc)
     # a provider for each of its four municipalities.
+    # jurbarko-r also has Tauragės r., Šilalės r. and Pagėgių sav., a provider each.
     for path in (
         site / "schedule.json",
         site / "mazeikiu-r" / "schedule.json",
@@ -128,8 +129,8 @@ def metrics(status: dict) -> str:
         ),
         "siuksliaveze_data_places": (
             "Settlements (nemencine, nemezio, mazeikiai, telsiai, plunge, rietavas, klaipedos, "
-            "jurbarkas, siauliai, radviliskis, alytus, pasvalys, rokiskis, birzai, panevezio-r) "
-            "or addresses (kauno, kaisiadorys) the data covers.",
+            "jurbarkas, taurage, silale, pagegiai, siauliai, radviliskis, alytus, pasvalys, "
+            "rokiskis, birzai, panevezio-r) or addresses (kauno, kaisiadorys) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (

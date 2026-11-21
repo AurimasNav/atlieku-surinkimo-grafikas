@@ -14,7 +14,8 @@ grafikai.svara.lt (open-data xlsx)        Kauno r., Kaišiadorių r.: site/kauno
 tratc.lt (xlsx)                           Mažeikių r., Telšių r., Plungės r., Rietavo sav.:
                                           site/mazeikiu-r/
 gargzdusvara.eu (xlsx)                    Klaipėdos r.: site/klaipedos-r/
-uabtratc.lt (pdf)                         Jurbarko r.: site/jurbarko-r/
+uabtratc.lt (pdf)                         Jurbarko r., Tauragės r., Šilalės r., Pagėgių sav.:
+                                          site/jurbarko-r/
 sratc.lt (pdf)                            Šiaulių r., Akmenės r., Joniškio r., Kelmės r.,
                                           Pakruojo r., Radviliškio r.: site/sratc/
 aratc.lt (pdf)                            Alytaus r., Prienų r., Lazdijų r., Varėnos r.,
