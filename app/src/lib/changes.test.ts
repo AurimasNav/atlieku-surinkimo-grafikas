@@ -38,6 +38,10 @@ describe('pickupChanges', () => {
     ).toEqual([]);
   });
 
+  it('ignores old dates that a new schedule starting later no longer lists', () => {
+    expect(pickupChanges({ glass: ['2026-11-10', '2026-11-25'] }, { glass: ['2027-01-05', '2027-01-26'] }, now)).toEqual([]);
+  });
+
   it('only looks a few weeks ahead', () => {
     expect(pickupChanges({ glass: ['2026-11-25', '2027-01-15'] }, { glass: ['2026-11-25', '2027-01-16'] }, now)).toEqual([]);
   });

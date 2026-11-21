@@ -24,8 +24,9 @@ export function officialDates(areas: Area[]): Partial<Record<WasteKind, string[]
 
 /**
  * What changed in the coming weeks between two versions of the user's schedule. A newly
- * published period adds dates after the old schedule's last one without anything having
- * changed, and a waste type the user didn't have before isn't a change either.
+ * published period adds dates after the old schedule's last one, or replaces it with dates
+ * from later on, without anything having changed; and a waste type the user didn't have before
+ * isn't a change either.
  */
 export function pickupChanges(
   before: Partial<Record<WasteKind, string[]>>,
@@ -43,6 +44,9 @@ export function pickupChanges(
     const fresh = after[kind];
     if (!old?.length || !fresh) continue;
     const covered = old.at(-1)!;
+    // The new schedule starts after the old one ends: a new period replaced the old rows, and
+    // the old dates still to come aren't in this file rather than cancelled.
+    if ((fresh[0] ?? '') > covered) continue;
     const inWindow = (date: string) => date >= today && date <= last;
     const oldSet = new Set(old);
     const freshSet = new Set(fresh);
