@@ -582,9 +582,11 @@ class RouteList:
         )
         self.unknown: list[str] = []
         # Rules added for the other municipalities of Telšių RATC (set by MixedRoutes): of the
-        # town's streets of one name, only those of the type the row writes (of_its_type), and
-        # "išskyrus" in a village's brackets leaves those streets out. Mažeikių r.'s rows have
-        # always been read without them, and its data is kept as it was.
+        # town's streets of one name, only those of the type the row writes (of_its_type); a
+        # town street rather than a village's other form (street_rather); "išskyrus" in a
+        # village's brackets leaves those streets out; of villages of one name, the one with
+        # the streets in brackets. Mažeikių r.'s rows have always been read without them, and
+        # its data is kept as it was.
         self.precise = False
 
     def settlements(self, name: str) -> list[Settlement]:
@@ -759,9 +761,10 @@ class RouteList:
                 continue
             if in_gardens:
                 # "Sodai : Ąžuolas": the streets "Ąžuolo Sodų 1-oji g." ... of any settlement.
-                for code, keys in self.named_gardens(head).items():
+                found_gardens = self.named_gardens(head)
+                for code, keys in found_gardens.items():
                     streets_of[code] |= keys
-                if not self.named_gardens(head):
+                if not found_gardens:
                     self.unknown.append(part)
                 continue
             streets = self.town_streets(part)
