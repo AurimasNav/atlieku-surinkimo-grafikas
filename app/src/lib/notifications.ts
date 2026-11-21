@@ -9,10 +9,10 @@ import { allPlaces, useSettings } from '@/store/settings';
 
 import { describeChanges, type PickupChange } from './changes';
 import { toIsoDate } from './dates';
-import { daysAhead, type Pickup, planReminders, snoozeMinutes } from './reminders';
 import { placeName } from './places';
+import { type PickupData, pickupFromContent } from './reminder-data';
+import { daysAhead, planReminders, snoozeMinutes } from './reminders';
 import { resolvePlace } from './resolve';
-import { WASTE_KINDS, type WasteKind } from './schedule';
 
 const CHANNEL_ID = 'pickup-reminders';
 const supported = Platform.OS !== 'web';
@@ -21,8 +21,6 @@ const supported = Platform.OS !== 'web';
 const CATEGORY = { evening: 'pickup_evening', morning: 'pickup_morning' } as const;
 export const ACTION = { done: 'done', snooze: 'snooze' } as const;
 
-/** What a pickup reminder carries, so its buttons know which pickup they're about. */
-type PickupData = { type: 'pickup'; date: string; kinds: WasteKind[]; place?: string };
 
 export async function configureNotifications(): Promise<void> {
   if (!supported) return;
@@ -137,12 +135,6 @@ export async function notifyScheduleChanges(changes: PickupChange[]): Promise<vo
   });
 }
 
-function pickupOf(response: Notifications.NotificationResponse): Pickup | undefined {
-  const data = response.notification.request.content.data as Partial<PickupData> | undefined;
-  if (data?.type !== 'pickup' || typeof data.date !== 'string' || !Array.isArray(data.kinds)) return undefined;
-  const kinds = data.kinds.filter((kind) => (WASTE_KINDS as readonly string[]).includes(kind));
-  return typeof data.place === 'string' ? { date: data.date, kinds, place: data.place } : { date: data.date, kinds };
-}
 
 /**
  * Handles the "Bins are out" and "Later" buttons. Runs in the app, or in the background task
@@ -150,7 +142,7 @@ function pickupOf(response: Notifications.NotificationResponse): Pickup | undefi
  * Returns whether the response was a button press it handled.
  */
 export async function handleReminderAction(response: Notifications.NotificationResponse, now = new Date()): Promise<boolean> {
-  const pickup = pickupOf(response);
+  const pickup = pickupFromContent(response.notification.request.content);
   if (!pickup || (response.actionIdentifier !== ACTION.done && response.actionIdentifier !== ACTION.snooze)) return false;
   const id = response.notification.request.identifier;
   if (response.actionIdentifier === ACTION.done) {
