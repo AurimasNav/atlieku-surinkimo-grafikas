@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText, Button } from '@/components/ui';
 import i18n, { resolveLanguage } from '@/i18n';
-// Importing this module also defines the background task, which must happen at startup.
+// The background tasks themselves are defined by the entry file (index.ts).
 import { registerBackgroundRefresh } from '@/lib/background';
 import { installCrashRecorder } from '@/lib/crash';
 import { appVersion, formatError, openIssue } from '@/lib/feedback';

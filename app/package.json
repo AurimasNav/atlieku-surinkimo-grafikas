@@ -1,6 +1,6 @@
 {
   "name": "siuksliaveze",
-  "main": "expo-router/entry",
+  "main": "index.ts",
   "version": "0.0.1",
   "dependencies": {
     "@expo-google-fonts/manrope": "^0.4.2",
