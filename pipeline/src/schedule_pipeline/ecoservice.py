@@ -555,18 +555,14 @@ def find_files(html: str, page_url: str) -> list[SourceFile]:
 # Copies of the page and files of a site that refuses GitHub's runners, taken from a machine
 # it answers (snapshot.py), as the Address Register's: silute.lt answers them HTTP 403.
 COPIES = {"silute": snapshot.SILUTE_COPY_DIR}
-COPY_INDEX = "copy.json"
+COPY_INDEX = snapshot.SITE_COPY_INDEX
 
 
 def _live(url: str) -> bytes:
     return http.get(url, timeout=60)
 
 
-def _copied(folder: Path, url: str) -> bytes:
-    """A page or file from its copy in `folder` (FileNotFoundError, an OSError, if none)."""
-    name = PurePosixPath(unquote(urlsplit(url).path)).name
-    page = json.loads((folder / COPY_INDEX).read_text(encoding="utf-8"))["page"]
-    return (folder / ("page.html" if url == page else name)).read_bytes()
+_copied = snapshot.site_copy
 
 
 def _download(
@@ -590,16 +586,7 @@ def download(
         if folder is None or not (folder / COPY_INDEX).exists():
             raise
         files, warnings = _download(municipality, today, partial(_copied, folder))
-        taken = json.loads((folder / COPY_INDEX).read_text(encoding="utf-8"))["takenAt"]
-        age = snapshot.age_days(taken, today)
-        note = (
-            f"{municipality.provider.url}: unavailable ({error}); used the copy from {taken} "
-            f"({age} days old)"
-        )
-        if age > snapshot.MAX_AGE_DAYS:
-            note += (
-                " - please refresh it: cd pipeline && uv run python -m schedule_pipeline.snapshot"
-            )
+        note = snapshot.site_copy_note(municipality.provider.url, error, folder, today)
         print(note, file=sys.stderr)
         return files, [note, *warnings]
 
@@ -612,19 +599,8 @@ def save_copy(municipality: maatc.Municipality, folder: Path, today: date | None
     files, _ = tratc.select_files(
         find_files(html.decode("utf-8", "replace"), page), today or date.today()
     )
-    contents = [(f.file_name, _live(f.url)) for f in files]
-    folder.mkdir(parents=True, exist_ok=True)
-    for old in folder.iterdir():
-        old.unlink()
-    (folder / "page.html").write_bytes(html)
-    for name, content in contents:
-        (folder / name).write_bytes(content)
-    index = {
-        "takenAt": (today or date.today()).isoformat(),
-        "page": page,
-        "files": [n for n, _ in contents],
-    }
-    (folder / COPY_INDEX).write_bytes((json.dumps(index, ensure_ascii=False) + "\n").encode())
+    contents = [(f.url, _live(f.url)) for f in files]
+    snapshot.save_site_copy(folder, page, html, contents, today or date.today())
 
 
 # --- the tables ------------------------------------------------------------------
