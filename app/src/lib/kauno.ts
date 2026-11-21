@@ -155,12 +155,13 @@ export function uncoveredCitySearch(query: string): UncoveredCity | undefined {
   const [first, second, ...rest] = normalizeForSearch(query)
     .split(/[^\p{L}\p{N}]+/u)
     .filter(Boolean);
+  const isDistrict = Boolean(second) && DISTRICT.test(second);
+  // "miestas", "miesto", also while it is typed ("kauno mies").
+  const isCity = Boolean(second) && ['miestas', 'miesto'].some((word) => word.startsWith(second));
   for (const [city, { names, genitive, district }] of Object.entries(CITIES) as [UncoveredCity, City][]) {
-    const isDistrict = Boolean(second) && DISTRICT.test(second);
     // "Kaunas", "Kaunas m.", "Kowno", "Каунас", but not "Kaunas r." or "Kaunas district".
     if (names.includes(first)) return !isDistrict || district ? city : undefined;
-    // "Kauno m.", "Kauno miestas", "Kauno miesto sav.", also while it is typed ("kauno mies").
-    const isCity = Boolean(second) && ['miestas', 'miesto'].some((word) => word.startsWith(second));
+    // "Kauno m.", "Kauno miestas", "Kauno miesto sav."; for Panevėžys also "Panevėžio r.".
     if (first === genitive && (isCity || (district && (!second || isDistrict))) && rest.length <= 1) return city;
   }
   return undefined;
