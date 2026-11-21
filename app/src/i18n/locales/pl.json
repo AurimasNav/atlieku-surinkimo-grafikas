@@ -127,7 +127,9 @@
     "staleData": "Od {{date}} nie udaje się sprawdzić zmian w harmonogramie {{company}}. Jeśli firma go zmieniła, daty tutaj mogą być nieaktualne.",
     "checkOverdue": "Od {{date}} aplikacja nie może sprawdzić, czy jest nowy harmonogram. Połącz się z internetem i przeciągnij ekran w dół.",
     "changesTitle": "Harmonogram się zmienił:",
-    "changesDismiss": "Rozumiem"
+    "changesDismiss": "Rozumiem",
+    "viewList": "Lista",
+    "viewMonth": "Kalendarz"
   },
   "settings": {
     "title": "Ustawienia",
@@ -153,7 +155,10 @@
     "addReminder": "Dodaj kolejne przypomnienie",
     "removeReminder": "Usuń to przypomnienie",
     "otherTime": "Inna godzina",
-    "perKindHint": "Aby przypomnienia o jednym rodzaju odpadów przychodziły o innej porze albo wcale, dotknij go w sekcji „Twoja miejscowość”."
+    "perKindHint": "Aby przypomnienia o jednym rodzaju odpadów przychodziły o innej porze albo wcale, dotknij go w sekcji „Twoja miejscowość”.",
+    "calendar": "Kalendarz",
+    "exportCalendar": "Dodaj do mojego kalendarza",
+    "exportHint": "Zapisuje znane teraz terminy odbioru w pliku kalendarza (.ics) razem z Twoimi przypomnieniami. Kalendarz nie dowie się o późniejszych zmianach, więc po opublikowaniu nowego harmonogramu dodaj go ponownie."
   },
   "notifications": {
     "channelName": "Przypomnienia o odbiorze",
@@ -279,5 +284,10 @@
     "moved": "{{kind}}: {{from}} → {{to}}",
     "cancelled": "{{kind}}: {{date}} odbioru nie będzie",
     "added": "{{kind}}: dodatkowy odbiór {{date}}"
+  },
+  "calendar": {
+    "previous": "Poprzedni miesiąc",
+    "next": "Następny miesiąc",
+    "noPickupsMonth": "W opublikowanym harmonogramie w tym miesiącu nie ma odbiorów."
   }
 }

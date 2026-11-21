@@ -12,6 +12,7 @@ import { ReminderPicker } from '@/components/reminder-picker';
 import { AppText, Button, Card, Chip, KindIcon, ListRow, PressableScale, ScreenHeader } from '@/components/ui';
 import { LANGUAGE_NAMES, LANGUAGES, type Language } from '@/i18n';
 import { PRIVACY_URL, REPOSITORY_URL } from '@/lib/config';
+import { canExportCalendar, exportCalendar } from '@/lib/export-calendar';
 import { toIsoDate } from '@/lib/dates';
 import { openIssue } from '@/lib/feedback';
 import { placeLabel, resolvePlace, sourcePageUrl, visibleKinds } from '@/lib/resolve';
@@ -87,6 +88,19 @@ export default function Settings() {
             {t('settings.perKindHint')}
           </AppText>
         </Section>
+
+        {canExportCalendar && (
+          <Section title={t('settings.calendar')}>
+            <ListRow
+              icon={<Ionicons name="calendar-number" size={22} color={theme.primary} />}
+              title={t('settings.exportCalendar')}
+              onPress={() => exportCalendar().catch(() => false)}
+            />
+            <AppText variant="caption" muted>
+              {t('settings.exportHint')}
+            </AppText>
+          </Section>
+        )}
 
         <Section title={t('settings.language')}>
           <View style={styles.chips}>

@@ -123,7 +123,9 @@
     "staleData": "The schedule of {{company}} couldn't be checked for changes since {{date}}. If the company has changed it, the dates here may be out of date.",
     "checkOverdue": "The app hasn't been able to check for a new schedule since {{date}}. Connect to the internet and pull down to refresh.",
     "changesTitle": "The schedule changed:",
-    "changesDismiss": "Got it"
+    "changesDismiss": "Got it",
+    "viewList": "List",
+    "viewMonth": "Calendar"
   },
   "settings": {
     "title": "Settings",
@@ -149,7 +151,10 @@
     "addReminder": "Add another reminder",
     "removeReminder": "Remove this reminder",
     "otherTime": "Other time",
-    "perKindHint": "To be reminded of one waste type differently, or not at all, tap it under “Your place”."
+    "perKindHint": "To be reminded of one waste type differently, or not at all, tap it under “Your place”.",
+    "calendar": "Calendar",
+    "exportCalendar": "Add to my calendar app",
+    "exportHint": "Saves the pickup dates known now as a calendar file (.ics), with your reminders as alarms. Your calendar won't follow later changes, so add it again when a new schedule is published."
   },
   "notifications": {
     "channelName": "Pickup reminders",
@@ -275,5 +280,10 @@
     "moved": "{{kind}}: {{from}} → {{to}}",
     "cancelled": "{{kind}}: no pickup on {{date}}",
     "added": "{{kind}}: extra pickup on {{date}}"
+  },
+  "calendar": {
+    "previous": "Previous month",
+    "next": "Next month",
+    "noPickupsMonth": "No pickups this month in the published schedule."
   }
 }

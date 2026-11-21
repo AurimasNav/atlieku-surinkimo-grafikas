@@ -127,7 +127,9 @@
     "staleData": "{{company}} grafiko pakeitimų nepavyksta patikrinti nuo {{date}}. Jei įmonė grafiką pakeitė, čia rodomos datos gali būti pasenusios.",
     "checkOverdue": "Programėlei nepavyksta patikrinti, ar yra naujas grafikas, nuo {{date}}. Prisijunkite prie interneto ir patraukite ekraną žemyn.",
     "changesTitle": "Grafikas pasikeitė:",
-    "changesDismiss": "Supratau"
+    "changesDismiss": "Supratau",
+    "viewList": "Sąrašas",
+    "viewMonth": "Kalendorius"
   },
   "settings": {
     "title": "Nustatymai",
@@ -153,7 +155,10 @@
     "addReminder": "Pridėti dar vieną priminimą",
     "removeReminder": "Pašalinti šį priminimą",
     "otherTime": "Kitas laikas",
-    "perKindHint": "Jei apie kurią nors atliekų rūšį norite priminimų kitu laiku arba visai jų nenorite, palieskite ją skiltyje „Jūsų vietovė“."
+    "perKindHint": "Jei apie kurią nors atliekų rūšį norite priminimų kitu laiku arba visai jų nenorite, palieskite ją skiltyje „Jūsų vietovė“.",
+    "calendar": "Kalendorius",
+    "exportCalendar": "Įkelti į mano kalendorių",
+    "exportHint": "Dabar žinomas išvežimo datas išsaugo kalendoriaus faile (.ics), su jūsų priminimais. Vėlesnių pakeitimų kalendorius pats nesužinos, todėl paskelbus naują grafiką įkelkite jį dar kartą."
   },
   "notifications": {
     "channelName": "Išvežimo priminimai",
@@ -279,5 +284,10 @@
     "moved": "{{kind}}: {{from}} → {{to}}",
     "cancelled": "{{kind}}: {{date}} išvežimo nebus",
     "added": "{{kind}}: papildomas išvežimas {{date}}"
+  },
+  "calendar": {
+    "previous": "Ankstesnis mėnuo",
+    "next": "Kitas mėnuo",
+    "noPickupsMonth": "Paskelbtame grafike šį mėnesį išvežimų nėra."
   }
 }
