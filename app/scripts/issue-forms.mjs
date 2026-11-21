@@ -25,6 +25,8 @@ const OFFICIAL_SCHEDULES = [
   'UAB „Tauragės regiono atliekų tvarkymo centras“: https://www.uabtratc.lt/atlieku-surinkimo-grafikai/',
   'UAB „Šiaulių regiono atliekų tvarkymo centras“: https://www.sratc.lt/kalendoriaus-grafikai/',
   'UAB „Alytaus regiono atliekų tvarkymo centras“: https://www.aratc.lt/atlieku-surinkimo-grafikai/',
+  'UAB „Panevėžio regiono atliekų tvarkymo centras“: https://www.pratc.lt/atlieku-isvezimas-atlieku-isvezimas/',
+  'UAB „Marijampolės apskrities atliekų tvarkymo centras“: https://maatc.lt/atlieku-isvezimo-grafikai/',
 ]
   .map((line) => `- ${line}`)
   .join('\n');
@@ -352,10 +354,10 @@ const FORMS = {
         required: true,
         label: { en: 'Municipality', lt: 'Savivaldybė', ru: 'Самоуправление', pl: 'Samorząd' },
         placeholder: {
-          en: 'e.g. Radviliškio r.',
-          lt: 'pvz., Radviliškio r.',
-          ru: 'например, Radviliškio r.',
-          pl: 'np. Radviliškio r.',
+          en: 'e.g. Ukmergės r.',
+          lt: 'pvz., Ukmergės r.',
+          ru: 'например, Ukmergės r.',
+          pl: 'np. Ukmergės r.',
         },
       },
       {

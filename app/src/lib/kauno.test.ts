@@ -292,3 +292,39 @@ describe('a search for Šiauliai or Alytus city', () => {
     }
   });
 });
+
+describe('a search for Panevėžys', () => {
+  it('is recognised for the city and, since only its packaging and glass are covered, the district', () => {
+    const queries = [
+      'Panevėžys',
+      'panevezys',
+      'Panevėžio m.',
+      'Panevėžio miestas',
+      'Panevėžyje',
+      'Poniewież',
+      'Паневежис',
+      'Panevėžio r.',
+      'Panevėžio rajonas',
+      'Panevėžio r. sav.',
+      'Panevėžys district',
+      // Also Panevėžio sen., around the city, in the district.
+      'Panevėžio',
+    ];
+    for (const query of queries) expect([query, uncoveredCitySearch(query)]).toEqual([query, 'panevezys']);
+  });
+
+  it('is not a town of the district or a covered city', () => {
+    for (const query of ['Ramygala', 'Panevėžiukas', 'panevez', 'Pasvalys', 'Biržai', 'Rokiškis']) {
+      expect([query, uncoveredCitySearch(query)]).toEqual([query, undefined]);
+    }
+  });
+});
+
+describe('a search for a covered town', () => {
+  // Their municipalities' schedules cover their private houses.
+  it('gets no hint', () => {
+    for (const query of ['Marijampolė', 'Marijampolės m.', 'Tauragė', 'Radviliškis', 'Telšiai', 'Druskininkai']) {
+      expect([query, uncoveredCitySearch(query)]).toEqual([query, undefined]);
+    }
+  });
+});

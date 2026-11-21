@@ -158,6 +158,22 @@ it('says that Šiauliai city is not covered above a village of that name', async
   expect(screen.queryByText(i18n.t('feedback.area'))).toBeNull();
 });
 
+it('says that Panevėžys city is not covered, and the district only for packaging and glass', async () => {
+  // A village of Panevėžio sen., in Panevėžio r., with packaging only.
+  const village = { id: 'p9', name: 'Berniūnai', type: 'k.', district: 'Panevėžio', provider: 'panevezio-r', schedule: { packaging: { area: 'p1' } } };
+  useSchedule.setState({ data: { ...data, locations: [...data.locations!, village] } });
+  await renderRouter(routes, { initialUrl: '/setup/location' });
+  for (const query of ['Panevėžys', 'Panevėžio r.']) {
+    await search(query);
+    expect(await screen.findByText(i18n.t('setup.locationPanevezysCity'))).toBeOnTheScreen();
+    expect(screen.queryByText(i18n.t('setup.locationNone', { areas: i18n.t('coverage.areas') }))).toBeNull();
+  }
+  // Above the villages of Panevėžio sen.
+  await search('Panevėžio');
+  expect(await screen.findByText(i18n.t('setup.locationPanevezysCity'))).toBeOnTheScreen();
+  expect(screen.getByText('Berniūnai')).toBeOnTheScreen();
+});
+
 describe('a town of the Kauno švara data', () => {
   const index = {
     schemaVersion: 1,

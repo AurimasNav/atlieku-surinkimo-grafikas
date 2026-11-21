@@ -1,14 +1,16 @@
-Šiukšliavežė primins vakare prieš atvažiuojant šiukšliavežei, kad daugiau nepraleistumėte atliekų išvežimo. Programėlė veikia 20 savivaldybių kaimuose ir miestuose pagal jų atliekų tvarkymo įmonių skelbiamus grafikus:
+Šiukšliavežė primins vakare prieš atvažiuojant šiukšliavežei, kad daugiau nepraleistumėte atliekų išvežimo. Programėlė veikia 33 savivaldybių kaimuose ir miestuose pagal jų atliekų tvarkymo įmonių skelbiamus grafikus:
 
 • Vilniaus r.: UAB „Nemenčinės komunalininkas“ ir UAB „Nemėžio komunalininkas“.
 • Kauno ir Kaišiadorių r.: UAB „Kauno švara“, pagal adresą. Stiklo ir pakuočių grafikams programėlėje yra nuoroda į UAB „Ekonovus“ svetainę.
 • Mažeikių, Telšių ir Plungės r. bei Rietavo sav.: UAB „Telšių regiono atliekų tvarkymo centras“.
 • Klaipėdos r.: VšĮ „Gargždų švara“.
-• Jurbarko r.: UAB „Tauragės regiono atliekų tvarkymo centras“.
-• Šiaulių, Akmenės, Joniškio, Kelmės ir Pakruojo r.: UAB „Šiaulių regiono atliekų tvarkymo centras“.
+• Jurbarko, Tauragės ir Šilalės r. bei Pagėgių sav.: UAB „Tauragės regiono atliekų tvarkymo centras“.
+• Šiaulių, Akmenės, Joniškio, Kelmės, Pakruojo ir Radviliškio r.: UAB „Šiaulių regiono atliekų tvarkymo centras“.
 • Alytaus, Prienų, Lazdijų ir Varėnos r. bei Druskininkų ir Birštono sav.: UAB „Alytaus regiono atliekų tvarkymo centras“.
+• Biržų, Pasvalio ir Rokiškio r., o Panevėžio r. – tik pakuotės ir stiklas: UAB „Panevėžio regiono atliekų tvarkymo centras“.
+• Marijampolės, Kalvarijos ir Kazlų Rūdos sav. bei Vilkaviškio ir Šakių r.: UAB „Marijampolės apskrities atliekų tvarkymo centras“.
 
-Mišrios atliekos, pakuotės ir stiklas, o ten, kur surenkamos atskirai, – ir maisto bei žaliosios atliekos. Vilniaus, Kauno, Klaipėdos, Šiaulių ir Alytaus miestų grafikų programėlėje nėra.
+Mišrios atliekos, pakuotės ir stiklas, o ten, kur surenkamos atskirai, – ir maisto bei žaliosios atliekos. Vilniaus, Kauno, Klaipėdos, Šiaulių, Panevėžio ir Alytaus miestų grafikų programėlėje nėra.
 
 Kaip tai veikia
 • Vieną kartą pasirinkite savo kaimą ar miestelį arba leiskite programėlei surasti jūsų adresą. Jei išvežimo dienos priklauso nuo gatvės ar namo tipo, programėlė paklaus ir to.

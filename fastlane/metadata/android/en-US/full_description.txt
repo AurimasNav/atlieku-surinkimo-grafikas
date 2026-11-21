@@ -1,14 +1,16 @@
-Šiukšliavežė reminds you the evening before the garbage truck comes, so you never miss a pickup again. It covers the villages and towns of 20 municipalities, with the schedules their waste companies publish:
+Šiukšliavežė reminds you the evening before the garbage truck comes, so you never miss a pickup again. It covers the villages and towns of 33 municipalities, with the schedules their waste companies publish:
 
 • Vilnius district: UAB „Nemenčinės komunalininkas“ and UAB „Nemėžio komunalininkas“.
 • Kaunas and Kaišiadorys districts: UAB „Kauno švara“, by address. For glass and packaging the app links to the schedules of UAB „Ekonovus“.
 • Mažeikiai, Telšiai and Plungė districts and Rietavas municipality: UAB „Telšių regiono atliekų tvarkymo centras“.
 • Klaipėda district: VšĮ „Gargždų švara“.
-• Jurbarkas district: UAB „Tauragės regiono atliekų tvarkymo centras“.
-• Šiauliai, Akmenė, Joniškis, Kelmė and Pakruojis districts: UAB „Šiaulių regiono atliekų tvarkymo centras“.
+• Jurbarkas, Tauragė and Šilalė districts and Pagėgiai municipality: UAB „Tauragės regiono atliekų tvarkymo centras“.
+• Šiauliai, Akmenė, Joniškis, Kelmė, Pakruojis and Radviliškis districts: UAB „Šiaulių regiono atliekų tvarkymo centras“.
 • Alytus, Prienai, Lazdijai and Varėna districts and Druskininkai and Birštonas municipalities: UAB „Alytaus regiono atliekų tvarkymo centras“.
+• Biržai, Pasvalys and Rokiškis districts, and only packaging and glass in Panevėžys district: UAB „Panevėžio regiono atliekų tvarkymo centras“.
+• Marijampolė, Kalvarija and Kazlų Rūda municipalities and Vilkaviškis and Šakiai districts: UAB „Marijampolės apskrities atliekų tvarkymo centras“.
 
-Mixed waste, packaging and glass, and food and green waste where they're collected separately. The cities of Vilnius, Kaunas, Klaipėda, Šiauliai and Alytus aren't covered.
+Mixed waste, packaging and glass, and food and green waste where they're collected separately. The cities of Vilnius, Kaunas, Klaipėda, Šiauliai, Panevėžys and Alytus aren't covered.
 
 How it works
 • Choose your village or town once, or let the app find your address. If pickup days in your place depend on the street or the kind of home, it asks about that too.

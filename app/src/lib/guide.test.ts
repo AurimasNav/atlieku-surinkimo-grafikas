@@ -257,6 +257,25 @@ describe('regionOf', () => {
     expect(advise(item('aerosol'), regionOf(...at({ locationId: 'simnas', choices: {} })), kinds('household')).to).toEqual(['site']);
   });
 
+  it('gives the general advice in the regions added later', () => {
+    const ids = ['radviliskis', 'pasvalys', 'rokiskis', 'birzai', 'panevezio-r', 'taurage', 'silale', 'pagegiai'];
+    ids.push('marijampole', 'vilkaviskis', 'kalvarija', 'kazluruda', 'sakiai');
+    for (const provider of ids) {
+      const location: Location = { id: provider, name: provider, type: 'k.', district: provider, provider, schedule: { glass: { area: `${provider}-g` } } };
+      const more = { ...data, areas: [...data.areas, area(`${provider}-g`, 'glass', { provider })], locations: [...data.locations!, location] };
+      const place: Place = { locationId: provider, choices: {} };
+      const resolved = resolvePlace(more, place, today);
+      const region = regionOf(place, resolved);
+      const available = availableKinds(place, resolved);
+      expect([provider, region]).toEqual([provider, undefined]);
+      // Panevėžio r. has no mixed waste data: the container every home has is still there.
+      expect(available).toEqual(kinds('household', 'glass'));
+      expect(advise(item('aerosol'), region, available).to).toEqual(['site']);
+      expect(advise(item('peels'), region, available)).toMatchObject({ to: ['compost', 'household'], missing: 'food' });
+      expect(locationsUrl('site', region)).toBeUndefined();
+    }
+  });
+
   it("gives TRATC's rules in all four of its municipalities", () => {
     const plunge = at({ locationId: 'plunge', choices: {} });
     expect(regionOf(...plunge)).toBe('mazeikiai');
