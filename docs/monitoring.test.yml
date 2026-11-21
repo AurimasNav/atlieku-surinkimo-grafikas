@@ -1,0 +1,200 @@
+# promtool unit tests for the alert rules in monitoring.md. docs/monitoring-check.sh copies this
+# file next to the rules it takes from the doc and runs `promtool test rules`.
+#
+# The series are scraped every 15 minutes, as in the doc's scrape job, and most checks fall
+# between two scrapes: a rule that reads a plain selector instead of last_over_time(...[30m])
+# has no value then and fails them. Time 0 is the Unix epoch, so time() is the time since the
+# test started; a series value of 0 for generatedAt means "built when the test started".
+
+rule_files:
+  - rules.yml
+
+evaluation_interval: 1m
+
+tests:
+  - name: data older than 30 hours
+    interval: 15m
+    input_series:
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
+        values: "0x140"
+    alert_rule_test:
+      # Over 30 h since 30h01m, so pending until 30h31m.
+      - eval_time: 30h10m
+        alertname: ScheduleDataStale
+      - eval_time: 31h10m
+        alertname: ScheduleDataStale
+        exp_alerts:
+          - exp_labels:
+              job: siuksliaveze-data
+              source: nemencine
+              severity: warning
+            exp_annotations:
+              summary: "Schedule data of nemencine is 1d 7h 10m 0s old"
+              description: "The daily build of this source fails or doesn't run. See the Schedule data workflow on GitHub."
+
+  - name: metrics.txt can't be fetched
+    interval: 15m
+    input_series:
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "0x20"
+    alert_rule_test:
+      - eval_time: 1h40m
+        alertname: ScheduleDataNotScraped
+      - eval_time: 3h10m
+        alertname: ScheduleDataNotScraped
+        exp_alerts:
+          - exp_labels:
+              job: siuksliaveze-data
+              severity: warning
+            exp_annotations:
+              summary: "metrics.txt can't be fetched from GitHub Pages"
+
+  - name: the scrape job is gone
+    interval: 15m
+    input_series:
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="other",source="nemencine"}'
+        values: "0x20"
+    alert_rule_test:
+      - eval_time: 1h40m
+        alertname: ScheduleDataNotScraped
+      - eval_time: 3h10m
+        alertname: ScheduleDataNotScraped
+        exp_alerts:
+          - exp_labels:
+              job: siuksliaveze-data
+              severity: warning
+            exp_annotations:
+              summary: "metrics.txt can't be fetched from GitHub Pages"
+
+  - name: yearly schedules end within a week
+    interval: 15m
+    input_series:
+      # Ends in 6 days: alerts.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="household"}'
+        values: "518400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="klaipedos",kind="household"}'
+        values: "518400x20"
+      # Ends in 30 days: no alert.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="glass"}'
+        values: "2592000x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="klaipedos",kind="packaging"}'
+        values: "2592000x20"
+      # Klaipėdos r. glass and green waste, and the quarterly Vilniaus r. files, routinely get
+      # this close to their last date: no alert.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="klaipedos",kind="glass"}'
+        values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="klaipedos",kind="green"}'
+        values: "172800x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="nemencine",kind="household"}'
+        values: "259200x20"
+    alert_rule_test:
+      - eval_time: 40m
+        alertname: ScheduleDataRunsOut
+      - eval_time: 2h10m
+        alertname: ScheduleDataRunsOut
+        exp_alerts:
+          - exp_labels:
+              job: siuksliaveze-data
+              source: mazeikiai
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "mazeikiai: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: klaipedos
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "klaipedos: the household schedule ends within a week"
+
+  - name: fewer places and more warnings than a day before
+    interval: 15m
+    input_series:
+      # 100 places and 3 warnings until 24h00, then 80 and 5.
+      - series: 'siuksliaveze_data_places{job="siuksliaveze-data",source="nemencine"}'
+        values: "100x96 80x10"
+      - series: 'siuksliaveze_data_warnings{job="siuksliaveze-data",source="nemezio"}'
+        values: "3x96 5x10"
+    alert_rule_test:
+      - eval_time: 23h10m
+        alertname: ScheduleDataShrank
+      - eval_time: 23h10m
+        alertname: ScheduleDataMoreWarnings
+      # At the scrape that brings the change, and 7 and 14 minutes later.
+      - eval_time: 24h15m
+        alertname: ScheduleDataShrank
+        exp_alerts: &shrank
+          - exp_labels:
+              job: siuksliaveze-data
+              source: nemencine
+              severity: warning
+            exp_annotations:
+              summary: "nemencine covers 10% fewer places than yesterday"
+      - eval_time: 24h22m
+        alertname: ScheduleDataShrank
+        exp_alerts: *shrank
+      - eval_time: 24h29m
+        alertname: ScheduleDataShrank
+        exp_alerts: *shrank
+      - eval_time: 24h22m
+        alertname: ScheduleDataMoreWarnings
+        exp_alerts:
+          - exp_labels:
+              job: siuksliaveze-data
+              source: nemezio
+              severity: info
+            exp_annotations:
+              summary: "nemezio: more build warnings than yesterday (new typo or renamed place?)"
+
+  - name: a source disappears from metrics.txt
+    interval: 15m
+    input_series:
+      # kauno is in the file until 10h00, then gone; the file itself is still fetched.
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="kauno"}'
+        values: "0x40"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
+        values: "0x80"
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "1x80"
+    alert_rule_test:
+      - eval_time: 10h10m
+        alertname: ScheduleDataSourceMissing
+      - eval_time: 12h10m
+        alertname: ScheduleDataSourceMissing
+        exp_alerts:
+          - exp_labels:
+              source: kauno
+              severity: warning
+            exp_annotations:
+              summary: "kauno is missing from metrics.txt"
+
+  - name: healthy data raises nothing
+    interval: 15m
+    input_series:
+      # Rebuilt at 24h00; the yearly schedules end in 300 days.
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
+        values: "0x95 86400x96"
+      - series: 'siuksliaveze_data_places{job="siuksliaveze-data",source="nemencine"}'
+        values: "100x191"
+      - series: 'siuksliaveze_data_warnings{job="siuksliaveze-data",source="nemencine"}'
+        values: "3x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="klaipedos",kind="household"}'
+        values: "25920000x191"
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "1x191"
+    alert_rule_test:
+      - eval_time: 36h10m
+        alertname: ScheduleDataStale
+      - eval_time: 36h10m
+        alertname: ScheduleDataShrank
+      - eval_time: 36h10m
+        alertname: ScheduleDataMoreWarnings
+      - eval_time: 36h10m
+        alertname: ScheduleDataRunsOut
+      - eval_time: 36h10m
+        alertname: ScheduleDataSourceMissing
+      - eval_time: 36h10m
+        alertname: ScheduleDataNotScraped

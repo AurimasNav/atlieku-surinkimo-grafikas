@@ -1,0 +1,46 @@
+name: Monitoring examples
+
+# Checks the Prometheus scrape job and alert rules in docs/monitoring.md with promtool, and that
+# the rules only use metrics the data job writes (docs/monitoring-check.sh). Runs when the doc,
+# its tests or the code that writes metrics.txt change.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/monitoring.md"
+      - "docs/monitoring.test.yml"
+      - "docs/monitoring-check.sh"
+      - "pipeline/src/schedule_pipeline/status.py"
+      - ".github/workflows/monitoring.yml"
+  pull_request:
+    paths:
+      - "docs/monitoring.md"
+      - "docs/monitoring.test.yml"
+      - "docs/monitoring-check.sh"
+      - "pipeline/src/schedule_pipeline/status.py"
+      - ".github/workflows/monitoring.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  promtool:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # renovate: datasource=github-releases depName=prometheus/prometheus
+      PROMETHEUS_VERSION: v3.16.0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Install promtool
+        run: |
+          name="prometheus-${PROMETHEUS_VERSION#v}.linux-amd64"
+          base="https://github.com/prometheus/prometheus/releases/download/$PROMETHEUS_VERSION"
+          cd "$RUNNER_TEMP"
+          curl -fsSL --retry 3 -o "$name.tar.gz" "$base/$name.tar.gz"
+          curl -fsSL --retry 3 -o sha256sums.txt "$base/sha256sums.txt"
+          grep " $name.tar.gz\$" sha256sums.txt | sha256sum -c -
+          tar -xzf "$name.tar.gz" "$name/promtool"
+          echo "$RUNNER_TEMP/$name" >> "$GITHUB_PATH"
+      - run: promtool --version
+      - run: sh docs/monitoring-check.sh
