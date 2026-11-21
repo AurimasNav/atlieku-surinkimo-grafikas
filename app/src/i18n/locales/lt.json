@@ -182,7 +182,8 @@
     "schedule": "Neteisingos datos ar adresas",
     "idea": "Pasiūlyti idėją",
     "githubNote": "Atidaroma forma „GitHub“ svetainėje (reikia nemokamos paskyros). Niekas nesiunčiama, kol patys nepateiksite.",
-    "wrongDates": "Datos atrodo neteisingos? Praneškite"
+    "wrongDates": "Datos atrodo neteisingos? Praneškite",
+    "area": "Paprašyti pridėti mano vietovę"
   },
   "crash": {
     "title": "Kažkas nutiko",

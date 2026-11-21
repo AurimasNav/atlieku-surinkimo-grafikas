@@ -178,7 +178,8 @@
     "schedule": "Wrong dates or address",
     "idea": "Suggest an idea",
     "githubNote": "Opens a form on GitHub (a free account is needed). Nothing is sent until you submit it.",
-    "wrongDates": "Dates look wrong? Let us know"
+    "wrongDates": "Dates look wrong? Let us know",
+    "area": "Ask for my area to be added"
   },
   "crash": {
     "title": "Something went wrong",

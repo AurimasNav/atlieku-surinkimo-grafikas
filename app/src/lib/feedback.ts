@@ -10,7 +10,7 @@ import { REPOSITORY_URL } from './config';
  * Issue forms in .github/ISSUE_TEMPLATE, one per language (`lt-bug_report.yml`, …), generated
  * by scripts/issue-forms.mjs. Field ids must match the `id`s there.
  */
-export type IssueTemplate = 'bug_report' | 'crash_report' | 'schedule_problem' | 'feature_request';
+export type IssueTemplate = 'bug_report' | 'crash_report' | 'schedule_problem' | 'feature_request' | 'area_request';
 
 /** Browsers and GitHub reject very long URLs; keep well under the ~8k practical limit. */
 const MAX_FIELD_LENGTH = 2000;
