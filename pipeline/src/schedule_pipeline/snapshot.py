@@ -85,6 +85,19 @@ PLUNGE_ADDRESSES_FILE = DATA_DIR / "address-points-plunges-r.json"
 RIETAVAS_MUNICIPALITY = ("Rietavo", 74)
 RIETAVAS_REGISTRY_FILE = DATA_DIR / "registry-rietavo-sav.json"
 RIETAVAS_ADDRESSES_FILE = DATA_DIR / "address-points-rietavo-sav.json"
+# Pasvalio r., Rokiškio r., Biržų r. and Panevėžio r. (schedule_pipeline.pratc).
+PASVALIO_R_MUNICIPALITY = ("Pasvalio rajono", 67)
+PASVALIO_R_REGISTRY_FILE = DATA_DIR / "registry-pasvalio-r.json"
+PASVALIO_R_ADDRESSES_FILE = DATA_DIR / "address-points-pasvalio-r.json"
+ROKISKIO_R_MUNICIPALITY = ("Rokiškio rajono", 73)
+ROKISKIO_R_REGISTRY_FILE = DATA_DIR / "registry-rokiskio-r.json"
+ROKISKIO_R_ADDRESSES_FILE = DATA_DIR / "address-points-rokiskio-r.json"
+BIRZU_R_MUNICIPALITY = ("Biržų rajono", 36)
+BIRZU_R_REGISTRY_FILE = DATA_DIR / "registry-birzu-r.json"
+BIRZU_R_ADDRESSES_FILE = DATA_DIR / "address-points-birzu-r.json"
+PANEVEZIO_R_MUNICIPALITY = ("Panevėžio rajono", 66)
+PANEVEZIO_R_REGISTRY_FILE = DATA_DIR / "registry-panevezio-r.json"
+PANEVEZIO_R_ADDRESSES_FILE = DATA_DIR / "address-points-panevezio-r.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -176,6 +189,25 @@ def main() -> int:
         ("Telšių r.", TELSIAI_MUNICIPALITY, TELSIAI_REGISTRY_FILE, TELSIAI_ADDRESSES_FILE),
         ("Plungės r.", PLUNGE_MUNICIPALITY, PLUNGE_REGISTRY_FILE, PLUNGE_ADDRESSES_FILE),
         ("Rietavo sav.", RIETAVAS_MUNICIPALITY, RIETAVAS_REGISTRY_FILE, RIETAVAS_ADDRESSES_FILE),
+        (
+            "Pasvalio r.",
+            PASVALIO_R_MUNICIPALITY,
+            PASVALIO_R_REGISTRY_FILE,
+            PASVALIO_R_ADDRESSES_FILE,
+        ),
+        (
+            "Rokiškio r.",
+            ROKISKIO_R_MUNICIPALITY,
+            ROKISKIO_R_REGISTRY_FILE,
+            ROKISKIO_R_ADDRESSES_FILE,
+        ),
+        ("Biržų r.", BIRZU_R_MUNICIPALITY, BIRZU_R_REGISTRY_FILE, BIRZU_R_ADDRESSES_FILE),
+        (
+            "Panevėžio r.",
+            PANEVEZIO_R_MUNICIPALITY,
+            PANEVEZIO_R_REGISTRY_FILE,
+            PANEVEZIO_R_ADDRESSES_FILE,
+        ),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)
