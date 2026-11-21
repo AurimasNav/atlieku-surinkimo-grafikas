@@ -20,12 +20,13 @@
     "greenShort": "Zielone"
   },
   "common": {
-    "retry": "Spróbuj ponownie",
+    "cancel": "Anuluj",
+    "change": "Zmień",
     "continue": "Dalej",
     "done": "Gotowe",
-    "skip": "Nie mam takiego pojemnika",
     "openSettings": "Otwórz ustawienia",
-    "change": "Zmień"
+    "retry": "Spróbuj ponownie",
+    "skip": "Nie mam takiego pojemnika"
   },
   "onboarding": {
     "title": "Pojemniki.\nNa czas.",
