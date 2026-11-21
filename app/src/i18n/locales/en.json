@@ -309,5 +309,9 @@
     "save": "Save",
     "change": "Change address",
     "remove": "Remove this place"
+  },
+  "widget": {
+    "choosePlace": "Open the app to choose your place.",
+    "nothing": "No upcoming pickups in the published schedule yet."
   }
 }

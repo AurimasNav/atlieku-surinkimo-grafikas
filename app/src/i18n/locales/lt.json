@@ -315,5 +315,9 @@
     "save": "Išsaugoti",
     "change": "Keisti adresą",
     "remove": "Pašalinti šią vietovę"
+  },
+  "widget": {
+    "choosePlace": "Atidarykite programėlę ir pasirinkite vietovę.",
+    "nothing": "Paskelbtame grafike artimiausių išvežimų dar nėra."
   }
 }

@@ -88,7 +88,26 @@
           }
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "NextPickup",
+              "label": "Šiukšliavežė",
+              "minWidth": "180dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 3,
+              "targetCellHeight": 2,
+              "maxResizeWidth": "400dp",
+              "maxResizeHeight": "220dp",
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 10800000
+            }
+          ]
+        }
+      ]
     ],
     "experiments": {
       "reactCompiler": true

@@ -265,7 +265,9 @@
     "setup.streetPlaceholder": "780f51da1988",
     "setup.streetTitle": "72a150b1c2b7",
     "setup.useLocation": "56b127e50f3f",
-    "setup.useLocationHint": "b517c31037af"
+    "setup.useLocationHint": "b517c31037af",
+    "widget.choosePlace": "dfa61ad9df38",
+    "widget.nothing": "99a251ed4c98"
   },
   "pl": {
     "app.name": "471087585cf1",
@@ -533,7 +535,9 @@
     "setup.streetPlaceholder": "780f51da1988",
     "setup.streetTitle": "72a150b1c2b7",
     "setup.useLocation": "56b127e50f3f",
-    "setup.useLocationHint": "b517c31037af"
+    "setup.useLocationHint": "b517c31037af",
+    "widget.choosePlace": "dfa61ad9df38",
+    "widget.nothing": "99a251ed4c98"
   },
   "ru": {
     "app.name": "471087585cf1",
@@ -801,6 +805,8 @@
     "setup.streetPlaceholder": "780f51da1988",
     "setup.streetTitle": "72a150b1c2b7",
     "setup.useLocation": "56b127e50f3f",
-    "setup.useLocationHint": "b517c31037af"
+    "setup.useLocationHint": "b517c31037af",
+    "widget.choosePlace": "dfa61ad9df38",
+    "widget.nothing": "99a251ed4c98"
   }
 }

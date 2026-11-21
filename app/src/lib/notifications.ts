@@ -6,6 +6,7 @@ import i18n, { resolveLanguage } from '@/i18n';
 import { useReminderActions } from '@/store/reminder-actions';
 import { useSchedule } from '@/store/schedule';
 import { allPlaces, useSettings } from '@/store/settings';
+import { updateWidgets } from '@/widget/update';
 
 import { describeChanges, type PickupChange } from './changes';
 import { toIsoDate } from './dates';
@@ -70,6 +71,8 @@ async function registerCategories(t: TFunction): Promise<void> {
  */
 export async function syncReminders(now = new Date()): Promise<number> {
   if (!supported) return 0;
+  // The same inputs decide what the home screen widget shows.
+  updateWidgets();
   const { data } = useSchedule.getState();
   const settings = useSettings.getState();
   const { reminder, language } = settings;

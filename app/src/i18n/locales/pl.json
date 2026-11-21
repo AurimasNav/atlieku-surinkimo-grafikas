@@ -315,5 +315,9 @@
     "save": "Zapisz",
     "change": "Zmień adres",
     "remove": "Usuń to miejsce"
+  },
+  "widget": {
+    "choosePlace": "Otwórz aplikację i wybierz miejsce.",
+    "nothing": "W opublikowanym harmonogramie nie ma jeszcze najbliższych odbiorów."
   }
 }
