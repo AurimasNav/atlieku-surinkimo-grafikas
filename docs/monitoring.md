@@ -10,7 +10,7 @@ Users see it too: when the data of the company behind their schedule hasn't been
 days (`providers[].generatedAt`, or Kauno švara's `generatedAt`), the app shows a warning with a
 link to the company's official schedule (`app/src/lib/freshness.ts`).
 
-There are twelve sources:
+There are fifteen sources:
 
 | `source` | Company | Published in |
 |---|---|---|
@@ -24,6 +24,9 @@ There are twelve sources:
 | `rietavas` | UAB „Telšių regiono atliekų tvarkymo centras“, Rietavo sav. | `mazeikiu-r/` (`provider: "rietavas"`) |
 | `klaipedos` | VšĮ „Gargždų švara“, Klaipėdos r. | `klaipedos-r/` |
 | `jurbarkas` | UAB „Tauragės regiono atliekų tvarkymo centras“, Jurbarko r. | `jurbarko-r/` |
+| `taurage` | UAB „Tauragės regiono atliekų tvarkymo centras“, Tauragės r. | `jurbarko-r/` (`provider: "taurage"`) |
+| `silale` | UAB „Tauragės regiono atliekų tvarkymo centras“, Šilalės r. | `jurbarko-r/` (`provider: "silale"`) |
+| `pagegiai` | UAB „Tauragės regiono atliekų tvarkymo centras“, Pagėgių sav. | `jurbarko-r/` (`provider: "pagegiai"`) |
 | `siauliai` | UAB „Šiaulių regiono atliekų tvarkymo centras“, Šiaulių r., Akmenės r., Joniškio r., Kelmės r. and Pakruojo r. | `sratc/` |
 | `alytus` | UAB „Alytaus regiono atliekų tvarkymo centras“, Alytaus r., Prienų r., Lazdijų r., Varėnos r., Druskininkų and Birštono sav. | `alytaus-ratc/` (rows with the municipality in `district`) |
 
@@ -63,6 +66,11 @@ yesterday's file is kept (its `generatedAt` stays old, so `ScheduleDataStale` fi
 the run gets a warning annotation; the others are still updated. A municipality with no
 published part to keep is left out. If none can be built, yesterday's `mazeikiu-r/` is kept.
 
+The four municipalities of Tauragės RATC share `jurbarko-r/schedule.json` in the same way, a
+part each: `jurbarkas` still means Jurbarko r. alone, and Tauragės r., Šilalės r. and Pagėgių
+sav. are `taurage`, `silale` and `pagegiai`. Built by one step; a municipality that fails keeps
+its part of yesterday's file, and if none can be built, yesterday's `jurbarko-r/` is kept.
+
 The job therefore publishes the state of the data with every run:
 
 - `https://aurimasnav.github.io/atlieku-surinkimo-grafikas/metrics.txt` (Prometheus format)
@@ -70,9 +78,9 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
-| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `siauliai` / `alytus` was built |
+| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `taurage` / `silale` / `pagegiai` / `siauliai` / `alytus` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
-| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `siauliai` and `alytus` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
+| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai` and `alytus` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
 | `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead) |
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
@@ -144,6 +152,10 @@ groups:
       # latest of them: the alert means none of next year's mixed waste files has been read.
       # Not its packaging and glass: those of Alytaus r. and Prienų r. run to March 2028 (a new
       # contract from December 2026), which hides the others' February ends.
+      # Tauragės r., Šilalės r. and Pagėgių sav. (same publisher as Jurbarko r.): the kinds
+      # whose 2026 schedules end on 15-31 December, so this fires from 8 December at the
+      # earliest. Tauragės r. glass is collected four times a year (last on 30 November 2026)
+      # and Pagėgių sav. green waste last on 11 December, so not those.
       - alert: ScheduleDataRunsOut
         expr: |-
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"mazeikiai|telsiai|plunge"}[30m]) - time() < 7 * 86400
@@ -151,6 +163,12 @@ groups:
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"klaipedos|jurbarkas|siauliai|rietavas",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
             or
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="alytus",kind="household"}[30m]) - time() < 7 * 86400
+            or
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="silale"}[30m]) - time() < 7 * 86400
+            or
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="taurage",kind=~"household|packaging|food"}[30m]) - time() < 7 * 86400
+            or
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="pagegiai",kind=~"household|packaging|glass"}[30m]) - time() < 7 * 86400
         for: 1h
         labels: { severity: warning }
         annotations:
@@ -195,5 +213,6 @@ source, query `status.json` (type JSON, URL above) and alert when
 `sources.kaisiadorys.generatedAt`, `sources.mazeikiai.generatedAt`,
 `sources.telsiai.generatedAt`, `sources.plunge.generatedAt`, `sources.rietavas.generatedAt`,
 `sources.klaipedos.generatedAt`, `sources.jurbarkas.generatedAt`,
+`sources.taurage.generatedAt`, `sources.silale.generatedAt`, `sources.pagegiai.generatedAt`,
 `sources.siauliai.generatedAt` or `sources.alytus.generatedAt` is older than 30 hours (or
 missing).
