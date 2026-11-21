@@ -39,5 +39,36 @@ def test_metrics_for_both_sources(tmp_path):
     assert published["sources"]["kauno"]["areas"] == {"food": 13, "household": 43}
 
 
+def test_kaisiadorys_is_a_source_of_its_own(tmp_path):
+    # Published in kauno-r/ with Kauno r. (schedule_pipeline.svara), counted apart.
+    (tmp_path / "kauno-r").mkdir()
+    (tmp_path / "kauno-r" / "schedule.json").write_text(
+        json.dumps(
+            {
+                "generatedAt": "2026-11-21T04:20:00+00:00",
+                "warnings": 3,
+                "stats": {"addresses": 39200, "areas": {"food": 13, "household": 43}},
+                "otherMunicipalities": [
+                    {
+                        "id": "kaisiadorys",
+                        "name": "Kaišiadorių r.",
+                        "stats": {"addresses": 7726, "areas": {"household": 36}},
+                        "warnings": 0,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    sources = status.collect(tmp_path)["sources"]
+    assert sources["kauno"]["places"] == 39200
+    assert sources["kaisiadorys"] == {
+        "generatedAt": "2026-11-21T04:20:00+00:00",
+        "areas": {"household": 36},
+        "places": 7726,
+        "warnings": 0,
+    }
+
+
 def test_no_data_is_an_error(tmp_path):
     assert status.main(["--site", str(tmp_path)]) == 1

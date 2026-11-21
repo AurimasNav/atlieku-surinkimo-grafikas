@@ -40,6 +40,10 @@ KLAIPEDOS_ADDRESSES_FILE = DATA_DIR / "address-points-klaipedos-r.json"
 JURBARKO_MUNICIPALITY = ("Jurbarko rajono", 94)
 JURBARKO_REGISTRY_FILE = DATA_DIR / "registry-jurbarko-r.json"
 JURBARKO_ADDRESSES_FILE = DATA_DIR / "address-points-jurbarko-r.json"
+# Kaišiadorių r. (schedule_pipeline.svara, with Kauno r.).
+KAISIADORIU_MUNICIPALITY = ("Kaišiadorių rajono", 49)
+KAISIADORIU_REGISTRY_FILE = DATA_DIR / "registry-kaisiadoriu-r.json"
+KAISIADORIU_ADDRESSES_FILE = DATA_DIR / "address-points-kaisiadoriu-r.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -101,6 +105,12 @@ def main() -> int:
         ("Mažeikių r.", MAZEIKIAI_MUNICIPALITY, MAZEIKIAI_REGISTRY_FILE, MAZEIKIAI_ADDRESSES_FILE),
         ("Klaipėdos r.", KLAIPEDOS_MUNICIPALITY, KLAIPEDOS_REGISTRY_FILE, KLAIPEDOS_ADDRESSES_FILE),
         ("Jurbarko r.", JURBARKO_MUNICIPALITY, JURBARKO_REGISTRY_FILE, JURBARKO_ADDRESSES_FILE),
+        (
+            "Kaišiadorių r.",
+            KAISIADORIU_MUNICIPALITY,
+            KAISIADORIU_REGISTRY_FILE,
+            KAISIADORIU_ADDRESSES_FILE,
+        ),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)
