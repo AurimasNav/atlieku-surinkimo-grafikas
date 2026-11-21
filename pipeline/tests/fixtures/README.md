@@ -116,6 +116,25 @@ seniūnija (2).docx", `josvainiu.pdf` "Josvainiai.pdf" (the only PDF) and so on
 (`test_kedainiai.COPIES` maps the ids to the copies). With the Address Register extract for
 Kėdainių r. of the same day.
 
+`raseiniai/` has the waste page of UAB "Raseinių komunalinės paslaugos" at
+<https://www.rkp.lt/atlieku-tvarkymas/> and the 25 PDFs it links for 2026 (bulky waste and the
+rules aside), downloaded on 2026-11-21 and renamed `<eldership>-mka.pdf` (mixed waste) and
+`<eldership>-pak.pdf` (packaging and glass), with `-m-` for the towns' elderships: `betygalos-mka.pdf`
+is "2026 metų atliekų surinkimo grafikai/Betygalos sen. mišrios komunalinės atliekos.pdf",
+`ariogalos-m-pak.pdf` "... /Ariogalos m. pakuočių atliekos.pdf", `raseiniu-m-mka.pdf` "Raseinių m.
+MKA.pdf" (in no year's folder) and `zalios.pdf` "... /Biologiškai skaidžios atliekos.pdf" (green
+waste); `test_raseiniai.COPIES` lists all of them. With the Address Register extract for Raseinių
+r. of the same day.
+
+`jonava/` has the two schedule pages of UAB "Jonavos paslaugos", the elderships' at
+<https://www.jonavospaslaugos.lt/straipsniai/atlieku-tvarkymo-grafikas-jonavos-rajono-seniuniju-gyventojams>
+(`page.html`) and the town's at `.../atlieku-tvarkymo-grafikas-jonavos-miesto-gyventojams`
+(`page-town.html`), and the nine 2026 PDFs they link, downloaded on 2026-11-21 and renamed after
+their elderships: `bukoniu.pdf` is "2026-m.--grafikas-Bukonių-seniūnija.pdf", `ruklos.pdf`
+"2026-m.--grafikas-buvusios-Ruklos-seniūnija.pdf", `jonavos-m.pdf`
+"Maketas-grafikas-2026-Derinimui-2.pdf" (the town) and so on (`test_jonava.COPIES`). With the
+Address Register extract for Jonavos r. of the same day.
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 
