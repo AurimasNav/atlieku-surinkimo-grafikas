@@ -2,7 +2,7 @@ name: Schedule data live build
 
 # Pull requests that change the pipeline (code or dependencies, e.g. a Renovate update of
 # openpyxl or pdfplumber) build the data from today's files on nemenkom.lt, nkom.lt, tratc.lt,
-# gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt and ecoservice.lt and from Kauno švara's open data, the way the daily job does, and compare
+# gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt, ecoservice.lt and kedainiai.lt and from Kauno švara's open data, the way the daily job does, and compare
 # schedule.json with the published data. The unit tests in Schedule data / build only parse stored copies of the
 # files. Nothing is deployed.
 on:
@@ -68,6 +68,11 @@ jobs:
       - name: Build the Trakų r. and Šalčininkų r. schedules from the PDFs on ecoservice.lt
         # --strict: a municipality whose build fails fails the check.
         run: uv run python -m schedule_pipeline.ecoservice --region ecoservice --strict --out "$RUNNER_TEMP/site/ecoservice"
+      - name: Build the Kėdainių r. schedule from the elderships' files on kedainiai.lt (or their copy)
+        # kedainiai.lt refuses the runners: the copy in pipeline/data is read instead, with a
+        # warning. --strict: a file that can't be read fails the check, instead of keeping its
+        # rows of the published data as the daily job does.
+        run: uv run python -m schedule_pipeline.kedainiai --strict --out "$RUNNER_TEMP/site/kedainiu-r"
       - name: Compare with the published data
         run: |
           curl -fsSL https://aurimasnav.github.io/atlieku-surinkimo-grafikas/schedule.json -o "$RUNNER_TEMP/published.json"

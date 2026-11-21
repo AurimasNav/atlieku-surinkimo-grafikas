@@ -39,7 +39,8 @@ def collect(site: Path) -> dict:
     # Radviliškio r. next to the five ("radviliskis"); panevezio-ratc (schedule_pipeline.pratc)
     # a provider for each of its four municipalities; maatc the five municipalities of
     # Marijampolė county (schedule_pipeline.maatc), a provider each; silutes-r and ecoservice
-    # (schedule_pipeline.ecoservice) Šilutės r., and Trakų r. and Šalčininkų r., a provider each.
+    # (schedule_pipeline.ecoservice) Šilutės r., and Trakų r. and Šalčininkų r., a provider each;
+    # kedainiu-r Kėdainių r. (schedule_pipeline.kedainiai), "kedainiai".
     # jurbarko-r also has Tauragės r., Šilalės r. and Pagėgių sav., a provider each.
     # raseiniu-r (schedule_pipeline.raseiniai) and jonavos-r (schedule_pipeline.jonava): a
     # provider each.
@@ -58,6 +59,7 @@ def collect(site: Path) -> dict:
         site / "kretingos-r" / "schedule.json",
         site / "silutes-r" / "schedule.json",
         site / "ecoservice" / "schedule.json",
+        site / "kedainiu-r" / "schedule.json",
     ):
         if not path.exists():
             continue
@@ -142,8 +144,8 @@ def metrics(status: dict) -> str:
             "Settlements (nemencine, nemezio, mazeikiai, telsiai, plunge, rietavas, klaipedos, "
             "jurbarkas, taurage, silale, pagegiai, siauliai, radviliskis, alytus, pasvalys, "
             "rokiskis, birzai, panevezio-r, marijampole, vilkaviskis, kalvarija, kazluruda, "
-            "sakiai, raseiniai, jonava, kretinga, silute, trakai, salcininkai) or addresses "
-            "(kauno, kaisiadorys) the data covers.",
+            "sakiai, raseiniai, jonava, kretinga, silute, trakai, salcininkai, kedainiai) or "
+            "addresses (kauno, kaisiadorys) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (
