@@ -1,8 +1,9 @@
 import * as Location from 'expo-location';
 
-import { ADDRESSES_URL, KAUNO_POINTS_URL, REGION_URLS } from './config';
+import { ADDRESSES_URL, KAUNO_POINTS_URL } from './config';
 import type { KaunoAddress } from './kauno';
 import { type AddressTable, findNearest, type NearestAddress, nearestPoint, streetConfidence } from './nearest';
+import { addressRegionUrls, type RegionIndex } from './regions';
 
 /** Further than this from any served address: probably not at home, or not served here. */
 const MAX_DISTANCE_M = 400;
@@ -43,10 +44,13 @@ async function loadKaunoPoints(): Promise<KaunoPoints | null> {
 
 const cachedRegions = new Map<string, AddressTable>();
 
-/** The other regions are optional too: without one, its addresses aren't found by location. */
-async function loadRegions(): Promise<AddressTable[]> {
+/**
+ * The other regions (`urls`) are optional too: without one, its addresses aren't found by
+ * location. Returns the tables of those that could be downloaded.
+ */
+async function loadRegions(urls: string[]): Promise<AddressTable[]> {
   await Promise.all(
-    REGION_URLS.filter((url) => !cachedRegions.has(url)).map(async (url) => {
+    urls.filter((url) => !cachedRegions.has(url)).map(async (url) => {
       try {
         const response = await fetch(`${url}/addresses.json`);
         if (response.ok) cachedRegions.set(url, (await response.json()) as AddressTable);
@@ -55,7 +59,7 @@ async function loadRegions(): Promise<AddressTable[]> {
       }
     }),
   );
-  return [...cachedRegions.values()];
+  return urls.flatMap((url) => cachedRegions.get(url) ?? []);
 }
 
 async function loadAddresses(): Promise<AddressTable> {
@@ -70,9 +74,10 @@ async function loadAddresses(): Promise<AddressTable> {
 /**
  * Reads the current position once and finds the nearest served address on the phone.
  * The position itself is never sent or stored; only the address table is downloaded,
- * and it is the same file for everyone.
+ * and it is the same file for everyone. The regions are the built-in ones and those of the saved
+ * regions.json (`index`) that have an addresses.json.
  */
-export async function locateHome(): Promise<GeolocateResult> {
+export async function locateHome(index?: RegionIndex | null): Promise<GeolocateResult> {
   const permission = await Location.requestForegroundPermissionsAsync();
   if (!permission.granted) return { ok: false, reason: 'denied' };
   if (!(await Location.hasServicesEnabledAsync())) return { ok: false, reason: 'servicesOff' };
@@ -81,11 +86,12 @@ export async function locateHome(): Promise<GeolocateResult> {
   let table: AddressTable;
   let kaunoPoints: KaunoPoints | null;
   let regions: AddressTable[];
+  const urls = addressRegionUrls(index);
   try {
     // Start the downloads while the GPS gets a fix.
     const download = loadAddresses();
     const kaunoDownload = loadKaunoPoints();
-    const regionDownloads = loadRegions();
+    const regionDownloads = loadRegions(urls);
     position = await Location.getCurrentPositionAsync({
       accuracy: Location.Accuracy.High,
       // Don't push Google's "Location Accuracy" consent screen; plain GPS is enough here.
@@ -106,7 +112,7 @@ export async function locateHome(): Promise<GeolocateResult> {
   const distance = Math.min(address?.distance ?? Infinity, kauno?.distance ?? Infinity);
   // Without a region's table we can't tell "far from any address" from "not downloaded".
   if (distance > MAX_DISTANCE_M) {
-    return { ok: false, reason: regions.length < REGION_URLS.length ? 'offline' : 'far' };
+    return { ok: false, reason: regions.length < urls.length ? 'offline' : 'far' };
   }
 
   const street = streetConfidence({
