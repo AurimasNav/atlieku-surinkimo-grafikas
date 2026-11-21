@@ -26,6 +26,7 @@ maatc.lt (pdf)                            Marijampolės sav., Vilkaviškio r., K
                                           Kazlų Rūdos sav., Šakių r.: site/maatc/
 rkp.lt (pdf)                              Raseinių r.: site/raseiniu-r/
 jonavospaslaugos.lt (pdf)                 Jonavos r.: site/jonavos-r/
+kretkom.lt (pdf)                          Kretingos r.: site/kretingos-r/
 silute.lt (pdf)                           Šilutės r.: site/silutes-r/ (from a copy in
                                           pipeline/data when the site refuses the runners)
 ecoservice.lt (pdf)                       Trakų r., Šalčininkų r.: site/ecoservice/

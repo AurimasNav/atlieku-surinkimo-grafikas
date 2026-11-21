@@ -137,6 +137,16 @@ their elderships: `bukoniu.pdf` is "2026-m.--grafikas-Bukonių-seniūnija.pdf", 
 "Maketas-grafikas-2026-Derinimui-2.pdf" (the town) and so on (`test_jonava.COPIES`). With the
 Address Register extract for Jonavos r. of the same day.
 
+`kretinga/` has the schedule page of SĮ "Kretingos komunalininkas" (Kretingos r.) at
+<https://www.kretkom.lt/atlieku-isvezimo-grafikai/> and the 2026 PDFs it links, downloaded on
+2026-11-21 and renamed: `misrios-2026-h1.pdf` is "2026 m- mišrios atliekos  I pusmetis.pdf"
+(mixed waste, January-June), `misrios-2026-h2.pdf` "GRAFIKAS 2026 m- mišrios atliekos  II
+pusmetis (7-12 mėn).pdf" (July-December), `pakuotes-2026.pdf` "2026 m- PA grafikas.pdf"
+(packaging and glass), `maisto-2026.pdf` "Maisto atliekų surinkimas 2026 m.pdf" (Kretinga's
+food waste) and `zaliosios-2026.pdf` "Žaliųjų-biriųjų atliekų išvežimo grafikas Kretingos mieste
+2026 m- 04-11 mėn_.pdf" (Kretinga's green waste, April-November). With the Address Register
+extract for Kretingos r. of the same day.
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 
