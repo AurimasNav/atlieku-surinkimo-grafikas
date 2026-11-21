@@ -1,17 +1,20 @@
-"""Šiaulių r., Akmenės r., Joniškio r., Kelmės r. and Pakruojo r.: schedules published by the
-regional waste centre of Šiauliai county, UAB „Šiaulių regiono atliekų tvarkymo centras“.
+"""Šiaulių r., Akmenės r., Joniškio r., Kelmės r., Pakruojo r. and Radviliškio r.: schedules
+published by the regional waste centre of Šiauliai county, UAB „Šiaulių regiono atliekų
+tvarkymo centras“.
 
 The centre's site has a page per municipality (https://www.sratc.lt/grafikai-<x>-rajonas/), each
 with a section "Atliekų surinkimo grafikai individualioms valdoms": a PDF a year for private
 houses ("Visų rūšių atliekų surinkimas 2026 m.") with every kind of waste. The files' names and
 folders differ per municipality and change when a file is revised, so they are found by the
 section, or the word "individual" in the file's name, and the year in the link's text or the
-file's name. Radviliškio r. lays its files out differently (and collects mixed waste once a
-quarter) and isn't read; nor are the shared containers of apartment buildings.
+file's name. Radviliškio r. lays its files out differently and publishes its mixed waste a
+quarter at a time: see "Radviliškio r." below. The shared containers of apartment buildings
+aren't read.
 
-The five municipalities are one source: one site, one template, one file in the output
-(sratc/schedule.json, provider "siauliai"). A file that can't be read fails the whole build,
-and yesterday's data is kept for all five.
+The five municipalities are one source: one site, one template, one part of the output
+(sratc/schedule.json, provider "siauliai"). A file that can't be read fails their build, and
+yesterday's part is kept for all five. Radviliškio r. is a second part of the same file
+(provider "radviliskis"), built and kept on its own.
 
 Every file has the same template, a table per place (Excel printed to PDF):
 
@@ -33,7 +36,7 @@ December: a place of next year that covers the same settlements and streets as o
 year continues it (combine).
 
 Writes <out>/schedule.json and <out>/addresses.json, in the format of the Vilniaus r. files, for
-all five municipalities.
+all six municipalities.
 Run: python -m schedule_pipeline.sratc --out ../site/sratc
 """
 
@@ -45,10 +48,13 @@ import json
 import re
 import sys
 from collections import Counter, defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date
+from functools import cache, partial
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
+from typing import Any
 from urllib.parse import unquote, urljoin, urlsplit
 
 import pdfplumber
@@ -56,7 +62,7 @@ import pdfplumber
 from . import addresses as address_points
 from . import build, http, snapshot
 from . import registry as address_register
-from .dates import WEEKDAY_NAMES
+from .dates import WEEKDAY_NAMES, month_end, parse_weekdays
 from .locations import (
     _HOUSE,
     _NUMERALS,
@@ -216,6 +222,35 @@ PAKRUOJO_R = Municipality(
 )
 MUNICIPALITIES = (SIAULIU_R, AKMENES_R, JONISKIO_R, KELMES_R, PAKRUOJO_R)
 BY_NAME = {m.name: m for m in MUNICIPALITIES}
+# Radviliškio r.: its files are laid out otherwise and its mixed waste comes a quarter at a
+# time, so it is a source of its own (RADVILISKIO_SOURCE), not one of the five.
+RADVILISKIO_R = Municipality(
+    name="Radviliškio r.",
+    page=_page("radviliskio"),
+    register=snapshot.RADVILISKIO_R_MUNICIPALITY,
+    registry_file=snapshot.RADVILISKIO_R_REGISTRY_FILE,
+    addresses_file=snapshot.RADVILISKIO_R_ADDRESSES_FILE,
+    elderships=frozenset(
+        {
+            "Aukštelkų",
+            "Baisogalos",
+            "Grinkiškio",
+            "Pakalniškių",
+            "Radviliškio",
+            "Radviliškio miesto",
+            "Sidabravo",
+            "Skėmių",
+            "Šaukoto",
+            "Šeduvos miesto",
+            "Šiaulėnų",
+            "Tyrulių",
+        }
+    ),
+    # The October-December 2026 mixed waste file had 21 places, the 2026 packaging file 15;
+    # 295 of the 407 settlements got mixed waste schedules.
+    min_blocks=12,
+    min_household_places=250,
+)
 
 
 # --- the pages --------------------------------------------------------------------------
@@ -337,7 +372,11 @@ KINDS: tuple[tuple[str, Kind | None], ...] = (
     ("zaliuju maisto", "food"),  # Joniškio r.: "Žaliųjų/maisto ir virtuvės atliekų"
     ("zaliuju", "green"),
     ("didz", None),
+    ("buitiniu atlieku", "household"),  # Radviliškio r.: "Buitinių atliekų grafikas"
 )
+# The title of the places' column, which marks a row of titles with one waste type only
+# (Radviliškio r.: "Seniūnija, gyvenvietė, gatvė", "Gatvės pavadinimas").
+_PLACES_TITLE = re.compile(r"pavadinimas|gyvenviete")
 MONTHS = [
     fold(name)
     for name in (
@@ -362,7 +401,8 @@ def _kind(text: str) -> tuple[bool, Kind | None]:
 
 
 def _month(text: str | None) -> int | None:
-    folded = fold(text or "").replace(" ", "")
+    # "R u g p j ū t i s", and the page's footer in the last month's cell ("Gruodis Page 1").
+    folded = re.sub(r"page\d+$", "", fold(text or "").replace(" ", ""))
     return MONTHS.index(folded) + 1 if folded in MONTHS else None
 
 
@@ -426,6 +466,9 @@ class _Block:
     lines: list[str] = field(default_factory=list)
     dates: dict[Kind, set[date]] = field(default_factory=lambda: defaultdict(set))
     months: list[int] = field(default_factory=list)
+    # The weekday a waste type's title names, if any (Radviliškio r.: "Buitinių atliekų
+    # grafikas pirmadienis"), Monday 0.
+    weekdays: dict[Kind, int] = field(default_factory=dict)
 
     @property
     def name(self) -> str:
@@ -455,15 +498,27 @@ def _days(cell: str, year: int, month: int, where: str) -> set[date]:
     return days
 
 
-def parse_blocks(source: SourceFile, content: bytes) -> tuple[int, list[_Block]]:
+def parse_blocks(
+    source: SourceFile, content: bytes, months: range | None = range(1, 13)
+) -> tuple[int, list[_Block]]:
     """The year and the places of one file. Strict: a place without its twelve months, dates
-    that aren't days, a month column without a waste type raise ValueError."""
+    that aren't days, a month column without a waste type raise ValueError.
+
+    `months` None: a file of some months of its year (Radviliškio r.'s mixed waste, a
+    quarter), those of its first place, which every place must have too.
+
+    The days of a waste type are in the column right of its title's, which has the months
+    (Mėnuo | dienos under each title), or under its title, with the months in a column of
+    their own left of them: one for all waste types (Radviliškio r.'s mixed waste) or one
+    before each (its packaging and glass)."""
     blocks: list[_Block] = []
+    first, last = (months[0], months[-1]) if months else (None, None)
     with pdfplumber.open(io.BytesIO(content)) as pdf:
         year = _year(pdf, source)
         heading: str | None = None
         block: _Block | None = None
         columns: dict[int, Kind | None] = {}
+        weekdays: dict[int, int] = {}
         for page_no, page in enumerate(pdf.pages, start=1):
             where = f"{source.file_name} page {page_no}"
             words = page.extract_words()
@@ -479,24 +534,37 @@ def parse_blocks(source: SourceFile, content: bytes) -> tuple[int, list[_Block]]
                 for row in table.extract():
                     cells = [c or "" for c in row]
                     kinds = {i: _kind(c) for i, c in enumerate(cells) if i and c.strip()}
-                    if sum(1 for found, _ in kinds.values() if found) >= 2:
+                    titled = sum(1 for found, _ in kinds.values() if found)
+                    if titled >= 2 or (titled and _PLACES_TITLE.search(fold(cells[0]))):
                         columns = {i: kind for i, (found, kind) in kinds.items() if found}
+                        weekdays = {
+                            i: days[0]
+                            for i in columns
+                            if len(days := parse_weekdays(cells[i])) == 1
+                        }
                         continue
-                    months = {i: _month(cells[i]) for i in columns if i < len(cells)}
-                    month = next((m for m in months.values() if m), None)
+                    found = {i: _month(cells[i]) for i in columns if i < len(cells)}
+                    days_at = {i: i + 1 for i in columns}
+                    if not any(found.values()):
+                        # The months in a column of their own, the days under the titles.
+                        found = {i: m for i, c in enumerate(cells) if i and (m := _month(c))}
+                        days_at = {i: i for i in columns}
+                    month = next((m for m in found.values() if m), None)
                     if month is None:
                         # A heading or a note in the first column, the months' titles, or
                         # nothing.
                         if not any(c.strip() for c in cells[1:]):
                             heading = heading_of(_lines(cells[0])) or heading
                         continue
-                    if any(m != month for m in months.values()):
-                        raise ValueError(f"{where}: months {sorted(months.values())} in one row")
-                    if month == 1 and block and block.months:
-                        blocks.append(_close(block, where))
+                    if any(m != month for m in found.values()):
+                        raise ValueError(f"{where}: months {sorted(found.values())} in one row")
+                    if month == first and block and block.months:
+                        last = last or block.months[-1]
+                        blocks.append(_close(block, where, range(first, last + 1)))
                         block = None
                     if block is None:
-                        if month != 1:
+                        first = first or month
+                        if month != first:
                             raise ValueError(f"{where}: a table starting with month {month}")
                         block = _Block(heading, page_no)
                     if block.months and month != block.months[-1] + 1:
@@ -505,18 +573,22 @@ def parse_blocks(source: SourceFile, content: bytes) -> tuple[int, list[_Block]]
                     if text := _cell_text(cells[0]):
                         block.lines.append(text)
                     for i, kind in columns.items():
-                        if kind and i + 1 < len(cells) and cells[i + 1].strip():
-                            block.dates[kind] |= _days(cells[i + 1], year, month, where)
-                    if month == 12:
-                        blocks.append(_close(block, where))
+                        at = days_at[i]
+                        if kind and at < len(cells) and cells[at].strip():
+                            block.dates[kind] |= _days(cells[at], year, month, where)
+                            if i in weekdays:
+                                block.weekdays[kind] = weekdays[i]
+                    if month == last:
+                        blocks.append(_close(block, where, range(first, last + 1)))
                         block = None
         if block:
-            blocks.append(_close(block, source.file_name))
+            last = last or block.months[-1]
+            blocks.append(_close(block, source.file_name, range(first or 1, last + 1)))
     return year, blocks
 
 
-def _close(block: _Block, where: str) -> _Block:
-    if block.months != list(range(1, 13)):
+def _close(block: _Block, where: str, months: range = range(1, 13)) -> _Block:
+    if block.months != list(months):
         raise ValueError(f"{where}: a table with months {block.months}")
     if not block.lines:
         raise ValueError(f"{where}: dates without places")
@@ -580,7 +652,7 @@ def elderships_of(heading: str | None, municipality: Municipality | None = None)
 
 
 def municipality_of(eldership: str) -> Municipality | None:
-    return next((m for m in MUNICIPALITIES if eldership in m.elderships), None)
+    return next((m for m in (*MUNICIPALITIES, RADVILISKIO_R) if eldership in m.elderships), None)
 
 
 # --- the places and the Address Register -------------------------------------------------
@@ -1060,17 +1132,28 @@ def combine(
     rest is left out, with a warning, until its year starts and it becomes the schedule in
     force; places of earlier years are dropped. A municipality without next year's file in
     January keeps this year's places, with their last dates (select_files warns)."""
-    reader = Blocks(Index(registry), PROVIDER, defaultdict(dict))
-    warnings: list[str] = []
-    groups: dict[tuple[str, Kind], dict[int, list[tuple[ParseResult, Area]]]] = defaultdict(
-        lambda: defaultdict(list)
-    )
+    groups: _Periods = defaultdict(lambda: defaultdict(list))
     for source, result in parsed:
         for area in result.areas:
             groups[(source.municipality, area.kind)][min(area.dates).year].append((result, area))
+    reader = Blocks(Index(registry), PROVIDER, defaultdict(dict))
+    return _continue(groups, reader, lambda year: year <= today.year, str)
+
+
+# The places of each municipality and kind, by the period of their file: a year (combine) or
+# the first day of its months (combine_radviliskio).
+_Periods = dict[tuple[str, Kind], dict[Any, list[tuple[ParseResult, Area]]]]
+
+
+def _continue(
+    groups: _Periods, reader: Blocks, started: Callable[[Any], bool], label: Callable[[Any], str]
+) -> list[str]:
+    """Joins the places of later periods to those of the period in force (the latest that has
+    `started`, or the first), in place; drops the places of earlier periods."""
+    warnings: list[str] = []
     for (municipality, kind), years in groups.items():
-        started = [year for year in years if year <= today.year]
-        base = max(started) if started else min(years)
+        begun = [year for year in years if started(year)]
+        base = max(begun) if begun else min(years)
         current: dict[frozenset, list[Area]] = defaultdict(list)
         for _, area in years[base]:
             current[reader.signature(area)].append(area)
@@ -1090,14 +1173,15 @@ def combine(
                     continued.add(id(same[0]))
                 elif year > base:
                     warnings.append(
-                        f"{municipality} {kind}: the {year} place {area.name[:60]!r} doesn't "
-                        f"match one {base} place; its dates are left out until {year}"
+                        f"{municipality} {kind}: the {label(year)} place {area.name[:60]!r} "
+                        f"doesn't match one {label(base)} place; its dates are left out until "
+                        f"{label(year)}"
                     )
                 result.areas.remove(area)
             if year > base:
                 warnings += [
-                    f"{municipality} {kind}: the {base} place {area.name[:60]!r} has no dates "
-                    f"for {year}"
+                    f"{municipality} {kind}: the {label(base)} place {area.name[:60]!r} has no "
+                    f"dates for {label(year)}"
                     for _, area in years[base]
                     if id(area) not in continued
                 ]
@@ -1112,6 +1196,299 @@ SOURCE = build.Source(
     sum(m.min_household_places for m in MUNICIPALITIES),
     FILE_KINDS,
     combine,
+)
+
+
+# --- Radviliškio r. ----------------------------------------------------------------
+#
+# Its page (https://www.sratc.lt/grafikai-radviliskio-rajonas/) has two files for private
+# houses, in other layouts than the five's, by other collectors:
+#
+#   "Mišrių komunalinių ir žaliųjų atliekų surinkimas 2026 m." (UAB „Svarinta“): mixed waste
+#   and the town's green waste, of October to December 2026 only. A table per place: its list
+#   ("Radviliškio miesto sen.: Radviliškio m. - Alyvų g., ..., Radviliškio sen.: Vaidulių k."),
+#   a column of months, the days under "Buitinių atliekų grafikas" and "Žaliųjų atliekų
+#   grafikas", each with its weekday.
+#   "Pakuočių ir stiklo atliekų surinkimas 2026 m." (Ecoservice): packaging and glass of 2026,
+#   a table per place with the five's columns (Mėnuo | dienos under each title, the title over
+#   the days), its list in sections ("Radviliškio miestas (Individualios valdos): Aušros a.,
+#   ..., Baisogalos sen.: Augmėnų k., ...").
+#
+# The mixed waste file comes a quarter at a time. Each file is read for the months it has
+# (parse_blocks); a file of a later period continues the places of the one in force
+# (combine_radviliskio), so the next quarter's file is read as soon as it is linked, next to
+# the last one or in its place.
+
+# Its files for private houses, by the link's text, then the file's name: mixed waste ("Mišrių
+# komunalinių ...", "... MKA ir BSA ..."), packaging and glass ("Pakuočių ir stiklo ...", "...
+# POP ir stiklo ...", "2024 m indiv- AŽ.pdf"). Bulky waste ("Didelių gabaritų ...", "... DGA
+# ...") isn't read.
+RADVILISKIO_FILES: tuple[tuple[re.Pattern[str], Kind | None], ...] = (
+    (re.compile(r"\bdidel|\bdga\b"), None),
+    (re.compile(r"\bmisri|\bmka\b"), "household"),
+    (re.compile(r"\bpakuoc|\bstikl|\bpop\b|\baz\b"), "packaging"),
+)
+RADVILISKIO_FILE_KINDS: dict[Kind, tuple[Kind, ...]] = {
+    "household": ("household", "green"),
+    "packaging": ("packaging", "glass"),
+}
+_LABELS = {"household": "mixed waste", "packaging": "packaging"}
+
+
+def _radviliskio_kind(text: str, name: str) -> tuple[bool, Kind | None]:
+    for words in (fold(text), fold(name)):
+        for pattern, kind in RADVILISKIO_FILES:
+            if pattern.search(words):
+                return True, kind
+    return False, None
+
+
+def find_radviliskio_files(html: str) -> tuple[list[tuple[SourceFile, int | None]], list[str]]:
+    """The schedules of private houses linked from the page of Radviliškio r., with their years
+    (in the link's text or the file's name), and warnings about files of no kind we know."""
+    collector = _Links(RADVILISKIO_R.page)
+    collector.feed(html)
+    files: list[tuple[SourceFile, int | None]] = []
+    warnings: list[str] = []
+    for url, text, section in collector.links:
+        name = file_name(url)
+        folded = fold(name)
+        if not url.lower().endswith(".pdf") or any(word in folded for word in OTHER_FILES):
+            continue
+        if "individual" not in fold(section) and "indiv" not in folded:
+            continue
+        if any(f.url == url for f, _ in files):
+            continue
+        known, kind = _radviliskio_kind(text, name)
+        if not known:
+            warnings.append(f"{RADVILISKIO_R.name}: {name} ({text!r}): no schedule we read")
+        elif kind:
+            year = _year_in(text) or _year_in(name)
+            files.append((SourceFile(kind, url, name, RADVILISKIO_R.name), year))
+    return files, warnings
+
+
+def select_radviliskio_files(
+    files: list[tuple[SourceFile, int | None]], today: date
+) -> tuple[list[SourceFile], list[str]]:
+    """Of each kind, the files of this year and later (each mixed waste file has its own
+    months, so all of them); if there are none, those of the newest year."""
+    where = RADVILISKIO_R.name
+    warnings = [
+        f"{where}: {f.file_name}: no year in its link or name; not read" for f, y in files if not y
+    ]
+    selected: list[SourceFile] = []
+    for kind, label in _LABELS.items():
+        dated = [(f, y) for f, y in files if y and f.kind == kind]
+        if not dated:
+            raise ValueError(f"{where}: no {label} schedule of private houses on its page")
+        newest = max(y for _, y in dated)
+        running = [f for f, y in dated if y >= min(today.year, newest)]
+        if newest < today.year:
+            warnings.append(f"{where}: no {label} schedule for {today.year} on the page")
+        selected += running
+    return selected, warnings
+
+
+def download_radviliskio(
+    today: date, keep_days: int
+) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
+    html = http.get(RADVILISKIO_R.page, timeout=60).decode("utf-8", errors="replace")
+    found, warnings = find_radviliskio_files(html)
+    chosen, notes = select_radviliskio_files(found, today)
+    return [(f, http.get(f.url, timeout=120)) for f in chosen], warnings + notes
+
+
+# "Radviliškio miestas (Individualios valdos) :", "Šeduvos miestas:": the town's eldership.
+_TOWN_SECTION = re.compile(rf"\b({_WORD}) miestas\s*(?:\([^()]*\))?\s*:")
+# "Radviliškio m. - Alyvų g., ...", "Linkaičių k. - Kaštonų g., ...": the settlement's streets.
+_SETTLEMENT_DASH = re.compile(rf"\b(k|vs|mstl|m)\.\s*[-–]\s+(?=[{_UPPER}])")
+_COMMA_BEFORE_CAPITAL = re.compile(rf",\s*(?=[{_UPPER}])")
+
+
+def _close_brackets(text: str) -> str:
+    """Closes a bracket left open before the next place: "M. Mažvydo g.(nuo 1 iki 49, Miško
+    a., ..." is "M. Mažvydo g. (nuo 1 iki 49), Miško a., ..."."""
+    start = 0
+    while (opening := text.find("(", start)) >= 0:
+        closing, after = text.find(")", opening), text.find("(", opening + 1)
+        if closing < 0 or 0 <= after < closing:
+            comma = _COMMA_BEFORE_CAPITAL.search(text, opening)
+            if comma and (after < 0 or comma.start() < after):
+                text = f"{text[: comma.start()]}){text[comma.start() :]}"
+        start = opening + 1
+    return text
+
+
+class Sections(Blocks):
+    """Reads one place of Radviliškio r.'s files: elderships' sections, each with its villages
+    and the streets of its town (Area.district is the municipality):
+
+        Radviliškio miesto sen.: Radviliškio m. - Alyvų g., ..., Laisvės al. (iki 15; iki 32)
+        Ligoninės g., ... Radviliškio sen.: Vaidulių k.
+        Radviliškio sen.: Bebrujų k., Linkaičių k. - Kaštonų g., Miško g., Pervažos g., ...
+        Radviliškio miestas (Individualios valdos): Aušros a., Dariaus ir Girėno g. (nuo 1 iki
+        51; nuo 2 iki 60), ... Baisogalos sen.: Augmėnų k., ...
+        Šeduvos miestas: Baukų g., ... Pakalniškių sen.: Areiniškių vs., ...
+
+    As Blocks: streets before any settlement are those of the section's town (Radviliškis,
+    Šeduva); after a settlement ("Radviliškio m. - ...", "Linkaičių k. - ..."), the only ones of
+    the place. A street with house numbers is shared by the places that name it: "Laisvės al.
+    (iki 15; iki 32)" in one, "(nuo 17; nuo 34)" in another, and no place names all of it.
+    Streets of a town or a village that no place names are left to the app, which offers its
+    places: the files list the streets of private houses but leave out some (Paplentės 1-oji
+    and 2-oji g. of Radviliškis), and say nothing of the others.
+    """
+
+    def normalise(self, text: str) -> str:
+        text = _TOWN_SECTION.sub(r"\1 miesto sen.:", _close_brackets(clean_text(text)))
+        text = _SETTLEMENT_DASH.sub(r"\1., ", text)
+        return super().normalise(text)
+
+    def clauses(self, area: Area) -> tuple[list[tuple[Settlement, Clause]], bool]:
+        self.unknown = []
+        self.kind = area.kind
+        text = self.normalise(area.name)
+        marks = [
+            (mark.start(), mark.end(), names)
+            for mark in _SECTION.finditer(text)
+            if (names := elderships_of(mark.group(0), RADVILISKIO_R))
+        ]
+        lead = text[: marks[0][0]] if marks else text
+        if lead.strip(" ,;:."):
+            self.unknown.append(f"{area.district}: {lead.strip(' ,;:.')[:60]}")
+        stops: list[_Place] = []
+        for i, (start, end, names) in enumerate(marks):
+            until = marks[i + 1][0] if i + 1 < len(marks) else len(text)
+            stops += self.places(names, text[end:until], text[start:end].strip(" ,;:"))
+        for stop in stops:
+            # Some houses of a street: the place serves it with the others that name it, not as
+            # one more choice next to every place of the town.
+            if stop.houses:
+                stop.streets = (stop.streets or set()) | stop.houses
+                stop.houses = set()
+        return [(s.settlement, c) for s in stops for c in s.clauses(area.id)], False
+
+
+RADVILISKIO = Provider(
+    id="radviliskis",
+    name="UAB „Šiaulių regiono atliekų tvarkymo centras“",
+    url=RADVILISKIO_R.page,
+    elderships=RADVILISKIO_R.elderships,
+    reader=Sections,
+    kinds=("household", "packaging", "glass", "green"),
+)
+# October-December 2026: 21 places of mixed waste, 9 of them (the town's) with green waste;
+# 2026: 15 of packaging and glass. Green waste isn't required: it ends in November, and the
+# next quarter's file may have none.
+RADVILISKIO_MIN_AREAS: dict[Kind, int] = {"household": 15, "packaging": 11, "glass": 11}
+# 17,171 addresses in the Address Register in November 2026.
+RADVILISKIO_MIN_ADDRESS_POINTS = 12_000
+
+
+def parse_radviliskio_file(source: SourceFile, content: bytes) -> ParseResult:
+    """The places of one of Radviliškio r.'s files, a row per kind of waste each. Strict: see
+    parse_blocks (a mixed waste file's months are those of its first place, packaging's a
+    year); a place without the file's main waste type, a waste type of another file, dates
+    that mostly miss the weekday their title names (the wrong year or months), and too few
+    places raise ValueError."""
+    kinds = RADVILISKIO_FILE_KINDS[source.kind]
+    months = None if source.kind == "household" else range(1, 13)
+    _, blocks = parse_blocks(source, content, months)
+    if len(blocks) < RADVILISKIO_R.min_blocks:
+        raise ValueError(
+            f"{source.file_name}: only {len(blocks)} places (expected {RADVILISKIO_R.min_blocks})"
+        )
+    areas: dict[str, Area] = {}
+    warnings: list[str] = []
+    for block in blocks:
+        where = f"{source.file_name} page {block.page}"
+        if kinds[0] not in block.dates:
+            raise ValueError(f"{where}: no {kinds[0]} dates for {block.name[:60]!r}")
+        if other := sorted(set(block.dates) - set(kinds)):
+            raise ValueError(f"{where}: {', '.join(other)} in the {source.kind} file")
+        for kind, dates in block.dates.items():
+            weekday = block.weekdays.get(kind)
+            if weekday is not None and 2 * sum(d.weekday() != weekday for d in dates) > len(dates):
+                raise ValueError(
+                    f"{where}: the {kind} dates of {block.name[:60]!r} aren't on "
+                    f"{WEEKDAY_NAMES[weekday]} as titled: the wrong year or months?"
+                )
+            area = Area(kind, block.name, RADVILISKIO_R.name, provider=RADVILISKIO.id, dates=dates)
+            weekdays = {d.weekday() for d in dates}
+            if len(weekdays) == 1:
+                area.weekday = WEEKDAY_NAMES[weekdays.pop()]
+            existing = areas.setdefault(area.id, area)
+            if existing is not area:
+                warnings.append(f"{where}: {kind} of {block.name[:60]!r} is listed twice")
+                existing.dates |= area.dates
+    return ParseResult(areas=list(areas.values()), warnings=warnings)
+
+
+def _period(result: ParseResult) -> tuple[date, date]:
+    """The months a file's dates fall in, from the first day of the first to the last day of
+    the last."""
+    dates = [d for a in result.areas for d in a.dates]
+    first, last = min(dates), max(dates)
+    return first.replace(day=1), month_end(last.year, last.month)
+
+
+def combine_radviliskio(
+    parsed: list[tuple[SourceFile, ParseResult]], registry: Registry, today: date
+) -> list[str]:
+    """Joins the places of Radviliškio r.'s files of later periods to those of the period in
+    force, in place (_continue, as for the five's next year).
+
+    Of two files of one kind for the same months (a correction), the one linked last is read;
+    files of one kind whose months overlap otherwise raise ValueError. A kind whose files have
+    all ended keeps its places, with their last dates (build.current_rows), and a warning; so
+    does a kind with no file for today, whose next one has started early."""
+    where = RADVILISKIO_R.name
+    warnings: list[str] = []
+    periods = {id(result): _period(result) for _, result in parsed if result.areas}
+    for i, (source, result) in enumerate(parsed):
+        if not result.areas:
+            continue
+        start, end = periods[id(result)]
+        for other, later in parsed[i + 1 :]:
+            if other.kind != source.kind or not later.areas:
+                continue
+            other_start, other_end = periods[id(later)]
+            if (other_start, other_end) == (start, end):
+                warnings.append(
+                    f"{where}: {source.file_name}: not read, {other.file_name} is a newer "
+                    f"schedule for {start} - {end}"
+                )
+                result.areas.clear()
+                break
+            if other_start <= end and start <= other_end:
+                raise ValueError(
+                    f"{where}: {source.file_name} ({start} - {end}) and {other.file_name} "
+                    f"({other_start} - {other_end}) overlap"
+                )
+    for kind, label in _LABELS.items():
+        spans = [periods[id(r)] for s, r in parsed if s.kind == kind and r.areas]
+        if spans and (ended := max(end for _, end in spans)) < today:
+            warnings.append(f"{where}: the {label} schedule ended on {ended}; no newer one is read")
+        elif spans and (first := min(start for start, _ in spans)) > today:
+            # The last file replaced by the next before its months start: its last dates are lost.
+            warnings.append(f"{where}: no {label} schedule for today; the next starts on {first}")
+    groups: _Periods = defaultdict(lambda: defaultdict(list))
+    for source, result in parsed:
+        for area in result.areas:
+            groups[(source.municipality, area.kind)][periods[id(result)][0]].append((result, area))
+    reader = Sections(Index(registry), RADVILISKIO, defaultdict(dict))
+    return warnings + _continue(groups, reader, lambda start: start <= today, date.isoformat)
+
+
+RADVILISKIO_SOURCE = build.Source(
+    RADVILISKIO,
+    download_radviliskio,
+    parse_radviliskio_file,
+    RADVILISKIO_MIN_AREAS,
+    RADVILISKIO_R.min_household_places,
+    RADVILISKIO_FILE_KINDS,
+    combine_radviliskio,
 )
 
 
@@ -1130,20 +1507,35 @@ def load_registry() -> tuple[Registry, str]:
     return Registry([s for r, _ in loaded for s in r.settlements]), min(t for _, t in loaded)
 
 
-def fetch_points() -> list[address_points.AddressPoint]:
-    """The address points of the five municipalities. The file of house numbers is the whole
-    country's (57 MB): downloaded once."""
+def fetch_registries() -> tuple[Registry, Registry]:
+    """The settlements and streets of the five municipalities, and of Radviliškio r."""
+    return fetch_registry(), address_register.fetch(RADVILISKIO_R.register[0])
+
+
+def load_registries() -> tuple[tuple[Registry, Registry], str]:
+    five, taken = load_registry()
+    radviliskis, radviliskis_taken = snapshot.load_registry(RADVILISKIO_R.registry_file)
+    return (five, radviliskis), min(taken, radviliskis_taken)
+
+
+def fetch_points(
+    municipalities: tuple[Municipality, ...] = MUNICIPALITIES,
+) -> list[address_points.AddressPoint]:
+    """The address points of the municipalities (the five by default). The file of house
+    numbers is the whole country's (57 MB): downloaded once."""
     numbers = address_points._download(address_points.NUMBERS_FILE)
     points: list[address_points.AddressPoint] = []
-    for m in MUNICIPALITIES:
+    for m in municipalities:
         code = m.register[1]
         geometry = address_points._download(f"adr_gra_{code}.json")
         points += address_points.parse(geometry, numbers, code)
     return points
 
 
-def load_points() -> tuple[list[address_points.AddressPoint], str]:
-    loaded = [snapshot.load_points(m.addresses_file) for m in MUNICIPALITIES]
+def load_points(
+    municipalities: tuple[Municipality, ...] = MUNICIPALITIES,
+) -> tuple[list[address_points.AddressPoint], str]:
+    loaded = [snapshot.load_points(m.addresses_file) for m in municipalities]
     return [p for points, _ in loaded for p in points], min(t for _, t in loaded)
 
 
@@ -1163,29 +1555,79 @@ def check_municipalities(dataset: dict) -> None:
             )
 
 
+PUBLISHED_URL = f"{build.PUBLISHED_URL}/sratc"
+# The job summary's section of each part, and what its annotation calls it: the company's name
+# is the same in both.
+_PARTS = {
+    PROVIDER.id: (
+        "Šiaulių r., Akmenės r., Joniškio r., Kelmės r. and Pakruojo r. (Šiaulių RATC)",
+        "five municipalities",
+    ),
+    RADVILISKIO.id: ("Radviliškio r. (Šiaulių RATC)", "Radviliškio r."),
+}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=(__doc__ or "").split("\n")[0])
     parser.add_argument("--out", type=Path, required=True, help="directory for the output files")
     parser.add_argument(
         "--keep-days", type=int, default=31, help="drop pickup dates older than this many days"
     )
+    parser.add_argument(
+        "--published",
+        default=PUBLISHED_URL,
+        help="site folder with yesterday's schedule.json, for a part whose build fails",
+    )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="fail if either part's build fails instead of keeping its published part",
+    )
     args = parser.parse_args(argv)
 
-    registry, registry_note = build.live_or_snapshot(
-        "Address Register", fetch_registry, load_registry
+    # The five and Radviliškio r. are two parts of one file: one whose build fails keeps its
+    # part of yesterday's file (build.build_parts), and the other is still updated.
+    loader = None if args.strict else cache(build.load_published(args.published))
+    (registry, radviliskis_registry), registry_note = build.live_or_snapshot(
+        "Address Register", fetch_registries, load_registries
     )
-    points, points_note = build.live_or_snapshot("Address points", fetch_points, load_points)
+    everywhere = (*MUNICIPALITIES, RADVILISKIO_R)
+    points, points_note = build.live_or_snapshot(
+        "Address points", partial(fetch_points, everywhere), partial(load_points, everywhere)
+    )
+    today = date.today()
     try:
-        results = build.build_parts((SOURCE,), registry, date.today(), args.keep_days, None)
-        dataset = build.merge_parts([(r.provider, r.part) for r in results], PAGE_URL)
+        results = build.build_parts((SOURCE,), registry, today, args.keep_days, loader)
+        results += build.build_parts(
+            (RADVILISKIO_SOURCE,), radviliskis_registry, today, args.keep_days, loader
+        )
+        dataset = build.merge_parts([(r.provider, r.part) for r in results if r.part], PAGE_URL)
         check_municipalities(dataset)
         served = {loc["id"] for loc in dataset["locations"]}
-        addresses = address_points.build_addresses(points, registry, served, dataset["generatedAt"])
-        if len(addresses["points"]) < MIN_ADDRESS_POINTS:
-            raise build.ValidationError(f"only {len(addresses['points'])} address points")
+        everything = Registry([*registry.settlements, *radviliskis_registry.settlements])
+        addresses = address_points.build_addresses(
+            points, everything, served, dataset["generatedAt"]
+        )
+        places = Counter(addresses["places"][point[2]][0] for point in addresses["points"])
+        for provider, settlements, minimum in (
+            (PROVIDER, registry.settlements, MIN_ADDRESS_POINTS),
+            (RADVILISKIO, radviliskis_registry.settlements, RADVILISKIO_MIN_ADDRESS_POINTS),
+        ):
+            count = sum(places[f"g{s.code}"] for s in settlements)
+            if any(r.part for r in results if r.provider is provider) and count < minimum:
+                raise build.ValidationError(f"{_PARTS[provider.id][1]}: only {count} addresses")
     except (build.ValidationError, OSError, ValueError) as error:
         print(f"Validation failed: {error}", file=sys.stderr)
         return 1
+
+    for r in results:
+        if r.error:
+            if r.part:
+                kept = f"the data published on {r.part['generatedAt'][:10]} is kept"
+            else:
+                kept = "there is no published data to keep, so it is left out"
+            # An annotation on the workflow run.
+            print(f"::warning::The {_PARTS[r.provider.id][1]} build failed; {kept}. {r.error}")
 
     args.out.mkdir(parents=True, exist_ok=True)
     for name, data in (("schedule.json", dataset), ("addresses.json", addresses)):
@@ -1193,8 +1635,11 @@ def main(argv: list[str] | None = None) -> int:
             json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
         )
     notes = [n for n in (registry_note, points_note) if n]
-    title = "Šiaulių r., Akmenės r., Joniškio r., Kelmės r. and Pakruojo r. (Šiaulių RATC)"
-    build.write_summary(dataset, results, notes, title, "sratc/schedule.json")
+    for r in results:
+        title, label = _PARTS[r.provider.id]
+        part = r.part or {"locations": [], "areas": []}
+        build.write_summary(part, [r], [], title, f"{label} in sratc/schedule.json")
+    build.write_summary(dataset, [], notes, "Šiaulių RATC", "sratc/schedule.json")
     return 0
 
 

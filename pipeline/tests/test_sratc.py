@@ -1,15 +1,23 @@
-"""Šiaulių RATC: the municipalities' pages, the five yearly PDFs, their places and next year."""
+"""Šiaulių RATC: the municipalities' pages, the five yearly PDFs, their places and next year;
+Radviliškio r.'s quarterly mixed waste and yearly packaging files."""
 
 import json
 from collections import Counter
+from dataclasses import replace
 from datetime import date, timedelta
 from functools import cache
 
 import pytest
 from test_parsers import FIXTURES, fixture
 
-from schedule_pipeline import sratc, status
-from schedule_pipeline.build import ValidationError, build_dataset, current_rows, merge_parts
+from schedule_pipeline import build, sratc, status
+from schedule_pipeline.build import (
+    ValidationError,
+    build_dataset,
+    current_rows,
+    merge_parts,
+    published_part,
+)
 from schedule_pipeline.model import Area, ParseResult, SourceFile
 from schedule_pipeline.registry import Registry
 
@@ -552,3 +560,384 @@ def test_published_file_and_its_metrics(part, tmp_path):
         f'siuksliaveze_data_last_date_timestamp_seconds{{source="siauliai",kind="household"}} '
         f"{last}" in text
     )
+
+
+# --- Radviliškio r. ------------------------------------------------------------------
+
+RADVILISKIO_REGISTRY = Registry.load(FIXTURES / "sratc" / "registry-radviliskio-r-2026-11-21.json")
+MIXED = SourceFile(
+    "household",
+    "https://www.sratc.lt/uploads/2026%20m%20indiv-%20vald%C5%B3%20MKA%20ir%20BSA%20"
+    "surinkimas_sv.pdf",
+    "2026 m indiv- valdų MKA ir BSA surinkimas_sv.pdf",
+    "Radviliškio r.",
+)
+PACKAGING = SourceFile(
+    "packaging",
+    "https://www.sratc.lt/uploads/2026%20m%20grafikai/2026%20m%20radviliskio%20indiv-%20valdu"
+    "%20POP%20ir%20stiklo%20surinkimas.pdf",
+    "2026 m radviliskio indiv- valdu POP ir stiklo surinkimas.pdf",
+    "Radviliškio r.",
+)
+RADVILISKIO_FILES = {
+    MIXED.url: "radviliskio-r-mka-2026-q4.pdf",
+    PACKAGING.url: "radviliskio-r-pop-2026.pdf",
+}
+# Aukštelkai's mixed waste in the October-December 2026 file: every other Friday, Christmas Day
+# too.
+AUKSTELKAI = ["2026-10-02", "2026-10-16", "2026-10-30", "2026-11-13", "2026-11-27"]
+AUKSTELKAI += ["2026-12-11", "2026-12-25"]
+
+
+def radviliskio_files():
+    return [(f, fixture(f"sratc/{RADVILISKIO_FILES[f.url]}")) for f in (MIXED, PACKAGING)]
+
+
+@cache
+def radviliskio_parsed(kind):
+    """A file's rows; read only, shared by the tests."""
+    source = MIXED if kind == "household" else PACKAGING
+    return sratc.parse_radviliskio_file(source, fixture(f"sratc/{RADVILISKIO_FILES[source.url]}"))
+
+
+@pytest.fixture(scope="module")
+def radviliskis():
+    return build_dataset(
+        radviliskio_files(), RADVILISKIO_REGISTRY, TODAY, 31, sratc.RADVILISKIO_SOURCE
+    )
+
+
+@pytest.fixture(scope="module")
+def radviliskis_year():
+    data, _ = build_dataset(
+        radviliskio_files(), RADVILISKIO_REGISTRY, TODAY, 366, sratc.RADVILISKIO_SOURCE
+    )
+    return data
+
+
+def street_rows(data, location, kind, label):
+    """The rows of a street of a settlement; None if it's left to the app."""
+    key = streets(location).get(label)
+    return location["schedule"][kind]["streets"].get(key)
+
+
+def test_radviliskio_files_on_its_page():
+    # By the link's text, or the name of a file linked by an image ("2024 m indiv- AŽ.pdf",
+    # packaging of 2024); bulky waste isn't read, nor are the apartment buildings' files.
+    html = fixture("sratc/radviliskio-rajonas.html").decode("utf-8")
+    found, warnings = sratc.find_radviliskio_files(html)
+    assert [(f.kind, f.file_name, year) for f, year in found] == [
+        ("household", MIXED.file_name, 2026),
+        ("packaging", "2024 m indiv- AŽ.pdf", 2024),
+        ("packaging", PACKAGING.file_name, 2026),
+    ]
+    assert warnings == []
+    assert [f for f, _ in found if f.kind == "household"] == [MIXED]
+    chosen, warnings = sratc.select_radviliskio_files(found, TODAY)
+    assert chosen == [MIXED, PACKAGING] and warnings == []
+
+
+def test_radviliskio_reads_every_quarter_of_this_year_and_later():
+    def link(name, year, kind="household"):
+        return (SourceFile(kind, f"https://x/{name}", name, "Radviliškio r."), year)
+
+    q4, q1, q2 = link("2026 q4.pdf", 2026), link("2027 q1.pdf", 2027), link("2027 q2.pdf", 2027)
+    packaging = link("2026 POP.pdf", 2026, "packaging")
+    # December: the next quarter's file is read as soon as it's linked, next to this one.
+    chosen, warnings = sratc.select_radviliskio_files([q4, q1, packaging], TODAY)
+    assert chosen == [q4[0], q1[0], packaging[0]] and warnings == []
+    # Two quarters of one year: both (each has its own months).
+    chosen, _ = sratc.select_radviliskio_files([q1, q2, packaging], date(2027, 3, 25))
+    assert chosen[:2] == [q1[0], q2[0]]
+    # January, before the next quarter's file: the last one, with a warning.
+    chosen, warnings = sratc.select_radviliskio_files([q4, packaging], date(2027, 1, 5))
+    assert chosen == [q4[0], packaging[0]]
+    assert warnings == [
+        "Radviliškio r.: no mixed waste schedule for 2027 on the page",
+        "Radviliškio r.: no packaging schedule for 2027 on the page",
+    ]
+    with pytest.raises(ValueError, match="no mixed waste schedule of private houses"):
+        sratc.select_radviliskio_files([packaging], TODAY)
+
+
+def test_radviliskio_mixed_waste_of_a_quarter():
+    result = radviliskio_parsed("household")
+    assert result.warnings == []
+    assert Counter(a.kind for a in result.areas) == {"household": 21, "green": 9}
+    dates = sorted(d for a in result.areas for d in a.dates)
+    assert (dates[0], dates[-1]) == (date(2026, 10, 1), date(2026, 12, 31))
+    assert {a.district for a in result.areas} == {"Radviliškio r."}
+    (aukstelkai,) = [a for a in result.areas if a.kind == "household" and "Aukštelkų k." in a.name]
+    assert [d.isoformat() for d in sorted(aukstelkai.dates)] == AUKSTELKAI
+    assert aukstelkai.weekday == "Penktadienis"
+    # The town's green waste, with its own weekday: none in December.
+    green = [a for a in result.areas if a.kind == "green"]
+    assert all(a.name.startswith("Radviliškio miesto sen.: Radviliškio m.") for a in green)
+    assert max(d for a in green for d in a.dates) == date(2026, 11, 30)
+
+
+def test_radviliskio_packaging_and_glass_of_a_year():
+    result = radviliskio_parsed("packaging")
+    assert Counter(a.kind for a in result.areas) == {"packaging": 15, "glass": 15}
+    # Each place's list starts with its town or eldership, inside the table.
+    names = [a.name for a in result.areas if a.kind == "packaging"]
+    assert names[0].startswith("Radviliškio miestas (Individualios valdos) : Aušros a.")
+    assert any(n.startswith("Šeduvos miestas: Baukų g.") for n in names)
+    (aukstelkai,) = [
+        a for a in result.areas if a.kind == "glass" and a.name.startswith("Aukštelkų sen.: Aukš")
+    ]
+    assert [d.isoformat()[5:] for d in sorted(aukstelkai.dates)] == [
+        "01-21",
+        "04-15",
+        "07-08",
+        "09-30",
+        "12-23",
+    ]
+
+
+def test_radviliskio_files_are_read_strictly(monkeypatch):
+    content = fixture("sratc/radviliskio-r-mka-2026-q4.pdf")
+    # A quarter isn't a year.
+    with pytest.raises(ValueError, match="a table starting with month 10"):
+        sratc.parse_blocks(MIXED, content)
+    # The year in the name must be the title's.
+    renamed = replace(MIXED, file_name="2027 m indiv- valdų MKA.pdf")
+    with pytest.raises(ValueError, match="the title says 2026, the name 2027"):
+        sratc.parse_radviliskio_file(renamed, content)
+    # The packaging file as the mixed waste one: no mixed waste in it.
+    swapped = replace(PACKAGING, kind="household")
+    with pytest.raises(ValueError, match="no household dates"):
+        sratc.parse_radviliskio_file(swapped, fixture("sratc/radviliskio-r-pop-2026.pdf"))
+    # Dates of another year miss the weekdays the titles name.
+    monkeypatch.setattr(sratc, "_year", lambda pdf, source: 2025)
+    with pytest.raises(ValueError, match="aren't on Pirmadienis as titled"):
+        sratc.parse_radviliskio_file(MIXED, content)
+
+
+def test_radviliskio_counts(radviliskis):
+    data, warnings = radviliskis
+    stats = data["matching"]
+    assert stats["locations"] == len(RADVILISKIO_REGISTRY.settlements) == 407
+    assert stats["unmatchedRows"] == 0
+    assert all(loc["provider"] == "radviliskis" for loc in data["locations"])
+    with_kind = Counter(kind for loc in data["locations"] for kind in loc.get("schedule", {}))
+    assert with_kind == {"household": 295, "packaging": 349, "glass": 349, "green": 2}
+    # Nobody is asked to choose between places: one each, or one per street.
+    assert not any(k.endswith(".ambiguous") and v for k, v in stats.items())
+    assert sorted({w.split(": ", 2)[2] for w in warnings}) == [
+        "Pakalniškių sen.: Miškadvario k.",
+        "Radviliškio sen.: Jasnagurkos k.",
+        "Sidabravo sen.: Jasnagurkos vs.",
+        "Sidabravo sen.: Palabės k.",
+        "Šeduvos miesto sen.: Saulėtekio g.",
+        "Šeduvos miesto sen.: Sausio 13-osios g.",
+    ]
+
+
+def test_radviliskio_a_village_and_its_dates(radviliskis_year):
+    aukstelkai = place(radviliskis_year, "Aukštelkai")
+    household = area_of(radviliskis_year, aukstelkai)
+    assert household["dates"] == AUKSTELKAI
+    assert household["name"].startswith("Aukštelkų sen.: Aukštelkų k., Birjočių k.")
+    packaging = area_of(radviliskis_year, aukstelkai, "packaging")
+    assert len(packaging["dates"]) == 13 and packaging["dates"][0] == "2026-01-02"
+
+
+def test_radviliskio_town_streets(radviliskis):
+    data, _ = radviliskis
+    town = place(data, "Radviliškis", kind="m.")
+    assert {kind: set(r) for kind, r in town["schedule"].items()} == {
+        kind: {"streets"} for kind in ("household", "packaging", "glass", "green")
+    }
+    alyvu = street_rows(data, town, "household", "Alyvų g.")
+    assert rows(data, alyvu)[0].startswith("Radviliškio miesto sen.: Radviliškio m. - Alyvų g.")
+    # "Laisvės al. (iki 15; iki 32)" in one place, "(nuo 17; nuo 34)" in another: those two.
+    laisves = rows(data, street_rows(data, town, "household", "Laisvės al."))
+    assert len(laisves) == 2 and "Aušros a., Laisvės al. (nuo 17; nuo 34)" in laisves[1]
+    assert len(street_rows(data, town, "packaging", "Dariaus ir Girėno g.")) == 2
+    # Streets of private houses no place names (Paplentės 1-oji g., 110 addresses) aren't "no
+    # pickup": they're left to the app, which offers the town's places.
+    assert street_rows(data, town, "household", "Paplentės 1-oji g.") is None
+    assert all(town["schedule"]["household"]["streets"].values())
+    # Šeduva: one place for mixed waste, two by street for packaging.
+    seduva = place(data, "Šeduva", kind="m.")
+    assert set(seduva["schedule"]["household"]) == {"area"}
+    assert street_rows(data, seduva, "packaging", "Baukų g.")
+    assert street_rows(data, seduva, "packaging", "Užuovėjos g.") is None
+    # Baisogala: all of it in one place.
+    assert set(place(data, "Baisogala")["schedule"]["household"]) == {"area"}
+
+
+def test_radviliskio_streets_of_a_village(radviliskis):
+    data, _ = radviliskis
+    # "Linkaičių k. - Kaštonų g., Miško g., Pervažos g." and "Linkaičių k. - Arsenalo g., ...".
+    linkaiciai = place(data, "Linkaičiai")
+    kastonu = street_rows(data, linkaiciai, "household", "Kaštonų g.")
+    arsenalo = street_rows(data, linkaiciai, "household", "Arsenalo g.")
+    assert len(kastonu) == len(arsenalo) == 1 and kastonu != arsenalo
+    assert street_rows(data, linkaiciai, "household", "Sodų g.") is None
+    # Karčemos, next to "Linkaičių glž. st." in a packaging list: all of it.
+    assert set(place(data, "Karčemos")["schedule"]["packaging"]) == {"area"}
+
+
+def test_radviliskio_unclosed_bracket():
+    assert sratc._close_brackets("M. Mažvydo g.(nuo 1 iki 49, Miško a., Miško g.") == (
+        "M. Mažvydo g.(nuo 1 iki 49), Miško a., Miško g."
+    )
+    text = "Laisvės al. (iki 15; iki 32) Ligoninės g., M. Mažvydo g. (iki 49), M. Valančiaus g."
+    assert sratc._close_brackets(text) == text
+
+
+def quarter(start, *names):
+    """Mixed waste rows of a file of three months from `start`."""
+    return ParseResult(
+        [
+            Area("household", name, "Radviliškio r.", dates={start, start + timedelta(days=80)})
+            for name in names
+        ]
+    )
+
+
+NEXT_QUARTER = replace(MIXED, url="https://x/2027.pdf", file_name="2027.pdf")
+
+
+def test_radviliskio_next_quarter_continues_places_of_the_same_villages():
+    q4 = quarter(
+        date(2026, 10, 7),
+        "Aukštelkų sen.: Aukštelkų k., Birjočių k.",
+        "Aukštelkų sen.: Kaulinių k.",
+    )
+    q1 = quarter(
+        date(2027, 1, 6),
+        "Aukštelkų sen.: Birjočių k., Aukštelkų kaimas",
+        "Aukštelkų sen.: Kaulinių k., Rupliškio vs.",
+    )
+    warnings = sratc.combine_radviliskio(
+        [(MIXED, q4), (NEXT_QUARTER, q1)], RADVILISKIO_REGISTRY, date(2026, 12, 20)
+    )
+    assert q4.areas[0].dates == {
+        date(2026, 10, 7),
+        date(2026, 12, 26),
+        date(2027, 1, 6),
+        date(2027, 3, 27),
+    }
+    assert q1.areas == [] and len(q4.areas) == 2
+    assert warnings == [
+        "Radviliškio r. household: the 2027-01-01 place 'Aukštelkų sen.: Kaulinių k., Rupliškio "
+        "vs.' doesn't match one 2026-10-01 place; its dates are left out until 2027-01-01",
+        "Radviliškio r. household: the 2026-10-01 place 'Aukštelkų sen.: Kaulinių k.' has no "
+        "dates for 2027-01-01",
+    ]
+
+
+def test_radviliskio_the_quarter_in_force():
+    q4 = quarter(date(2026, 10, 7), "Aukštelkų sen.: Kaulinių k.")
+    q1 = quarter(date(2027, 1, 6), "Aukštelkų sen.: Kaulinių k., Rupliškio vs.")
+    # Once the next quarter has started, its places are the schedule; the last ones are dropped.
+    files = [(MIXED, q4), (NEXT_QUARTER, q1)]
+    assert sratc.combine_radviliskio(files, RADVILISKIO_REGISTRY, date(2027, 1, 2)) == []
+    assert q4.areas == [] and len(q1.areas) == 1
+    # A quarter that has ended without a successor keeps its places, with their last dates.
+    q4 = quarter(date(2026, 10, 7), "Aukštelkų sen.: Kaulinių k.")
+    january = date(2027, 1, 5)
+    assert sratc.combine_radviliskio([(MIXED, q4)], RADVILISKIO_REGISTRY, january) == [
+        "Radviliškio r.: the mixed waste schedule ended on 2026-12-31; no newer one is read"
+    ]
+    assert current_rows([(MIXED, q4)], january) == {q4.areas[0].id}
+    # The last quarter's file replaced by the next before it starts: its last dates are lost.
+    q1 = quarter(date(2027, 1, 6), "Aukštelkų sen.: Kaulinių k.")
+    assert sratc.combine_radviliskio([(NEXT_QUARTER, q1)], RADVILISKIO_REGISTRY, TODAY) == [
+        "Radviliškio r.: no mixed waste schedule for today; the next starts on 2027-01-01"
+    ]
+
+
+def test_radviliskio_files_of_the_same_months():
+    first = quarter(date(2026, 10, 7), "Aukštelkų sen.: Kaulinių k.")
+    again = quarter(date(2026, 10, 7), "Aukštelkų sen.: Kaulinių k., Sedūnų k.")
+    fixed = replace(MIXED, url="https://x/fixed.pdf", file_name="fixed.pdf")
+    warnings = sratc.combine_radviliskio(
+        [(MIXED, first), (fixed, again)], RADVILISKIO_REGISTRY, TODAY
+    )
+    # A correction linked after the original replaces it.
+    assert warnings == [
+        f"Radviliškio r.: {MIXED.file_name}: not read, fixed.pdf is a newer schedule for "
+        "2026-10-01 - 2026-12-31"
+    ]
+    assert first.areas == [] and len(again.areas) == 1
+    # Months that overlap otherwise: not something we can read.
+    overlapping = quarter(date(2026, 11, 4), "Aukštelkų sen.: Kaulinių k.")
+    with pytest.raises(ValueError, match="overlap"):
+        sratc.combine_radviliskio(
+            [(MIXED, quarter(date(2026, 10, 7), "x")), (fixed, overlapping)],
+            RADVILISKIO_REGISTRY,
+            TODAY,
+        )
+
+
+def test_radviliskio_is_a_part_of_its_own(part, radviliskis, tmp_path):
+    five, five_warnings = part
+    data, warnings = radviliskis
+    built = [
+        (sratc.PROVIDER, {**five, "warnings": len(five_warnings)}),
+        (sratc.RADVILISKIO, {**data, "warnings": len(warnings)}),
+    ]
+    dataset = merge_parts(built, sratc.PAGE_URL)
+    assert [p["id"] for p in dataset["providers"]] == ["siauliai", "radviliskis"]
+    assert dataset["providers"][1]["url"] == "https://www.sratc.lt/grafikai-radviliskio-rajonas/"
+    # The five's part is as it is published on its own.
+    alone = merge_parts(built[:1], sratc.PAGE_URL)
+    assert published_part(dataset, sratc.PROVIDER) == published_part(alone, sratc.PROVIDER)
+    (tmp_path / "sratc").mkdir()
+    (tmp_path / "sratc" / "schedule.json").write_text(json.dumps(dataset), encoding="utf-8")
+    assert status.main(["--site", str(tmp_path)]) == 0
+    text = (tmp_path / "metrics.txt").read_text(encoding="utf-8")
+    places = sum(1 for loc in data["locations"] if loc.get("schedule"))
+    assert f'siuksliaveze_data_places{{source="radviliskis"}} {places}' in text
+    assert 'siuksliaveze_data_areas{source="radviliskis",kind="green"} 9' in text
+    last = int((date(2026, 12, 31) - date(1970, 1, 1)) / timedelta(seconds=1))
+    assert (
+        f'siuksliaveze_data_last_date_timestamp_seconds{{source="radviliskis",kind="household"}} '
+        f"{last}" in text
+    )
+
+
+class _Today(date):
+    @classmethod
+    def today(cls):
+        return TODAY
+
+
+def test_a_part_whose_build_fails_keeps_its_published_part(
+    monkeypatch, part, radviliskis, tmp_path
+):
+    five, _ = part
+    data, _ = radviliskis
+    yesterday = merge_parts(
+        [
+            (sratc.PROVIDER, {**five, "generatedAt": "2026-11-20T04:30:00+00:00"}),
+            (sratc.RADVILISKIO, {**data, "generatedAt": "2026-11-20T04:31:00+00:00"}),
+        ],
+        sratc.PAGE_URL,
+    )
+
+    def new_layout(today, keep_days):
+        raise ValueError("a table starting with month 1")
+
+    monkeypatch.setattr(sratc, "date", _Today)
+    monkeypatch.setattr(sratc, "SOURCE", replace(sratc.SOURCE, download=lambda t, k: (files(), [])))
+    monkeypatch.setattr(
+        sratc, "RADVILISKIO_SOURCE", replace(sratc.RADVILISKIO_SOURCE, download=new_layout)
+    )
+    monkeypatch.setattr(sratc, "fetch_registries", lambda: (REGISTRY, RADVILISKIO_REGISTRY))
+    monkeypatch.setattr(sratc, "fetch_points", lambda *municipalities: [])
+    monkeypatch.setattr(sratc, "MIN_ADDRESS_POINTS", 0)
+    monkeypatch.setattr(sratc, "RADVILISKIO_MIN_ADDRESS_POINTS", 0)
+    monkeypatch.setattr(build, "load_published", lambda url: lambda: yesterday)
+    assert sratc.main(["--out", str(tmp_path)]) == 0
+    written = json.loads((tmp_path / "schedule.json").read_text(encoding="utf-8"))
+    assert [p["id"] for p in written["providers"]] == ["siauliai", "radviliskis"]
+    assert written["providers"][0]["generatedAt"] != "2026-11-20T04:30:00+00:00"
+    assert written["providers"][1]["generatedAt"] == "2026-11-20T04:31:00+00:00"
+    assert published_part(written, sratc.RADVILISKIO)["areas"] == data["areas"]
+    # --strict (the live check on pull requests) fails instead.
+    assert sratc.main(["--out", str(tmp_path), "--strict"]) == 1
