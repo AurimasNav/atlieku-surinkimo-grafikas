@@ -15,6 +15,8 @@ tratc.lt (xlsx)                           Mažeikių r., Telšių r., Plungės r
                                           site/mazeikiu-r/
 gargzdusvara.eu (xlsx)                    Klaipėdos r.: site/klaipedos-r/
 uabtratc.lt (pdf)                         Jurbarko r.: site/jurbarko-r/
+sratc.lt (pdf)                            Šiaulių r., Akmenės r., Joniškio r., Kelmės r.,
+                                          Pakruojo r.: site/sratc/
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
 pipeline/   Python: scrape → parse → validate → schedule.json

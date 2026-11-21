@@ -10,7 +10,7 @@ Users see it too: when the data of the company behind their schedule hasn't been
 days (`providers[].generatedAt`, or Kauno švara's `generatedAt`), the app shows a warning with a
 link to the company's official schedule (`app/src/lib/freshness.ts`).
 
-There are ten sources:
+There are eleven sources:
 
 | `source` | Company | Published in |
 |---|---|---|
@@ -24,6 +24,7 @@ There are ten sources:
 | `rietavas` | UAB „Telšių regiono atliekų tvarkymo centras“, Rietavo sav. | `mazeikiu-r/` (`provider: "rietavas"`) |
 | `klaipedos` | VšĮ „Gargždų švara“, Klaipėdos r. | `klaipedos-r/` |
 | `jurbarkas` | UAB „Tauragės regiono atliekų tvarkymo centras“, Jurbarko r. | `jurbarko-r/` |
+| `siauliai` | UAB „Šiaulių regiono atliekų tvarkymo centras“, Šiaulių r., Akmenės r., Joniškio r., Kelmės r. and Pakruojo r. | `sratc/` |
 
 The two Vilniaus r. companies share one `schedule.json`, so the app needs one download. When
 one of them fails, its part of yesterday's file is kept (its `providers[].generatedAt` stays
@@ -37,6 +38,14 @@ no published part to keep, the file is published without it.
 `kauno-r/` is kept for both. If only those of Kaišiadorių r. can't (too few, or too many not
 understood), Kauno r. is published without them: `kaisiadorys` disappears from `metrics.txt`
 and `ScheduleDataSourceMissing` fires.
+
+`siauliai` is one file a year for each of five municipalities, from one site in one template,
+built by one step into `sratc/`. If any of the five files can't be read, or one municipality's
+places stop matching the Address Register (`sratc.check_municipalities`), the step fails and
+yesterday's `sratc/` is kept for all five. Its metrics are the five together: the last date is
+the latest of the five, so `ScheduleDataRunsOut` stays quiet if one municipality posts next
+year's file and another doesn't; the build's warnings name the late one ("Akmenės r.: no
+schedule for 2027 on the page").
 
 The four municipalities of Telšių RATC share `mazeikiu-r/schedule.json`, a part (`providers[]`)
 each, built by one step, so installed apps find Telšių r., Plungės r. and Rietavo sav. without
@@ -53,9 +62,9 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
-| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` was built |
+| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `siauliai` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
-| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos` and `jurbarkas` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
+| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas` and `siauliai` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
 | `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead) |
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
@@ -108,13 +117,15 @@ groups:
         labels: { severity: info }
         annotations:
           summary: "{{ $labels.source }}: more build warnings than yesterday (new typo or renamed place?)"
-      # Mažeikių r., Klaipėdos r. and Jurbarko r. get one file per year. If next year's isn't
-      # posted, or the job no longer recognises it, the build stays green while the reminders
-      # stop after the last date. Only these sources: the quarterly files of the Vilniaus r.
-      # companies come close to their last date every quarter. Klaipėdos r. collects glass four
-      # or five times a year and green waste from April to November, and Jurbarko r. glass four
-      # times a year (last on 3 December 2026) and green waste last in mid-December, before
-      # next year's files are usually posted: so only their mixed waste and packaging.
+      # Mažeikių r., Klaipėdos r., Jurbarko r. and Šiaulių RATC get one file per year. If next
+      # year's isn't posted, or the job no longer recognises it, the build stays green while
+      # the reminders stop after the last date. Only these sources: the quarterly files of the
+      # Vilniaus r. companies come close to their last date every quarter. Klaipėdos r. collects
+      # glass four or five times a year and green waste from April to November, Jurbarko r.
+      # glass four times a year (last on 3 December 2026) and green waste last in mid-December,
+      # and Šiaulių RATC glass four times a year (last between 30 October and 31 December 2026
+      # in its five municipalities) and green and food waste last in November, before next
+      # year's files are usually posted: so only their mixed waste and packaging.
       # Telšių r., Plungės r. and Rietavo sav. (same publisher as Mažeikių r.): every kind
       # of Telšių r. and Plungės r. ends on 28-31 December, and Plungės r. food waste on 18
       # December 2026, watched too: its 2027 file wasn't posted on 21 November, so this fires
@@ -124,7 +135,7 @@ groups:
         expr: |-
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"mazeikiai|telsiai|plunge"}[30m]) - time() < 7 * 86400
             or
-          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"klaipedos|jurbarkas|rietavas",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"klaipedos|jurbarkas|siauliai|rietavas",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
         for: 1h
         labels: { severity: warning }
         annotations:
@@ -168,5 +179,5 @@ source, query `status.json` (type JSON, URL above) and alert when
 `sources.nemencine.generatedAt`, `sources.nemezio.generatedAt`, `sources.kauno.generatedAt`,
 `sources.kaisiadorys.generatedAt`, `sources.mazeikiai.generatedAt`,
 `sources.telsiai.generatedAt`, `sources.plunge.generatedAt`, `sources.rietavas.generatedAt`,
-`sources.klaipedos.generatedAt` or `sources.jurbarkas.generatedAt` is older than 30 hours (or
-missing).
+`sources.klaipedos.generatedAt`, `sources.jurbarkas.generatedAt` or
+`sources.siauliai.generatedAt` is older than 30 hours (or missing).

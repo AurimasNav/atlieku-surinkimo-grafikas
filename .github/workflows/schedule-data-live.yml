@@ -2,7 +2,7 @@ name: Schedule data live build
 
 # Pull requests that change the pipeline (code or dependencies, e.g. a Renovate update of
 # openpyxl or pdfplumber) build the data from today's files on nemenkom.lt, nkom.lt, tratc.lt,
-# gargzdusvara.eu and uabtratc.lt and from Kauno švara's open data, the way the daily job does, and compare
+# gargzdusvara.eu, uabtratc.lt and sratc.lt and from Kauno švara's open data, the way the daily job does, and compare
 # schedule.json with the published data. The unit tests in Schedule data / build only parse stored copies of the
 # files. Nothing is deployed.
 on:
@@ -40,6 +40,8 @@ jobs:
         run: uv run python -m schedule_pipeline.gargzdu --out "$RUNNER_TEMP/site/klaipedos-r"
       - name: Build the Jurbarko r. schedule from the PDFs on uabtratc.lt
         run: uv run python -m schedule_pipeline.taurage --out "$RUNNER_TEMP/site/jurbarko-r"
+      - name: Build the Šiaulių RATC schedules (five municipalities) from the PDFs on sratc.lt
+        run: uv run python -m schedule_pipeline.sratc --out "$RUNNER_TEMP/site/sratc"
       - name: Compare with the published data
         run: |
           curl -fsSL https://aurimasnav.github.io/atlieku-surinkimo-grafikas/schedule.json -o "$RUNNER_TEMP/published.json"

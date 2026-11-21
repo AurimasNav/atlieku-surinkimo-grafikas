@@ -34,6 +34,15 @@ linked in 2025 (other column titles, spaces in the lists of days, a second sheet
 links (mixed and green waste, packaging and glass), downloaded on 2026-11-21, with the Address
 Register extract for Jurbarko r. of the same day.
 
+`sratc/` has the pages of Šiaulių r. and Akmenės r. of UAB "Šiaulių regiono atliekų tvarkymo
+centras" (<https://www.sratc.lt/grafikai-siauliu-rajonas/>, `.../grafikai-akmenes-rajonas/`) and
+the 2026 PDFs for private houses of its five municipalities, downloaded on 2026-11-21, renamed:
+`siauliu-r-2026.pdf` is "2026 m- individualių valdų grafikas Šiaulių rajonas 260831.pdf",
+`akmenes-r-2026.pdf` "2026 m- individualių valdų grafikas Akmenės r-.pdf", `joniskio-r-2026.pdf`
+"2026 - individualios.pdf", `kelmes-r-2026.pdf` "2026 - individualūs.pdf" and
+`pakruojo-r-2026.pdf` "2026 m grafikai/2026 m- pakruojo individualiu valdu grafikas.pdf". With
+the Address Register extract for the five municipalities of the same day, in one file.
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 
