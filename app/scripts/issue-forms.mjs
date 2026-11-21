@@ -318,6 +318,85 @@ const FORMS = {
       appVersion,
     ],
   },
+  area_request: {
+    title: '[Area]: ',
+    labels: ['coverage'],
+    name: {
+      en: 'Ask for my area',
+      lt: 'Paprašyti mano vietovės',
+      ru: 'Попросить добавить мою местность',
+      pl: 'Poproś o moją miejscowość',
+    },
+    description: {
+      en: "The app doesn't have the schedules of your municipality yet.",
+      lt: 'Programėlėje dar nėra jūsų savivaldybės grafikų.',
+      ru: 'В приложении пока нет графиков вашего самоуправления.',
+      pl: 'W aplikacji nie ma jeszcze harmonogramów Twojego samorządu.',
+    },
+    intro: {
+      en: 'Thanks! Requests show us where to add schedules next. We start with the district municipalities around cities, where households put their own bins out, and with companies that publish their schedules as files.',
+      lt: 'Ačiū! Prašymai parodo, kur grafikus pridėti pirmiausia. Pradedame nuo rajonų savivaldybių aplink miestus, kur gyventojai konteinerius išstumia patys, ir nuo įmonių, kurios grafikus skelbia failais.',
+      ru: 'Спасибо! Запросы показывают, куда добавлять графики в первую очередь. Мы начинаем с районных самоуправлений вокруг городов, где жители сами выставляют контейнеры, и с компаний, которые публикуют графики файлами.',
+      pl: 'Dziękujemy! Prośby pokazują nam, gdzie najpierw dodać harmonogramy. Zaczynamy od samorządów rejonowych wokół miast, gdzie mieszkańcy sami wystawiają pojemniki, i od firm, które publikują harmonogramy w plikach.',
+    },
+    fields: [
+      {
+        type: 'input',
+        id: 'municipality',
+        required: true,
+        label: { en: 'Municipality', lt: 'Savivaldybė', ru: 'Самоуправление', pl: 'Samorząd' },
+        placeholder: {
+          en: 'e.g. Klaipėdos r.',
+          lt: 'pvz., Klaipėdos r.',
+          ru: 'например, Klaipėdos r.',
+          pl: 'np. Klaipėdos r.',
+        },
+      },
+      {
+        type: 'input',
+        id: 'settlement',
+        label: {
+          en: 'Settlement or eldership',
+          lt: 'Gyvenvietė ar seniūnija',
+          ru: 'Населённый пункт или староство',
+          pl: 'Miejscowość lub starostwo',
+        },
+      },
+      {
+        type: 'input',
+        id: 'company',
+        label: {
+          en: 'Company that collects your waste, if you know it',
+          lt: 'Įmonė, kuri išveža jūsų atliekas, jei žinote',
+          ru: 'Компания, которая вывозит ваши отходы, если знаете',
+          pl: 'Firma, która odbiera Twoje odpady, jeśli wiesz',
+        },
+      },
+      {
+        type: 'input',
+        id: 'schedule-link',
+        label: {
+          en: 'Link to the official schedule, if you have it',
+          lt: 'Nuoroda į oficialų grafiką, jei turite',
+          ru: 'Ссылка на официальный график, если есть',
+          pl: 'Link do oficjalnego harmonogramu, jeśli go masz',
+        },
+      },
+      {
+        type: 'input',
+        id: 'search',
+        label: {
+          en: 'What you searched for in the app',
+          lt: 'Ko ieškojote programėlėje',
+          ru: 'Что вы искали в приложении',
+          pl: 'Czego szukałeś(-aś) w aplikacji',
+        },
+        description: filledByApp,
+      },
+      language,
+      appVersion,
+    ],
+  },
 };
 
 // YAML double-quoted scalars accept JSON string syntax; multi-line text uses a block scalar.

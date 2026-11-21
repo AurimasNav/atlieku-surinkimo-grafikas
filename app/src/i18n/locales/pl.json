@@ -183,7 +183,8 @@
     "schedule": "Błędne daty lub adres",
     "idea": "Zaproponuj pomysł",
     "githubNote": "Otworzy się formularz na GitHubie (potrzebne darmowe konto). Nic nie zostanie wysłane, dopóki go nie wyślesz.",
-    "wrongDates": "Daty wyglądają na błędne? Daj nam znać"
+    "wrongDates": "Daty wyglądają na błędne? Daj nam znać",
+    "area": "Poproś o dodanie mojej miejscowości"
   },
   "crash": {
     "title": "Coś poszło nie tak",

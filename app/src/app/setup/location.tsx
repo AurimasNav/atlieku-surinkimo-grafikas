@@ -16,6 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { AppText, Button, ListRow, PressableScale, ScreenHeader, SearchField } from '@/components/ui';
+import { openIssue } from '@/lib/feedback';
 import { type GeolocateResult, locateHome } from '@/lib/geolocate';
 import {
   fetchKaunoIndex,
@@ -273,6 +274,14 @@ export default function ChooseLocation() {
                   title={t('setup.manualLink')}
                   onPress={() => router.push({ pathname: '/select/[kind]', params: { kind: 'household', flow: 'manual' } })}
                 />
+                {deferred && !results.length && (
+                  <Button
+                    variant="ghost"
+                    icon="megaphone-outline"
+                    title={t('feedback.area')}
+                    onPress={() => openIssue('area_request', { search: deferred })}
+                  />
+                )}
               </View>
             )
           }

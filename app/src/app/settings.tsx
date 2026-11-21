@@ -142,6 +142,11 @@ export default function Settings() {
               title={t('feedback.idea')}
               onPress={() => openIssue('feature_request')}
             />
+            <ListRow
+              icon={<Ionicons name="megaphone" size={22} color={theme.primary} />}
+              title={t('feedback.area')}
+              onPress={() => openIssue('area_request')}
+            />
           </View>
           <AppText variant="caption" muted>
             {t('feedback.githubNote')}
