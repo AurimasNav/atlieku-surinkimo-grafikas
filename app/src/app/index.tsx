@@ -326,6 +326,7 @@ export default function Home() {
               }
               style={styles.reportLink}
             />
+            <Button variant="ghost" icon="leaf-outline" title={t('guide.entry')} onPress={() => router.push('/guide')} />
             <AppText variant="caption" muted style={styles.footer}>
               {t('home.updated', {
                 date: new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }).format(new Date(data.generatedAt)),
