@@ -126,6 +126,13 @@ groups:
           summary: "metrics.txt can't be fetched from GitHub Pages"
 ```
 
+CI checks these examples with promtool whenever this file, the code that writes `metrics.txt`
+or the tests change. They must parse, use only metrics the data job writes, and pass the
+scenarios in [`monitoring.test.yml`](monitoring.test.yml) with the 15-minute scrape above:
+stale data, a failing fetch, a schedule running out, fewer places, more warnings, a vanished
+source and healthy data. Run the same locally with `sh docs/monitoring-check.sh` (needs
+promtool and python3).
+
 ## Grafana without Prometheus
 
 Add the [Infinity](https://grafana.com/grafana/plugins/yesoreyeram-infinity-datasource/) data
