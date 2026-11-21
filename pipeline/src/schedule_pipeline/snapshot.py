@@ -150,6 +150,10 @@ TRAKAI_ADDRESSES_FILE = DATA_DIR / "address-points-traku-r.json"
 SALCININKAI_MUNICIPALITY = ("Šalčininkų rajono", 85)
 SALCININKAI_REGISTRY_FILE = DATA_DIR / "registry-salcininku-r.json"
 SALCININKAI_ADDRESSES_FILE = DATA_DIR / "address-points-salcininku-r.json"
+# Anykščių r. (schedule_pipeline.anyksciai).
+ANYKSCIAI_MUNICIPALITY = ("Anykščių rajono", 34)
+ANYKSCIAI_REGISTRY_FILE = DATA_DIR / "registry-anyksciu-r.json"
+ANYKSCIAI_ADDRESSES_FILE = DATA_DIR / "address-points-anyksciu-r.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -308,6 +312,12 @@ def main() -> int:
             SALCININKAI_MUNICIPALITY,
             SALCININKAI_REGISTRY_FILE,
             SALCININKAI_ADDRESSES_FILE,
+        ),
+        (
+            "Anykščių r.",
+            ANYKSCIAI_MUNICIPALITY,
+            ANYKSCIAI_REGISTRY_FILE,
+            ANYKSCIAI_ADDRESSES_FILE,
         ),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)

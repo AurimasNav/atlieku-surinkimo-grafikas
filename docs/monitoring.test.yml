@@ -115,6 +115,9 @@ tests:
         values: "518400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="salcininkai",kind="glass"}'
         values: "518400x20"
+      # Anykščių r.: mixed waste, packaging and glass.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="anyksciai",kind="glass"}'
+        values: "518400x20"
       # Ends in 30 days: no alert.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="glass"}'
         values: "2592000x20"
@@ -194,6 +197,9 @@ tests:
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="trakai",kind="packaging"}'
         values: "2592000x20"
+      # Anykščiai's green waste, last collected on 21-22 December: not watched.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="anyksciai",kind="green"}'
+        values: "86400x20"
     alert_rule_test:
       - eval_time: 40m
         alertname: ScheduleDataRunsOut
@@ -347,6 +353,13 @@ tests:
               severity: warning
             exp_annotations:
               summary: "salcininkai: the glass schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: anyksciai
+              kind: glass
+              severity: warning
+            exp_annotations:
+              summary: "anyksciai: the glass schedule ends within a week"
 
   - name: fewer places and more warnings than a day before
     interval: 15m
@@ -446,6 +459,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="trakai",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="anyksciai",kind="household"}'
         values: "25920000x191"
       - series: 'up{job="siuksliaveze-data"}'
         values: "1x191"
