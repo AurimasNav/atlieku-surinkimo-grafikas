@@ -595,12 +595,11 @@ def save_copy(municipality: maatc.Municipality, folder: Path, today: date | None
     """Saves the municipality's page and the files it links in `folder`, for download when
     the site doesn't answer: python -m schedule_pipeline.snapshot."""
     page = municipality.provider.url
+    today = today or snapshot.utc_today()
     html = _live(page)
-    files, _ = tratc.select_files(
-        find_files(html.decode("utf-8", "replace"), page), today or date.today()
-    )
+    files, _ = tratc.select_files(find_files(html.decode("utf-8", "replace"), page), today)
     contents = [(f.url, _live(f.url)) for f in files]
-    snapshot.save_site_copy(folder, page, html, contents, today or date.today())
+    snapshot.save_site_copy(folder, page, html, contents, today)
 
 
 # --- the tables ------------------------------------------------------------------

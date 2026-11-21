@@ -209,6 +209,12 @@ def age_days(taken_at: str, today: date) -> int:
     return (today - date.fromisoformat(taken_at)).days
 
 
+def utc_today() -> date:
+    """Today in UTC, the date the snapshots and GitHub's runners use: a copy saved after
+    midnight in Lithuania would otherwise be a day "younger" than the runner's today."""
+    return datetime.now(UTC).date()
+
+
 # A copy of a site that refuses GitHub's runners (ecoservice: silute.lt, kedainiai: kedainiai.lt):
 # its page as page.html, the files it links under the last part of their URLs, and this index
 # with when it was taken, the page's URL and the files' names.
