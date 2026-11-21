@@ -17,7 +17,7 @@ gargzdusvara.eu (xlsx)                    Klaipėdos r.: site/klaipedos-r/
 uabtratc.lt (pdf)                         Jurbarko r., Tauragės r., Šilalės r., Pagėgių sav.:
                                           site/jurbarko-r/
 sratc.lt (pdf)                            Šiaulių r., Akmenės r., Joniškio r., Kelmės r.,
-                                          Pakruojo r.: site/sratc/
+                                          Pakruojo r., Radviliškio r.: site/sratc/
 aratc.lt (pdf)                            Alytaus r., Prienų r., Lazdijų r., Varėnos r.,
                                           Druskininkai, Birštonas: site/alytaus-ratc/
    │  daily GitHub Action (.github/workflows/schedule-data.yml)

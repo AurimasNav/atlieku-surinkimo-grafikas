@@ -16,10 +16,15 @@ export type StaleSource = { name: string; url: string; since: string };
 const older = (iso: string | undefined, days: number, now: Date) =>
   Boolean(iso) && now.getTime() - Date.parse(iso!) > days * DAY;
 
-/** The companies behind the user's schedules whose data hasn't been rebuilt for a week. */
+/**
+ * The companies behind the user's schedules whose data hasn't been rebuilt for a week. Each
+ * region file lists its companies with their names and official pages (`providers`), so a new
+ * one needs nothing here.
+ */
 export function staleSources(data: ScheduleData | null, place: Place | null, resolved: Resolved, now: Date): StaleSource[] {
   if (!data) return [];
   if (place?.kauno) {
+    // Kauno r. and Kaišiadorių r.: one file, built from one source.
     const key = kaunoKey(place.kauno);
     const since = personalsOf(data).find((p) => p.key === key)?.generatedAt;
     return older(since, STALE_DATA_DAYS, now) ? [{ name: 'UAB „Kauno švara“', url: KAUNO_SOURCE_PAGE_URL, since: since! }] : [];
@@ -28,6 +33,8 @@ export function staleSources(data: ScheduleData | null, place: Place | null, res
   const ids = new Set(resolved.areas.filter((area) => !isCustomArea(area)).map((area) => area.provider ?? 'nemencine'));
   return [...ids].flatMap((id): StaleSource[] => {
     const provider = data.providers?.find((p) => p.id === id);
+    // A company the data doesn't list: nothing to say when, or whose, it was built.
+    if (!provider && id !== 'nemencine') return [];
     const since = provider ? provider.generatedAt : data.generatedAt;
     if (!older(since, STALE_DATA_DAYS, now)) return [];
     const url = provider?.url.startsWith('https://') ? provider.url : SOURCE_PAGE_URL;

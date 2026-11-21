@@ -14,11 +14,17 @@ const outDir = join(import.meta.dirname, '..', '..', '.github', 'ISSUE_TEMPLATE'
 const LANGUAGES = readdirSync(join(import.meta.dirname, '..', 'src', 'i18n', 'locales')).map((file) =>
   file.replace(/\.json$/, ''),
 );
-// The official schedule page of each company, as a Markdown list.
+// The official schedule page of each company, as a Markdown list (the app's "Official schedule"
+// opens the page of the user's own).
 const OFFICIAL_SCHEDULES = [
   'UAB „Nemenčinės komunalininkas“: https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/',
   'UAB „Nemėžio komunalininkas“: https://www.nkom.lt/kita.html',
   'UAB „Kauno švara“: https://grafikai.svara.lt/',
+  'UAB „Telšių regiono atliekų tvarkymo centras“: https://tratc.lt/atlieku-surinkimo-grafikai/',
+  'VšĮ „Gargždų švara“: https://www.gargzdusvara.eu/komunaliniu-atlieku-tvarkymo-grafikai/',
+  'UAB „Tauragės regiono atliekų tvarkymo centras“: https://www.uabtratc.lt/atlieku-surinkimo-grafikai/',
+  'UAB „Šiaulių regiono atliekų tvarkymo centras“: https://www.sratc.lt/kalendoriaus-grafikai/',
+  'UAB „Alytaus regiono atliekų tvarkymo centras“: https://www.aratc.lt/atlieku-surinkimo-grafikai/',
 ]
   .map((line) => `- ${line}`)
   .join('\n');
@@ -346,10 +352,10 @@ const FORMS = {
         required: true,
         label: { en: 'Municipality', lt: 'Savivaldybė', ru: 'Самоуправление', pl: 'Samorząd' },
         placeholder: {
-          en: 'e.g. Klaipėdos r.',
-          lt: 'pvz., Klaipėdos r.',
-          ru: 'например, Klaipėdos r.',
-          pl: 'np. Klaipėdos r.',
+          en: 'e.g. Radviliškio r.',
+          lt: 'pvz., Radviliškio r.',
+          ru: 'например, Radviliškio r.',
+          pl: 'np. Radviliškio r.',
         },
       },
       {

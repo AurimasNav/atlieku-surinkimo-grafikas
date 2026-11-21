@@ -143,9 +143,11 @@ jobs:
             echo "::error::The Tauragės RATC build failed and the published data couldn't be downloaded (HTTP $code)."
             exit 1
           fi
-      # Šiaulių r., Akmenės r., Joniškio r., Kelmės r. and Pakruojo r., from the PDFs of Šiaulių
-      # RATC (site/sratc, one file for the five): the same rule.
-      - name: Build the Šiaulių RATC schedules (five municipalities)
+      # Šiaulių r., Akmenės r., Joniškio r., Kelmės r. and Pakruojo r., and Radviliškio r., from
+      # the PDFs of Šiaulių RATC (site/sratc, a part for the five and one for Radviliškio r.): a
+      # part whose build fails keeps its part of yesterday's file; if neither can be built,
+      # yesterday's files are kept.
+      - name: Build the Šiaulių RATC schedules (six municipalities)
         id: siauliai
         if: github.event_name != 'pull_request'
         continue-on-error: true
