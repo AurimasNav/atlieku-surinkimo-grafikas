@@ -212,7 +212,14 @@
     "remove": "Pašalinti mano grafiką",
     "notSet": "Nenustatyta",
     "set": "Nustatyti grafiką",
-    "needOne": "Nustatykite bent vieną grafiką, kad galėtumėte tęsti."
+    "needOne": "Nustatykite bent vieną grafiką, kad galėtumėte tęsti.",
+    "skipDate": "Praleisti šią datą",
+    "unskipDate": "Grąžinti šią datą",
+    "removeDate": "Pašalinti šią datą",
+    "addDate": "Pridėti išvežimo datą",
+    "skipped": "Praleista",
+    "extra": "papildoma data",
+    "exceptionsHint": "Šventinė savaitė? Įprastą datą praleiskite paspaudę ×, tada pridėkite dieną, į kurią išvežimas perkeltas."
   },
   "manage": {
     "useOfficial": "Naudoti oficialų mano vietovės grafiką",

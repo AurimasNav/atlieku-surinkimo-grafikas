@@ -208,7 +208,14 @@
     "remove": "Remove my schedule",
     "notSet": "Not set",
     "set": "Set schedule",
-    "needOne": "Set at least one schedule to continue."
+    "needOne": "Set at least one schedule to continue.",
+    "skipDate": "Skip this date",
+    "unskipDate": "Bring this date back",
+    "removeDate": "Remove this date",
+    "addDate": "Add a pickup date",
+    "skipped": "Skipped",
+    "extra": "extra date",
+    "exceptionsHint": "Holiday week? Skip the usual date with ×, then add the day it moved to."
   },
   "manage": {
     "useOfficial": "Use the official schedule for my place",

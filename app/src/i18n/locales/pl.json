@@ -212,7 +212,14 @@
     "remove": "Usuń mój harmonogram",
     "notSet": "Nie ustawiono",
     "set": "Ustaw harmonogram",
-    "needOne": "Ustaw co najmniej jeden harmonogram, aby kontynuować."
+    "needOne": "Ustaw co najmniej jeden harmonogram, aby kontynuować.",
+    "skipDate": "Pomiń tę datę",
+    "unskipDate": "Przywróć tę datę",
+    "removeDate": "Usuń tę datę",
+    "addDate": "Dodaj termin odbioru",
+    "skipped": "Pominięty",
+    "extra": "dodatkowy termin",
+    "exceptionsHint": "Tydzień ze świętem? Pomiń zwykły termin przyciskiem ×, a potem dodaj dzień, na który przeniesiono odbiór."
   },
   "manage": {
     "useOfficial": "Użyj oficjalnego harmonogramu mojej miejscowości",
