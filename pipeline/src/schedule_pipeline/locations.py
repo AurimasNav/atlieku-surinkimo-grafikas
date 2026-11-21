@@ -1149,6 +1149,8 @@ class SectionRoutes:
         )
         # "Jurbarko m., privačių namų konteineriai gatvėse:"
         self.town_mark = re.compile(rf"\b{re.escape(self.town.genitive)}\s+m\.\s*(?:,[^,:]*)?:")
+        # Towns whose routes name the streets of private houses (build_locations).
+        self.towns_by_street = {self.town.code}
         self.unknown: list[str] = []
         # Settlements the rows of each kind name in their own eldership; None before prepare.
         self.named: dict[str, set[int]] | None = None
@@ -1456,10 +1458,12 @@ def build_locations(
     sections = (
         SectionRoutes(index, provider, variants) if provider and provider.section_town else None
     )
-    # A provider's own reader (Provider.reader), e.g. sratc.Blocks.
+    # A provider's own reader (Provider.reader), e.g. sratc.Blocks, aratc.Routes.
     own = provider.reader(index, provider, variants) if provider and provider.reader else None
     # Both: rows of either shape (MixedRoutes).
     mixed = MixedRoutes(routes, sections) if routes and sections else None
+    # Towns whose routes name every street with a pickup (SectionRoutes and aratc.Routes).
+    towns_by_street = getattr(sections or own, "towns_by_street", set())
     # Readers of rows that cover the whole municipality, without an eldership column.
     municipal = mixed or routes or rows or sections or own
     reader = PlaceList(index, provider, variants, None) if provider and place_lists else None
@@ -1515,7 +1519,7 @@ def build_locations(
                 if district == settlement.district and settlement.code not in excluded:
                     clauses[kind].append(Clause(area_id, None, fallback=True))
 
-        town = sections is not None and settlement.code == sections.town.code
+        town = settlement.code in towns_by_street
         # Not a town of MixedRoutes whose streets of private houses are all in one route (the
         # packaging of Rietavas): its apartment buildings, in none, aren't served by it.
         simplify = (place_lists or bool(municipal)) and not (mixed and town)

@@ -107,12 +107,14 @@ def merge_areas(areas: list[Area]) -> list[Area]:
 def current_rows(parsed: list[tuple[SourceFile, ParseResult]], today: date) -> set[str]:
     """Ids of the rows in the newest schedule of each kind: the files that still run past today,
     or, between the end of one period and the publication of the next, the latest ones."""
-    ends: dict[tuple[Kind, str], list[tuple[date, ParseResult]]] = {}
+    ends: dict[tuple[Kind, str, str], list[tuple[date, ParseResult]]] = {}
     for source, result in parsed:
         dates = [d for a in result.areas for d in a.dates]
         if dates:
-            # Each municipality's files on their own (sratc: one is late with next year's).
-            ends.setdefault((source.kind, source.municipality), []).append((max(dates), result))
+            # Each municipality's files on their own (sratc: one is late with next year's), and
+            # each group's (aratc: Druskininkai's farmsteads).
+            key = (source.kind, source.municipality, source.group)
+            ends.setdefault(key, []).append((max(dates), result))
     ids: set[str] = set()
     for files in ends.values():
         latest = max(end for end, _ in files)

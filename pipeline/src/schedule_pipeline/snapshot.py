@@ -60,6 +60,17 @@ KELMES_R_ADDRESSES_FILE = DATA_DIR / "address-points-kelmes-r.json"
 PAKRUOJO_R_MUNICIPALITY = ("Pakruojo rajono", 65)
 PAKRUOJO_R_REGISTRY_FILE = DATA_DIR / "registry-pakruojo-r.json"
 PAKRUOJO_R_ADDRESSES_FILE = DATA_DIR / "address-points-pakruojo-r.json"
+# The six municipalities of Alytaus RATC (schedule_pipeline.aratc), in one file.
+ALYTUS_MUNICIPALITIES = (
+    ("Alytaus rajono", 33),
+    ("Prienų rajono", 69),
+    ("Lazdijų rajono", 59),
+    ("Varėnos rajono", 38),
+    ("Druskininkų", 15),
+    ("Birštono", 12),
+)
+ALYTUS_REGISTRY_FILE = DATA_DIR / "registry-alytaus-ratc.json"
+ALYTUS_ADDRESSES_FILE = DATA_DIR / "address-points-alytaus-ratc.json"
 # Telšių r., Plungės r. and Rietavo sav. (schedule_pipeline.tratc, next to Mažeikių r.).
 TELSIAI_MUNICIPALITY = ("Telšių rajono", 78)
 TELSIAI_REGISTRY_FILE = DATA_DIR / "registry-telsiu-r.json"
@@ -160,6 +171,13 @@ def main() -> int:
         save(registry, points, registry_file, addresses_file)
         count = f"{len(registry.settlements)} settlements and {len(points)} address points"
         print(f"{label}: saved {count} to {DATA_DIR}")
+    registry = Registry(
+        [s for name, _ in ALYTUS_MUNICIPALITIES for s in address_register.fetch(name).settlements]
+    )
+    points = address_points.fetch_all([code for _, code in ALYTUS_MUNICIPALITIES])
+    save(registry, points, ALYTUS_REGISTRY_FILE, ALYTUS_ADDRESSES_FILE)
+    count = f"{len(registry.settlements)} settlements and {len(points)} address points"
+    print(f"Alytaus RATC: saved {count} to {DATA_DIR}")
     return 0
 
 
