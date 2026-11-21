@@ -488,9 +488,10 @@ def schedule_of(data, name, kind="household", district=None):
 
 
 def street_rows(data, town, kind, label):
+    """The rows of a street; None if it's left to the app."""
     location = place(data, town)
     key = next(key for key, text in location["streets"] if text == label)
-    return location["schedule"][kind]["streets"][key]
+    return location["schedule"][kind]["streets"].get(key)
 
 
 def test_a_name_that_says_nothing_is_read_by_its_title():
@@ -615,8 +616,11 @@ def test_telsiai_villages_streets_and_gardens(parts):
     first = street_rows(data, "Telšiai", "household", "Degaičių skg.")
     assert row(data, first[0])["name"].startswith("Telšių miesto Aukštoji")
     assert street_rows(data, "Telšiai", "household", "Ežero skg.") == first
-    # A street no route names: apartment buildings, or not in the file.
-    assert street_rows(data, "Telšiai", "household", "Luokės skg.") == []
+    # A street no route names isn't "no pickup": the file leaves out streets of private houses
+    # (Išdegos Pušies g.). The app offers the town's routes.
+    assert street_rows(data, "Telšiai", "household", "Išdegos Pušies g.") is None
+    assert street_rows(data, "Telšiai", "household", "Luokės skg.") is None
+    assert all(schedule_of(data, "Telšiai")["streets"].values())
     # Gardens after "Sodai :": the streets named after them ("Austelės g." of Siraičiai is
     # named in the same route).
     gardens = street_rows(data, "Siraičiai", "household", "Austelės g.")
@@ -672,10 +676,12 @@ def test_rietavas_villages_of_one_name_and_the_town(parts):
     # "Sauslaukis (Rasos g.)" in one packaging route, "Sauslaukis" in another.
     packaging = schedule_of(data, "Sauslaukis", "packaging")
     assert street_rows(data, "Sauslaukis", "packaging", "Rasos g.") != [packaging["area"]]
-    # The town's streets: one route of private houses for packaging, not for every street.
+    # The town: by street for mixed waste, a street no route names left to the app; one route
+    # for packaging.
     assert street_rows(data, "Rietavas", "household", "Atgimimo g.")
-    assert street_rows(data, "Rietavas", "packaging", "Birutės g.")
-    assert street_rows(data, "Rietavas", "packaging", "Lankų g.") == []
+    assert street_rows(data, "Rietavas", "household", "Lankų g.") is None
+    packaging = row(data, schedule_of(data, "Rietavas", "packaging")["area"])
+    assert packaging["name"].startswith("Rietavo m.individualių namų")
 
 
 def test_one_file_for_the_four_municipalities(part, parts, tmp_path):

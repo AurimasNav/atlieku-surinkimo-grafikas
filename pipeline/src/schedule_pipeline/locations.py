@@ -1350,7 +1350,14 @@ class MixedRoutes:
     """Routes of both shapes in one provider's files, each read by the reader of its shape:
     those in elderships' sections ("Šateikių sen.: Aleksandravo k., ...", the mixed waste files
     of Plungės r. and Rietavo sav.) by SectionRoutes, lists of places ("Paežerė, Grumbliai,
-    Tarvainiai (Miško g., ...)", their packaging files) by RouteList."""
+    Tarvainiai (Miško g., ...)", their packaging files) by RouteList.
+
+    No town gets "no pickup" for a street no route names (build_locations): those of Telšiai
+    left out of the file include streets of private houses (Išdegos Pušies g., Džiugailės g.),
+    and none of the files lists the apartment buildings' streets. The app offers the town's
+    routes instead."""
+
+    towns_by_street: set[int] = set()
 
     def __init__(self, routes: RouteList, sections: SectionRoutes):
         self.routes = routes
@@ -1463,7 +1470,7 @@ def build_locations(
     # Both: rows of either shape (MixedRoutes).
     mixed = MixedRoutes(routes, sections) if routes and sections else None
     # Towns whose routes name every street with a pickup (SectionRoutes and aratc.Routes).
-    towns_by_street = getattr(sections or own, "towns_by_street", set())
+    towns_by_street = getattr(mixed or sections or own, "towns_by_street", set())
     # Readers of rows that cover the whole municipality, without an eldership column.
     municipal = mixed or routes or rows or sections or own
     reader = PlaceList(index, provider, variants, None) if provider and place_lists else None
@@ -1519,14 +1526,11 @@ def build_locations(
                 if district == settlement.district and settlement.code not in excluded:
                     clauses[kind].append(Clause(area_id, None, fallback=True))
 
-        town = settlement.code in towns_by_street
-        # Not a town of MixedRoutes whose streets of private houses are all in one route (the
-        # packaging of Rietavas): its apartment buildings, in none, aren't served by it.
-        simplify = (place_lists or bool(municipal)) and not (mixed and town)
+        simplify = place_lists or bool(municipal)
         schedule = {kind: r for kind in kinds if (r := resolve(clauses.get(kind, []), simplify))}
-        # MixedRoutes: as SectionRoutes. The lists of a village's streets in its packaging
-        # routes (Pakerai of Plungės r. in four) leave out some, which the app then offers
-        # the village's rows for.
+        town = settlement.code in towns_by_street
+        # MixedRoutes: neither its towns nor its villages; the app offers their rows for a
+        # street no route names.
         if (routes and not mixed) or town:
             # A route names every street it serves, so a street no route names has no pickup
             # (apartment buildings with shared containers, gardens without food waste). An
