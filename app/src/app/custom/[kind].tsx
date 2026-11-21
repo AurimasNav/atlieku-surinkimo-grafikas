@@ -141,6 +141,8 @@ export default function CustomScheduleEditor() {
                 (Platform.OS === 'android' ? (
                   <DateTimePicker
                     mode="date"
+                    positiveButton={{ label: t('common.done') }}
+                    negativeButton={{ label: t('common.cancel') }}
                     value={new Date()}
                     minimumDate={new Date()}
                     onChange={(event, picked) => {

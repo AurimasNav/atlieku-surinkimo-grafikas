@@ -20,12 +20,13 @@
     "greenShort": "Green"
   },
   "common": {
-    "retry": "Try again",
+    "cancel": "Cancel",
+    "change": "Change",
     "continue": "Continue",
     "done": "Done",
-    "skip": "I don't have this container",
     "openSettings": "Open settings",
-    "change": "Change"
+    "retry": "Try again",
+    "skip": "I don't have this container"
   },
   "onboarding": {
     "title": "Bins out.\nOn time.",
