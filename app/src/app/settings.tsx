@@ -11,7 +11,7 @@ import { EkonovusLink } from '@/components/ekonovus-link';
 import { ReminderPicker } from '@/components/reminder-picker';
 import { AppText, Button, Card, Chip, KindIcon, ListRow, PressableScale, ScreenHeader } from '@/components/ui';
 import { LANGUAGE_NAMES, LANGUAGES, type Language } from '@/i18n';
-import { PRIVACY_URL, REPOSITORY_URL } from '@/lib/config';
+import { COMPANIES, PRIVACY_URL, REPOSITORY_URL } from '@/lib/config';
 import { canExportCalendar, exportCalendar } from '@/lib/export-calendar';
 import { toIsoDate } from '@/lib/dates';
 import { openIssue } from '@/lib/feedback';
@@ -188,7 +188,7 @@ export default function Settings() {
         <Card>
           <AppText variant="label">{t('settings.disclaimerTitle')}</AppText>
           <AppText variant="caption" muted>
-            {t('settings.disclaimer')}
+            {t('settings.disclaimer', { companies: COMPANIES.join(', ') })}
           </AppText>
         </Card>
 

@@ -20,7 +20,7 @@ Only needed once the app is released on iOS; see [releasing.md](releasing.md#add
 | Tracking (App Tracking Transparency) | Not used. `NSPrivacyTracking` is `false`. |
 | Privacy manifest | Set in `app/app.json` → `ios.privacyManifests`: no collected data types; `UserDefaults` declared with reason `CA92.1` (app's own settings). Expo packages ship their own manifests. If Apple emails about a missing "required reason" API after an upload, add it there. |
 | Export compliance | Uses only standard HTTPS, which is exempt. `ITSAppUsesNonExemptEncryption` is `false` (set via `ios.config.usesNonExemptEncryption`), so Apple won't ask on each build. |
-| Third-party content | The app shows public schedule data published by UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Telšių regiono atliekų tvarkymo centras“, VšĮ „Gargždų švara“ and UAB „Tauragės regiono atliekų tvarkymo centras“, with attribution and a link to the source, and links to the glass and packaging schedules of UAB „Ekonovus“ in Kaunas district. |
+| Third-party content | The app shows public schedule data published by UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Telšių regiono atliekų tvarkymo centras“, VšĮ „Gargždų švara“, UAB „Tauragės regiono atliekų tvarkymo centras“, UAB „Šiaulių regiono atliekų tvarkymo centras“ and UAB „Alytaus regiono atliekų tvarkymo centras“, with attribution and a link to the source, and links to the glass and packaging schedules of UAB „Ekonovus“ in Kaunas and Kaišiadorys districts. |
 | Age rating | Answer "None" to every content question; the result is 4+. |
 
 **Location:** the optional "Use my current location" reads the position once, while the app is
@@ -35,9 +35,9 @@ collection by the app either. Crash details are stored on the device until repor
 **Why "Data Not Collected" is correct:** Apple counts data as collected when it is sent off the
 device and stored longer than needed to serve the request. The app downloads public files;
 the requests carry no user data, and the IP address that reaches GitHub Pages is not stored
-by us or linked to the user. For an address in Kaunas district the app downloads the address
-list of the user's eldership (seniūnija), so the file name shows GitHub Pages which eldership
-is asked for; we don't receive or store that either, and PRIVACY.md says so.
+by us or linked to the user. For an address in Kaunas or Kaišiadorys district the app downloads
+the address list of the user's eldership (seniūnija), so the file name shows GitHub Pages which
+eldership is asked for; we don't receive or store that either, and PRIVACY.md says so.
 
 ## Google Play Console
 
@@ -64,17 +64,22 @@ is asked for; we don't receive or store that either, and PRIVACY.md says so.
 
 ## Store listing disclaimer
 
-Put this at the end of the description in both stores (and in the other languages you list):
+Put this at the end of the description in both stores (and in the other languages you list).
+The description names each publisher next to the municipalities it covers, so the disclaimer
+refers to them instead of listing every company again:
 
-> Unofficial app made by volunteers, not affiliated with UAB „Nemenčinės komunalininkas“,
-> UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“, UAB „Virginijus ir Ko“, VšĮ „Gargždų švara“, UAB „Tauragės regiono atliekų tvarkymo centras“ or UAB „Jurbarko komunalininkas“. Dates come from the schedules they publish and
-> may contain mistakes; always check the official schedule if in doubt. Provided free of
+> Unofficial app made by volunteers, not affiliated with the companies and organisations named
+> here or with the companies that collect the waste. Dates come from the schedules they publish
+> and may contain mistakes; always check the official schedule if in doubt. Provided free of
 > charge, without any warranty.
 
-> Neoficiali savanorių sukurta programėlė, nesusijusi su UAB „Nemenčinės komunalininkas“,
-> UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Ekonovus“, UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Ecoservice“, UAB „Virginijus ir Ko“, VšĮ „Gargždų švara“, UAB „Tauragės regiono atliekų tvarkymo centras“ ir UAB „Jurbarko komunalininkas“. Datos paimtos iš jų skelbiamų grafikų ir gali
-> turėti klaidų; kilus abejonių, pasitikrinkite oficialų grafiką. Teikiama nemokamai, be jokių
+> Neoficiali savanorių sukurta programėlė, nesusijusi su čia minimomis įmonėmis ir įstaigomis ar
+> su atliekas išvežančiomis įmonėmis. Datos paimtos iš jų skelbiamų grafikų ir gali turėti
+> klaidų; kilus abejonių, pasitikrinkite oficialų grafiką. Teikiama nemokamai, be jokių
 > garantijų.
+
+In the app, the disclaimer in settings names every company (`COMPANIES` in
+`app/src/lib/config.ts`).
 
 ## Before the first submission
 

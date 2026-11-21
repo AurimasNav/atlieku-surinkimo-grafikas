@@ -24,7 +24,9 @@ import {
   type KaunoTown,
   kaunoTowns,
   loadKaunoAddress,
+  municipalityOf,
   searchKaunoTowns,
+  type UncoveredCity,
 } from '@/lib/kauno';
 import { type Location, searchLocations } from '@/lib/schedule';
 import { nextSetupStep } from '@/lib/setup-flow';
@@ -35,8 +37,16 @@ import { fonts, radius, spacing, useTheme } from '@/theme';
 
 const MAX_RESULTS = 50;
 
-/** A settlement of schedule.json, or a town of Kauno r. whose address is asked next. */
+/** A settlement of schedule.json, or a town of the Kauno švara data whose address is asked next. */
 type Result = { key: string; location?: Location; kauno?: KaunoTown };
+
+/** What a search for a city that isn't covered says (see uncoveredCitySearch). */
+const CITY_HINTS = {
+  kaunas: 'setup.locationKaunasCity',
+  klaipeda: 'setup.locationKlaipedaCity',
+  siauliai: 'setup.locationSiauliaiCity',
+  alytus: 'setup.locationAlytusCity',
+} as const satisfies Record<UncoveredCity, string>;
 
 export default function ChooseLocation() {
   const motion = useMotion();
@@ -49,7 +59,8 @@ export default function ChooseLocation() {
   const [locating, setLocating] = useState(false);
   const [gps, setGps] = useState<GeolocateResult | null>(null);
 
-  // Kauno r. is a separate, small download; without it the search just covers less.
+  // Kauno r. and Kaišiadorių r. are a separate, small download; without it the search just
+  // covers less.
   const [kauno, setKauno] = useState<KaunoTown[]>([]);
   useEffect(() => {
     fetchKaunoIndex()
@@ -65,6 +76,8 @@ export default function ChooseLocation() {
       ].slice(0, MAX_RESULTS),
     [data, kauno, deferred],
   );
+  const city = uncoveredCitySearch(deferred);
+  const cityHint = city && t(CITY_HINTS[city]);
 
   const pick = (locationId: string, street?: string) => {
     useSettings.getState().setLocation(locationId, street);
@@ -91,6 +104,10 @@ export default function ChooseLocation() {
 
   const found = gps?.ok ? gps : null;
   const foundLocation = found?.address && data?.locations?.find((loc) => loc.id === found.address.locationId);
+  // The addresses with coordinates don't say which municipality an eldership is in; the list of
+  // towns does, once it's downloaded.
+  const foundKaunoTown =
+    found && !found.address ? kauno.find((town) => town.eldership === found.kauno.eldership) : undefined;
   const [confirming, setConfirming] = useState(false);
   const confirmFound = async () => {
     if (!found) return;
@@ -134,7 +151,12 @@ export default function ChooseLocation() {
           <AppText muted>
             {found.address
               ? [found.street !== 'far' && foundLocation?.name, `${foundLocation?.district} sen.`].filter(Boolean).join(', ')
-              : [found.street !== 'far' && found.kauno.town, `${found.kauno.eldershipName} · Kauno r.`].filter(Boolean).join(', ')}
+              : [
+                  found.street !== 'far' && found.kauno.town,
+                  [found.kauno.eldershipName, foundKaunoTown && municipalityOf(foundKaunoTown)].filter(Boolean).join(' · '),
+                ]
+                  .filter(Boolean)
+                  .join(', ')}
           </AppText>
           {found.street !== 'ok' && (
             <AppText variant="caption" muted>
@@ -187,7 +209,7 @@ export default function ChooseLocation() {
                 servicesOff: t('setup.locationServicesOff'),
                 unavailable: t('setup.locationUnavailable'),
                 offline: t('setup.locationOffline'),
-                far: t('setup.locationFar'),
+                far: t('setup.locationFar', { areas: t('coverage.areas') }),
               }[gps.reason]
             }
           </AppText>
@@ -219,18 +241,24 @@ export default function ChooseLocation() {
             <View style={styles.header}>
               {gpsCard}
               {!found && <SearchField value={query} onChangeText={setQuery} placeholder={t('setup.locationPlaceholder')} />}
+              {/* A city that isn't covered, and the search found places: villages of that name,
+                  or of the district around it. */}
+              {!found && cityHint && results.length > 0 && <AppText muted>{cityHint}</AppText>}
             </View>
           }
           renderItem={({ item }) => (
             <Animated.View entering={motion(FadeIn.duration(180))}>
               <ListRow
                 title={item.location?.name ?? item.kauno?.town ?? ''}
-                // Kauno r.: the title is the town as the data writes it ("Akademijos mstl."), the
+                // Kauno švara: the title is the town as the data writes it ("Akademijos mstl."), the
                 // subtitle starts with its usual name ("Akademija"), which the user may have typed.
                 subtitle={
                   item.location
                     ? `${item.location.district} sen. · ${item.location.type}`
-                    : [item.kauno?.registerName, item.kauno?.eldershipName, 'Kauno r.'].filter(Boolean).join(' · ')
+                    : item.kauno &&
+                      [item.kauno.registerName, item.kauno.eldershipName, municipalityOf(item.kauno)]
+                        .filter(Boolean)
+                        .join(' · ')
                 }
                 selected={item.location ? item.location.id === current : false}
                 onPress={() =>
@@ -253,13 +281,7 @@ export default function ChooseLocation() {
           ListEmptyComponent={
             deferred && !found ? (
               <AppText muted style={styles.empty}>
-                {
-                  {
-                    kaunas: t('setup.locationKaunasCity'),
-                    klaipeda: t('setup.locationKlaipedaCity'),
-                    none: t('setup.locationNone'),
-                  }[uncoveredCitySearch(deferred, results.length) ?? 'none']
-                }
+                {cityHint || t('setup.locationNone', { areas: t('coverage.areas') })}
               </AppText>
             ) : undefined
           }

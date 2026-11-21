@@ -36,10 +36,21 @@ export type GuideCategory = (typeof GUIDE_CATEGORIES)[number];
 
 /**
  * Waste companies whose rules differ in places: the two in Vilniaus r., Kauno švara and
- * Ekonovus in Kauno r. (one region here) and the Telšiai regional centre for Mažeikių r.
+ * Ekonovus in Kauno r. and Kaišiadorių r. (one region here, with the sites of the Kaunas regional
+ * centre) and the Telšiai regional centre (TRATC). Other companies get the general rules.
  */
 export const REGIONS = ['nemencine', 'nemezio', 'kauno', 'mazeikiai'] as const;
 export type Region = (typeof REGIONS)[number];
+
+/**
+ * Companies in the data that follow the rules of a region above: TRATC publishes its schedules
+ * per municipality, and its rules are the same in all four.
+ */
+const SAME_RULES = new Map<string, Region>([
+  ['telsiai', 'mazeikiai'],
+  ['plunge', 'mazeikiai'],
+  ['rietavas', 'mazeikiai'],
+]);
 
 export type GuideRule = {
   /** Where it goes, best first; more than one reads "A, or B". */
@@ -163,6 +174,7 @@ export function regionOf(place: Place | null, resolved: Resolved): Region | unde
   if (!resolved.location && !official) return undefined;
   // Nemenčinės komunalininkas' places and rows have no provider (see schedule.ts).
   const provider = resolved.location?.provider ?? official?.provider ?? 'nemencine';
+  if (SAME_RULES.has(provider)) return SAME_RULES.get(provider);
   return (REGIONS as readonly string[]).includes(provider) ? (provider as Region) : undefined;
 }
 

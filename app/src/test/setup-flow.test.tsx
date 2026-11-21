@@ -20,6 +20,8 @@ jest.mock('@/lib/notifications', () => ({
   requestNotificationPermission: jest.fn(async () => true),
 }));
 jest.mock('@expo/ui/community/datetime-picker', () => ({ DateTimePicker: () => null }));
+const mockLocateHome = jest.fn();
+jest.mock('@/lib/geolocate', () => ({ locateHome: () => mockLocateHome() }));
 // expo-router/testing-library replaces Reanimated with the package's mock, which doesn't load
 // here; the screens are imported first, so they keep this one (see reanimated-mock.ts).
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -135,7 +137,7 @@ it('asks for the street and the row when the place has several', async () => {
 it('offers to ask for the area when nothing is found', async () => {
   await renderRouter(routes, { initialUrl: '/setup/location' });
   await search('Trakai');
-  expect(await screen.findByText(i18n.t('setup.locationNone'))).toBeOnTheScreen();
+  expect(await screen.findByText(i18n.t('setup.locationNone', { areas: i18n.t('coverage.areas') }))).toBeOnTheScreen();
   expect(screen.getByText(i18n.t('feedback.area'))).toBeOnTheScreen();
 });
 
@@ -143,4 +145,64 @@ it('says that Klaipėda city is not covered', async () => {
   await renderRouter(routes, { initialUrl: '/setup/location' });
   await search('Klaipėda');
   expect(await screen.findByText(i18n.t('setup.locationKlaipedaCity'))).toBeOnTheScreen();
+});
+
+it('says that Šiauliai city is not covered above a village of that name', async () => {
+  // A village of Jurbarko r. is called Šiauliai.
+  const village = { id: 'g1', name: 'Šiauliai', type: 'k.', district: 'Veliuonos', provider: 'jurbarkas' };
+  useSchedule.setState({ data: { ...data, locations: [...data.locations!, village] } });
+  await renderRouter(routes, { initialUrl: '/setup/location' });
+  await search('Šiauliai');
+  expect(await screen.findByText(i18n.t('setup.locationSiauliaiCity'))).toBeOnTheScreen();
+  expect(screen.getByText('Veliuonos sen. · k.')).toBeOnTheScreen();
+  expect(screen.queryByText(i18n.t('feedback.area'))).toBeNull();
+});
+
+describe('a town of the Kauno švara data', () => {
+  const index = {
+    schemaVersion: 1,
+    generatedAt: new Date().toISOString(),
+    areas: [],
+    elderships: [
+      { id: 'ringaudu', name: 'Ringaudų sen.', towns: ['Ringaudų k.'], registerNames: { 'Ringaudų k.': 'Ringaudai' } },
+      {
+        id: 'ziezmariu',
+        name: 'Žiežmarių sen.',
+        municipality: 'Kaišiadorių r.',
+        towns: ['Žiežmarių mstl.'],
+        registerNames: { 'Žiežmarių mstl.': 'Žiežmariai' },
+      },
+    ],
+  };
+
+  beforeEach(() => {
+    const headers = { get: (): null => null };
+    globalThis.fetch = jest.fn(async (url: string) =>
+      String(url).endsWith('kauno-r/schedule.json')
+        ? { ok: true, status: 200, json: async () => index, headers }
+        : { ok: false, status: 404, headers },
+    ) as unknown as typeof fetch;
+  });
+
+  it('is shown with its municipality', async () => {
+    await renderRouter(routes, { initialUrl: '/setup/location' });
+    await search('Žiežmariai');
+    expect(await screen.findByText('Žiežmariai · Žiežmarių sen. · Kaišiadorių r.')).toBeOnTheScreen();
+    await search('Ringaudai');
+    expect(await screen.findByText('Ringaudai · Ringaudų sen. · Kauno r.')).toBeOnTheScreen();
+  });
+
+  it('is found by location with its municipality', async () => {
+    mockLocateHome.mockResolvedValue({
+      ok: true,
+      kauno: { eldership: 'ziezmariu', eldershipName: 'Žiežmarių sen.', town: 'Žiežmarių mstl.', street: 'Vytauto g.', house: '1' },
+      street: 'ok',
+    });
+    await renderRouter(routes, { initialUrl: '/setup/location' });
+    // The list of towns, which says which municipality an eldership is in, is downloaded first.
+    await search('Žiežmariai');
+    await screen.findByText('Žiežmariai · Žiežmarių sen. · Kaišiadorių r.');
+    await press(i18n.t('setup.useLocation'));
+    expect(await screen.findByText('Žiežmarių mstl., Žiežmarių sen. · Kaišiadorių r.')).toBeOnTheScreen();
+  });
 });

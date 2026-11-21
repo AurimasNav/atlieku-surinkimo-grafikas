@@ -215,6 +215,49 @@ describe('resolvePlace', () => {
     expect(left.kinds.green).toMatchObject({ status: 'ok', area: { id: 'z-1' } });
   });
 
+  it('offers the route of farmsteads next to the usual one (Druskininkų sav.)', () => {
+    // Druskininkai's file for garden communities, farmsteads and places that are hard to reach
+    // is a group of its own: one more mixed waste choice where it lists a village or street.
+    const group = 'Sodai, vienkiemiai ir sunkiai privažiuojamos valdos';
+    const rows = [
+      area('h-sodai', 'household', { group, district: 'Druskininkų sav.', provider: 'alytus' }),
+      area('h-leipalingio', 'household', { district: 'Druskininkų sav.', provider: 'alytus' }),
+      area('h-centras', 'household', { district: 'Druskininkų sav.', provider: 'alytus' }),
+    ];
+    const village: Location = {
+      id: 'g12',
+      name: 'Cimaniūnai',
+      type: 'k.',
+      district: 'Leipalingio',
+      provider: 'alytus',
+      schedule: { household: { candidates: ['h-sodai', 'h-leipalingio'] } },
+    };
+    const town: Location = {
+      id: 'g13',
+      name: 'Druskininkai',
+      type: 'm.',
+      district: 'Druskininkų miesto',
+      provider: 'alytus',
+      streets: [
+        ['s1', 'Bijūnų g.'],
+        ['s2', 'Vytauto g.'],
+        ['s3', 'Ateities g.'],
+      ],
+      schedule: { household: { streets: { s1: ['h-sodai'], s2: ['h-centras'], s3: [] } } },
+    };
+    const druskininkai = { ...data, areas: [...areas, ...rows], locations: [...locations, village, town] };
+    const asked = resolvePlace(druskininkai, { locationId: 'g12', choices: {} }, today);
+    expect(asked.kinds.household).toMatchObject({ status: 'choose', candidates: [{ id: 'h-sodai' }, { id: 'h-leipalingio' }] });
+    // Not "house or apartment?": the rows are listed, the group under the farmsteads' one.
+    if (asked.kinds.household.status === 'choose') expect(isHousingChoice(asked.kinds.household.candidates)).toBe(false);
+    expect(ids(resolvePlace(druskininkai, { locationId: 'g12', choices: { household: 'h-sodai' } }, today))).toEqual(['h-sodai']);
+    // A street only the farmsteads' file names gets it; one no route names has no pickup.
+    const street = (key: string) => resolvePlace(druskininkai, { locationId: 'g13', street: key, choices: {} }, today).kinds.household;
+    expect(street('s1')).toMatchObject({ status: 'ok', area: { id: 'h-sodai' } });
+    expect(street('s2')).toMatchObject({ status: 'ok', area: { id: 'h-centras' } });
+    expect(street('s3')).toEqual({ status: 'none' });
+  });
+
   it('supports rows picked by hand without a location', () => {
     const r = resolvePlace(data, { choices: { household: 'h-house', glass: 'g-old' } }, today);
     expect(ids(r)).toEqual(['h-house']);
@@ -226,6 +269,13 @@ describe('search', () => {
   it('finds locations without diacritics, name matches first', () => {
     expect(searchLocations(locations, 'aviz').map((l) => l.name)).toEqual(['Avižieniai', 'Aleksandravas']);
     expect(searchLocations(locations, '')).toEqual([]);
+  });
+
+  it('searches the places of newer data, not the ones it sorted before', () => {
+    expect(searchLocations(locations, 'avižien').map((l) => l.id)).toEqual(['g2', 'g1']);
+    const newer = [...locations, { id: 'g5', name: 'Avižienėlė', type: 'k.', district: 'Avižienių' }];
+    // Ė is an E: Avižienėlė before Avižieniai.
+    expect(searchLocations(newer, 'avižien').map((l) => l.id)).toEqual(['g5', 'g2', 'g1']);
   });
 
   it('hides outdated rows in the manual row picker', () => {
@@ -286,6 +336,19 @@ describe('official schedule link', () => {
 
   it('follows a row picked by hand', () => {
     expect(link(twoCompanies, { choices: { household: 'n-1' } })).toBe(nkom);
+  });
+
+  it('opens the page a region file lists for its company', () => {
+    const aratc = 'https://www.aratc.lt/atlieku-surinkimo-grafikai/';
+    const region: ScheduleData = {
+      ...twoCompanies,
+      locations: [
+        ...twoCompanies.locations!,
+        { id: 'a1', name: 'Simnas', type: 'm.', district: 'Simno', provider: 'alytus', schedule: { household: { area: 'h-house' } } },
+      ],
+      providers: [...twoCompanies.providers!, { id: 'alytus', name: 'UAB „Alytaus regiono atliekų tvarkymo centras“', url: aratc }],
+    };
+    expect(link(region, { locationId: 'a1', choices: {} })).toBe(aratc);
   });
 
   it('opens Nemenčinė for data and places without companies', () => {
