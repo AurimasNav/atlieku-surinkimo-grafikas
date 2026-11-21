@@ -40,7 +40,8 @@ def collect(site: Path) -> dict:
     # a provider for each of its four municipalities; maatc the five municipalities of
     # Marijampolė county (schedule_pipeline.maatc), a provider each.
     # jurbarko-r also has Tauragės r., Šilalės r. and Pagėgių sav., a provider each.
-    # raseiniu-r (schedule_pipeline.raseiniai): one provider.
+    # raseiniu-r (schedule_pipeline.raseiniai) and jonavos-r (schedule_pipeline.jonava): a
+    # provider each.
     for path in (
         site / "schedule.json",
         site / "mazeikiu-r" / "schedule.json",
@@ -51,6 +52,7 @@ def collect(site: Path) -> dict:
         site / "panevezio-ratc" / "schedule.json",
         site / "maatc" / "schedule.json",
         site / "raseiniu-r" / "schedule.json",
+        site / "jonavos-r" / "schedule.json",
     ):
         if not path.exists():
             continue
@@ -135,7 +137,7 @@ def metrics(status: dict) -> str:
             "Settlements (nemencine, nemezio, mazeikiai, telsiai, plunge, rietavas, klaipedos, "
             "jurbarkas, taurage, silale, pagegiai, siauliai, radviliskis, alytus, pasvalys, "
             "rokiskis, birzai, panevezio-r, marijampole, vilkaviskis, kalvarija, kazluruda, "
-            "sakiai, raseiniai) or addresses (kauno, kaisiadorys) the data covers.",
+            "sakiai, raseiniai, jonava) or addresses (kauno, kaisiadorys) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (
