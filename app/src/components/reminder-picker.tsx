@@ -101,6 +101,8 @@ function ReminderTimeRow({
           <DateTimePicker
             mode="time"
             is24Hour
+            positiveButton={{ label: t('common.done') }}
+            negativeButton={{ label: t('common.cancel') }}
             value={pickerValue}
             onChange={(event, date) => {
               setPicking(false);
