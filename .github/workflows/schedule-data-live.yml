@@ -40,8 +40,9 @@ jobs:
         run: uv run python -m schedule_pipeline.gargzdu --out "$RUNNER_TEMP/site/klaipedos-r"
       - name: Build the Jurbarko r. schedule from the PDFs on uabtratc.lt
         run: uv run python -m schedule_pipeline.taurage --out "$RUNNER_TEMP/site/jurbarko-r"
-      - name: Build the Šiaulių RATC schedules (five municipalities) from the PDFs on sratc.lt
-        run: uv run python -m schedule_pipeline.sratc --out "$RUNNER_TEMP/site/sratc"
+      - name: Build the Šiaulių RATC schedules (six municipalities) from the PDFs on sratc.lt
+        # --strict: a part (the five, or Radviliškio r.) whose build fails fails the check.
+        run: uv run python -m schedule_pipeline.sratc --strict --out "$RUNNER_TEMP/site/sratc"
       - name: Build the Alytaus RATC schedule from the PDFs on aratc.lt
         run: uv run python -m schedule_pipeline.aratc --out "$RUNNER_TEMP/site/alytaus-ratc"
       - name: Compare with the published data
