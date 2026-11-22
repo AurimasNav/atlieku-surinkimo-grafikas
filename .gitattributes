@@ -6,6 +6,7 @@
 *.pdf binary
 *.xlsx binary
 *.xls binary
+*.doc binary
 *.docx binary
 # The copy of kedainiai.lt's page and documents, named after their URLs (no extension): byte
 # for byte.
