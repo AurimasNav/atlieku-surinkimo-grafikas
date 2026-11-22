@@ -66,6 +66,10 @@ See [Versions](#versions) for how releases are numbered.
 - **Version codes** (Android `versionCode`, which Google Play requires to increase with every
   upload) are the number of commits on `main`, which only grows. Don't rewrite `main`'s
   history once releases exist.
+- **Crash reports stay readable:** the Release workflow uploads R8's mapping file with each
+  bundle, and the bundle carries the native libraries' symbol tables
+  (`app/plugins/with-native-debug-symbols.js`), so Play Console shows readable Java and native
+  stack traces.
 
 ## Promoting a tested build to the public
 
@@ -77,6 +81,11 @@ In Google Play Console:
    usually within hours to a few days.
 3. Watch for crashes or bad reviews, then raise the rollout to 100%. If something is wrong,
    *Halt rollout*: users who haven't updated won't get it.
+
+Don't create releases in *Internal testing* by hand: every merge already uploads one there. A
+release made from an older bundle in the library fails with "You can't rollout this release
+because it doesn't allow any existing users to upgrade", because its version code is lower than
+the build testers already have. Promote the newest internal release instead.
 
 ## Test devices
 
