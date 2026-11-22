@@ -3,6 +3,7 @@ that guards it, the rules turned into dates, the packaging PDF, the places and t
 
 import hashlib
 import json
+import re
 from dataclasses import replace
 from datetime import date, timedelta
 
@@ -621,3 +622,76 @@ def test_the_window_moves_with_the_day(scan, monkeypatch):
     result = zarasai.parse_file(*files[0])
     assert max(d for a in result.areas for d in a.dates) <= later + timedelta(days=400)
     assert min(d for a in result.areas for d in a.dates) >= later - timedelta(days=31)
+
+
+# --- the copy --------------------------------------------------------------------
+
+KEY = "AIza" + "x" * 35
+
+
+def refused(url, timeout=0):
+    raise OSError("HTTP Error 403: Forbidden")
+
+
+def test_the_copy_when_the_site_refuses_the_job(scan, tmp_path, monkeypatch):
+    def with_a_key(url, timeout=0):
+        page = serve(url)
+        return page.replace(b"</head>", f'<script src="x.js?key={KEY}"></script></head>'.encode())
+
+    monkeypatch.setattr(zarasai.http, "get", with_a_key)
+    copy = tmp_path / "copy"
+    assert zarasai.save_copy(copy, TODAY)
+    # The page, the scan and the packaging file, and copy.json; the page's keys left out.
+    index = json.loads((copy / "copy.json").read_text(encoding="utf-8"))
+    assert index["takenAt"] == "2026-11-22" and index["page"] == zarasai.PAGE_URL
+    assert index["files"] == ["misriu.pdf", PACKAGING_URL.rsplit("/", 1)[1]]
+    page = (copy / "page.html").read_bytes()
+    assert KEY.encode() not in page and b"AIza_REDACTED" in page
+    # The same files again: no change, even with new markup.
+    assert not zarasai.save_copy(copy, date(2026, 11, 23))
+
+    monkeypatch.setattr(zarasai.http, "get", refused)
+    monkeypatch.setattr(zarasai, "COPY_DIR", copy)
+    files, warnings = zarasai.download(TODAY, 31)
+    assert [f.file_name for f, _ in files] == index["files"]
+    assert files[0][1] == SCAN
+    assert warnings == [
+        f"{zarasai.PAGE_URL}: unavailable (HTTP Error 403: Forbidden); used the copy from "
+        "2026-11-22 (0 days old)"
+    ]
+    # The hash check reads the copy's scan.
+    assert len(zarasai.parse_file(*files[0]).areas) == 26
+    # Without a copy, the error.
+    monkeypatch.setattr(zarasai, "COPY_DIR", tmp_path / "none")
+    with pytest.raises(OSError, match="403"):
+        zarasai.download(TODAY, 31)
+
+
+def test_a_new_scan_in_the_copy_stops_the_build(scan, tmp_path, monkeypatch):
+    """The daily refresh takes a new scan into the copy; the build that reads it fails."""
+    monkeypatch.setattr(zarasai.http, "get", serve)
+    copy = tmp_path / "copy"
+    zarasai.save_copy(copy, TODAY)
+    monkeypatch.setattr(
+        zarasai.http, "get", lambda url, timeout=0: SCAN + b"!" if url == SCAN_URL else serve(url)
+    )
+    assert zarasai.save_copy(copy, date(2026, 11, 23))
+    monkeypatch.setattr(zarasai.http, "get", refused)
+    monkeypatch.setattr(zarasai, "COPY_DIR", copy)
+    files, _ = zarasai.download(date(2026, 11, 23), 31)
+    with pytest.raises(ValidationError, match="the published scan changed"):
+        zarasai.parse_file(*files[0])
+
+
+def test_the_committed_copy_can_be_read(monkeypatch):
+    """The copy in pipeline/data, as the daily job reads it on GitHub's runners. It is
+    refreshed daily, so only that it is read: a new scan in it is the build's to report."""
+    monkeypatch.setattr(zarasai.http, "get", refused)
+    files, warnings = zarasai.download(date.today(), 31)
+    assert "used the copy from" in warnings[0]
+    assert [f.kind for f, _ in files][0] == "household"
+    assert {f.kind for f, _ in files} == {"household", "packaging"}
+    for file, content in files[1:]:
+        assert zarasai.parse_file(file, content).areas
+    page = (zarasai.COPY_DIR / "page.html").read_bytes()
+    assert not re.search(rb"AIza[0-9A-Za-z_-]{35}", page)

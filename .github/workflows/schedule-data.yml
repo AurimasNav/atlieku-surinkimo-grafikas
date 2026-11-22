@@ -587,9 +587,10 @@ jobs:
             echo "::error::The Širvintų r. build failed and the published data couldn't be downloaded (HTTP $code)."
             exit 1
           fi
-      # Zarasų r., from the municipality's page: mixed waste from the transcription of its scan
-      # in pipeline/data while the scan's hash is the same, packaging and glass from a PDF
-      # (site/zarasu-r). If today's build fails (a changed scan), yesterday's files are kept.
+      # Zarasų r., from the municipality's page or, as zarasai.lt refuses the runners, its copy
+      # in pipeline/data: mixed waste from the transcription of its scan while the scan's hash is
+      # the same, packaging and glass from a PDF (site/zarasu-r). If today's build fails (a
+      # changed scan), yesterday's files are kept.
       - name: Build the Zarasų r. schedule (Zarasų rajono savivaldybė)
         id: zarasai
         if: github.event_name != 'pull_request'

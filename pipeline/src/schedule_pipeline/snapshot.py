@@ -8,7 +8,7 @@ data changes slowly, so a snapshot refreshed from a machine in Lithuania is good
 
 The build tries the live sources first and falls back to these files. The same refresh saves
 copies of the pages and files of the sites that refuse GitHub's runners too (site_copies):
-silute.lt, kedainiai.lt, ukmerge.lt and sirvintos.lt. `--register` refreshes only the
+silute.lt, kedainiai.lt, ukmerge.lt, sirvintos.lt and zarasai.lt. `--register` refreshes only the
 register's snapshots and `--copies` only the copies; a CronJob in the maintainer's cluster in
 Lithuania (k8s-at-home, gitops/siuksliaveze-snapshot) runs `--copies` daily and `--register`
 monthly and opens a PR with what changed. Run it by hand only when those jobs fail.
@@ -207,6 +207,9 @@ SIRVINTOS_COPY_DIR = DATA_DIR / "schedules-sirvintu-r"
 ZARASAI_MUNICIPALITY = ("Zarasų rajono", 43)
 ZARASAI_REGISTRY_FILE = DATA_DIR / "registry-zarasu-r.json"
 ZARASAI_ADDRESSES_FILE = DATA_DIR / "address-points-zarasu-r.json"
+# A copy of the Zarasų r. page and the files it links (the mixed waste scan too): zarasai.lt
+# refuses GitHub's runners (HTTP 403) too (zarasai.save_copy).
+ZARASAI_COPY_DIR = DATA_DIR / "schedules-zarasu-r"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -264,9 +267,9 @@ def utc_today() -> date:
 
 
 # A copy of a site that refuses GitHub's runners (ecoservice: silute.lt, kedainiai: kedainiai.lt,
-# ukmerge: ukmerge.lt, sirvintos: sirvintos.lt): its page as page.html, the files it links under
-# the last part of their URLs, and this index with when it was taken, the page's URL and the
-# files' names.
+# ukmerge: ukmerge.lt, sirvintos: sirvintos.lt, zarasai: zarasai.lt): its page as page.html, the
+# files it links under the last part of their URLs, and this index with when it was taken, the
+# page's URL and the files' names.
 SITE_COPY_INDEX = "copy.json"
 
 
@@ -346,13 +349,14 @@ def site_copies() -> list[tuple[str, Callable[[Path], bool], Path]]:
     """The copies of the sites that refuse GitHub's runners: (label, save, folder), where
     save(folder) saves the page and its files there and returns whether the copy changed
     (save_site_copy). A new site adds a line."""
-    from . import ecoservice, kedainiai, sirvintos, ukmerge  # they import this module
+    from . import ecoservice, kedainiai, sirvintos, ukmerge, zarasai  # they import this module
 
     return [
         ("Šilutės r.", partial(ecoservice.save_copy, ecoservice.SILUTE), SILUTE_COPY_DIR),
         ("Kėdainių r.", kedainiai.save_copy, KEDAINIAI_COPY_DIR),
         ("Ukmergės r.", ukmerge.save_copy, UKMERGE_COPY_DIR),
         ("Širvintų r.", sirvintos.save_copy, SIRVINTOS_COPY_DIR),
+        ("Zarasų r.", zarasai.save_copy, ZARASAI_COPY_DIR),
     ]
 
 

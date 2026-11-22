@@ -96,8 +96,9 @@ jobs:
         # sirvintos.lt refuses the runners: the copy in pipeline/data is read instead, with a
         # warning.
         run: uv run python -m schedule_pipeline.sirvintos --out "$RUNNER_TEMP/site/sirvintu-r"
-      - name: Build the Zarasų r. schedule from zarasai.lt (mixed waste from the scan's transcription)
-        # Fails if the scan's hash isn't the transcription's.
+      - name: Build the Zarasų r. schedule from zarasai.lt or its copy (mixed waste from the scan's transcription)
+        # zarasai.lt refuses the runners: the copy in pipeline/data is read instead, with a
+        # warning. Fails if the scan's hash isn't the transcription's.
         run: uv run python -m schedule_pipeline.zarasai --out "$RUNNER_TEMP/site/zarasu-r"
       - name: Compare with the published data
         run: |

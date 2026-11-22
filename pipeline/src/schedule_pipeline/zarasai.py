@@ -38,6 +38,12 @@ Both companies are one provider, the publisher, as for Širvintų r.: the app ta
 schedules from one location, so two providers can't share the municipality's settlements. A
 changed scan therefore holds back a new packaging file too, until the scan is transcribed again.
 
+zarasai.lt answers GitHub's runners 403. Where it doesn't answer, the page and its files are read
+from their copy in pipeline/data/schedules-zarasu-r/ (COPY_DIR, save_copy, refreshed daily from a
+machine in Lithuania by snapshot.py --copies), with a warning that says how old it is, as for
+Širvintų r.: the hash check then compares the copy's scan, so a new scan stops the build the day
+after it is posted.
+
 The places are read by Routes (aratc.Routes, as utena.Routes): in the rules, a village with its
 streets ("Užtiltės k. Vasaknų g. 12, 14, ...": some houses, one more choice for that street next
 to the village's other route), and the streets of the eldership's town (Zarasai, Dusetos): the
@@ -58,8 +64,11 @@ import hashlib
 import io
 import json
 import re
+import sys
+from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from datetime import date, timedelta
+from functools import partial
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 from typing import NamedTuple
@@ -518,10 +527,59 @@ def select_files(files: list[ScheduleFile], today: date, keep_days: int) -> list
     return [replace(scan, start=start, end=today + timedelta(days=HORIZON_DAYS)), *packaging]
 
 
+def _get(url: str) -> bytes:
+    # With the project's own user agent (http.USER_AGENT). zarasai.lt answers GitHub's runners
+    # 403; it serves a machine in Lithuania.
+    return http.get(url, timeout=120)
+
+
+# A copy of the page and the files the daily job reads from it, the scan included, taken from a
+# machine in Lithuania (save_copy, run daily by snapshot.py --copies): zarasai.lt answers
+# GitHub's runners 403, as sirvintos.lt does. The hash check then compares the copy's scan.
+COPY_DIR = snapshot.ZARASAI_COPY_DIR
+# Keys in the page's markup (its reCAPTCHA site key), not kept in the copy.
+_KEYS = (
+    (re.compile(rb"AIza[0-9A-Za-z_-]{35}"), b"AIza_REDACTED"),
+    (re.compile(rb"\b6L[0-9A-Za-z_-]{38}"), b"6L_REDACTED"),
+)
+
+
+def _fetch(
+    today: date, keep_days: int, get: Callable[[str], bytes]
+) -> tuple[bytes, list[ScheduleFile], dict[str, bytes]]:
+    """The page, the files the build reads from it (select_files) and their contents by URL."""
+    html = get(PAGE_URL)
+    files = select_files(find_files(html.decode("utf-8", errors="replace")), today, keep_days)
+    return html, files, {f.url: get(f.url) for f in files}
+
+
 def download(today: date, keep_days: int) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
-    html = http.get(PAGE_URL, timeout=60).decode("utf-8", errors="replace")
-    files = select_files(find_files(html), today, keep_days)
-    return [(f, http.get(f.url, timeout=60)) for f in files], []
+    """The scan and the packaging files from the page or, where the site doesn't answer and
+    there is a copy (COPY_DIR), the copy's, with a warning that says how old it is, as
+    sirvintos.download does."""
+    try:
+        _, files, contents = _fetch(today, keep_days, _get)
+        return [(f, contents[f.url]) for f in files], []
+    except OSError as error:
+        if not (COPY_DIR / snapshot.SITE_COPY_INDEX).exists():
+            raise
+        _, files, contents = _fetch(today, keep_days, partial(snapshot.site_copy, COPY_DIR))
+        note = snapshot.site_copy_note(PAGE_URL, error, COPY_DIR, today)
+        print(note, file=sys.stderr)
+        return [(f, contents[f.url]) for f in files], [note]
+
+
+def save_copy(folder: Path | None = None, today: date | None = None) -> bool:
+    """Saves the page and the files the daily job reads from it in `folder` (COPY_DIR), for
+    download when the site doesn't answer: python -m schedule_pipeline.snapshot --copies, daily,
+    so a new scan or packaging file comes within a day. False if the files were those of the
+    copy already there, which is then left as it is."""
+    today = today or snapshot.utc_today()
+    html, files, contents = _fetch(today, 31, _get)
+    for pattern, placeholder in _KEYS:
+        html = pattern.sub(placeholder, html)
+    saved = [(f.url, contents[f.url]) for f in files]
+    return snapshot.save_site_copy(folder or COPY_DIR, PAGE_URL, html, saved, today)
 
 
 # --- the files -------------------------------------------------------------------

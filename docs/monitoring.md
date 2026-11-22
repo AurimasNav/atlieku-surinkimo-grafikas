@@ -288,7 +288,11 @@ fires for `zarasai` the next day: transcribe the new scan (CONTRIBUTING.md) and 
 Packaging and glass come from a text PDF, a year at a time, read as usual. Both are one part,
 the publisher's, as for Širvintų r. (the app takes a settlement's schedules from one place in
 the file), so while the scan waits for its new transcription, a new packaging file waits too.
-Installed apps find `zarasu-r/` through `regions.json` (below).
+Installed apps find `zarasu-r/` through `regions.json` (below). zarasai.lt refuses GitHub's
+runners (HTTP 403), so `zarasai` is built from the copy of its page, the scan and the packaging
+file in `pipeline/data/schedules-zarasu-r/` that the daily refresh takes (as for Kėdainių r.),
+with a build warning that says how old it is, and the hash check compares the copy's scan: a new
+scan reaches the copy within a day of being posted, and the build stops the day the copy has it.
 
 The job therefore publishes the state of the data with every run:
 
@@ -491,7 +495,9 @@ groups:
       # last week): a week's notice, so there is time to refresh the copy by hand if that fails.
       # Zarasų r.: packaging and glass a year at a time (the 2026 file was made on 29 December
       # 2025), ending on 18-30 December 2026 (every schedule has glass in December), so this fires
-      # from about 23 December until next year's file is read. Not its mixed waste: rules,
+      # from about 23 December until next year's file is read (from the copy in pipeline/data:
+      # zarasai.lt refuses the runners; a week's notice leaves time to refresh it by hand if the
+      # daily refresh fails). Not its mixed waste: rules,
       # turned into dates 13 months ahead every day; a changed scan stops the build instead, and
       # ScheduleDataStale fires.
       - alert: ScheduleDataRunsOut

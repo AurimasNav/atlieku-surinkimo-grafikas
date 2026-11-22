@@ -153,7 +153,7 @@ def test_a_copy_that_fails_doesnt_stop_the_others(monkeypatch, tmp_path, capsys)
 def test_every_site_copy_is_committed():
     """Each copy the refresh saves is in pipeline/data, where its module reads it."""
     copies = snapshot.site_copies()
-    labels = ["Šilutės r.", "Kėdainių r.", "Ukmergės r.", "Širvintų r."]
+    labels = ["Šilutės r.", "Kėdainių r.", "Ukmergės r.", "Širvintų r.", "Zarasų r."]
     assert [label for label, _, _ in copies] == labels
     for _, save, folder in copies:
         assert callable(save)

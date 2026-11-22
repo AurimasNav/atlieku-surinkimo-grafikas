@@ -42,8 +42,8 @@ kompata.lt (pdf)                          Ignalinos r.: site/ignalinos-r/
 eku.lt (html)                             Elektrėnų sav.: site/elektrenu-sav/
 sirvintos.lt (pdf)                        Širvintų r.: site/sirvintu-r/ (from a copy in
                                           pipeline/data when the site refuses the runners)
-zarasai.lt (pdf; mixed waste a scan,      Zarasų r.: site/zarasu-r/
-  transcribed in pipeline/data)
+zarasai.lt (pdf; mixed waste a scan,      Zarasų r.: site/zarasu-r/ (from a copy in
+  transcribed in pipeline/data)           pipeline/data when the site refuses the runners)
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
 pipeline/   Python: scrape → parse → validate → schedule.json
@@ -88,10 +88,10 @@ uv run ruff check . && uv run ruff format .
 
 **Address Register snapshot and site copies.** get.data.gov.lt and registrucentras.lt block
 requests from cloud servers, including GitHub Actions, so the daily job falls back to the
-snapshot in `pipeline/data/`. silute.lt, kedainiai.lt, ukmerge.lt and sirvintos.lt refuse
-GitHub's runners too, so the job reads copies of their pages and schedule files in
-`pipeline/data/schedules-silutes-r/`, `schedules-kedainiu-r/`, `schedules-ukmerges-r/` and
-`schedules-sirvintu-r/` (its build warning says how old they are).
+snapshot in `pipeline/data/`. silute.lt, kedainiai.lt, ukmerge.lt, sirvintos.lt and zarasai.lt
+refuse GitHub's runners too, so the job reads copies of their pages and schedule files in
+`pipeline/data/schedules-silutes-r/`, `schedules-kedainiu-r/`, `schedules-ukmerges-r/`,
+`schedules-sirvintu-r/` and `schedules-zarasu-r/` (its build warning says how old they are).
 
 Both are refreshed automatically from the maintainer's cluster in Lithuania
 ([k8s-at-home](https://github.com/AurimasNav/k8s-at-home), `gitops/siuksliaveze-snapshot`): a
@@ -130,15 +130,17 @@ when you fix a mismatch.
 **When Zarasų r. publishes a new mixed waste scan.** Its mixed waste schedule is a scanned
 image of rules ("2-ą ir paskutinį mėnesio pirmadienį – Zarasų sen. Šaltupės g. …"), so it was
 transcribed by hand into `pipeline/data/rules-zarasu-r.json`, with the scan's address and
-SHA-256. When the page links a scan with another hash, the daily build fails with "the published
-scan changed (new hash …); re-transcribe pipeline/data/rules-zarasu-r.json", the site keeps
-yesterday's Zarasų r. data and `ScheduleDataStale` fires the next day (docs/monitoring.md). To
-transcribe it again:
+SHA-256. When the page links a scan with another hash (the daily refresh of the site copies
+takes it into `pipeline/data/schedules-zarasu-r/`, as zarasai.lt refuses GitHub's runners), the
+daily build fails with "the published scan changed (new hash …); re-transcribe
+pipeline/data/rules-zarasu-r.json", the site keeps yesterday's Zarasų r. data and
+`ScheduleDataStale` fires the next day (docs/monitoring.md). To transcribe it again:
 
-1. Download the scan the page links (the "Komunalinės atliekos" row of
-   <https://www.zarasai.lt/veiklos-sritys/aplinkos-apsauga/atlieku-tvarkymas/269>) and check
-   that its SHA-256 (`sha256sum misriu.pdf`, or `Get-FileHash` in PowerShell) is the hash in the
-   error.
+1. Take the scan from the copy, `pipeline/data/schedules-zarasu-r/` (or download the one the
+   "Komunalinės atliekos" row of
+   <https://www.zarasai.lt/veiklos-sritys/aplinkos-apsauga/atlieku-tvarkymas/269> links) and
+   check that its SHA-256 (`sha256sum misriu.pdf`, or `Get-FileHash` in PowerShell) is the hash
+   in the error.
 2. Its pages are images: open it in a PDF viewer, zoomed in. In the JSON, set `url`, `sha256`
    (lower case), the date it was approved (above the title) and `transcribed`, and write one
    entry in `rules` per paragraph, in the scan's order: `rule` is its words as printed ("1-ą ir
