@@ -5,6 +5,12 @@ name: Schedule data live build
 # gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt, ecoservice.lt, kedainiai.lt, moletusvara.lt, skuodas.lt, ukmerge.lt, anykom.lt, utenoskom.lt, kompata.lt, eku.lt, sirvintos.lt, kupkom.lt, svencionys.lt and zarasai.lt and from Kauno švara's open data, the way the daily job does, and compare
 # schedule.json with the published data. The unit tests in Schedule data / build only parse stored copies of the
 # files. Nothing is deployed.
+#
+# The builds run in parallel, a job each ("live (Kupiškio r.)"), listed in
+# pipeline/src/schedule_pipeline/live_builds.py: a new provider is an entry there, not a step
+# here. Each job uploads its folder of the site; then the job "live" puts the folders together,
+# compares schedule.json with the published data, indexes the regions and fails if a build
+# failed.
 on:
   pull_request:
     paths: ["pipeline/**", ".github/workflows/schedule-data-live.yml"]
@@ -17,97 +23,82 @@ concurrency:
   group: schedule-data-live-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    working-directory: pipeline
+
 jobs:
-  live:
+  # The matrix of the builds: python -m schedule_pipeline.live_builds --matrix.
+  builds:
+    name: live (list the builds)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: pipeline
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      # Saves the uv cache when the dependencies change; the build jobs only restore it, so
+      # they don't all try to save the same one.
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - id: matrix
+        run: echo "matrix=$(uv run python -m schedule_pipeline.live_builds --matrix)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: builds
+    name: live (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      # A build that fails doesn't cancel the others: every source's result shows.
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.builds.outputs.matrix) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          save-cache: false
       - run: uv sync --locked
-      - name: Build schedule.json from the live websites
-        # --strict: a company whose build fails fails the check, instead of keeping its part of
-        # the published data as the daily job does.
-        run: uv run python -m schedule_pipeline --strict --out "$RUNNER_TEMP/site/schedule.json"
-      - name: Build the Kauno r. and Kaišiadorių r. schedules from Kauno švara's open-data file
-        run: uv run python -m schedule_pipeline.svara --out "$RUNNER_TEMP/site/kauno-r"
-      - name: Build the Mažeikių r., Telšių r., Plungės r. and Rietavo sav. schedules from the files on tratc.lt
-        # --strict: a municipality whose build fails fails the check.
-        run: uv run python -m schedule_pipeline.tratc --strict --out "$RUNNER_TEMP/site/mazeikiu-r"
-      - name: Build the Klaipėdos r. schedule from the spreadsheet on gargzdusvara.eu
-        run: uv run python -m schedule_pipeline.gargzdu --out "$RUNNER_TEMP/site/klaipedos-r"
-      - name: Build the Jurbarko r., Tauragės r., Šilalės r. and Pagėgių sav. schedules from the PDFs on uabtratc.lt
-        # --strict: a municipality whose build fails fails the check.
-        run: uv run python -m schedule_pipeline.taurage --strict --out "$RUNNER_TEMP/site/jurbarko-r"
-      - name: Build the Šiaulių RATC schedules (six municipalities) from the PDFs on sratc.lt
-        # --strict: a part (the five, or Radviliškio r.) whose build fails fails the check.
-        run: uv run python -m schedule_pipeline.sratc --strict --out "$RUNNER_TEMP/site/sratc"
-      - name: Build the Alytaus RATC schedule from the PDFs on aratc.lt
-        run: uv run python -m schedule_pipeline.aratc --out "$RUNNER_TEMP/site/alytaus-ratc"
-      - name: Build the Pasvalio r., Rokiškio r., Biržų r. and Panevėžio r. schedules from the spreadsheets and the Word document on pratc.lt
-        # --strict: a municipality whose build fails fails the check, and so does Panevėžio r.'s
-        # mixed waste document if it can't be read (a route with notes that
-        # pipeline/data/schedule-panevezio-r-mixed.json doesn't have: re-transcribe it).
-        run: uv run python -m schedule_pipeline.pratc --strict --out "$RUNNER_TEMP/site/panevezio-ratc"
-      - name: Build the Marijampolės AATC schedules (five municipalities) from the PDFs on maatc.lt
-        # --strict: a municipality whose build fails fails the check.
-        run: uv run python -m schedule_pipeline.maatc --strict --out "$RUNNER_TEMP/site/maatc"
-      - name: Build the Raseinių r. schedule from the PDFs on rkp.lt
-        # --strict: a file that can't be read fails the check, instead of keeping its rows of the
-        # published data as the daily job does.
-        run: uv run python -m schedule_pipeline.raseiniai --strict --out "$RUNNER_TEMP/site/raseiniu-r"
-      - name: Build the Jonavos r. schedule from the PDFs on jonavospaslaugos.lt
-        # --strict: a file that can't be read fails the check.
-        run: uv run python -m schedule_pipeline.jonava --strict --out "$RUNNER_TEMP/site/jonavos-r"
-      - name: Build the Kretingos r. schedule from the PDFs on kretkom.lt
-        run: uv run python -m schedule_pipeline.kretinga --out "$RUNNER_TEMP/site/kretingos-r"
-      - name: Build the Šilutės r. schedule from the PDF on silute.lt (or its copy)
-        # --strict: a build that fails fails the check. silute.lt refuses the runners: the copy in
-        # pipeline/data is read instead, with a warning.
-        run: uv run python -m schedule_pipeline.ecoservice --region silutes-r --strict --out "$RUNNER_TEMP/site/silutes-r"
-      - name: Build the Trakų r. and Šalčininkų r. schedules from the PDFs on ecoservice.lt
-        # --strict: a municipality whose build fails fails the check.
-        run: uv run python -m schedule_pipeline.ecoservice --region ecoservice --strict --out "$RUNNER_TEMP/site/ecoservice"
-      - name: Build the Kėdainių r. schedule from the elderships' files on kedainiai.lt (or their copy)
-        # kedainiai.lt refuses the runners: the copy in pipeline/data is read instead, with a
-        # warning. --strict: a file that can't be read fails the check, instead of keeping its
-        # rows of the published data as the daily job does.
-        run: uv run python -m schedule_pipeline.kedainiai --strict --out "$RUNNER_TEMP/site/kedainiu-r"
-      - name: Build the Molėtų r. schedule from the PDFs on moletusvara.lt
-        # --strict: a file that can't be read fails the check.
-        run: uv run python -m schedule_pipeline.moletai --strict --out "$RUNNER_TEMP/site/moletu-r"
-      - name: Build the Skuodo r. schedule from the spreadsheets on skuodas.lt
-        run: uv run python -m schedule_pipeline.skuodas --out "$RUNNER_TEMP/site/skuodo-r"
-      - name: Build the Ukmergės r. schedule from the PDFs on ukmerge.lt (or their copy)
-        # ukmerge.lt refuses the runners: the copy in pipeline/data is read instead, with a
-        # warning.
-        run: uv run python -m schedule_pipeline.ukmerge --out "$RUNNER_TEMP/site/ukmerges-r"
-      - name: Build the Anykščių r. schedule from the PDFs on anykom.lt
-        # --strict: a file that can't be read fails the check.
-        run: uv run python -m schedule_pipeline.anyksciai --strict --out "$RUNNER_TEMP/site/anyksciu-r"
-      - name: Build the Utenos r. schedule from the PDFs on utenoskom.lt
-        # --strict: a file that can't be read fails the check.
-        run: uv run python -m schedule_pipeline.utena --strict --out "$RUNNER_TEMP/site/utenos-r"
-      - name: Build the Ignalinos r. schedule from the PDFs on kompata.lt
-        run: uv run python -m schedule_pipeline.ignalina --out "$RUNNER_TEMP/site/ignalinos-r"
-      - name: Build the Elektrėnų sav. schedule from the schedule pages on eku.lt
-        run: uv run python -m schedule_pipeline.elektrenai --out "$RUNNER_TEMP/site/elektrenu-sav"
-      - name: Build the Širvintų r. schedule from the PDFs on sirvintos.lt (or their copy)
-        # sirvintos.lt refuses the runners: the copy in pipeline/data is read instead, with a
-        # warning.
-        run: uv run python -m schedule_pipeline.sirvintos --out "$RUNNER_TEMP/site/sirvintu-r"
-      - name: Build the Kupiškio r. schedule from the page and PDFs on kupkom.lt
-        run: uv run python -m schedule_pipeline.kupiskis --out "$RUNNER_TEMP/site/kupiskio-r"
-      - name: Build the Švenčionių r. schedule from the PDFs on svencionys.lt (or their copy)
-        # svencionys.lt refuses the runners: the copy in pipeline/data is read instead, with a
-        # warning. --strict: a file that can't be read fails the check.
-        run: uv run python -m schedule_pipeline.svencionys --strict --out "$RUNNER_TEMP/site/svencioniu-r"
-      - name: Build the Zarasų r. schedule from zarasai.lt or its copy (mixed waste from the scan's transcription)
-        # zarasai.lt refuses the runners: the copy in pipeline/data is read instead, with a
-        # warning. Fails if the scan's hash isn't the transcription's.
-        run: uv run python -m schedule_pipeline.zarasai --out "$RUNNER_TEMP/site/zarasu-r"
+      # --strict (in ARGS): a build that fails, or a part of it, fails the check, instead of
+      # keeping its part of the published data as the daily job does.
+      - name: ${{ matrix.title }}
+        env:
+          MODULE: ${{ matrix.module }}
+          ARGS: ${{ matrix.args }}
+          OUT: ${{ runner.temp }}/site/${{ matrix.out }}
+        run: |
+          # shellcheck disable=SC2086 # $ARGS: none, or several, e.g. --region silutes-r --strict
+          uv run python -m "$MODULE" $ARGS --out "$OUT"
+      # The site with only this build's folder (or, for Vilniaus r., schedule.json and
+      # addresses.json), for the job "live".
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ runner.temp }}/site
+          if-no-files-found: error
+          retention-days: 1
+
+  # The name of the single job this workflow had, so the checks of a pull request still end with
+  # "live". Runs after failed builds too: the comparison and the index of the others still show,
+  # then the job fails.
+  live:
+    needs: build
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          save-cache: false
+      - run: uv sync --locked
+      - name: Put the builds' folders together
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: live-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/site
       - name: Compare with the published data
         run: |
           curl -fsSL https://aurimasnav.github.io/atlieku-surinkimo-grafikas/schedule.json -o "$RUNNER_TEMP/published.json"
@@ -150,6 +141,11 @@ jobs:
           EOF
       - name: Index the region folders (regions.json)
         run: uv run python -m schedule_pipeline.regions --site "$RUNNER_TEMP/site"
+      - name: Fail if a build failed
+        if: needs.build.result != 'success'
+        run: |
+          echo "::error::Not every build passed: see the failed live (…) jobs."
+          exit 1
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: schedule-data-${{ github.event.pull_request.number || github.ref_name }}
