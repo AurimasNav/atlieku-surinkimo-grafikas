@@ -188,9 +188,11 @@ ANYKSCIAI_ADDRESSES_FILE = DATA_DIR / "address-points-anyksciu-r.json"
 UTENA_MUNICIPALITY = ("Utenos rajono", 82)
 UTENA_REGISTRY_FILE = DATA_DIR / "registry-utenos-r.json"
 UTENA_ADDRESSES_FILE = DATA_DIR / "address-points-utenos-r.json"
-# An Address Register snapshot older than this gets a refresh request in the job summary (the
-# build still succeeds): the monthly refresh rewrites them, takenAt included, so this is two
-# missed months. The site copies get none (site_copy_note).
+# Ignalinos r. (schedule_pipeline.ignalina).
+IGNALINA_MUNICIPALITY = ("Ignalinos rajono", 45)
+IGNALINA_REGISTRY_FILE = DATA_DIR / "registry-ignalinos-r.json"
+IGNALINA_ADDRESSES_FILE = DATA_DIR / "address-points-ignalinos-r.json"
+# Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
 
@@ -467,6 +469,7 @@ def save_register() -> None:
             ANYKSCIAI_ADDRESSES_FILE,
         ),
         ("Utenos r.", UTENA_MUNICIPALITY, UTENA_REGISTRY_FILE, UTENA_ADDRESSES_FILE),
+        ("Ignalinos r.", IGNALINA_MUNICIPALITY, IGNALINA_REGISTRY_FILE, IGNALINA_ADDRESSES_FILE),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)

@@ -50,6 +50,7 @@ def collect(site: Path) -> dict:
     # ukmerges-r is Ukmergės r. (schedule_pipeline.ukmerge), "ukmerge".
     # anyksciu-r is Anykščių r. (schedule_pipeline.anyksciai), "anyksciai".
     # utenos-r is Utenos r. (schedule_pipeline.utena), "utena".
+    # ignalinos-r is Ignalinos r. (schedule_pipeline.ignalina), "ignalina".
     for path in (
         site / "schedule.json",
         site / "mazeikiu-r" / "schedule.json",
@@ -70,6 +71,7 @@ def collect(site: Path) -> dict:
         site / "ukmerges-r" / "schedule.json",
         site / "anyksciu-r" / "schedule.json",
         site / "utenos-r" / "schedule.json",
+        site / "ignalinos-r" / "schedule.json",
     ):
         if not path.exists():
             continue
@@ -155,8 +157,8 @@ def metrics(status: dict) -> str:
             "jurbarkas, taurage, silale, pagegiai, siauliai, radviliskis, alytus, pasvalys, "
             "rokiskis, birzai, panevezio-r, marijampole, vilkaviskis, kalvarija, kazluruda, "
             "sakiai, raseiniai, jonava, kretinga, silute, trakai, salcininkai, kedainiai, "
-            "moletai, skuodas, ukmerge, anyksciai, utena) or addresses (kauno, kaisiadorys) the "
-            "data covers.",
+            "moletai, skuodas, ukmerge, anyksciai, utena, ignalina) or addresses (kauno, "
+            "kaisiadorys) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (
