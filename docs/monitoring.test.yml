@@ -90,6 +90,9 @@ tests:
         values: "518400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="panevezio-r",kind="glass"}'
         values: "518400x20"
+      # Panevėžio r.'s mixed waste, from its Word document.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="panevezio-r",kind="household"}'
+        values: "518400x20"
       # Radviliškio r.'s quarterly mixed waste: ends tomorrow.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="radviliskis",kind="household"}'
         values: "86400x20"
@@ -379,6 +382,13 @@ tests:
               severity: warning
             exp_annotations:
               summary: "panevezio-r: the glass schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: panevezio-r
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "panevezio-r: the household schedule ends within a week"
           - exp_labels:
               job: siuksliaveze-data
               source: marijampole

@@ -7,9 +7,11 @@ per file that says what the file is ("Pakuočių (individualių valdų) konteine
 grafikas"); the link's own text is mostly just "grafikas". The files of individual houses are
 found by these texts. Those of shared containers ("bendro naudojimo"), businesses, textiles,
 bulky waste, cemeteries and container washing aren't read, nor a link without text (an old file
-still linked, but not shown on the page). Panevėžio r. publishes its mixed waste schedule as a
-Word document of free-form rules with exceptions, which isn't read: only its packaging and glass
-are. The year of a file is in its address ("2026 grafikai/") or, failing that, in its titles.
+still linked, but not shown on the page), nor Panevėžio r.'s food waste. Panevėžio r.'s mixed
+waste schedule is a Word document (.doc), a table of routes with notes in free words, which
+pratc_word.py reads with the help of a transcription of its notes; when it can't be read, its
+rows of yesterday's data are kept (parse_file). The year of a file is in its address ("2026
+grafikai/") or, failing that, in its titles.
 
 The spreadsheets come in three layouts:
 
@@ -72,7 +74,7 @@ from urllib.parse import unquote, urljoin, urlsplit
 import openpyxl
 
 from . import addresses as address_points
-from . import build, http, snapshot
+from . import build, http, pratc_word, snapshot, worddoc
 from . import registry as address_register
 from .dates import WEEKDAY_NAMES, parse_month, parse_weekdays
 from .locations import (
@@ -459,11 +461,15 @@ class Places(SectionRoutes):
 
     # -- the lists -------------------------------------------------------------------
 
+    def text_of(self, area: Area) -> str:
+        """The list a row's name is (DocumentRoutes: written otherwise)."""
+        return area.name
+
     def clauses(self, area: Area) -> tuple[list[tuple[Settlement, Clause]], bool]:
         self.unknown = []
         self.kind = area.kind
         self.town = _NO_TOWN
-        text = self.normalize(area.name)
+        text = self.normalize(self.text_of(area))
         marks = self.marks(text)
         if not any(punctuation == ":" for *_, punctuation in marks):
             # No sections: an eldership after a settlement tells which ("Pagojų k. Kazliškio
@@ -558,6 +564,34 @@ class Places(SectionRoutes):
         return stops
 
 
+class DocumentRoutes(Places):
+    """Places, and the mixed waste routes of Panevėžio r.'s Word document (pratc_word), whose
+    names pratc_word.places writes as the lists Places reads: "Paliūniškio, Klimbalės, ...
+    gyvenviečių", "Ramygalos gatvių: Biliūno, ... taip pat Daniūnų, ... gyvenviečių".
+
+    "... ir kitų Karsakiškio seniūnijos gyvenviečių" (and the eldership's other settlements)
+    gives the route to every settlement of the eldership as a fallback, which a route that
+    names a settlement overrides (locations.resolve), as "X sen. kaimai" elsewhere."""
+
+    def text_of(self, area: Area) -> str:
+        return pratc_word.places(area.name)[0] if area.kind == "household" else area.name
+
+    def clauses(self, area: Area) -> tuple[list[tuple[Settlement, Clause]], bool]:
+        found, skipped = super().clauses(area)
+        rest = pratc_word.places(area.name)[1] if area.kind == "household" else None
+        if rest is not None:
+            district = self.district(rest)
+            if district is None:
+                self.unknown.append(f"{self.municipality.label}: {rest} sen.")
+            else:
+                found += [
+                    (s, Clause(area.id, None, fallback=True))
+                    for s in self.index.registry.settlements
+                    if s.district == district
+                ]
+        return found, skipped
+
+
 # --- the municipalities ----------------------------------------------------------------
 
 
@@ -582,17 +616,20 @@ class Municipality:
     min_address_points: int
     # Kinds of schedule in a file of each kind, where a file has more than one.
     file_kinds: dict[Kind, tuple[Kind, ...]] = field(default_factory=dict)
+    # Kinds published as a Word 97-2003 document (pratc_word) instead of a spreadsheet.
+    documents: tuple[Kind, ...] = ()
 
 
-def _provider(id: str, elderships: set[str], kinds: tuple[Kind, ...], **more) -> Provider:
-    """`kinds`: also the kinds of the files read (Panevėžio r.: packaging and glass, not its
-    mixed waste, a Word document, nor its food waste)."""
+def _provider(
+    id: str, elderships: set[str], kinds: tuple[Kind, ...], reader: type = Places, **more
+) -> Provider:
+    """`kinds`: also the kinds of the files read (Panevėžio r.: not its food waste)."""
     return Provider(
         id=id,
         name=COMPANY,
         url=PAGE_URL,
         elderships=frozenset(elderships),
-        reader=Places,
+        reader=reader,
         kinds=kinds,
         **more,
     )
@@ -733,7 +770,8 @@ PANEVEZIO_R = Municipality(
             "Vadoklių",
             "Velžio",
         },
-        ("packaging", "glass"),
+        ("household", "packaging", "glass"),
+        reader=DocumentRoutes,
     ),
     "panevezio r",
     snapshot.PANEVEZIO_R_MUNICIPALITY,
@@ -741,13 +779,15 @@ PANEVEZIO_R = Municipality(
     snapshot.PANEVEZIO_R_ADDRESSES_FILE,
     label="Panevėžio r.",
     town="",
-    # 2026: 16 packaging and 48 glass routes, which gave a packaging schedule to 398 of the 737
-    # settlements.
-    min_areas={"packaging": 12, "glass": 36},
-    min_household_places=0,
+    # 2026: 26 mixed waste routes in 29 rows (pratc_word; route 3 is four), 16 packaging and 48
+    # glass routes, which gave a mixed waste schedule to 248 of the 737 settlements (97 of them
+    # all of Karsakiškio sen.), a packaging schedule to 398 and some schedule to 453.
+    min_areas={"household": 22, "packaging": 12, "glass": 36},
+    min_household_places=190,
     min_places=300,
     # About 30,600 addresses in 2026.
     min_address_points=20_000,
+    documents=("household",),
 )
 MUNICIPALITIES = (PASVALYS, ROKISKIS, BIRZAI, PANEVEZIO_R)
 BY_ID = {m.provider.id: m for m in MUNICIPALITIES}
@@ -837,9 +877,9 @@ def file_kind(text: str) -> Kind | None:
 def find_files(
     html: str, page_url: str = PAGE_URL
 ) -> tuple[list[tuple[Municipality, SourceFile, int | None]], list[str]]:
-    """The spreadsheets of individual houses the page links, with their municipalities and the
-    years in their links (None: not there), and warnings for a file of a kind we read that
-    isn't a spreadsheet."""
+    """The spreadsheets of individual houses the page links (Panevėžio r.'s mixed waste: Word
+    documents), with their municipalities and the years in their links (None: not there), and
+    warnings for a file of a kind we read that isn't of its format."""
     page = _Page()
     page.feed(html)
     found: list[tuple[Municipality, SourceFile, int | None]] = []
@@ -850,13 +890,18 @@ def find_files(
         if municipality is None or kind is None or any(w in fold(text) for w in OTHERS):
             continue
         if kind not in municipality.provider.kinds:
-            continue  # Panevėžio r.: mixed waste (a Word document) and food
+            continue  # Panevėžio r.'s food waste
         for href, label in links:
             if not label:
                 continue  # not shown on the page: an old file still linked
             url = urljoin(page_url, href)
             name = file_name(url)
-            if not name.lower().endswith(".xlsx"):
+            if kind in municipality.documents and not name.lower().endswith(".doc"):
+                warnings.append(
+                    f"{municipality.label}: {name}: not a Word 97-2003 document; not read"
+                )
+                continue
+            if kind not in municipality.documents and not name.lower().endswith(".xlsx"):
                 warnings.append(f"{municipality.label}: {name}: not a spreadsheet; not read")
                 continue
             if any(f.url == url for m, f, _ in found if m is municipality):
@@ -867,7 +912,13 @@ def find_files(
 
 
 def content_year(content: bytes) -> int | None:
-    """The year in a spreadsheet's titles: its sheets' names and the rows above its tables."""
+    """The year in a spreadsheet's titles: its sheets' names and the rows above its tables; or
+    in the title of a Word document."""
+    if worddoc.is_document(content):
+        try:
+            return pratc_word.read(content).year
+        except ValueError:
+            return None
     try:
         workbook = openpyxl.load_workbook(io.BytesIO(content), data_only=True)
     except (zipfile.BadZipFile, KeyError, ValueError, OSError):  # not a spreadsheet
@@ -1166,11 +1217,17 @@ def parse_blocks(
 
 
 def parse_file(
-    source: SourceFile, content: bytes, municipality: Municipality = PASVALYS
+    source: SourceFile,
+    content: bytes,
+    municipality: Municipality = PASVALYS,
+    published: Callable[[], dict] | None = None,
 ) -> ParseResult:
-    """The routes of every visible sheet of a file, in whichever of the three layouts. Strict:
-    a file without a table, rows of a waste type its kind doesn't have, dates of several years
-    or of another year than its link's raise ValueError."""
+    """The routes of every visible sheet of a file, in whichever of the three layouts, or of a
+    Word document (parse_document). Strict: a file without a table, rows of a waste type its
+    kind doesn't have, dates of several years or of another year than its link's raise
+    ValueError."""
+    if source.kind in municipality.documents:
+        return parse_document(source, content, municipality, published)
     provider = municipality.provider.id
     workbook = openpyxl.load_workbook(io.BytesIO(content), data_only=True)
     result = ParseResult(areas=[])
@@ -1215,6 +1272,35 @@ def parse_file(
     return result
 
 
+def parse_document(
+    source: SourceFile,
+    content: bytes,
+    municipality: Municipality,
+    published: Callable[[], dict] | None = None,
+) -> ParseResult:
+    """The rows of a Word document (pratc_word.parse), or, if it can't be read (a route with
+    notes the transcription doesn't have, a changed layout), the municipality's rows of its kind
+    in yesterday's data (`published`; None: raise instead), so its other kinds are still
+    updated, as raseiniai.parse_or_keep does for a file."""
+    try:
+        return pratc_word.parse(source, content, municipality.provider.id)
+    except Exception as error:  # any failure of the document must not stop the spreadsheets
+        if published is None:
+            raise
+        kept = build.published_rows(
+            published(), municipality.provider, lambda row: row["kind"] == source.kind
+        )
+        if not kept:
+            raise
+        return ParseResult(
+            kept,
+            [
+                f"{source.file_name}: can't be read ({type(error).__name__}: {error}); "
+                f"yesterday's {len(kept)} {source.kind} rows of {municipality.label} are kept"
+            ],
+        )
+
+
 # --- this year and the next ------------------------------------------------------------
 
 
@@ -1232,7 +1318,7 @@ def combine(
     warning, until its year starts and it becomes the schedule in force; routes of earlier
     years are dropped. Next year's file is checked now, not on 1 January: too few routes in it
     raise ValueError."""
-    reader = Places(Index(registry), municipality.provider, defaultdict(dict))
+    reader = municipality.provider.reader(Index(registry), municipality.provider, defaultdict(dict))
     warnings: list[str] = []
     by_kind: dict[Kind, dict[int, list[tuple[ParseResult, Area]]]] = defaultdict(
         lambda: defaultdict(list)
@@ -1281,11 +1367,17 @@ def combine(
     return warnings
 
 
-def source(municipality: Municipality, page: Callable[[], str] = fetch_page) -> build.Source:
+def source(
+    municipality: Municipality,
+    page: Callable[[], str] = fetch_page,
+    published: Callable[[], dict] | None = None,
+) -> build.Source:
+    """`published`: yesterday's data, for a Word document that can't be read (parse_document;
+    None: fail instead)."""
     return build.Source(
         municipality.provider,
         partial(download, municipality, page=page),
-        partial(parse_file, municipality=municipality),
+        partial(parse_file, municipality=municipality, published=published),
         municipality.min_areas,
         municipality.min_household_places,
         municipality.file_kinds,
@@ -1298,7 +1390,7 @@ def source(municipality: Municipality, page: Callable[[], str] = fetch_page) -> 
 
 def check_places(municipality: Municipality, part: dict) -> None:
     """A municipality's settlements must get schedules: fewer means its files or the matching
-    broke, which the rows' counts don't show (Panevėžio r. has no mixed waste to check)."""
+    broke, which the rows' counts don't show."""
     served = sum(1 for loc in part["locations"] if loc.get("schedule"))
     if served < municipality.min_places:
         raise build.ValidationError(
@@ -1349,7 +1441,11 @@ def main(argv: list[str] | None = None) -> int:
             registries.append((municipality, registry))
             points += found
             built = build.build_parts(
-                (source(municipality, page),), registry, date.today(), args.keep_days, loader
+                (source(municipality, page, loader),),
+                registry,
+                date.today(),
+                args.keep_days,
+                loader,
             )
             for result in built:
                 if result.part is None or result.error:
@@ -1388,6 +1484,10 @@ def main(argv: list[str] | None = None) -> int:
                 kept = "there is no published data to keep, so it is left out"
             # An annotation on the workflow run.
             print(f"::warning::The {municipality.label} build failed; {kept}. {r.error}")
+        # A Word document that can't be read (parse_document): the rows kept say why.
+        for warning in r.warnings:
+            if municipality.documents and "can't be read" in warning:
+                print(f"::warning::{municipality.label}: {warning}")
 
     args.out.mkdir(parents=True, exist_ok=True)
     for file_name_, data in (("schedule.json", dataset), ("addresses.json", addresses)):
