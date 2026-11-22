@@ -11,7 +11,7 @@ body:
     id: municipality
     attributes:
       label: "Savivaldybė"
-      placeholder: "pvz., Zarasų r."
+      placeholder: "pvz., Neringos sav."
     validations:
       required: true
   - type: input
