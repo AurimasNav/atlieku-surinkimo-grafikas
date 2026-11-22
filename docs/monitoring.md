@@ -407,7 +407,7 @@ groups:
       # file on 22 December 2025), so a week's notice would fire every half year: 2 days, as for
       # Kretingos r., so the alert means the last pickups are 1-2 days away and nothing newer
       # has been read (mixed waste ends on 30 April 2027, packaging on 29 December 2026). Not
-      # food waste (once a month, last on 15-16 April 2027, two weeks before the next half
+      # food waste (once a month, last on 14-16 April 2027, two weeks before the next half
       # year's file is usually posted) nor glass (twice a year, last on 29 October 2026).
       - alert: ScheduleDataRunsOut
         expr: |-
