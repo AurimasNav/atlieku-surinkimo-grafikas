@@ -29,7 +29,7 @@
     "skip": "I don't have this container"
   },
   "coverage": {
-    "areas": "all 43 districts (in Panevėžys, mixed waste only in some places) and Birštonas, Druskininkai, Elektrėnai, Kalvarija, Kazlų Rūda, Marijampolė, Pagėgiai and Rietavas municipalities"
+    "areas": "all 43 districts and Birštonas, Druskininkai, Elektrėnai, Kalvarija, Kazlų Rūda, Marijampolė, Pagėgiai and Rietavas municipalities"
   },
   "onboarding": {
     "title": "Bins out.\nOn time.",

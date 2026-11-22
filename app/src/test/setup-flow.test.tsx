@@ -174,7 +174,7 @@ it('says that Panevėžys city is not covered, but not for the district', async 
   expect(await screen.findByText(i18n.t('setup.locationPanevezysCity'))).toBeOnTheScreen();
   expect(screen.queryByText(i18n.t('setup.locationNone', { areas: i18n.t('coverage.areas') }))).toBeNull();
   // The district is covered: the villages of Panevėžio sen., without the hint, and for the
-  // district's name the list of covered areas, which says what of it is.
+  // district's name the list of covered areas.
   await search('Panevėžio');
   expect(await screen.findByText('Berniūnai')).toBeOnTheScreen();
   expect(screen.queryByText(i18n.t('setup.locationPanevezysCity'))).toBeNull();

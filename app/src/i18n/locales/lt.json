@@ -29,7 +29,7 @@
     "skip": "Tokio konteinerio neturiu"
   },
   "coverage": {
-    "areas": "visuose 43 rajonuose (Panevėžio r. mišrios atliekos – tik dalyje vietovių) bei Birštono, Druskininkų, Elektrėnų, Kalvarijos, Kazlų Rūdos, Marijampolės, Pagėgių ir Rietavo sav."
+    "areas": "visuose 43 rajonuose bei Birštono, Druskininkų, Elektrėnų, Kalvarijos, Kazlų Rūdos, Marijampolės, Pagėgių ir Rietavo sav."
   },
   "onboarding": {
     "title": "Konteineriai.\nLaiku.",

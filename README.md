@@ -44,9 +44,8 @@ municipalities. By publisher:
   food waste in parts of Biržai, Pasvalys and Rokiškis and a few villages, for private houses,
   from the spreadsheets and documents of the regional waste centre,
   [UAB "Panevėžio regiono atliekų tvarkymo centras"](https://www.pratc.lt/atlieku-isvezimas-atlieku-isvezimas/).
-  Panevėžys district's mixed waste schedule is a Word document whose routes name 248 of its 737
-  villages and towns, with most of its addresses; the others have no mixed waste schedule in the
-  app. The document gives the phone number of UAB "Švaros komanda" for questions.
+  Panevėžys district's mixed waste comes from a Word document whose routes name 248 of its 737
+  settlements. The document gives the phone number of UAB "Švaros komanda" for questions.
 - **Marijampolė, Kalvarija and Kazlų Rūda municipalities and Vilkaviškis and Šakiai
   districts**: mixed waste, packaging and glass, and food waste in the towns and a few villages,
   for private houses, from the PDFs of the regional waste centre,
