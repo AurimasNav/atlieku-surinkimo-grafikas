@@ -1,3 +1,4 @@
+import { SOURCE_PAGE_URL } from './config';
 import { checkOverdue, staleSources } from './freshness';
 import type { Resolved } from './resolve';
 import type { ScheduleData } from './schedule';
@@ -47,6 +48,22 @@ describe('staleSources', () => {
     };
     expect(staleSources(regions, { choices: {} }, resolvedWith('siauliai', 'not-listed'), now)).toEqual([
       { name: 'UAB „Šiaulių regiono atliekų tvarkymo centras“', url: sratc, since: '2026-11-01T16:48:12Z' },
+    ]);
+  });
+
+  it("links the company's page over http, as the data has kupkom.lt's", () => {
+    const kupkom = 'http://www.kupkom.lt/atlieku-isvezimas/';
+    const regions: ScheduleData = {
+      ...data,
+      providers: [
+        ...data.providers!,
+        { id: 'kupiskis', name: 'UAB „Kupiškio komunalininkas“', url: kupkom, generatedAt: '2026-11-01T13:28:33Z' },
+        { id: 'odd', name: 'Odd', url: 'javascript:alert(1)', generatedAt: '2026-11-01T13:28:33Z' },
+      ],
+    };
+    expect(staleSources(regions, { choices: {} }, resolvedWith('kupiskis', 'odd'), now)).toEqual([
+      { name: 'UAB „Kupiškio komunalininkas“', url: kupkom, since: '2026-11-01T13:28:33Z' },
+      { name: 'Odd', url: SOURCE_PAGE_URL, since: '2026-11-01T13:28:33Z' },
     ]);
   });
 

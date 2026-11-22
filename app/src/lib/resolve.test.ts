@@ -364,6 +364,19 @@ describe('official schedule link', () => {
     expect(link(region, { locationId: 'a1', choices: {} })).toBe(aratc);
   });
 
+  it('opens a page over http, but no other kind of link', () => {
+    // kupkom.lt's certificate is for another name, so the data links its page over http.
+    const kupkom = 'http://www.kupkom.lt/atlieku-isvezimas/';
+    const withUrl = (url: string): ScheduleData => ({
+      ...twoCompanies,
+      providers: [twoCompanies.providers![0], { id: 'nemezio', name: 'UAB „Nemėžio komunalininkas“', url }],
+    });
+    expect(link(withUrl(kupkom), { locationId: 'n1', choices: {} })).toBe(kupkom);
+    for (const url of ['javascript:alert(1)', 'intent://x', 'file:///sdcard/x', 'www.nkom.lt', 'http:', 'https://', '']) {
+      expect([url, link(withUrl(url), { locationId: 'n1', choices: {} })]).toEqual([url, SOURCE_PAGE_URL]);
+    }
+  });
+
   it('opens Nemenčinė for data and places without companies', () => {
     expect(link(data, { locationId: 'g1', choices: {} })).toBe(SOURCE_PAGE_URL);
     expect(link(twoCompanies, null)).toBe(SOURCE_PAGE_URL);
