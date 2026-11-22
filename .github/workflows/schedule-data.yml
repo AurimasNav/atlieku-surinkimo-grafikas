@@ -672,8 +672,10 @@ jobs:
         with:
           path: site
 
+  # Only from main: a run started by hand on another branch (to try a change of this file) builds
+  # everything but deploys nothing; the github-pages environment only accepts main anyway.
   deploy:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: [build, data]
     runs-on: ubuntu-latest
     permissions:
