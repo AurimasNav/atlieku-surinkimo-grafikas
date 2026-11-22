@@ -43,6 +43,7 @@ kompata.lt (pdf)                          Ignalinos r.: site/ignalinos-r/
 eku.lt (html)                             Elektrėnų sav.: site/elektrenu-sav/
 sirvintos.lt (pdf)                        Širvintų r.: site/sirvintu-r/ (from a copy in
                                           pipeline/data when the site refuses the runners)
+kupkom.lt (html + pdf)                    Kupiškio r.: site/kupiskio-r/
 svencionys.lt (pdf)                       Švenčionių r.: site/svencioniu-r/ (from a copy in
                                           pipeline/data when the site refuses the runners)
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
@@ -100,7 +101,10 @@ CronJob takes the copies daily at 03:00 UTC, another the register snapshots on t
 month. Each opens a PR from a bot branch (`data/site-copies`, `data/address-register`) when
 something changed and merges it once `check` and `build` pass, so a new schedule file is
 published the same morning. A copy whose files didn't change is left as it is, its `takenAt`
-too, even if the page's markup did, so most days there is no PR. If a job fails, its PR stays
+too, even if the page's markup did, so most days there is no PR. Google API keys in the saved
+pages (a site theme's Maps key) are replaced by `AIza_REDACTED`, and a test fails if a key or
+token of a known format is anywhere in `pipeline/data/` or the test fixtures (`test_secrets.py`),
+as these files are committed unattended. If a job fails, its PR stays
 open and the job fails in the cluster (`KubeJobFailed`). Only then refresh by hand from a
 computer in Lithuania and open a PR:
 
