@@ -75,8 +75,10 @@ buildings' containers aren't read, and nothing says a street has none. Švenčio
 Švenčionėliai are named whole ("Švenčionių miestas"). A village in two columns (Pažeimenė, on
 Mondays and Thursdays) gets both rows, and the app asks.
 
-A file that can't be downloaded or read keeps its rows of yesterday's data, and the other file
-is still read (as utena.py does).
+svencionys.lt refuses GitHub's runners (HTTP 403): the daily job then reads the copy of the page
+and its files in pipeline/data (COPY_DIR, save_copy), with a warning that says how old it is, as
+for Ukmergės r. A file that can't be downloaded or read keeps its rows of yesterday's data, and
+the other file is still read (as utena.py does).
 
 Writes <out>/schedule.json and <out>/addresses.json in the format of the Vilniaus r. files.
 Run: python -m schedule_pipeline.svencionys --out ../site/svencioniu-r
@@ -87,6 +89,7 @@ from __future__ import annotations
 import argparse
 import io
 import re
+import sys
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -264,14 +267,22 @@ def select_files(files: list[ScheduleFile], today: date) -> tuple[list[ScheduleF
     return selected, warnings
 
 
-def download(
-    today: date, keep_days: int, tolerant: bool = False
+def _get(url: str) -> bytes:
+    # With the project's own user agent (http.USER_AGENT). svencionys.lt answers GitHub's
+    # runners 403; it serves a machine in Lithuania.
+    return http.get(url, timeout=60)
+
+
+# A copy of the page and the files the daily job reads from it, taken from a machine in Lithuania
+# (save_copy, run daily by snapshot.py --copies): svencionys.lt answers GitHub's runners 403, as
+# silute.lt, kedainiai.lt, ukmerge.lt and sirvintos.lt do.
+COPY_DIR = snapshot.SVENCIONYS_COPY_DIR
+
+
+def _download(
+    today: date, keep_days: int, get: Callable[[str], bytes], tolerant: bool
 ) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
-    """The files in force, mixed waste's with the window of its rules' dates. `tolerant`: a file
-    that can't be downloaded is passed on empty, and keeps its rows of yesterday's data
-    (parse_or_keep)."""
-    html = http.get(PAGE_URL, timeout=60).decode("utf-8", errors="replace")
-    files, warnings = find_files(html)
+    files, warnings = find_files(get(PAGE_URL).decode("utf-8", errors="replace"))
     selected, more = select_files(files, today)
     warnings += more
     sources: list[tuple[SourceFile, bytes]] = []
@@ -279,13 +290,48 @@ def download(
         if file.kind == "household":
             file.start, file.end = window(today, keep_days)
         try:
-            sources.append((file, http.get(file.url, timeout=60)))
+            sources.append((file, get(file.url)))
         except OSError as error:
             if not tolerant:
                 raise
             warnings.append(f"{file.file_name}: couldn't be downloaded ({error})")
             sources.append((file, b""))
     return sources, warnings
+
+
+def download(
+    today: date, keep_days: int, tolerant: bool = False
+) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
+    """The files in force, mixed waste's with the window of its rules' dates, from the page, or
+    where the site doesn't answer and there is a copy (COPY_DIR), the copy's, with a warning
+    that says how old it is, as ukmerge.download does. `tolerant`: a file that can't be
+    downloaded is passed on empty, and keeps its rows of yesterday's data (parse_or_keep)."""
+    try:
+        return _download(today, keep_days, _get, tolerant)
+    except OSError as error:
+        if not (COPY_DIR / snapshot.SITE_COPY_INDEX).exists():
+            raise
+        get = partial(snapshot.site_copy, COPY_DIR)
+        files, warnings = _download(today, keep_days, get, tolerant)
+        note = snapshot.site_copy_note(PAGE_URL, error, COPY_DIR, today)
+        print(note, file=sys.stderr)
+        return files, [note, *warnings]
+
+
+def save_copy(folder: Path | None = None, today: date | None = None) -> bool:
+    """Saves the page and the files the daily job would read from it in `folder` (COPY_DIR),
+    for download when the site doesn't answer: python -m schedule_pipeline.snapshot --copies,
+    daily, so next year's packaging file (December or January) or a new sheet of rules comes
+    within a day. False if the files were those of the copy already there, which is then left
+    as it is."""
+    today = today or snapshot.utc_today()
+    html = _get(PAGE_URL)
+    found, warnings = find_files(html.decode("utf-8", errors="replace"))
+    chosen, notes = select_files(found, today)
+    for warning in warnings + notes:
+        print(f"Švenčionių r.: {warning}", file=sys.stderr)
+    contents = [(f.url, _get(f.url)) for f in chosen]
+    return snapshot.save_site_copy(folder or COPY_DIR, PAGE_URL, html, contents, today)
 
 
 # --- the files -------------------------------------------------------------------

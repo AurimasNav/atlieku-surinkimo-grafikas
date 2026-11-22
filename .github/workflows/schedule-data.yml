@@ -587,9 +587,9 @@ jobs:
             echo "::error::The Širvintų r. build failed and the published data couldn't be downloaded (HTTP $code)."
             exit 1
           fi
-      # Švenčionių r., from the PDFs on the municipality's page (site/svencioniu-r): a file that
-      # can't be read keeps its rows of yesterday's data; if the whole build fails, yesterday's
-      # files are kept.
+      # Švenčionių r., from the PDFs on the municipality's page or, as svencionys.lt refuses the
+      # runners, their copy in pipeline/data (site/svencioniu-r): a file that can't be read keeps
+      # its rows of yesterday's data; if the whole build fails, yesterday's files are kept.
       - name: Build the Švenčionių r. schedule (Švenčionių rajono savivaldybė)
         id: svencionys
         if: github.event_name != 'pull_request'

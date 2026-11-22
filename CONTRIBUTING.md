@@ -42,7 +42,8 @@ kompata.lt (pdf)                          Ignalinos r.: site/ignalinos-r/
 eku.lt (html)                             Elektrėnų sav.: site/elektrenu-sav/
 sirvintos.lt (pdf)                        Širvintų r.: site/sirvintu-r/ (from a copy in
                                           pipeline/data when the site refuses the runners)
-svencionys.lt (pdf)                       Švenčionių r.: site/svencioniu-r/
+svencionys.lt (pdf)                       Švenčionių r.: site/svencioniu-r/ (from a copy in
+                                          pipeline/data when the site refuses the runners)
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
 pipeline/   Python: scrape → parse → validate → schedule.json
@@ -87,10 +88,10 @@ uv run ruff check . && uv run ruff format .
 
 **Address Register snapshot and site copies.** get.data.gov.lt and registrucentras.lt block
 requests from cloud servers, including GitHub Actions, so the daily job falls back to the
-snapshot in `pipeline/data/`. silute.lt, kedainiai.lt, ukmerge.lt and sirvintos.lt refuse
-GitHub's runners too, so the job reads copies of their pages and schedule files in
-`pipeline/data/schedules-silutes-r/`, `schedules-kedainiu-r/`, `schedules-ukmerges-r/` and
-`schedules-sirvintu-r/` (its build warning says how old they are).
+snapshot in `pipeline/data/`. silute.lt, kedainiai.lt, ukmerge.lt, sirvintos.lt and svencionys.lt
+refuse GitHub's runners too, so the job reads copies of their pages and schedule files in
+`pipeline/data/schedules-silutes-r/`, `schedules-kedainiu-r/`, `schedules-ukmerges-r/`,
+`schedules-sirvintu-r/` and `schedules-svencioniu-r/` (its build warning says how old they are).
 
 Both are refreshed automatically from the maintainer's cluster in Lithuania
 ([k8s-at-home](https://github.com/AurimasNav/k8s-at-home), `gitops/siuksliaveze-snapshot`): a

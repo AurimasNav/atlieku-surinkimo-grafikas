@@ -603,6 +603,51 @@ def test_next_years_packaging_continues_this_years(built):
     assert len(mixed.areas) == 16
 
 
+def refused(url, timeout=0):
+    raise OSError("HTTP Error 403: Forbidden")
+
+
+def test_the_copy_when_the_site_refuses_the_job(tmp_path, monkeypatch):
+    monkeypatch.setattr(svencionys.http, "get", serve)
+    copy = tmp_path / "copy"
+    assert svencionys.save_copy(copy, TODAY)
+    # As Ukmergės r.'s: the page, the files read today named after their URLs, and copy.json.
+    index = json.loads((copy / "copy.json").read_text(encoding="utf-8"))
+    names = [url.rsplit("/", 1)[-1] for url in COPIES]
+    assert index == {"takenAt": "2026-11-22", "page": svencionys.PAGE_URL, "files": names}
+    assert sorted(p.name for p in copy.iterdir()) == sorted([*names, "copy.json", "page.html"])
+    # Saved again with the same files: no change.
+    assert not svencionys.save_copy(copy, TODAY)
+
+    monkeypatch.setattr(svencionys.http, "get", refused)
+    monkeypatch.setattr(svencionys, "COPY_DIR", copy)
+    files, warnings = svencionys.download(TODAY, 31)
+    assert [(f.kind, content) for f, content in files] == [
+        ("household", fixture("svencionys/misrios-2025.pdf")),
+        ("packaging", fixture("svencionys/pakuotes-2026.pdf")),
+    ]
+    assert files[0][0].start == date(2026, 10, 22)
+    assert warnings == [
+        f"{svencionys.PAGE_URL}: unavailable (HTTP Error 403: Forbidden); used the copy from "
+        "2026-11-22 (0 days old)"
+    ]
+    # Without a copy, the error.
+    monkeypatch.setattr(svencionys, "COPY_DIR", tmp_path / "none")
+    with pytest.raises(OSError, match="403"):
+        svencionys.download(TODAY, 31)
+
+
+def test_the_committed_copy_can_be_built(monkeypatch):
+    """The copy in pipeline/data, as the daily job reads it on GitHub's runners (it is
+    refreshed, so only that it builds: build_dataset checks the counts)."""
+    monkeypatch.setattr(svencionys.http, "get", refused)
+    files, warnings = svencionys.download(date.today(), 31)
+    assert "used the copy from" in warnings[0]
+    assert [f.kind for f, _ in files][0] == "household"
+    registry = Registry.load(FIXTURES / REGISTRY)
+    build_dataset(files, registry, date.today(), 31, svencionys.source())
+
+
 def test_the_folder(tmp_path, monkeypatch):
     def blocked(*args):
         raise OSError("HTTP Error 403: Forbidden")

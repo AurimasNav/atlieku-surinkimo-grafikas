@@ -293,7 +293,10 @@ whole, yesterday's folder is kept (`ScheduleDataStale`). Next year's packaging f
 as the page links it; until its year starts, its rows continue this year's that cover the same
 places. A dated packaging column whose dates aren't the rule in its header ("II mėnesio
 trečiadienis") is a build warning. Installed apps find `svencioniu-r/` through `regions.json`
-(below).
+(below). svencionys.lt refuses GitHub's runners (HTTP 403), so `svencionys` is built from the
+copy of its page and files in `pipeline/data/schedules-svencioniu-r/` that the daily refresh
+takes (as for Kėdainių r.), with a build warning that says how old it is: next year's packaging
+file, or a new sheet of rules, reaches the site within a day of being posted.
 
 The job therefore publishes the state of the data with every run:
 
@@ -497,7 +500,9 @@ groups:
       # Švenčionių r.: only packaging, a year at a time (the 2026 file was uploaded in December
       # 2025), dates for nine elderships and the year's rules for Pabradės and Magūnų sen., the
       # last pickup on 28 December 2026 (Pabradė's fourth Monday), so this fires from 21 December
-      # until next year's file is read. Not mixed waste: its rules never end, and its dates run
+      # until next year's file is read (svencionys.lt refuses the runners: the daily refresh of
+      # the copy in pipeline/data takes it; a week's notice leaves time to refresh it by hand if
+      # that fails). Not mixed waste: its rules never end, and its dates run
       # to the end of a window about 13 months ahead that moves with every build (its last date
       # is never near; a build that fails shows as ScheduleDataStale). Not glass: four times a
       # year in the nine elderships (last on 7 December 2026), every other month for Pabradė
