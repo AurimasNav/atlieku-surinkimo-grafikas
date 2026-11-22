@@ -131,6 +131,9 @@ tests:
       # Anykščių r.: mixed waste, packaging and glass.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="anyksciai",kind="glass"}'
         values: "518400x20"
+      # Utenos r.'s yearly packaging.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="utena",kind="packaging"}'
+        values: "518400x20"
       # Ignalinos r.'s half-yearly mixed waste (November to April): ends tomorrow.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ignalina",kind="household"}'
         values: "86400x20"
@@ -234,6 +237,12 @@ tests:
       # Anykščiai's green waste, last collected on 21-22 December: not watched.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="anyksciai",kind="green"}'
         values: "86400x20"
+      # Utenos r. glass (four times a year) and the town's green waste (last in mid-December):
+      # not watched.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="utena",kind="glass"}'
+        values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="utena",kind="green"}'
+        values: "172800x20"
       # Ignalinos r.: its files are made in the last days before their periods, so its
       # packaging 3 days before its end raises nothing, nor do its food waste (last in mid-April
       # and mid-October) and glass (twice a year).
@@ -433,6 +442,13 @@ tests:
               summary: "anyksciai: the glass schedule ends within a week"
           - exp_labels:
               job: siuksliaveze-data
+              source: utena
+              kind: packaging
+              severity: warning
+            exp_annotations:
+              summary: "utena: the packaging schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
               source: ignalina
               kind: household
               severity: warning
@@ -545,6 +561,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ukmerge",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="anyksciai",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="utena",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ignalina",kind="household"}'
         values: "25920000x191"

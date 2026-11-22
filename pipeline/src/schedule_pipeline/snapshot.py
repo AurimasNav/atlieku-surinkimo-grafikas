@@ -178,6 +178,10 @@ UKMERGE_COPY_DIR = DATA_DIR / "schedules-ukmerges-r"
 ANYKSCIAI_MUNICIPALITY = ("Anykščių rajono", 34)
 ANYKSCIAI_REGISTRY_FILE = DATA_DIR / "registry-anyksciu-r.json"
 ANYKSCIAI_ADDRESSES_FILE = DATA_DIR / "address-points-anyksciu-r.json"
+# Utenos r. (schedule_pipeline.utena).
+UTENA_MUNICIPALITY = ("Utenos rajono", 82)
+UTENA_REGISTRY_FILE = DATA_DIR / "registry-utenos-r.json"
+UTENA_ADDRESSES_FILE = DATA_DIR / "address-points-utenos-r.json"
 # Ignalinos r. (schedule_pipeline.ignalina).
 IGNALINA_MUNICIPALITY = ("Ignalinos rajono", 45)
 IGNALINA_REGISTRY_FILE = DATA_DIR / "registry-ignalinos-r.json"
@@ -404,6 +408,7 @@ def main() -> int:
             ANYKSCIAI_REGISTRY_FILE,
             ANYKSCIAI_ADDRESSES_FILE,
         ),
+        ("Utenos r.", UTENA_MUNICIPALITY, UTENA_REGISTRY_FILE, UTENA_ADDRESSES_FILE),
         ("Ignalinos r.", IGNALINA_MUNICIPALITY, IGNALINA_REGISTRY_FILE, IGNALINA_ADDRESSES_FILE),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
