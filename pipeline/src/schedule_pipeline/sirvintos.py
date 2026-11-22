@@ -15,7 +15,10 @@ to April until 2026 ("... 2025 M. 05 MĖN.–2026 M. 04 MĖN. GRAFIKAS", posted 
 April to June 2026 (made on 16 April) and June to December 2026 (made on 16 June, in place of
 the last one's June); the page keeps older files linked. A file's period is the months of its
 table, which its link names only sometimes (then they must agree). Packaging and glass come a
-year at a time, posted in December (the 2026 file was made on 18 December 2025).
+year at a time, posted in December (the 2026 file was made on 18 December 2025). sirvintos.lt
+refuses GitHub's runners (HTTP 403): the daily job then reads the copy of the pages and their
+files in pipeline/data (COPY_DIR, save_copy), with a warning that says how old it is, as for
+Ukmergės r.
 
 The mixed waste files are a table of routes, in one of two layouts (both read with pdfplumber's
 table finder, the letters of a line within 2 points of each other, not 3: the April-June file
@@ -57,10 +60,12 @@ from __future__ import annotations
 import argparse
 import io
 import re
+import sys
 from collections import Counter, defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date, timedelta
+from functools import partial
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -198,16 +203,29 @@ def select_files(
 
 
 def _get(url: str) -> bytes:
+    # With the project's own user agent (http.USER_AGENT). sirvintos.lt answers GitHub's runners
+    # 403; it serves a machine in Lithuania.
     return http.get(url, timeout=120)
 
 
-def _download(
+# A copy of the two pages and the files the daily job reads from them, taken from a machine in
+# Lithuania (save_copy, run by snapshot.py with the Address Register snapshots): sirvintos.lt
+# answers GitHub's runners 403, as silute.lt, kedainiai.lt and ukmerge.lt do. The mixed waste page
+# is the copy's page; the packaging page is kept as one of its files, under the last part of its
+# URL ("2332").
+COPY_DIR = snapshot.SIRVINTOS_COPY_DIR
+
+
+def _fetch(
     today: date, keep_days: int, get: Callable[[str], bytes]
-) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
+) -> tuple[dict[str, bytes], list[ScheduleFile], dict[str, bytes], list[str]]:
+    """The pages, the schedules they link of the last two years with the months of their tables
+    (each one is downloaded for them), the files' contents by URL, and warnings."""
+    pages = {page: get(page) for page in PAGES}
     found: list[ScheduleFile] = []
     warnings: list[str] = []
-    for page in PAGES:
-        files, notes = find_files(get(page).decode("utf-8", errors="replace"), page)
+    for page, html in pages.items():
+        files, notes = find_files(html.decode("utf-8", errors="replace"), page)
         found += [f for f in files if all(f.url != g.url for g in found)]
         warnings += [note for note in notes if note not in warnings]
     cutoff = today - timedelta(days=keep_days)
@@ -218,14 +236,46 @@ def _download(
             continue  # two years old: nothing to publish
         contents[file.url] = get(file.url)
         file.start, file.end = read_period(file, contents[file.url])
-    chosen, notes = select_files([f for f in found if f.url in contents], today, keep_days)
+    return pages, [f for f in found if f.url in contents], contents, warnings
+
+
+def _download(
+    today: date, keep_days: int, get: Callable[[str], bytes]
+) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
+    _, found, contents, warnings = _fetch(today, keep_days, get)
+    chosen, notes = select_files(found, today, keep_days)
     return [(f, contents[f.url]) for f in chosen], warnings + notes
 
 
 def download(today: date, keep_days: int) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
-    """The files with dates still to publish, from the pages. Each linked file of the last two
-    years is downloaded: its period is in its table."""
-    return _download(today, keep_days, _get)
+    """The files with dates still to publish, from the pages (each linked file of the last two
+    years is downloaded: its period is in its table), or where the site doesn't answer and there
+    is a copy (COPY_DIR), the copy's, with a warning that says how old it is, as
+    ukmerge.download does."""
+    try:
+        return _download(today, keep_days, _get)
+    except OSError as error:
+        if not (COPY_DIR / snapshot.SITE_COPY_INDEX).exists():
+            raise
+        files, warnings = _download(today, keep_days, partial(snapshot.site_copy, COPY_DIR))
+        note = snapshot.site_copy_note(MIXED_PAGE, error, COPY_DIR, today)
+        print(note, file=sys.stderr)
+        return files, [note, *warnings]
+
+
+def save_copy(folder: Path | None = None, today: date | None = None) -> None:
+    """Saves the pages and every file the daily job would download from them in `folder`
+    (COPY_DIR), for download when the site doesn't answer: python -m schedule_pipeline.snapshot.
+    Run it too when the pages get the next period's or year's file."""
+    today = today or snapshot.utc_today()
+    pages, found, contents, warnings = _fetch(today, 31, _get)
+    _, notes = select_files(found, today)
+    for warning in warnings + notes:
+        print(f"Širvintų r.: {warning}", file=sys.stderr)
+    files = [(RECYCLABLES_PAGE, pages[RECYCLABLES_PAGE])] + [
+        (f.url, contents[f.url]) for f in found
+    ]
+    snapshot.save_site_copy(folder or COPY_DIR, MIXED_PAGE, pages[MIXED_PAGE], files, today)
 
 
 # --- the tables ------------------------------------------------------------------

@@ -657,6 +657,44 @@ def test_main_writes_the_folder(tmp_path, monkeypatch):
     assert len(addresses["points"]) > sirvintos.MUNICIPALITY.min_address_points
 
 
+def test_the_copy_when_the_site_refuses_the_job(tmp_path, monkeypatch):
+    monkeypatch.setattr(sirvintos.http, "get", serve)
+    copy = tmp_path / "copy"
+    sirvintos.save_copy(copy, TODAY)
+    # As Ukmergės r.'s: the mixed waste page, the packaging page as a file named after its URL,
+    # every file the job downloads (April-June too, for its months), and copy.json.
+    index = json.loads((copy / "copy.json").read_text(encoding="utf-8"))
+    assert index["takenAt"] == "2026-11-22" and index["page"] == sirvintos.MIXED_PAGE
+    assert index["files"] == ["2332", JUNE.file_name, APRIL.file_name, PACKAGING.file_name]
+
+    monkeypatch.setattr(sirvintos.http, "get", refused)
+    monkeypatch.setattr(sirvintos, "COPY_DIR", copy)
+    files, warnings = sirvintos.download(TODAY, 31)
+    assert [f.file_name for f, _ in files] == [JUNE.file_name, PACKAGING.file_name]
+    assert files[1][1] == content(PACKAGING)
+    assert warnings == [
+        f"{sirvintos.MIXED_PAGE}: unavailable (HTTP Error 403: Forbidden); used the copy from "
+        "2026-11-22 (0 days old)"
+    ]
+    # Over 60 days old, it asks for a refresh; the routes keep their last dates meanwhile.
+    _, warnings = sirvintos.download(date(2027, 1, 25), 31)
+    assert warnings[0].endswith("uv run python -m schedule_pipeline.snapshot")
+    # Without a copy, the error.
+    monkeypatch.setattr(sirvintos, "COPY_DIR", tmp_path / "none")
+    with pytest.raises(OSError, match="403"):
+        sirvintos.download(TODAY, 31)
+
+
+def test_the_committed_copy_can_be_built(monkeypatch):
+    """The copy in pipeline/data, as the daily job reads it on GitHub's runners (it is
+    refreshed, so only that it builds: build_dataset checks the counts)."""
+    monkeypatch.setattr(sirvintos.http, "get", refused)
+    files, warnings = sirvintos.download(date.today(), 31)
+    assert "used the copy from" in warnings[0]
+    assert {f.kind for f, _ in files} == {"household", "packaging"}
+    build_dataset(files, REGISTRY, date.today(), 31, sirvintos.SOURCE)
+
+
 def test_pages_without_the_files_fail(tmp_path, monkeypatch):
     monkeypatch.setattr(sirvintos.http, "get", lambda url, timeout=0: b"<html></html>")
     monkeypatch.setattr(build, "live_or_snapshot", lambda name, live, snap: (snap()[0], None))

@@ -208,6 +208,16 @@ waste, November 2026 to April 2027), `pakuotes-2026.pdf`
 "Maisto_atlieku_isvezimo_grafikas_2026-2027m_.pdf" (food waste) (`test_ignalina.COPIES`). With
 the Address Register extract for Ignalinos r. of the same day.
 
+`elektrenai/` has the schedule pages of UAB "Elektrėnų komunalinis ūkis" (Elektrėnų sav.) on
+eku.lt, downloaded on 2026-11-22 (line endings made LF) and named after their titles: `grafikai.html`
+is the list of the years' pages, "Atliekų išvežimo grafikai"
+(<https://www.eku.lt/atlieku-ir-teritoriju-tvarkymas/atlieku-isvezimo-grafikai/569>), `2026.html`
+the page "2026 m." (…/2026-m./652), `2026-rusiuoju.html` its "Rūšiuoju buitinės atliekas" (…/654),
+`2026-buitiniu.html` "Buitinių atliekų išvežimo grafikas" (…/656, mixed waste) and
+`2026-antriniu.html` "Antrinių (rūšiuojamų) atliekų išvežimo grafikas" (…/653, packaging and
+glass); the `2025*.html` files are the same pages of 2025 (…/651, 629, 627, 628)
+(`test_elektrenai.COPIES`). With the Address Register extract for Elektrėnų sav. of the same day.
+
 `sirvintos/` has the two schedule pages of the Širvintų r. municipality (sirvintos.lt),
 `misrios-page.html` (mixed waste) and `antrines-page.html` (packaging and glass), and the PDFs
 they link, downloaded on 2026-11-22 and renamed: `misrios-2026-06-12.pdf` is
