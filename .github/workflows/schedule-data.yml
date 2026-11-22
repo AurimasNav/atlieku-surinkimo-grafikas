@@ -25,9 +25,14 @@ permissions:
   contents: read
 
 # Deploys queue one at a time. PR checks get a queue per PR (a newer push replaces an older
-# check), so they can't cancel each other or wait for a deploy.
+# check), so they can't cancel each other or wait for a deploy. A run started by hand on another
+# branch deploys nothing and gets a queue of its own: in `pages` it could replace a waiting run of
+# main, whose change would then wait for the next run.
 concurrency:
-  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.ref) || 'pages' }}
+  group: >-
+    ${{ github.event_name == 'pull_request' && format('pr-{0}', github.ref)
+    || github.ref == 'refs/heads/main' && 'pages'
+    || format('try-{0}', github.ref) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
