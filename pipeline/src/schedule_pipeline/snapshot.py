@@ -184,6 +184,10 @@ UKMERGE_COPY_DIR = DATA_DIR / "schedules-ukmerges-r"
 ANYKSCIAI_MUNICIPALITY = ("Anykščių rajono", 34)
 ANYKSCIAI_REGISTRY_FILE = DATA_DIR / "registry-anyksciu-r.json"
 ANYKSCIAI_ADDRESSES_FILE = DATA_DIR / "address-points-anyksciu-r.json"
+# Utenos r. (schedule_pipeline.utena).
+UTENA_MUNICIPALITY = ("Utenos rajono", 82)
+UTENA_REGISTRY_FILE = DATA_DIR / "registry-utenos-r.json"
+UTENA_ADDRESSES_FILE = DATA_DIR / "address-points-utenos-r.json"
 # An Address Register snapshot older than this gets a refresh request in the job summary (the
 # build still succeeds): the monthly refresh rewrites them, takenAt included, so this is two
 # missed months. The site copies get none (site_copy_note).
@@ -462,6 +466,7 @@ def save_register() -> None:
             ANYKSCIAI_REGISTRY_FILE,
             ANYKSCIAI_ADDRESSES_FILE,
         ),
+        ("Utenos r.", UTENA_MUNICIPALITY, UTENA_REGISTRY_FILE, UTENA_ADDRESSES_FILE),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)
