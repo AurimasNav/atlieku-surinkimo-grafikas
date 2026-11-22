@@ -225,7 +225,8 @@ class ValidationError(Exception):
 class Rule:
     """Emptied every `every` days, in `months` only (all year if empty). Or on days of the week
     (`weekdays`, 0 = Monday): every week on each of them, or with `nth` on the nth of that day
-    in every month (`every` is then 0)."""
+    in every month (`every` is then 0); `nth` -1 is the last of that day in the month (not in
+    this file: zarasai.Rule's "paskutinį mėnesio pirmadienį")."""
 
     every: int
     months: tuple[int, ...] = ()
@@ -241,6 +242,8 @@ class Rule:
         """Whether `day` can be a pickup: the file's next date is checked with it."""
         if self.weekdays and day.weekday() not in self.weekdays:
             return False
+        if self.nth < 0:
+            return (day + timedelta(days=7)).month != day.month
         return not self.nth or (day.day - 1) // 7 + 1 == self.nth
 
 

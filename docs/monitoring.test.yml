@@ -145,6 +145,9 @@ tests:
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="sirvintos",kind="glass"}'
         values: "518400x20"
+      # Zarasų r.'s yearly packaging.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="zarasai",kind="packaging"}'
+        values: "518400x20"
       # Ends in 30 days: no alert.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="glass"}'
         values: "2592000x20"
@@ -262,6 +265,10 @@ tests:
         values: "86400x20"
       # Elektrėnų sav. glass (four times a year): not watched.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="elektrenai",kind="glass"}'
+        values: "86400x20"
+      # Zarasų r.'s mixed waste: rules, whose dates the build calculates ahead; a changed scan
+      # shows as ScheduleDataStale instead. Not watched, even this close.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="zarasai",kind="household"}'
         values: "86400x20"
     alert_rule_test:
       - eval_time: 40m
@@ -486,6 +493,40 @@ tests:
               severity: warning
             exp_annotations:
               summary: "sirvintos: the glass schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: zarasai
+              kind: packaging
+              severity: warning
+            exp_annotations:
+              summary: "zarasai: the packaging schedule ends within a week"
+
+  - name: Zarasų r. with a changed scan keeps yesterday's data
+    interval: 15m
+    input_series:
+      # The build fails from the start, so its data stays as built then, with the mixed waste
+      # dates of its rules 13 months ahead.
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="zarasai"}'
+        values: "0x140"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="zarasai",kind="household"}'
+        values: "34000000x140"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="zarasai",kind="packaging"}'
+        values: "2592000x140"
+    alert_rule_test:
+      - eval_time: 30h10m
+        alertname: ScheduleDataStale
+      - eval_time: 31h10m
+        alertname: ScheduleDataRunsOut
+      - eval_time: 31h10m
+        alertname: ScheduleDataStale
+        exp_alerts:
+          - exp_labels:
+              job: siuksliaveze-data
+              source: zarasai
+              severity: warning
+            exp_annotations:
+              summary: "Schedule data of zarasai is 1d 7h 10m 0s old"
+              description: "The daily build of this source fails or doesn't run. See the Schedule data workflow on GitHub."
 
   - name: Širvintų r. mixed waste 3 days before its end
     interval: 15m
@@ -615,6 +656,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="elektrenai",kind="packaging"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="sirvintos",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="zarasai",kind="glass"}'
         values: "25920000x191"
       - series: 'up{job="siuksliaveze-data"}'
         values: "1x191"

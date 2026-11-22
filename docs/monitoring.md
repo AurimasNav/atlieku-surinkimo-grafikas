@@ -10,7 +10,7 @@ Users see it too: when the data of the company behind their schedule hasn't been
 days (`providers[].generatedAt`, or Kauno švara's `generatedAt`), the app shows a warning with a
 link to the company's official schedule (`app/src/lib/freshness.ts`).
 
-There are forty sources:
+There are forty-one sources:
 
 | `source` | Company | Published in |
 |---|---|---|
@@ -54,6 +54,7 @@ There are forty sources:
 | `ignalina` | SĮ „Kompata“, Ignalinos r. | `ignalinos-r/` |
 | `elektrenai` | UAB „Elektrėnų komunalinis ūkis“, Elektrėnų sav. | `elektrenu-sav/` |
 | `sirvintos` | Širvintų rajono savivaldybė (collected by UAB „Ecoservice“), Širvintų r. | `sirvintu-r/` (`provider: "sirvintos"`) |
+| `zarasai` | Zarasų rajono savivaldybė (mixed waste collected by UAB „Zarasų būstas“, packaging and glass by UAB „Zarasų komunalininkas“), Zarasų r. | `zarasu-r/` (`provider: "zarasai"`) |
 
 The two Vilniaus r. companies share one `schedule.json`, so the app needs one download. When
 one of them fails, its part of yesterday's file is kept (its `providers[].generatedAt` stays
@@ -274,6 +275,21 @@ page, so its markup alone is no change), with a build warning that says how old 
 period's or year's file reaches the site within a day of being posted (in 2026 two weeks into the
 mixed waste periods, packaging in December).
 
+`zarasai` is Zarasų r., from the municipality's page: mixed waste is a scanned image of rules
+("2-ą ir paskutinį mėnesio pirmadienį", the second and the last Monday of the month, and the
+places of each route), which can't be read as text. It was transcribed once into
+`pipeline/data/rules-zarasu-r.json`, with the scan's address and SHA-256. Every day the build
+downloads the scan the page links and compares its hash: while it is the same, the rules become
+dates from a month ago to about 13 months ahead, so the mixed waste schedule never runs out and
+`ScheduleDataRunsOut` doesn't watch it. If the scan changed (a new hash), or the page no longer
+links one scan, the build fails ("the published scan changed (new hash …); re-transcribe
+pipeline/data/rules-zarasu-r.json") and yesterday's `zarasu-r/` is kept, so `ScheduleDataStale`
+fires for `zarasai` the next day: transcribe the new scan (CONTRIBUTING.md) and merge the PR.
+Packaging and glass come from a text PDF, a year at a time, read as usual. Both are one part,
+the publisher's, as for Širvintų r. (the app takes a settlement's schedules from one place in
+the file), so while the scan waits for its new transcription, a new packaging file waits too.
+Installed apps find `zarasu-r/` through `regions.json` (below).
+
 The job therefore publishes the state of the data with every run:
 
 - `https://aurimasnav.github.io/atlieku-surinkimo-grafikas/metrics.txt` (Prometheus format)
@@ -281,10 +297,10 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
-| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `taurage` / `silale` / `pagegiai` / `siauliai` / `radviliskis` / `alytus` / `pasvalys` / `rokiskis` / `birzai` / `panevezio-r` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` / `raseiniai` / `jonava` / `kretinga` / `silute` / `trakai` / `salcininkai` / `kedainiai` / `moletai` / `skuodas` / `ukmerge` / `anyksciai` / `utena` / `ignalina` / `elektrenai` / `sirvintos` was built |
+| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `taurage` / `silale` / `pagegiai` / `siauliai` / `radviliskis` / `alytus` / `pasvalys` / `rokiskis` / `birzai` / `panevezio-r` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` / `raseiniai` / `jonava` / `kretinga` / `silute` / `trakai` / `salcininkai` / `kedainiai` / `moletai` / `skuodas` / `ukmerge` / `anyksciai` / `utena` / `ignalina` / `elektrenai` / `sirvintos` / `zarasai` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
-| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai`, `radviliskis`, `alytus`, `pasvalys`, `rokiskis`, `birzai`, `panevezio-r`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda`, `sakiai`, `raseiniai`, `jonava`, `kretinga`, `silute`, `trakai`, `salcininkai`, `kedainiai`, `moletai`, `skuodas`, `ukmerge`, `anyksciai`, `utena`, `ignalina`, `elektrenai` and `sirvintos` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
-| `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead) |
+| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai`, `radviliskis`, `alytus`, `pasvalys`, `rokiskis`, `birzai`, `panevezio-r`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda`, `sakiai`, `raseiniai`, `jonava`, `kretinga`, `silute`, `trakai`, `salcininkai`, `kedainiai`, `moletai`, `skuodas`, `ukmerge`, `anyksciai`, `utena`, `ignalina`, `elektrenai`, `sirvintos` and `zarasai` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
+| `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead; `zarasai`'s mixed waste dates are calculated ahead too, so its last date is always about 13 months away) |
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
 
@@ -473,6 +489,11 @@ groups:
       # copy in pipeline/data takes it). Packaging and glass a year at a time (the 2026 file was
       # made on 18 December 2025), ending on 28 and 29 December 2026 (some route's glass in the
       # last week): a week's notice, so there is time to refresh the copy by hand if that fails.
+      # Zarasų r.: packaging and glass a year at a time (the 2026 file was made on 29 December
+      # 2025), ending on 18-30 December 2026 (every schedule has glass in December), so this fires
+      # from about 23 December until next year's file is read. Not its mixed waste: rules,
+      # turned into dates 13 months ahead every day; a changed scan stops the build instead, and
+      # ScheduleDataStale fires.
       - alert: ScheduleDataRunsOut
         expr: |-
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"mazeikiai|telsiai|plunge"}[30m]) - time() < 7 * 86400
@@ -520,6 +541,8 @@ groups:
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="sirvintos",kind="household"}[30m]) - time() < 2 * 86400
             or
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="sirvintos",kind=~"packaging|glass"}[30m]) - time() < 7 * 86400
+            or
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="zarasai",kind=~"packaging|glass"}[30m]) - time() < 7 * 86400
         for: 1h
         labels: { severity: warning }
         annotations:
@@ -576,5 +599,5 @@ source, query `status.json` (type JSON, URL above) and alert when
 `sources.moletai.generatedAt`, `sources.skuodas.generatedAt`,
 `sources.ukmerge.generatedAt`, `sources.anyksciai.generatedAt`,
 `sources.utena.generatedAt`, `sources.ignalina.generatedAt`,
-`sources.elektrenai.generatedAt` or `sources.sirvintos.generatedAt` is older than 30 hours
-(or missing).
+`sources.elektrenai.generatedAt`, `sources.sirvintos.generatedAt` or
+`sources.zarasai.generatedAt` is older than 30 hours (or missing).
