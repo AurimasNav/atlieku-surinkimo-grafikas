@@ -632,10 +632,15 @@ def test_the_copy_when_the_site_refuses_the_job(tmp_path, monkeypatch):
         f"{kedainiai.PAGE_URL}: unavailable (HTTP Error 403: Forbidden); used the copy from "
         "2026-11-21 (0 days old)"
     ]
-    # Over 60 days old, it asks for a refresh; in a new year, for its files too.
+    # Months later it gives its age but asks for no refresh (snapshot.site_copy_note); in a new
+    # year, it asks for its files.
     _, warnings = kedainiai.download(date(2027, 1, 25), 31)
-    assert warnings[0].endswith("uv run python -m schedule_pipeline.snapshot")
+    assert warnings[0].endswith("used the copy from 2026-11-21 (65 days old)")
     assert "no 2027 schedule for Dotnuvos sen. on the page" in warnings
+    # Refreshed again with the same files, the copy is left as it is, its date too.
+    monkeypatch.setattr(kedainiai.http, "get", serve)
+    assert not kedainiai.save_copy(copy, date(2026, 11, 22))
+    assert json.loads((copy / "copy.json").read_text(encoding="utf-8")) == index
 
 
 def test_the_committed_copy_can_be_built(monkeypatch):

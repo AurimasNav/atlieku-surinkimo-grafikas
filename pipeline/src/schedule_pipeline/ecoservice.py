@@ -591,15 +591,16 @@ def download(
         return files, [note, *warnings]
 
 
-def save_copy(municipality: maatc.Municipality, folder: Path, today: date | None = None) -> None:
+def save_copy(municipality: maatc.Municipality, folder: Path, today: date | None = None) -> bool:
     """Saves the municipality's page and the files it links in `folder`, for download when
-    the site doesn't answer: python -m schedule_pipeline.snapshot."""
+    the site doesn't answer: python -m schedule_pipeline.snapshot --copies. False if the files
+    were those of the copy already there, which is then left as it is."""
     page = municipality.provider.url
     today = today or snapshot.utc_today()
     html = _live(page)
     files, _ = tratc.select_files(find_files(html.decode("utf-8", "replace"), page), today)
     contents = [(f.url, _live(f.url)) for f in files]
-    snapshot.save_site_copy(folder, page, html, contents, today)
+    return snapshot.save_site_copy(folder, page, html, contents, today)
 
 
 # --- the tables ------------------------------------------------------------------
