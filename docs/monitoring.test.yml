@@ -118,6 +118,9 @@ tests:
       # Kėdainių r. in January, before next year's files: the last date has passed.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kedainiai",kind="household"}'
         values: "-864000x20"
+      # Molėtų r.'s mixed waste.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="moletai",kind="household"}'
+        values: "518400x20"
       # Ukmergės r.'s packaging of January-May or June-December: ends in 6 days, and the
       # next period's files reach the site only with a refresh of its copy.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ukmerge",kind="packaging"}'
@@ -204,6 +207,12 @@ tests:
       # Kėdainių r. glass (four times a year, last in October): not watched.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kedainiai",kind="glass"}'
         values: "86400x20"
+      # Molėtų r. glass (four times a year) and the town's green waste (last in mid-December):
+      # not watched.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="moletai",kind="glass"}'
+        values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="moletai",kind="green"}'
+        values: "172800x20"
       # Ukmergės r.: its mixed waste 10 days before its end raises nothing, nor does its glass
       # (once or twice a period, weeks before its end).
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ukmerge",kind="household"}'
@@ -372,6 +381,13 @@ tests:
               summary: "kedainiai: the household schedule ends within a week"
           - exp_labels:
               job: siuksliaveze-data
+              source: moletai
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "moletai: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
               source: ukmerge
               kind: packaging
               severity: warning
@@ -476,6 +492,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="kretinga",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="trakai",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="moletai",kind="packaging"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ukmerge",kind="household"}'
         values: "25920000x191"

@@ -1,6 +1,6 @@
 name: Schedule data
 
-# Scrapes nemenkom.lt, nkom.lt, Kauno švara, tratc.lt, gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt, ecoservice.lt, kedainiai.lt and ukmerge.lt daily and
+# Scrapes nemenkom.lt, nkom.lt, Kauno švara, tratc.lt, gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt, ecoservice.lt, kedainiai.lt, moletusvara.lt and ukmerge.lt daily and
 # publishes the data + the privacy policy to GitHub Pages. If parsing or validation fails, nothing is deployed and the last good
 # data stays live; a provider whose build fails keeps its part of yesterday's data instead.
 on:
@@ -389,6 +389,30 @@ jobs:
             echo "::warning::The Kėdainių r. build failed and there is no published data to keep."
           else
             echo "::error::The Kėdainių r. build failed and the published data couldn't be downloaded (HTTP $code)."
+            exit 1
+          fi
+      # Molėtų r., from the PDFs of Molėtų švara (site/moletu-r): a file that can't be read keeps
+      # its rows of yesterday's data; if the whole build fails, yesterday's files are kept.
+      - name: Build the Molėtų r. schedule (Molėtų švara)
+        id: moletai
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: uv run python -m schedule_pipeline.moletai --out ../site/moletu-r
+      - name: Keep the published Molėtų r. data if today's build failed
+        if: steps.moletai.outcome == 'failure'
+        run: |
+          base=https://aurimasnav.github.io/atlieku-surinkimo-grafikas/moletu-r
+          out=../site/moletu-r
+          rm -rf "$out" && mkdir -p "$out"
+          get() { curl -sS --retry 3 --max-time 120 -o "$out/$1" -w '%{http_code}' "$base/$1" || true; }
+          code=$(get schedule.json)
+          if [ "$code" = 200 ] && [ "$(get addresses.json)" = 200 ]; then
+            echo "::warning::The Molėtų r. build failed; yesterday's published data is kept."
+          elif [ "$code" = 404 ]; then
+            rm -rf "$out"
+            echo "::warning::The Molėtų r. build failed and there is no published data to keep."
+          else
+            echo "::error::The Molėtų r. build failed and the published data couldn't be downloaded (HTTP $code)."
             exit 1
           fi
       # Ukmergės r., from the PDFs of Ukmergės autobusų parkas on the municipality's page or, as

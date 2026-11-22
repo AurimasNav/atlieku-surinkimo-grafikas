@@ -317,7 +317,7 @@ def download(today: date, keep_days: int) -> tuple[list[tuple[SourceFile, bytes]
 def save_copy(folder: Path | None = None, today: date | None = None) -> None:
     """Saves the page and the files the daily job would read from it in `folder` (COPY_DIR),
     for download when the site doesn't answer: python -m schedule_pipeline.snapshot."""
-    today = today or date.today()
+    today = today or snapshot.utc_today()
     html = _get(PAGE_URL)
     files, warnings = select_files(find_files(html.decode("utf-8", "replace")), today)
     for warning in warnings:

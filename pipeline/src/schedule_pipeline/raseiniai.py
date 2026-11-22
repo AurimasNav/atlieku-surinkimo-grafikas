@@ -701,11 +701,13 @@ def run(
     published_url: str | None,
     municipality: tratc.Municipality,
     make_source: Callable[[Callable[[], dict] | None], build.Source],
+    adjust: Callable[[Registry], Registry] | None = None,
 ) -> int:
     """Builds one provider's folder (raseiniai, jonava): schedule.json and addresses.json. With
     `published_url`, files that can't be read keep their rows of the data published there, and
-    a build that fails keeps its whole part; without, any failure raises. Returns 1 when the
-    build fails without data to keep."""
+    a build that fails keeps its whole part; without, any failure raises. `adjust`: changes the
+    register's data first (moletai: aratc.town_elderships). Returns 1 when the build fails
+    without data to keep."""
     loader = cache(build.load_published(published_url)) if published_url else None
     name, code = municipality.register
     registry, registry_note = build.live_or_snapshot(
@@ -713,6 +715,8 @@ def run(
         partial(address_register.fetch, name),
         partial(snapshot.load_registry, municipality.registry_file),
     )
+    if adjust:
+        registry = adjust(registry)
     points, points_note = build.live_or_snapshot(
         f"Address points ({municipality.label})",
         partial(address_points.fetch, code),
