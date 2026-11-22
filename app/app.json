@@ -78,6 +78,7 @@
         }
       ],
       "./plugins/with-release-signing",
+      "./plugins/with-native-debug-symbols",
       "./plugins/with-optional-portrait",
       [
         "expo-build-properties",
