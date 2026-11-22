@@ -188,6 +188,13 @@ revision of 30 March 2026) and `miestas-2026.pdf` `assets/uploads/2025/12/02c3dd
 ANTRINIŲ IR BIOLOGINIŲ ATLIEKŲ IŠVEŽIMO GRAFIKAS 2026 M." of Anykščiai). With the Address Register
 extract for Anykščių r. of the same day.
 
+`utena/` has the waste page of UAB "Utenos komunalininkas" (Utenos r.) at
+<https://www.utenoskom.lt/paslaugos/atlieku-tvarkymas> and the two 2026 PDFs it links,
+downloaded on 2026-11-22 and renamed: `miestas-2026.pdf` is "Grafikas antrinių ir mišrių 2026 m.
+Utenos mieste.pdf" (the town) and `seniunijos-2026.pdf` "Grafikas antrinių ir mišrių 2026 m.
+Utenos rajono seniūnijose.pdf" (the elderships, with their mixed waste rules)
+(`test_utena.COPIES`). With the Address Register extract for Utenos r. of the same day.
+
 `sirvintos/` has the two schedule pages of the Širvintų r. municipality (sirvintos.lt),
 `misrios-page.html` (mixed waste) and `antrines-page.html` (packaging and glass), and the PDFs
 they link, downloaded on 2026-11-22 and renamed: `misrios-2026-06-12.pdf` is
