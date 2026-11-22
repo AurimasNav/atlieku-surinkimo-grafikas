@@ -135,12 +135,14 @@ kedainiai.lt answers GitHub's runners 403 (their network, whatever the user agen
 does (below), and no other official source has the files: when the page or a file can't be
 downloaded, the job reads the copy of the page and its files in `pipeline/data/schedules-kedainiu-r/`
 in the same way as Šilutės r.'s, with a build warning that gives its age ("https://www.kedainiai.lt/...:
-unavailable (HTTP Error 403: Forbidden); used the copy from 2026-11-22 (0 days old)") and, over
-60 days, asks for a refresh. The live-build check reads it too, so it still tests the parser.
-`uv run python -m schedule_pipeline.snapshot` saves it with the Address Register snapshots, from
-a machine in Lithuania: refresh it also when the page gets next year's files (December or
-January; expect `ScheduleDataRunsOut` in late December until then) or a corrected one (about
-once a year, in the first half). Next year's files are read as soon as the page (or the copy)
+unavailable (HTTP Error 403: Forbidden); used the copy from 2026-11-22 (0 days old)"). The
+live-build check reads it too, so it still tests the parser. A CronJob in the maintainer's
+cluster in Lithuania refreshes the copy daily (`uv run python -m schedule_pipeline.snapshot
+--copies`, CONTRIBUTING.md) and opens and merges a PR when a file changed, so next year's files
+(December or January) or a corrected one (about once a year, in the first half) reach the site
+within a day. A copy whose files didn't change keeps its date, so the warning's age is how long
+the files have stayed the same, and it asks for no refresh: a refresh that fails shows as
+`KubeJobFailed` in that cluster. Next year's files are read as soon as the page (or the copy)
 has them; if the page links them instead of this year's before 31 December, this year's last
 pickups are lost, with a warning per eldership ("no 2026 schedule for Dotnuvos sen. on the
 page"). Installed apps find `kedainiu-r/` through `regions.json` (below).
@@ -172,9 +174,9 @@ Trakų r. and Šalčininkų r. (on ecoservice.lt), are built by one module, a st
 read keeps its part of yesterday's file; if none of a folder's can be built, yesterday's folder
 is kept. Installed apps find both through `regions.json`. silute.lt refuses GitHub's runners
 (HTTP 403), so `silute` is built from the copy of its page and file in `pipeline/data` that the
-snapshot refresh takes (`uv run python -m schedule_pipeline.snapshot`), with a build warning
-that says how old it is: next year's file reaches the site only with a refresh, and
-`ScheduleDataRunsOut` fires for `silute` in late December until one is done.
+daily refresh takes (`uv run python -m schedule_pipeline.snapshot --copies`, as for Kėdainių
+r.), with a build warning that says how old it is: next year's file reaches the site within a
+day of being posted, and `ScheduleDataRunsOut` fires for `silute` in late December if it isn't.
 
 `moletai` is Molėtų r., from a PDF per eldership and the town's (12 files) of the company that
 collects its waste: mixed waste, packaging and glass a year at a time, and the town's green
@@ -202,10 +204,10 @@ district is linked when a period ends, its routes keep their last dates and the 
 ("the schedule of the district ended on 2026-12-31; no newer one is read"). Installed apps find
 `ukmerges-r/` through `regions.json` (below). ukmerge.lt refuses GitHub's runners (HTTP 403), so
 `ukmerge` is built from the copy of its page and files in `pipeline/data/schedules-ukmerges-r/`
-that the snapshot refresh takes, with a build warning that says how old it is: the next
-period's files reach the site only with a refresh, so run it when they are posted (mid-December
-and mid-May), and `ScheduleDataRunsOut` fires for `ukmerge` in late May and December until one
-is done.
+that the daily refresh takes (as for Kėdainių r.), with a build warning that says how old it
+is: the next period's files reach the site within a day of being posted (mid-December and
+mid-May), and `ScheduleDataRunsOut` fires for `ukmerge` in late May and December if they
+aren't.
 
 `anyksciai` is Anykščių r., from the two PDFs a year of the municipal company that collects its
 waste: one of the villages and small towns (mixed waste, packaging and glass) and one of
@@ -377,8 +379,9 @@ groups:
       # December, so mixed waste and packaging near their ends every May and December (the last
       # pickups on 28-29 May and 29 December 2026). The files are posted two or three weeks
       # before their periods (made on 17-18 December 2025 and 13 May 2026), but are read from
-      # the copy in pipeline/data (ukmerge.lt refuses the runners), which a refresh must take
-      # after they are posted: a week's notice, as for Šilutės r., so there is time for it. Not
+      # the copy in pipeline/data (ukmerge.lt refuses the runners), which the daily refresh
+      # takes after they are posted: a week's notice, as for Šilutės r., so there is time to
+      # refresh it by hand if that fails. Not
       # glass, once or twice a period and last weeks before its end (1 May and 4 December
       # 2026). The town's and the district's files are one source: a late file of one of them
       # doesn't fire while the other's newer file is read.

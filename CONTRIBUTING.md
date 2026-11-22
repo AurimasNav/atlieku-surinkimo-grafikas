@@ -79,21 +79,33 @@ uv run python -m schedule_pipeline --out ../site/schedule.json   # build from th
 uv run ruff check . && uv run ruff format .
 ```
 
-**Address Register snapshot.** get.data.gov.lt and registrucentras.lt block requests from
-cloud servers, including GitHub Actions, so the daily job falls back to the snapshot in
-`pipeline/data/`. Refresh it about once a month from a computer in Lithuania and open a PR:
+**Address Register snapshot and site copies.** get.data.gov.lt and registrucentras.lt block
+requests from cloud servers, including GitHub Actions, so the daily job falls back to the
+snapshot in `pipeline/data/`. silute.lt, kedainiai.lt and ukmerge.lt refuse GitHub's runners
+too, so the job reads copies of their pages and schedule files in
+`pipeline/data/schedules-silutes-r/`, `schedules-kedainiu-r/` and `schedules-ukmerges-r/` (its
+build warning says how old they are).
+
+Both are refreshed automatically from the maintainer's cluster in Lithuania
+([k8s-at-home](https://github.com/AurimasNav/k8s-at-home), `gitops/siuksliaveze-snapshot`): a
+CronJob takes the copies daily at 03:00 UTC, another the register snapshots on the 1st of each
+month. Each opens a PR from a bot branch (`data/site-copies`, `data/address-register`) when
+something changed and merges it once `check` and `build` pass, so a new schedule file is
+published the same morning. A copy whose files didn't change is left as it is, its `takenAt`
+too, even if the page's markup did, so most days there is no PR. If a job fails, its PR stays
+open and the job fails in the cluster (`KubeJobFailed`). Only then refresh by hand from a
+computer in Lithuania and open a PR:
 
 ```sh
 cd pipeline
-uv run python -m schedule_pipeline.snapshot
+uv run python -m schedule_pipeline.snapshot --copies    # the site copies
+uv run python -m schedule_pipeline.snapshot --register  # the Address Register snapshots
+uv run python -m schedule_pipeline.snapshot             # both
 ```
 
-The job summary says which source was used and warns when the snapshot is over 60 days old.
-The same command saves copies of the Šilutės r. and Kėdainių r. schedule pages and files to
-`pipeline/data/schedules-silutes-r/` and `pipeline/data/schedules-kedainiu-r/`: silute.lt and
-kedainiai.lt refuse GitHub's runners too, so the job reads these copies (its build warning says
-how old they are). Refresh the Kėdainių r. copy also soon after the page gets next year's files
-(December or January) and after a corrected file (about once a year, in the first half).
+The job summary says which source was used and asks for a refresh when the register snapshot
+is over 60 days old (two missed monthly runs). It asks for none for a site copy: an unchanged
+copy keeps its date, so its age is how long the site's files have stayed the same.
 
 **Location matching** (`locations.py`) links each Address Register settlement and street to
 its row in every schedule. The job summary on the Actions tab shows how many places resolve

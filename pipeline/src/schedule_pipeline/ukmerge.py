@@ -155,7 +155,7 @@ def _get(url: str) -> bytes:
 
 
 # A copy of the page and the files the daily job reads from it, taken from a machine in
-# Lithuania (save_copy, run by snapshot.py with the Address Register snapshots): ukmerge.lt
+# Lithuania (save_copy, run daily by snapshot.py --copies): ukmerge.lt
 # answers GitHub's runners 403, as silute.lt (ecoservice) and kedainiai.lt do.
 COPY_DIR = snapshot.UKMERGE_COPY_DIR
 
@@ -184,10 +184,11 @@ def download(today: date, keep_days: int) -> tuple[list[tuple[SourceFile, bytes]
         return files, [note, *warnings]
 
 
-def save_copy(folder: Path | None = None, today: date | None = None) -> None:
+def save_copy(folder: Path | None = None, today: date | None = None) -> bool:
     """Saves the page and the files the daily job would read from it in `folder` (COPY_DIR),
-    for download when the site doesn't answer: python -m schedule_pipeline.snapshot. Run it
-    too when the page gets the next period's files (December and May)."""
+    for download when the site doesn't answer: python -m schedule_pipeline.snapshot --copies,
+    daily, so the next period's files (December and May) come within a day. False if the
+    files were those of the copy already there, which is then left as it is."""
     today = today or snapshot.utc_today()
     html = _get(PAGE_URL)
     found, warnings = find_files(html.decode("utf-8", errors="replace"))
@@ -195,7 +196,7 @@ def save_copy(folder: Path | None = None, today: date | None = None) -> None:
     for warning in warnings + notes:
         print(f"Ukmergės r.: {warning}", file=sys.stderr)
     contents = [(f.url, _get(f.url)) for f in chosen]
-    snapshot.save_site_copy(folder or COPY_DIR, PAGE_URL, html, contents, today)
+    return snapshot.save_site_copy(folder or COPY_DIR, PAGE_URL, html, contents, today)
 
 
 # --- the tables ------------------------------------------------------------------

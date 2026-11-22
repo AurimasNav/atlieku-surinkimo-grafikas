@@ -287,7 +287,7 @@ def _get(url: str) -> bytes:
 
 
 # A copy of the page and the files it links, taken from a machine in Lithuania (save_copy, run
-# by snapshot.py with the Address Register snapshots): kedainiai.lt answers GitHub's runners 403,
+# daily by snapshot.py --copies): kedainiai.lt answers GitHub's runners 403,
 # as silute.lt does (ecoservice), whatever the user agent.
 COPY_DIR = snapshot.KEDAINIAI_COPY_DIR
 
@@ -314,16 +314,17 @@ def download(today: date, keep_days: int) -> tuple[list[tuple[SourceFile, bytes]
         return files, [note, *warnings]
 
 
-def save_copy(folder: Path | None = None, today: date | None = None) -> None:
+def save_copy(folder: Path | None = None, today: date | None = None) -> bool:
     """Saves the page and the files the daily job would read from it in `folder` (COPY_DIR),
-    for download when the site doesn't answer: python -m schedule_pipeline.snapshot."""
+    for download when the site doesn't answer: python -m schedule_pipeline.snapshot --copies.
+    False if the files were those of the copy already there, which is then left as it is."""
     today = today or snapshot.utc_today()
     html = _get(PAGE_URL)
     files, warnings = select_files(find_files(html.decode("utf-8", "replace")), today)
     for warning in warnings:
         print(f"Kėdainių r.: {warning}", file=sys.stderr)
     contents = [(f.url, _get(f.url)) for f in files]
-    snapshot.save_site_copy(folder or COPY_DIR, PAGE_URL, html, contents, today)
+    return snapshot.save_site_copy(folder or COPY_DIR, PAGE_URL, html, contents, today)
 
 
 # --- the tables ------------------------------------------------------------------

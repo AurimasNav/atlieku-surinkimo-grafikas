@@ -125,7 +125,7 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="skuodas",kind="household"}'
         values: "518400x20"
       # Ukmergės r.'s packaging of January-May or June-December: ends in 6 days, and the
-      # next period's files reach the site only with a refresh of its copy.
+      # next period's files reach the site only once the daily refresh of its copy takes them.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ukmerge",kind="packaging"}'
         values: "518400x20"
       # Anykščių r.: mixed waste, packaging and glass.

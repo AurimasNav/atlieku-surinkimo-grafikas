@@ -7,16 +7,22 @@ data changes slowly, so a snapshot refreshed from a machine in Lithuania is good
     cd pipeline && uv run python -m schedule_pipeline.snapshot
 
 The build tries the live sources first and falls back to these files. The same refresh saves
-a copy of the Šilutės r. schedule and its page, whose site refuses GitHub's runners too
-(ecoservice.save_copy), of the Kėdainių r. page and its elderships' files
-(kedainiai.save_copy), and of the Ukmergės r. page and its files (ukmerge.save_copy).
+copies of the pages and files of the sites that refuse GitHub's runners too (site_copies):
+silute.lt, kedainiai.lt and ukmerge.lt. `--register` refreshes only the register's snapshots
+and `--copies` only the copies; a CronJob in the maintainer's cluster in Lithuania
+(k8s-at-home, gitops/siuksliaveze-snapshot) runs `--copies` daily and `--register` monthly and
+opens a PR with what changed. Run it by hand only when those jobs fail.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
+import traceback
+from collections.abc import Callable
 from datetime import UTC, date, datetime
+from functools import partial
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote, urlsplit
 
@@ -178,7 +184,9 @@ UKMERGE_COPY_DIR = DATA_DIR / "schedules-ukmerges-r"
 ANYKSCIAI_MUNICIPALITY = ("Anykščių rajono", 34)
 ANYKSCIAI_REGISTRY_FILE = DATA_DIR / "registry-anyksciu-r.json"
 ANYKSCIAI_ADDRESSES_FILE = DATA_DIR / "address-points-anyksciu-r.json"
-# Older than this, the job summary asks for a refresh (the build still succeeds).
+# An Address Register snapshot older than this gets a refresh request in the job summary (the
+# build still succeeds): the monthly refresh rewrites them, takenAt included, so this is two
+# missed months. The site copies get none (site_copy_note).
 MAX_AGE_DAYS = 60
 
 
@@ -246,9 +254,14 @@ def _copy_name(url: str) -> str:
 
 def save_site_copy(
     folder: Path, page: str, html: bytes, files: list[tuple[str, bytes]], today: date
-) -> None:
+) -> bool:
     """Saves a page and the files it links, (URL, content), in `folder`, replacing what was
-    there."""
+    there, and returns True. If the copy there is of the same page and has the same files, it
+    is left as it is, takenAt included, and the result is False: a page whose markup changed
+    but whose schedule files didn't is no change, so the daily refresh opens no PR for it."""
+    contents = {_copy_name(url): content for url, content in files}
+    if _same_copy(folder, page, contents):
+        return False
     folder.mkdir(parents=True, exist_ok=True)
     for old in folder.iterdir():
         old.unlink()
@@ -257,6 +270,22 @@ def save_site_copy(
         (folder / _copy_name(url)).write_bytes(content)
     index = {"takenAt": today.isoformat(), "page": page, "files": [_copy_name(u) for u, _ in files]}
     (folder / SITE_COPY_INDEX).write_bytes((json.dumps(index, ensure_ascii=False) + "\n").encode())
+    return True
+
+
+def _same_copy(folder: Path, page: str, contents: dict[str, bytes]) -> bool:
+    """Whether the copy in `folder` is of `page` and has exactly these files (name: content),
+    in any order."""
+    try:
+        index = json.loads((folder / SITE_COPY_INDEX).read_text(encoding="utf-8"))
+        return (
+            index["page"] == page
+            and sorted(index["files"]) == sorted(contents)
+            and (folder / "page.html").is_file()
+            and all((folder / name).read_bytes() == data for name, data in contents.items())
+        )
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
 
 
 def site_copy(folder: Path, url: str) -> bytes:
@@ -266,17 +295,50 @@ def site_copy(folder: Path, url: str) -> bytes:
 
 
 def site_copy_note(url: str, error: Exception, folder: Path, today: date) -> str:
-    """The build warning for a copy read instead of `url`: how old it is, and over
-    MAX_AGE_DAYS a request to refresh it."""
+    """The build warning for a copy read instead of `url`, with its date and age.
+
+    Unlike the register's snapshots, it never asks for a refresh: the copies are refreshed
+    daily (--copies) and one whose files didn't change keeps its takenAt, so the age says how long
+    the site's files have stayed the same (a year for a yearly schedule), not how stale the
+    copy is. A refresh that fails shows as a failed job in the cluster that runs it, and a
+    schedule that ends without a newer file as ScheduleDataRunsOut (docs/monitoring.md)."""
     taken = json.loads((folder / SITE_COPY_INDEX).read_text(encoding="utf-8"))["takenAt"]
     age = age_days(taken, today)
-    note = f"{url}: unavailable ({error}); used the copy from {taken} ({age} days old)"
-    if age > MAX_AGE_DAYS:
-        note += " - please refresh it: cd pipeline && uv run python -m schedule_pipeline.snapshot"
-    return note
+    return f"{url}: unavailable ({error}); used the copy from {taken} ({age} days old)"
 
 
-def main() -> int:
+def site_copies() -> list[tuple[str, Callable[[Path], bool], Path]]:
+    """The copies of the sites that refuse GitHub's runners: (label, save, folder), where
+    save(folder) saves the page and its files there and returns whether the copy changed
+    (save_site_copy). A new site adds a line."""
+    from . import ecoservice, kedainiai, ukmerge  # they import this module
+
+    return [
+        ("Šilutės r.", partial(ecoservice.save_copy, ecoservice.SILUTE), SILUTE_COPY_DIR),
+        ("Kėdainių r.", kedainiai.save_copy, KEDAINIAI_COPY_DIR),
+        ("Ukmergės r.", ukmerge.save_copy, UKMERGE_COPY_DIR),
+    ]
+
+
+def save_copies() -> int:
+    """Refreshes every site copy. One that fails doesn't stop the others; the result is 1 if
+    any did, 0 otherwise."""
+    failed = 0
+    for label, save_copy, folder in site_copies():
+        try:
+            changed = save_copy(folder)
+        except Exception:  # the site is down, or its page changed: the other copies still run
+            print(f"{label}: the copy in {folder} couldn't be refreshed", file=sys.stderr)
+            traceback.print_exc()
+            failed = 1
+            continue
+        done = "saved the page and its files" if changed else "no change to the files"
+        print(f"{label}: {done} ({folder})")
+    return failed
+
+
+def save_register() -> None:
+    """Saves the Address Register snapshots of every municipality."""
     registry = address_register.fetch()
     points = address_points.fetch()
     save(registry, points)
@@ -412,15 +474,28 @@ def main() -> int:
     save(registry, points, ALYTUS_REGISTRY_FILE, ALYTUS_ADDRESSES_FILE)
     count = f"{len(registry.settlements)} settlements and {len(points)} address points"
     print(f"Alytaus RATC: saved {count} to {DATA_DIR}")
-    from . import ecoservice, kedainiai, ukmerge  # import this module
 
-    ecoservice.save_copy(ecoservice.SILUTE, SILUTE_COPY_DIR)
-    print(f"Šilutės r.: saved the schedule's page and files to {SILUTE_COPY_DIR}")
-    kedainiai.save_copy(KEDAINIAI_COPY_DIR)
-    print(f"Kėdainių r.: saved the schedules' page and files to {KEDAINIAI_COPY_DIR}")
-    ukmerge.save_copy(UKMERGE_COPY_DIR)
-    print(f"Ukmergės r.: saved the schedules' page and files to {UKMERGE_COPY_DIR}")
-    return 0
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="python -m schedule_pipeline.snapshot",
+        description="Refresh the data in pipeline/data that GitHub's runners can't download. "
+        "Without options, both.",
+    )
+    parser.add_argument(
+        "--register", action="store_true", help="only the Address Register snapshots"
+    )
+    parser.add_argument(
+        "--copies",
+        action="store_true",
+        help="only the copies of the sites that refuse GitHub's runners "
+        "(a copy whose files didn't change is left as it is)",
+    )
+    args = parser.parse_args(argv)
+    both = not args.register and not args.copies
+    if args.register or both:
+        save_register()
+    return save_copies() if args.copies or both else 0
 
 
 if __name__ == "__main__":
