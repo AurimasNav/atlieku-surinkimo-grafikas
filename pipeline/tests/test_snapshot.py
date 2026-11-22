@@ -107,6 +107,25 @@ def test_another_page_kept_as_a_file_is_compared_as_a_page(tmp_path):
     assert (copy / "2332").read_bytes() == b"<p>other page, new markup</p>"
 
 
+def test_the_pages_are_saved_without_google_api_keys(tmp_path):
+    # Made up here, so this file has no key in it either.
+    key = ("AIza" + "Sy" + "0123456789abcdefghijKLMNOPQRS_-xy").encode()
+    assert snapshot.GOOGLE_API_KEY.fullmatch(key)
+    other = "https://www.example.lt/kitas-puslapis/2332"
+    pdf = b"%PDF " + key  # a schedule file is saved as it is
+    files = [(other, b'<script>var key = "' + key + b'";</script>'), ("https://x.lt/a.pdf", pdf)]
+    copy = tmp_path / "copy"
+    page = b'<script>var lsvrGmapApiKey = " ' + key + b' ";</script><p>page</p>'
+    assert snapshot.save_site_copy(copy, PAGE, page, files, date(2026, 11, 1), [other])
+    assert (copy / "page.html").read_bytes() == (
+        b'<script>var lsvrGmapApiKey = " AIza_REDACTED ";</script><p>page</p>'
+    )
+    assert (copy / "2332").read_bytes() == b'<script>var key = "AIza_REDACTED";</script>'
+    assert (copy / "a.pdf").read_bytes() == pdf
+    # The copy saved is the same copy the next day: no change to commit.
+    assert not snapshot.save_site_copy(copy, PAGE, page, files, date(2026, 11, 2), [other])
+
+
 def test_a_damaged_copy_is_replaced(tmp_path):
     copy = tmp_path / "copy"
     snapshot.save_site_copy(copy, PAGE, b"<p>page</p>", FILES, date(2026, 11, 1))

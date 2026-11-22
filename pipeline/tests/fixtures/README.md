@@ -228,6 +228,17 @@ they link, downloaded on 2026-11-22 and renamed: `misrios-2026-06-12.pdf` is
 the page linked in 2025 (web archive) and the site still serves. With the Address Register extract
 for Širvintų r. of the same day.
 
+`kupiskis/` has the waste page of UAB "Kupiškio komunalininkas" (Kupiškio r.) at
+<http://www.kupkom.lt/atlieku-isvezimas/> (line endings made LF, and the theme's Google Maps API
+key replaced by "AIza_REDACTED", as `snapshot.save_site_copy` does), with its mixed waste rules, and
+the PDFs it links, downloaded on 2026-11-22 and renamed: `rusiuojamos-2026-2.pdf` is
+"RUSIUOJAMUJU-ATLIEKU-SURINKIMO-GRAFIKAS-2026-1.pdf" (packaging and glass, July-December 2026),
+`maisto-2026.pdf` "2026-m.-Maisto-atlieku-surinkimo-grafikas.pdf" (food waste) and
+`misrios-miestas-2026.pdf` "2026-m.-Misriu-atlieku-surinkimo-grafikas.pdf" (the town's mixed
+waste days) (`test_kupiskis.COPIES`); and `misrios-miestas-2025.pdf`, "2025-M.pdf" (the town's
+2025 days, 1 January among them), which the page linked in 2025 (web archive) and the site still
+serves. With the Address Register extract for Kupiškio r. of the same day.
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 
