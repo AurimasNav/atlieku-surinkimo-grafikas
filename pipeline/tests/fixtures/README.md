@@ -180,6 +180,14 @@ autobusų parkas" it links, downloaded on 2026-11-21 and renamed: `miestas-2026-
 the same periods (`test_ukmerge.COPIES`). With the Address Register extract for Ukmergės r. of
 the same day.
 
+`anyksciai/` has the waste page of UAB "Anykščių komunalinis ūkis" (Anykščių r.) at
+<https://anykom.lt/paslaugos/komunaliniu-atlieku-tvarkymas/> and the two 2026 PDFs it links,
+downloaded on 2026-11-21 and renamed: `kaimai-2026.pdf` is `assets/uploads/2026/03/421f0ee1.pdf`
+("MIŠRIŲ IR ANTRINIŲ ATLIEKŲ IŠVEŽIMO GRAFIKAS 2026 M.", the villages and small towns, the
+revision of 30 March 2026) and `miestas-2026.pdf` `assets/uploads/2025/12/02c3dd29.pdf` ("MIŠRIŲ,
+ANTRINIŲ IR BIOLOGINIŲ ATLIEKŲ IŠVEŽIMO GRAFIKAS 2026 M." of Anykščiai). With the Address Register
+extract for Anykščių r. of the same day.
+
 `elektrenai/` has the schedule pages of UAB "Elektrėnų komunalinis ūkis" (Elektrėnų sav.) on
 eku.lt, downloaded on 2026-11-22 (line endings made LF) and named after their titles: `grafikai.html`
 is the list of the years' pages, "Atliekų išvežimo grafikai"

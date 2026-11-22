@@ -174,6 +174,10 @@ UKMERGE_ADDRESSES_FILE = DATA_DIR / "address-points-ukmerges-r.json"
 # A copy of the Ukmergės r. page and the files it links: ukmerge.lt refuses GitHub's runners
 # (HTTP 403) too (ukmerge.save_copy).
 UKMERGE_COPY_DIR = DATA_DIR / "schedules-ukmerges-r"
+# Anykščių r. (schedule_pipeline.anyksciai).
+ANYKSCIAI_MUNICIPALITY = ("Anykščių rajono", 34)
+ANYKSCIAI_REGISTRY_FILE = DATA_DIR / "registry-anyksciu-r.json"
+ANYKSCIAI_ADDRESSES_FILE = DATA_DIR / "address-points-anyksciu-r.json"
 # Elektrėnų sav. (schedule_pipeline.elektrenai).
 ELEKTRENAI_MUNICIPALITY = ("Elektrėnų", 42)
 ELEKTRENAI_REGISTRY_FILE = DATA_DIR / "registry-elektrenu-sav.json"
@@ -394,6 +398,12 @@ def main() -> int:
         ("Molėtų r.", MOLETAI_MUNICIPALITY, MOLETAI_REGISTRY_FILE, MOLETAI_ADDRESSES_FILE),
         ("Skuodo r.", SKUODAS_MUNICIPALITY, SKUODAS_REGISTRY_FILE, SKUODAS_ADDRESSES_FILE),
         ("Ukmergės r.", UKMERGE_MUNICIPALITY, UKMERGE_REGISTRY_FILE, UKMERGE_ADDRESSES_FILE),
+        (
+            "Anykščių r.",
+            ANYKSCIAI_MUNICIPALITY,
+            ANYKSCIAI_REGISTRY_FILE,
+            ANYKSCIAI_ADDRESSES_FILE,
+        ),
         (
             "Elektrėnų sav.",
             ELEKTRENAI_MUNICIPALITY,

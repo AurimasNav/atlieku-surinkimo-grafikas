@@ -48,6 +48,7 @@ def collect(site: Path) -> dict:
     # moletu-r is Molėtų r. (schedule_pipeline.moletai), "moletai".
     # skuodo-r is Skuodo r. (schedule_pipeline.skuodas), "skuodas".
     # ukmerges-r is Ukmergės r. (schedule_pipeline.ukmerge), "ukmerge".
+    # anyksciu-r is Anykščių r. (schedule_pipeline.anyksciai), "anyksciai".
     # elektrenu-sav is Elektrėnų sav. (schedule_pipeline.elektrenai), "elektrenai".
     for path in (
         site / "schedule.json",
@@ -67,6 +68,7 @@ def collect(site: Path) -> dict:
         site / "moletu-r" / "schedule.json",
         site / "skuodo-r" / "schedule.json",
         site / "ukmerges-r" / "schedule.json",
+        site / "anyksciu-r" / "schedule.json",
         site / "elektrenu-sav" / "schedule.json",
     ):
         if not path.exists():
@@ -153,8 +155,8 @@ def metrics(status: dict) -> str:
             "jurbarkas, taurage, silale, pagegiai, siauliai, radviliskis, alytus, pasvalys, "
             "rokiskis, birzai, panevezio-r, marijampole, vilkaviskis, kalvarija, kazluruda, "
             "sakiai, raseiniai, jonava, kretinga, silute, trakai, salcininkai, kedainiai, "
-            "moletai, skuodas, ukmerge, elektrenai) or addresses (kauno, kaisiadorys) the data "
-            "covers.",
+            "moletai, skuodas, ukmerge, anyksciai, elektrenai) or addresses (kauno, "
+            "kaisiadorys) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (
