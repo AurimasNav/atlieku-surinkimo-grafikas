@@ -40,6 +40,8 @@ anykom.lt (pdf)                           Anykščių r.: site/anyksciu-r/
 utenoskom.lt (pdf)                        Utenos r.: site/utenos-r/
 kompata.lt (pdf)                          Ignalinos r.: site/ignalinos-r/
 eku.lt (html)                             Elektrėnų sav.: site/elektrenu-sav/
+sirvintos.lt (pdf)                        Širvintų r.: site/sirvintu-r/ (from a copy in
+                                          pipeline/data when the site refuses the runners)
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
 pipeline/   Python: scrape → parse → validate → schedule.json

@@ -9,7 +9,8 @@ data changes slowly, so a snapshot refreshed from a machine in Lithuania is good
 The build tries the live sources first and falls back to these files. The same refresh saves
 a copy of the Šilutės r. schedule and its page, whose site refuses GitHub's runners too
 (ecoservice.save_copy), of the Kėdainių r. page and its elderships' files
-(kedainiai.save_copy), and of the Ukmergės r. page and its files (ukmerge.save_copy).
+(kedainiai.save_copy), of the Ukmergės r. page and its files (ukmerge.save_copy), and of the
+Širvintų r. pages and their files (sirvintos.save_copy).
 """
 
 from __future__ import annotations
@@ -190,6 +191,13 @@ IGNALINA_ADDRESSES_FILE = DATA_DIR / "address-points-ignalinos-r.json"
 ELEKTRENAI_MUNICIPALITY = ("Elektrėnų", 42)
 ELEKTRENAI_REGISTRY_FILE = DATA_DIR / "registry-elektrenu-sav.json"
 ELEKTRENAI_ADDRESSES_FILE = DATA_DIR / "address-points-elektrenu-sav.json"
+# Širvintų r. (schedule_pipeline.sirvintos).
+SIRVINTOS_MUNICIPALITY = ("Širvintų rajono", 89)
+SIRVINTOS_REGISTRY_FILE = DATA_DIR / "registry-sirvintu-r.json"
+SIRVINTOS_ADDRESSES_FILE = DATA_DIR / "address-points-sirvintu-r.json"
+# A copy of the Širvintų r. pages and the files they link: sirvintos.lt refuses GitHub's runners
+# (HTTP 403) too (sirvintos.save_copy).
+SIRVINTOS_COPY_DIR = DATA_DIR / "schedules-sirvintu-r"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -247,8 +255,9 @@ def utc_today() -> date:
 
 
 # A copy of a site that refuses GitHub's runners (ecoservice: silute.lt, kedainiai: kedainiai.lt,
-# ukmerge: ukmerge.lt): its page as page.html, the files it links under the last part of their
-# URLs, and this index with when it was taken, the page's URL and the files' names.
+# ukmerge: ukmerge.lt, sirvintos: sirvintos.lt): its page as page.html, the files it links under
+# the last part of their URLs, and this index with when it was taken, the page's URL and the
+# files' names.
 SITE_COPY_INDEX = "copy.json"
 
 
@@ -420,6 +429,12 @@ def main() -> int:
             ELEKTRENAI_REGISTRY_FILE,
             ELEKTRENAI_ADDRESSES_FILE,
         ),
+        (
+            "Širvintų r.",
+            SIRVINTOS_MUNICIPALITY,
+            SIRVINTOS_REGISTRY_FILE,
+            SIRVINTOS_ADDRESSES_FILE,
+        ),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)
@@ -432,7 +447,7 @@ def main() -> int:
     save(registry, points, ALYTUS_REGISTRY_FILE, ALYTUS_ADDRESSES_FILE)
     count = f"{len(registry.settlements)} settlements and {len(points)} address points"
     print(f"Alytaus RATC: saved {count} to {DATA_DIR}")
-    from . import ecoservice, kedainiai, ukmerge  # import this module
+    from . import ecoservice, kedainiai, sirvintos, ukmerge  # import this module
 
     ecoservice.save_copy(ecoservice.SILUTE, SILUTE_COPY_DIR)
     print(f"Šilutės r.: saved the schedule's page and files to {SILUTE_COPY_DIR}")
@@ -440,6 +455,8 @@ def main() -> int:
     print(f"Kėdainių r.: saved the schedules' page and files to {KEDAINIAI_COPY_DIR}")
     ukmerge.save_copy(UKMERGE_COPY_DIR)
     print(f"Ukmergės r.: saved the schedules' page and files to {UKMERGE_COPY_DIR}")
+    sirvintos.save_copy(SIRVINTOS_COPY_DIR)
+    print(f"Širvintų r.: saved the schedules' pages and files to {SIRVINTOS_COPY_DIR}")
     return 0
 
 
