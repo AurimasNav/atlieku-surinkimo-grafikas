@@ -194,8 +194,9 @@ jobs:
             exit 1
           fi
       # Pasvalio r., Rokiškio r., Biržų r. and Panevėžio r., from the spreadsheets of Panevėžio
-      # RATC (site/panevezio-ratc, a part each): a municipality whose build fails keeps its part
-      # of yesterday's file; if none can be built, yesterday's files are kept.
+      # RATC and Panevėžio r.'s mixed waste Word document (site/panevezio-ratc, a part each): a
+      # municipality whose build fails keeps its part of yesterday's file, and a document that
+      # can't be read its mixed waste rows; if none can be built, yesterday's files are kept.
       - name: Build the Pasvalio r., Rokiškio r., Biržų r. and Panevėžio r. schedules (Panevėžio RATC)
         id: panevezys
         if: github.event_name != 'pull_request'

@@ -3,6 +3,7 @@ Rokiškio r., Biržų r. and Panevėžio r., next year and the published file.""
 
 import copy
 import dataclasses
+import hashlib
 import io
 import json
 from collections import defaultdict
@@ -14,7 +15,7 @@ import openpyxl
 import pytest
 from test_parsers import FIXTURES, fixture
 
-from schedule_pipeline import pratc, status
+from schedule_pipeline import pratc, pratc_word, status
 from schedule_pipeline.build import build_dataset, merge_parts
 from schedule_pipeline.model import Area, ParseResult, SourceFile
 from schedule_pipeline.registry import Registry
@@ -45,6 +46,7 @@ FILES = {
     "Pakuočių stiklo konteinerių (individualių valdų) aptarnavimo grafikas.xlsx": (
         "panevezio-r-stiklas.xlsx"
     ),
+    "Mišrių komunalinių grafikas1.doc": "panevezio-r-mka.doc",
 }
 REGISTRIES = {
     "pasvalys": "registry-pasvalio-r-2026-11-21.json",
@@ -142,7 +144,8 @@ def test_finds_the_files_of_individual_houses():
         ("Biržų r.", "household", "birzu-r-individualios.xlsx", 2026),
         # Linked from /uploads/ without a year: read from its title.
         ("Biržų r.", "food", "birzu-r-maistas.xlsx", None),
-        # Panevėžio r.: its mixed waste is a Word document, and food isn't read.
+        # Panevėžio r.: its mixed waste is a Word document; its food waste isn't read.
+        ("Panevėžio r.", "household", "panevezio-r-mka.doc", 2026),
         ("Panevėžio r.", "packaging", "panevezio-r-pakuotes.xlsx", 2026),
         ("Panevėžio r.", "glass", "panevezio-r-stiklas.xlsx", 2026),
     }
@@ -176,11 +179,19 @@ def test_a_word_document_of_a_kind_that_is_read_is_reported():
         "Pasvalio r.: Maisto atliekų konteinerių aptarnavimo grafikas_Pasvalio r-.docx: "
         "not a spreadsheet; not read"
     ]
+    # Panevėžio r.'s mixed waste in another format than the Word 97-2003 one it reads.
+    html = PAGE.replace("grafikas1.doc", "grafikas1.docx")
+    files, warnings = pratc.find_files(html)
+    assert warnings == [
+        "Panevėžio r.: Mišrių komunalinių grafikas1.docx: not a Word 97-2003 document; not read"
+    ]
+    assert not any(f.kind == "household" for m, f, _ in files if m is pratc.PANEVEZIO_R)
 
 
 def test_the_year_of_a_file_without_one_in_its_link():
     assert pratc.content_year(fixture("pratc/birzu-r-maistas.xlsx")) == 2026
     assert pratc.content_year(fixture("pratc/birzu-r-individualios.xlsx")) == 2026
+    assert pratc.content_year(fixture("pratc/panevezio-r-mka.doc")) == 2026
     assert pratc.content_year(b"<html>Not found</html>") is None
 
 
@@ -327,9 +338,250 @@ def test_the_year_of_the_link_must_be_the_year_of_the_dates():
 
 def test_a_waste_type_the_file_does_not_have_fails():
     source, content = saved(pratc.PANEVEZIO_R, "panevezio-r-stiklas.xlsx")
-    source = SourceFile("household", source.url, source.file_name)
-    with pytest.raises(ValueError, match="glass in a household file"):
+    source = SourceFile("packaging", source.url, source.file_name)
+    with pytest.raises(ValueError, match="glass in a packaging file"):
         pratc.parse_file(source, content, pratc.PANEVEZIO_R)
+
+
+# --- Panevėžio r.'s mixed waste: a Word document ------------------------------------------
+
+DOC = "panevezio-r-mka.doc"
+DOC_TEXT = pratc_word.worddoc.text(fixture(f"pratc/{DOC}"))
+
+
+def document_text(*replacements):
+    """The document's text with `replacements` ((old, new), each found once), for
+    pratc_word.worddoc.text."""
+    text = DOC_TEXT
+    for old, new in replacements:
+        assert text.count(old) == 1, old
+        text = text.replace(old, new)
+    return lambda content: text
+
+
+def test_the_routes_of_the_document():
+    document = pratc_word.read(fixture(f"pratc/{DOC}"))
+    assert document.year == 2026
+    numbers = [r.number for r in document.routes]
+    # Routes 8 and 9 share a cell; 3* is a part of route 3's village with a route of its own.
+    assert numbers == ["1", "2", "3", "3*", *map(str, range(4, 26))]
+    first = document.routes[0]
+    assert first.places == (
+        "Geležių, Karsakiškio, Sodelių, Prūselių, Tiltagalių ir kitų Karsakiškio seniūnijos "
+        "gyvenviečių"
+    )
+    assert first.rule == "ketvirtadieniai" and first.plain
+    assert sorted(first.dates(2026))[:4] == [
+        date(2026, 1, 8),
+        date(2026, 2, 5),
+        *[date(2026, 3, 5), date(2026, 4, 2)],
+    ]
+    # A list of streets over two lines without a comma between them.
+    assert "Birutės, Ievų, Laisvės, Liaudies" in document.routes[6].places
+    # Days without "d.", or with a stray full stop: "Kovas 13 27d", "Spalis . 16 d.".
+    assert {d for d in document.routes[4].dates(2026) if d.month == 3} == {
+        date(2026, 3, 13),
+        date(2026, 3, 27),
+    }
+    assert document.routes[24].rule == "pirmadieniai-antradieniai"
+    # Notes under four routes; marks in the days of three.
+    assert [r.number for r in document.routes if not r.plain] == ["3", "4", "13", "14"]
+    assert document.routes[2].first_note().startswith("*Vietoje 2026m. sausio 1d. Šeškų")
+    assert document.routes[2].days[1] == [("*", 2, 3), ("", 15, 15), ("", 29, 29)]
+    assert document.texts == [
+        "Nurodytomis dienomis, prašome gyventojų, konteinerius išstumti prie gatvės nuo 7 val. "
+        "ryto. Dėl iškilusių klausimų skambinti į UAB „Švaros komanda“ tel. : 0 652 75772 ."
+    ]
+
+
+def test_routes_with_notes_are_read_from_their_transcription():
+    result = parsed(pratc.PANEVEZIO_R, DOC)
+    rows = {a.name: a for a in result.areas}
+    assert len(rows) == 29 and {a.kind for a in result.areas} == {"household"}
+    # Route 3: 1 January moved to the 2nd for some villages, to the 3rd for others; one house
+    # every four weeks.
+    seskai = rows["Šeškų, Tičkūnų, Ūtos, Senamiesčio, Maksvytiškių gyvenviečių"]
+    dembava = rows["Dembavos, Oželių, Vyčių, Keravos, Vaivadų, Velželio gyvenviečių"]
+    assert min(seskai.dates) == date(2026, 1, 2) and min(dembava.dates) == date(2026, 1, 3)
+    assert seskai.dates - {date(2026, 1, 2)} == dembava.dates - {date(2026, 1, 3)}
+    house = rows["Šeškų k. (Panevėžio aplinkl. 201)"]
+    assert len(house.dates) == 13 and house.dates < seskai.dates
+    assert house.weekday == "Ketvirtadienis" and seskai.weekday is None
+    # Route 4: "Vietoje 2027m. sausio 1d. aptarnausime sausio 2d.".
+    piniava = rows["Piniavos, Staniūnų, Velžio, Liūdynės, Skynimų gyvenviečių"]
+    assert max(piniava.dates) == date(2027, 1, 2)
+    # A route without notes, from its days: 2026-09-27 (a Sunday) is reported, and kept.
+    assert result.warnings == [
+        "Mišrių komunalinių grafikas1.doc route 3*: 2026-09-27 isn't a day of the rule "
+        "'ketvirtadieniai'"
+    ]
+    assert date(2026, 9, 27) in rows["Paežerio I k. (Miglės, Kedrų ir Medeinos gatvės)"].dates
+
+
+def test_the_transcription_agrees_with_the_days_of_its_routes():
+    """The committed transcription is of this file, and differs from the routes' days only as
+    their notes say."""
+    document = pratc_word.read(fixture(f"pratc/{DOC}"))
+    transcription = pratc_word.load_transcription()
+    routes = {r.text: r for r in document.routes}
+    assert all(entry["text"] in routes for entry in transcription["routes"])
+    for entry in transcription["routes"]:
+        days = {d.isoformat() for d in routes[entry["text"]].dates(2026)}
+        dates = [set(row["dates"]) for row in entry["rows"]]
+        if entry["number"] == "3":
+            assert set.union(*dates) == days and dates[3] < days
+        elif entry["number"] == "4":
+            assert dates == [days | {"2027-01-02"}]
+        else:
+            assert dates == [days]
+    assert transcription["files"] == [
+        {
+            "url": saved(pratc.PANEVEZIO_R, DOC)[0].url,
+            "sha256": hashlib.sha256(fixture(f"pratc/{DOC}")).hexdigest(),
+        }
+    ]
+    # As the draft command writes it.
+    assert pratc_word.TRANSCRIPTION.read_text(encoding="utf-8") == pratc_word.dump(transcription)
+
+
+def test_a_changed_route_with_notes_must_be_transcribed_again(monkeypatch):
+    source, content = saved(pratc.PANEVEZIO_R, DOC)
+    monkeypatch.setattr(
+        pratc_word.worddoc, "text", document_text(("Gruodis            *26 d.", "Gruodis  *28 d."))
+    )
+    with pytest.raises(
+        ValueError,
+        match=r"notes that schedule-panevezio-r-mixed.json doesn't "
+        r"have: route 13 \('\*Vietoje 2026m\. gruodžio 25d",
+    ):
+        pratc.parse_file(source, content, pratc.PANEVEZIO_R)
+    # A route without notes is read from the file: no transcription needed.
+    monkeypatch.setattr(
+        pratc_word.worddoc,
+        "text",
+        document_text(("Gruodis           07 d.\x07", "Gruodis 14 d.\x07")),
+    )
+    rows = {a.name: a for a in pratc.parse_file(source, content, pratc.PANEVEZIO_R).areas}
+    raguva = next(a for name, a in rows.items() if name.startswith("Raguvos, Nevėžio"))
+    assert max(raguva.dates) == date(2026, 12, 14)
+
+
+def test_a_route_with_new_notes_or_a_new_text_after_the_table_fails():
+    source, content = saved(pratc.PANEVEZIO_R, DOC)
+    transcription = pratc_word.load_transcription()
+    without = {**transcription, "routes": transcription["routes"][1:]}  # not route 3
+    with pytest.raises(ValueError, match=r"route 3 \('\*Vietoje 2026m\. sausio 1d\."):
+        pratc_word.parse(source, content, "panevezio-r", without)
+    without = {**transcription, "texts": []}
+    with pytest.raises(ValueError, match="text after the table that .* doesn't have"):
+        pratc_word.parse(source, content, "panevezio-r", without)
+
+
+@pytest.mark.parametrize(
+    ("old", "new", "error"),
+    [
+        ("Sausis              08 d.", "Sausis   kas antrą savaitę", "not days of Sausis"),
+        ("Vasaris            05 d.", "Vasaris            30 d.", "day 30 of Vasaris"),
+        ("Vasaris            05 d.                   Rugpjūtis", "Rugpjūtis", "no days of vasaris"),
+        ("Vasaris            05 d.", "               05 d.", "'05 d.' before the months"),
+        ("Gegužė            28 d.", "Kovas  28 d.", "Kovas twice"),
+        ("(ketvirtadieniai)\rSausis", "\rSausis", "route 1: no weekdays in brackets"),
+        ("grafikai 2026 m.", "grafikai", "no title with the year"),
+    ],
+)
+def test_unreadable_routes_fail_loudly(monkeypatch, old, new, error):
+    source, content = saved(pratc.PANEVEZIO_R, DOC)
+    monkeypatch.setattr(pratc_word.worddoc, "text", document_text((old, new)))
+    with pytest.raises(ValueError, match=error):
+        pratc.parse_file(source, content, pratc.PANEVEZIO_R)
+
+
+def test_the_year_of_the_link_must_be_the_year_of_the_document():
+    source, content = saved(pratc.PANEVEZIO_R, DOC)
+    source = SourceFile(source.kind, source.url.replace("2026%20grafikai", "2027%20grafikai"), "x")
+    with pytest.raises(ValueError, match=r"a schedule of 2026, the link says \[2027\]"):
+        pratc.parse_file(source, content, pratc.PANEVEZIO_R)
+
+
+def test_a_document_that_cannot_be_read_keeps_yesterdays_mixed_waste(parts):
+    _, data, _ = parts["panevezio-r"]
+    published = merge_parts([(pratc.PANEVEZIO_R.provider, {**data, "warnings": 0})])
+    source, content = saved(pratc.PANEVEZIO_R, DOC)
+    damaged = content[:4096]
+    result = pratc.parse_file(source, damaged, pratc.PANEVEZIO_R, lambda: published)
+    household = [a for a in data["areas"] if a["kind"] == "household"]
+    assert sorted(a.id for a in result.areas) == sorted(a["id"] for a in household)
+    assert result.warnings == [
+        f"Mišrių komunalinių grafikas1.doc: can't be read ({result.warnings[0].split('(', 1)[1]}"
+    ]
+    assert result.warnings[0].endswith("yesterday's 29 household rows of Panevėžio r. are kept")
+    # The spreadsheets are still read; without published data the build fails.
+    with pytest.raises(ValueError):
+        pratc.parse_file(source, damaged, pratc.PANEVEZIO_R)
+
+
+def test_a_draft_of_the_transcription():
+    url = saved(pratc.PANEVEZIO_R, DOC)[0].url
+    content = fixture(f"pratc/{DOC}")
+    committed = pratc_word.load_transcription()
+    # Nothing to add: the committed entries are kept as they are.
+    data, todo = pratc_word.draft([(url, content)], committed)
+    assert data == committed and todo == []
+    # From nothing: a draft of each route with notes, its dates its days.
+    data, todo = pratc_word.draft([(url, content)], {})
+    assert [e["number"] for e in data["routes"]] == ["3", "4", "13", "14"]
+    route3 = data["routes"][0]["rows"]
+    assert len(route3) == 1 and route3[0]["dates"][:3] == ["2026-01-02", "2026-01-03", "2026-01-15"]
+    assert len(todo) == 5 and todo[-1].startswith("a text after the table")
+
+
+@pytest.mark.parametrize(
+    ("name", "text", "rest"),
+    [
+        (
+            "Geležių, Karsakiškio, Sodelių, Prūselių, Tiltagalių ir kitų Karsakiškio seniūnijos "
+            "gyvenviečių",
+            "Geležių, Karsakiškio, Sodelių, Prūselių, Tiltagalių",
+            "Karsakiškio",
+        ),
+        (
+            # "Sodų" is a street here (Sodų g.), not gardens.
+            "Naujarodžių gyvenvietės ir Krekenavos gatvių: Akmenės, Antanaičio, Sodų, Žibučių",
+            "Naujarodžių, Krekenavos m., Akmenės g., Antanaičio g., Sodų g., Žibučių g.",
+            None,
+        ),
+        (
+            "Ramygalos gatvių: Biliūno, Dariaus ir Girėno, Malūno sk., Laisvės a., Vienkiemio "
+            "taip pat Daniūnų, Barklainių ir Butkiškio gyvenviečių",
+            "Ramygalos m., Biliūno g., Dariaus ir Girėno g., Malūno sk., Laisvės a., Vienkiemio "
+            "g., Daniūnų, Barklainių, Butkiškio",
+            None,
+        ),
+        (
+            "Vaivadų, Paežerio I (visos išskyrus Miglės, Kedrų ir Medeinos gatvės), Šeškų",
+            "Vaivadų, Paežerio I (išskyrus Miglės g., Kedrų g., Medeinos g.), Šeškų",
+            None,
+        ),
+        (
+            "Bernatonių ir Bernatonių sodų, Klevečkinės, gyvenviečių",
+            "Bernatonių, Bernatonių, Klevečkinės",
+            None,
+        ),
+        ("Plukių sodų gyventojų", "Plukių", None),
+        (
+            "Ragaudžių km., ir Vaišvilčių km., Tarnagalos km., gyvenviečių",
+            "Ragaudžių k., Vaišvilčių k., Tarnagalos k.",
+            None,
+        ),
+        (
+            "Naujamiesčio, Berčiūnų, Liberiškio, gyventojams",
+            "Naujamiesčio, Berčiūnų, Liberiškio",
+            None,
+        ),
+    ],
+)
+def test_the_places_of_a_route(name, text, rest):
+    assert pratc_word.places(name) == (text, rest)
 
 
 # --- the places --------------------------------------------------------------------------
@@ -362,7 +614,11 @@ def test_counts(parts):
             {"household": 292, "packaging": 292, "glass": 292, "food": 4},
             24,
         ),
-        "panevezio-r": ({"packaging": 16, "glass": 48}, {"packaging": 398, "glass": 397}, 0),
+        "panevezio-r": (
+            {"household": 29, "packaging": 16, "glass": 48},
+            {"household": 248, "packaging": 398, "glass": 397},
+            6,
+        ),
     }
 
 
@@ -374,6 +630,7 @@ def test_counts(parts):
         ("rokiskis", "Kazliškis", "Kazliškio", "household", 12, "01-01", "12-03", 3),
         ("birzai", "Papilys", "Papilio", "household", 13, "01-14", "12-16", 2),
         ("panevezio-r", "Raguva", "Raguvos", "glass", 4, "03-03", "11-10", 1),
+        ("panevezio-r", "Smilgiai", "Smilgių", "household", 13, "01-20", "12-22", 1),
     ],
 )
 def test_a_place_of_each_municipality(
@@ -513,6 +770,69 @@ def test_names_that_match_nothing_are_reported(parts):
     ]
     _, _, warnings = parts["rokiskis"]
     assert "not a settlement or a street: household: Rokiškio r.: Klodnikų" in warnings
+    _, _, warnings = parts["panevezio-r"]
+    unknown = sorted({w.split(": ", 2)[-1] for w in warnings if w.startswith("not a settlement")})
+    assert unknown == [
+        "Panevėžio r.: Dvareliškių",
+        "Panevėžio r.: Pučiakų",
+        "Ramygalos m.: Lauko g.",
+        "Ramygalos m.: Maironio g.",
+        "Ramygalos m.: Šilo g.",
+    ]
+
+
+def mixed_waste(data, location):
+    """The names of a place's mixed waste rows: (the row of the whole, {street: rows})."""
+    schedule = location["schedule"]["household"]
+    labels = dict(location.get("streets", []))
+    streets = {
+        labels[key]: [row(data, i)["name"] for i in ids]
+        for key, ids in schedule.get("streets", {}).items()
+    }
+    return row(data, schedule["area"])["name"] if "area" in schedule else None, streets
+
+
+def test_the_mixed_waste_routes_of_panevezio_r(parts):
+    _, data, _ = parts["panevezio-r"]
+    first = "Geležių, Karsakiškio, Sodelių, Prūselių, Tiltagalių ir kitų Karsakiškio"
+    # "... ir kitų Karsakiškio seniūnijos gyvenviečių": every settlement of the eldership that
+    # no other route names.
+    karsakiskio = [loc for loc in data["locations"] if loc["district"] == "Karsakiškio"]
+    assert all("household" in loc["schedule"] for loc in karsakiskio)
+    assert mixed_waste(data, place(data, "Akmeniai", district="Karsakiškio"))[0].startswith(first)
+    assert mixed_waste(data, place(data, "Paliūniškis"))[0].startswith("Paliūniškio, Klimbalės")
+    # "Naujarodžių gyvenvietės ir Krekenavos gatvių: ...", "Krekenavos gatvių: ...": the
+    # small town by street; a street no route names is left to the app.
+    whole, streets = mixed_waste(data, place(data, "Krekenava", "mstl."))
+    assert whole is None and len(streets) == 24
+    assert streets["Akmenės g."] == streets["Vytauto g."]
+    assert streets["Akmenės g."][0].startswith("Naujarodžių gyvenvietės ir Krekenavos gatvių")
+    assert streets["Bažnyčios g."][0].startswith("Krekenavos gatvių: Bažnyčios")
+    assert "Maironio g." not in streets
+    assert "household" not in place(data, "Krekenava", "vs.").get("schedule", {})
+    # Ramygala: "Vienkiemio" in two routes, "Laisvės" and "Laisvės a." (the register's only
+    # Laisvės) too.
+    _, streets = mixed_waste(data, place(data, "Ramygala", "m."))
+    assert len(streets["Vienkiemio g."]) == 2 and len(streets["Laisvės a."]) == 2
+    assert streets["Dariaus ir Girėno g."][0].startswith("Ramygalos gatvių: Biliūno")
+    # Paežerys I: route 3 but three streets, which have route 3* ("3.* Paežerio I k. ...").
+    whole, streets = mixed_waste(data, place(data, "Paežerys I"))
+    assert whole.startswith("Paežerio I (visos išskyrus")
+    assert set(streets) == {"Miglės g.", "Kedrų g.", "Medeinos g."}
+    assert streets["Miglės g."] == ["Paežerio I k. (Miglės, Kedrų ir Medeinos gatvės)"]
+    # Šeškai: one house of Panevėžio aplinkl. has a route of its own, one more choice.
+    whole, streets = mixed_waste(data, place(data, "Šeškai"))
+    assert whole.startswith("Šeškų, Tičkūnų")
+    assert sorted(streets["Panevėžio aplinkl."]) == [
+        "Šeškų k. (Panevėžio aplinkl. 201)",
+        "Šeškų, Tičkūnų, Ūtos, Senamiesčio, Maksvytiškių gyvenviečių",
+    ]
+    # Oželiai, named only in route 3's note about 1 January.
+    assert mixed_waste(data, place(data, "Oželiai"))[0].startswith("Dembavos, Oželių")
+    # "Plukių sodų", "Bernatonių ir Bernatonių sodų": the villages, whose streets the gardens'
+    # are in the register.
+    assert mixed_waste(data, place(data, "Plukiai"))[0] == "Plukių sodų gyventojų"
+    assert mixed_waste(data, place(data, "Bernatoniai", "k."))[0].startswith("Bernatonių ir")
 
 
 # --- next year ---------------------------------------------------------------------------
@@ -565,6 +885,19 @@ def test_next_year_is_checked_when_it_appears():
         )
 
 
+def test_next_years_document_continues_the_same_routes():
+    """Panevėžio r.'s routes are told apart by the places DocumentRoutes reads in their names,
+    the house of route 3 and the eldership of route 1 too."""
+    source, _ = saved(pratc.PANEVEZIO_R, DOC)
+    this = parsed(pratc.PANEVEZIO_R, DOC)
+    results = [(source, copy.deepcopy(this)), (source, next_year(this))]
+    warnings = pratc.combine(results, registry(pratc.PANEVEZIO_R), TODAY, pratc.PANEVEZIO_R)
+    assert warnings == [] and results[1][1].areas == []
+    rows = {a.name: a for a in results[0][1].areas}
+    for name in ("Šeškų k. (Panevėžio aplinkl. 201)", "Plukių sodų gyventojų"):
+        assert {d.year for d in rows[name].dates} == {2026, 2027}
+
+
 # --- the published file ------------------------------------------------------------------
 
 
@@ -589,7 +922,7 @@ def test_one_file_for_the_four_municipalities(parts, tmp_path):
     text = (tmp_path / "metrics.txt").read_text(encoding="utf-8")
     # A source each, counting the settlements with a schedule.
     assert 'siuksliaveze_data_places{source="pasvalys"} 267' in text
-    assert 'siuksliaveze_data_places{source="panevezio-r"} 398' in text
+    assert 'siuksliaveze_data_places{source="panevezio-r"} 453' in text
     assert 'siuksliaveze_data_areas{source="birzai",kind="food"} 3' in text
     # 2026-12-31: the last mixed waste pickup of Biržų r.
     last = 'siuksliaveze_data_last_date_timestamp_seconds{source="birzai",kind="household"}'
@@ -634,4 +967,38 @@ def test_a_municipality_whose_places_stop_matching_keeps_yesterdays_part(
     addresses = json.loads((tmp_path / "addresses.json").read_text(encoding="utf-8"))
     assert len(addresses["points"]) > 70_000
     # --strict: the build fails instead.
+    assert pratc.main(["--strict", "--out", str(tmp_path / "strict")]) == 1
+
+
+def test_a_route_to_transcribe_again_keeps_yesterdays_mixed_waste(
+    parts, monkeypatch, tmp_path, capsys
+):
+    """Panevėžio r.'s document with a route the transcription doesn't have: its mixed waste
+    rows are yesterday's, its packaging and glass today's, with a warning on the run."""
+    yesterday = "2026-11-20T04:30:00+00:00"
+    _, data, _ = parts["panevezio-r"]
+    old = [dict(a, dates=a["dates"][:1]) if a["kind"] == "household" else a for a in data["areas"]]
+    published = merge_parts(
+        [(pratc.PANEVEZIO_R.provider, {**data, "areas": old, "generatedAt": yesterday})]
+    )
+    transcription = pratc_word.load_transcription()
+    transcription["routes"] = transcription["routes"][1:]  # not route 3
+    monkeypatch.setattr(pratc_word, "load_transcription", lambda: transcription)
+    monkeypatch.setattr(pratc.http, "get", serve)
+    monkeypatch.setattr(pratc, "fetch_page", lambda: PAGE)
+    monkeypatch.setattr(pratc, "date", _Today)
+    monkeypatch.setattr(pratc.address_register, "fetch", _offline)
+    monkeypatch.setattr(pratc.address_points, "fetch", _offline)
+    monkeypatch.setattr(pratc.build, "load_published", lambda url: lambda: published)
+    monkeypatch.setattr(pratc, "MUNICIPALITIES", (pratc.PANEVEZIO_R,))
+    assert pratc.main(["--out", str(tmp_path)]) == 0
+    dataset = json.loads((tmp_path / "schedule.json").read_text(encoding="utf-8"))
+    assert dataset["providers"][0]["generatedAt"] > yesterday
+    rows = {a["id"]: a for a in dataset["areas"]}
+    assert all(rows[a["id"]]["dates"] == a["dates"] for a in old)  # yesterday's household rows
+    assert {a["kind"] for a in dataset["areas"]} == {"household", "packaging", "glass"}
+    out = capsys.readouterr().out
+    assert "::warning::Panevėžio r.: Mišrių komunalinių grafikas1.doc: can't be read" in out
+    assert "re-transcribe it" in out
+    # --strict (the live-build check): the build fails.
     assert pratc.main(["--strict", "--out", str(tmp_path / "strict")]) == 1
