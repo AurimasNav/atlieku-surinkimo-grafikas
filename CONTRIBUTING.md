@@ -38,6 +38,7 @@ ukmerge.lt (pdf)                          Ukmergės r.: site/ukmerges-r/ (from a
                                           pipeline/data when the site refuses the runners)
 anykom.lt (pdf)                           Anykščių r.: site/anyksciu-r/
 utenoskom.lt (pdf)                        Utenos r.: site/utenos-r/
+kompata.lt (pdf)                          Ignalinos r.: site/ignalinos-r/
 sirvintos.lt (pdf)                        Širvintų r.: site/sirvintu-r/
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼

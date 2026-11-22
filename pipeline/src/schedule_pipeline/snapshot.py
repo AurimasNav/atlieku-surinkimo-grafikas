@@ -182,6 +182,10 @@ ANYKSCIAI_ADDRESSES_FILE = DATA_DIR / "address-points-anyksciu-r.json"
 UTENA_MUNICIPALITY = ("Utenos rajono", 82)
 UTENA_REGISTRY_FILE = DATA_DIR / "registry-utenos-r.json"
 UTENA_ADDRESSES_FILE = DATA_DIR / "address-points-utenos-r.json"
+# Ignalinos r. (schedule_pipeline.ignalina).
+IGNALINA_MUNICIPALITY = ("Ignalinos rajono", 45)
+IGNALINA_REGISTRY_FILE = DATA_DIR / "registry-ignalinos-r.json"
+IGNALINA_ADDRESSES_FILE = DATA_DIR / "address-points-ignalinos-r.json"
 # Širvintų r. (schedule_pipeline.sirvintos).
 SIRVINTOS_MUNICIPALITY = ("Širvintų rajono", 89)
 SIRVINTOS_REGISTRY_FILE = DATA_DIR / "registry-sirvintu-r.json"
@@ -409,6 +413,7 @@ def main() -> int:
             ANYKSCIAI_ADDRESSES_FILE,
         ),
         ("Utenos r.", UTENA_MUNICIPALITY, UTENA_REGISTRY_FILE, UTENA_ADDRESSES_FILE),
+        ("Ignalinos r.", IGNALINA_MUNICIPALITY, IGNALINA_REGISTRY_FILE, IGNALINA_ADDRESSES_FILE),
         (
             "Širvintų r.",
             SIRVINTOS_MUNICIPALITY,
