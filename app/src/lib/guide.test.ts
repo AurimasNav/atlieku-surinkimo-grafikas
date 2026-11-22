@@ -260,6 +260,8 @@ describe('regionOf', () => {
   it('gives the general advice in the regions added later', () => {
     const ids = ['radviliskis', 'pasvalys', 'rokiskis', 'birzai', 'panevezio-r', 'taurage', 'silale', 'pagegiai'];
     ids.push('marijampole', 'vilkaviskis', 'kalvarija', 'kazluruda', 'sakiai');
+    ids.push('raseiniai', 'jonava', 'kretinga', 'silute', 'trakai', 'salcininkai', 'kedainiai', 'moletai');
+    ids.push('skuodas', 'ukmerge', 'anyksciai', 'utena', 'elektrenai', 'ignalina', 'sirvintos');
     for (const provider of ids) {
       const location: Location = { id: provider, name: provider, type: 'k.', district: provider, provider, schedule: { glass: { area: `${provider}-g` } } };
       const more = { ...data, areas: [...data.areas, area(`${provider}-g`, 'glass', { provider })], locations: [...data.locations!, location] };

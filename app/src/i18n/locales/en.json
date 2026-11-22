@@ -29,7 +29,7 @@
     "skip": "I don't have this container"
   },
   "coverage": {
-    "areas": "Akmenė, Alytus, Biržai, Joniškis, Jurbarkas, Kaišiadorys, Kaunas, Kelmė, Klaipėda, Lazdijai, Mažeikiai, Pakruojis, Pasvalys, Plungė, Prienai, Radviliškis, Rokiškis, Šakiai, Šiauliai, Šilalė, Tauragė, Telšiai, Varėna, Vilkaviškis and Vilnius districts, and Birštonas, Druskininkai, Kalvarija, Kazlų Rūda, Marijampolė, Pagėgiai and Rietavas municipalities"
+    "areas": "40 districts (all but Kupiškis, Švenčionys and Zarasai; in Panevėžys, only packaging and glass) and Birštonas, Druskininkai, Elektrėnai, Kalvarija, Kazlų Rūda, Marijampolė, Pagėgiai and Rietavas municipalities"
   },
   "onboarding": {
     "title": "Bins out.\nOn time.",

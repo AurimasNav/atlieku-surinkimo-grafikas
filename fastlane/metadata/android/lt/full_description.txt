@@ -1,16 +1,9 @@
-Šiukšliavežė primins vakare prieš atvažiuojant šiukšliavežei, kad daugiau nepraleistumėte atliekų išvežimo. Programėlė veikia 33 savivaldybių kaimuose ir miestuose pagal jų atliekų tvarkymo įmonių skelbiamus grafikus:
+Šiukšliavežė primins vakare prieš atvažiuojant šiukšliavežei, kad daugiau nepraleistumėte atliekų išvežimo. Programėlė veikia 48 savivaldybių kaimuose ir miestuose: visuose rajonuose, išskyrus Kupiškio, Švenčionių ir Zarasų (Panevėžio r. – tik pakuotės ir stiklas), bei Birštono, Druskininkų, Elektrėnų, Kalvarijos, Kazlų Rūdos, Marijampolės, Pagėgių ir Rietavo sav. Vilniaus, Kauno, Klaipėdos, Šiaulių, Panevėžio ir Alytaus miestų grafikų programėlėje nėra.
 
-• Vilniaus r.: UAB „Nemenčinės komunalininkas“ ir UAB „Nemėžio komunalininkas“.
-• Kauno ir Kaišiadorių r.: UAB „Kauno švara“, pagal adresą. Stiklo ir pakuočių grafikams programėlėje yra nuoroda į UAB „Ekonovus“ svetainę.
-• Mažeikių, Telšių ir Plungės r. bei Rietavo sav.: UAB „Telšių regiono atliekų tvarkymo centras“.
-• Klaipėdos r.: VšĮ „Gargždų švara“.
-• Jurbarko, Tauragės ir Šilalės r. bei Pagėgių sav.: UAB „Tauragės regiono atliekų tvarkymo centras“.
-• Šiaulių, Akmenės, Joniškio, Kelmės, Pakruojo ir Radviliškio r.: UAB „Šiaulių regiono atliekų tvarkymo centras“.
-• Alytaus, Prienų, Lazdijų ir Varėnos r. bei Druskininkų ir Birštono sav.: UAB „Alytaus regiono atliekų tvarkymo centras“.
-• Biržų, Pasvalio ir Rokiškio r., o Panevėžio r. – tik pakuotės ir stiklas: UAB „Panevėžio regiono atliekų tvarkymo centras“.
-• Marijampolės, Kalvarijos ir Kazlų Rūdos sav. bei Vilkaviškio ir Šakių r.: UAB „Marijampolės apskrities atliekų tvarkymo centras“.
-
-Mišrios atliekos, pakuotės ir stiklas, o ten, kur surenkamos atskirai, – ir maisto bei žaliosios atliekos. Vilniaus, Kauno, Klaipėdos, Šiaulių, Panevėžio ir Alytaus miestų grafikų programėlėje nėra.
+Mišrios atliekos, pakuotės ir stiklas, o ten, kur surenkamos atskirai, – ir maisto bei žaliosios atliekos. Datos paimtos iš šių įmonių ir įstaigų skelbiamų grafikų:
+• Regionų atliekų tvarkymo centrai: UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Tauragės regiono atliekų tvarkymo centras“, UAB „Šiaulių regiono atliekų tvarkymo centras“, UAB „Alytaus regiono atliekų tvarkymo centras“, UAB „Panevėžio regiono atliekų tvarkymo centras“ ir UAB „Marijampolės apskrities atliekų tvarkymo centras“.
+• Atliekų tvarkymo įmonės: UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“ (pagal adresą; stiklo ir pakuočių grafikams programėlėje yra nuoroda į UAB „Ekonovus“ svetainę), VšĮ „Gargždų švara“, UAB „Raseinių komunalinės paslaugos“, UAB „Jonavos paslaugos“, SĮ „Kretingos komunalininkas“, UAB „Ecoservice“, UAB „Molėtų švara“, UAB „Ukmergės autobusų parkas“, UAB „Anykščių komunalinis ūkis“, UAB „Utenos komunalininkas“, UAB „Elektrėnų komunalinis ūkis“ ir SĮ „Kompata“.
+• Savivaldybės: Kėdainių rajono savivaldybės administracija, Skuodo rajono savivaldybė, Šilutės rajono savivaldybė, Širvintų rajono savivaldybė ir Ukmergės rajono savivaldybė.
 
 Kaip tai veikia
 • Vieną kartą pasirinkite savo kaimą ar miestelį arba leiskite programėlei surasti jūsų adresą. Jei išvežimo dienos priklauso nuo gatvės ar namo tipo, programėlė paklaus ir to.

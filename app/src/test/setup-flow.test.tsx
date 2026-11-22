@@ -136,7 +136,7 @@ it('asks for the street and the row when the place has several', async () => {
 
 it('offers to ask for the area when nothing is found', async () => {
   await renderRouter(routes, { initialUrl: '/setup/location' });
-  await search('Trakai');
+  await search('Zarasai');
   expect(await screen.findByText(i18n.t('setup.locationNone', { areas: i18n.t('coverage.areas') }))).toBeOnTheScreen();
   expect(screen.getByText(i18n.t('feedback.area'))).toBeOnTheScreen();
 });

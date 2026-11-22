@@ -327,4 +327,11 @@ describe('a search for a covered town', () => {
       expect([query, uncoveredCitySearch(query)]).toEqual([query, undefined]);
     }
   });
+
+  it('gets no hint in the districts added later', () => {
+    // Jonava as a whole town (its file names no streets), Utena by street; the others too.
+    const towns = ['Jonava', 'Jonavos m.', 'Utena', 'Utenos m.', 'Raseiniai', 'Kretinga', 'Šilutė', 'Trakai', 'Lentvaris'];
+    towns.push('Šalčininkai', 'Kėdainiai', 'Molėtai', 'Skuodas', 'Ukmergė', 'Anykščiai', 'Elektrėnai', 'Ignalina', 'Širvintos');
+    for (const query of towns) expect([query, uncoveredCitySearch(query)]).toEqual([query, undefined]);
+  });
 });

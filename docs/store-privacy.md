@@ -20,7 +20,7 @@ Only needed once the app is released on iOS; see [releasing.md](releasing.md#add
 | Tracking (App Tracking Transparency) | Not used. `NSPrivacyTracking` is `false`. |
 | Privacy manifest | Set in `app/app.json` → `ios.privacyManifests`: no collected data types; `UserDefaults` declared with reason `CA92.1` (app's own settings). Expo packages ship their own manifests. If Apple emails about a missing "required reason" API after an upload, add it there. |
 | Export compliance | Uses only standard HTTPS, which is exempt. `ITSAppUsesNonExemptEncryption` is `false` (set via `ios.config.usesNonExemptEncryption`), so Apple won't ask on each build. |
-| Third-party content | The app shows public schedule data published by UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Telšių regiono atliekų tvarkymo centras“, VšĮ „Gargždų švara“, UAB „Tauragės regiono atliekų tvarkymo centras“, UAB „Šiaulių regiono atliekų tvarkymo centras“, UAB „Alytaus regiono atliekų tvarkymo centras“, UAB „Panevėžio regiono atliekų tvarkymo centras“ and UAB „Marijampolės apskrities atliekų tvarkymo centras“, with attribution and a link to the source, and links to the glass and packaging schedules of UAB „Ekonovus“ in Kaunas and Kaišiadorys districts. |
+| Third-party content | The app shows public schedule data published by UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“, UAB „Telšių regiono atliekų tvarkymo centras“, VšĮ „Gargždų švara“, UAB „Tauragės regiono atliekų tvarkymo centras“, UAB „Šiaulių regiono atliekų tvarkymo centras“, UAB „Alytaus regiono atliekų tvarkymo centras“, UAB „Panevėžio regiono atliekų tvarkymo centras“, UAB „Marijampolės apskrities atliekų tvarkymo centras“, UAB „Raseinių komunalinės paslaugos“, UAB „Jonavos paslaugos“, SĮ „Kretingos komunalininkas“, UAB „Ecoservice“, Šilutės rajono savivaldybė, Kėdainių rajono savivaldybės administracija, UAB „Molėtų švara“, Skuodo rajono savivaldybė, Ukmergės rajono savivaldybė (the schedules of UAB „Ukmergės autobusų parkas“), UAB „Anykščių komunalinis ūkis“, UAB „Utenos komunalininkas“, UAB „Elektrėnų komunalinis ūkis“, SĮ „Kompata“ and Širvintų rajono savivaldybė, with attribution and a link to the source, and links to the glass and packaging schedules of UAB „Ekonovus“ in Kaunas and Kaišiadorys districts. |
 | Age rating | Answer "None" to every content question; the result is 4+. |
 
 **Location:** the optional "Use my current location" reads the position once, while the app is
@@ -66,8 +66,9 @@ eldership is asked for; we don't receive or store that either, and PRIVACY.md sa
 ## Store listing disclaimer
 
 Put this at the end of the description in both stores (and in the other languages you list).
-The description names each publisher next to the municipalities it covers, so the disclaimer
-refers to them instead of listing every company again:
+The description lists every publisher (regional waste centres, waste companies and
+municipalities) after the areas the app covers, so the disclaimer refers to them instead of
+listing every company again:
 
 > Unofficial app made by volunteers, not affiliated with the companies and organisations named
 > here or with the companies that collect the waste. Dates come from the schedules they publish

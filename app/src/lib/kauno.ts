@@ -127,8 +127,8 @@ export function searchKaunoTowns(towns: KaunoTown[], query: string): KaunoTown[]
  * Cities next to a covered district that aren't covered themselves: their names (and "in ...")
  * in the app's languages, and the genitive of "Kauno m.", as normalizeForSearch writes them
  * (it drops the breve of "й" and the dot of the Polish "ż"; the Polish "ł" stays).
- * `district`: only some schedules of the district are covered, so it isn't in the list of
- * covered areas, and a search for the district gets the city's hint too, which says so.
+ * `district`: only some schedules of the district are covered, and a search for the district gets
+ * the city's hint too, which says so.
  */
 type City = { names: string[]; genitive: string; district?: boolean };
 const CITIES = {
