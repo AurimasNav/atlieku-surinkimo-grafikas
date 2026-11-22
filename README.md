@@ -1,7 +1,9 @@
 # Šiukšliavežė
 
 Android app that reminds you when waste is collected at your address, based on the
-schedules the waste companies publish. It covers 33 municipalities:
+schedules the waste companies publish. It covers 48 municipalities: 40 districts (all but
+Kupiškis, Švenčionys and Zarasai) and Birštonas, Druskininkai, Elektrėnai, Kalvarija, Kazlų Rūda,
+Marijampolė, Pagėgiai and Rietavas municipalities. By publisher:
 
 - **Vilnius district**: mixed waste, packaging and glass, from the schedule files of
   [UAB "Nemenčinės komunalininkas"](https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/)
@@ -50,6 +52,54 @@ schedules the waste companies publish. It covers 33 municipalities:
   [UAB "Marijampolės apskrities atliekų tvarkymo centras"](https://maatc.lt/atlieku-isvezimo-grafikai/).
   Mixed waste is collected by UAB "Ecoservice", packaging and glass by UAB "Ecoservice" and, in
   Šakiai district, UAB "Ekonovus", which also collects the food waste.
+- **Raseiniai district**: mixed waste, packaging and glass, and green waste in the towns and some
+  villages, for private houses, from the PDFs of the company that collects it,
+  [UAB "Raseinių komunalinės paslaugos"](https://www.rkp.lt/atlieku-tvarkymas/).
+- **Jonava district**: mixed waste, packaging and glass, for private houses, from the PDFs of the
+  company that collects it,
+  [UAB "Jonavos paslaugos"](https://www.jonavospaslaugos.lt/straipsniai/atlieku-tvarkymo-grafikas-jonavos-rajono-seniuniju-gyventojams).
+  The file for Jonava names no streets, so every street of the town gets the private houses'
+  schedules, apartment buildings' too, whose shared containers have a schedule the app doesn't
+  read.
+- **Kretinga district**: mixed waste, packaging and glass, and food and green waste in Kretinga,
+  from the PDFs of the municipal company that collects it,
+  [SĮ "Kretingos komunalininkas"](https://www.kretkom.lt/atlieku-isvezimo-grafikai/).
+- **Šilutė, Trakai and Šalčininkai districts**: mixed waste, packaging and glass, for private
+  houses, collected by UAB "Ecoservice", from its pages for
+  [Trakai](https://ecoservice.lt/trakugrafikai/) and
+  [Šalčininkai](https://ecoservice.lt/salcininkugrafikai/) districts and, for Šilutė district,
+  from the PDF on
+  [the municipality's page](https://www.silute.lt/veiklos-sritys/aplinkosauga-ir-atlieku-tvarkymas/atlieku-tvarkymas/10160).
+- **Kėdainiai district**: mixed waste, packaging and glass, for private houses, from the schedules
+  [Kėdainių rajono savivaldybės administracija](https://www.kedainiai.lt/gyventojui/atlieku-tvarkymas/atlieku-isvezimo-grafikai/1538)
+  publishes for each eldership. The waste is collected by UAB "Ekonovus".
+- **Molėtai district**: mixed waste, packaging and glass, and green waste in Molėtai, from the
+  PDFs of the company that collects it,
+  [UAB "Molėtų švara"](https://www.moletusvara.lt/atlieku-surinkimo-grafikai/).
+- **Skuodas district**: mixed waste, packaging and glass, for private houses, from the spreadsheets
+  of [Skuodo rajono savivaldybė](https://skuodas.lt/atlieku-tvarkymas-ir-surinkimo-grafikai-2025-m/).
+  They give the phone number of UAB "Ekonovus", which collects the waste.
+- **Ukmergė district**: mixed waste, packaging and glass, from the PDFs of the company that
+  collects it, UAB "Ukmergės autobusų parkas", on
+  [the municipality's page](https://www.ukmerge.lt/misrios-komunalines-atliekos/). The shared
+  containers of apartment buildings in Ukmergė have no schedule there.
+- **Anykščiai district**: mixed waste, packaging and glass, and green waste in Anykščiai, from the
+  PDFs of the municipal company that collects it,
+  [UAB "Anykščių komunalinis ūkis"](https://anykom.lt/paslaugos/komunaliniu-atlieku-tvarkymas/).
+- **Utena district**: mixed waste, packaging and glass, and green waste in Utena, for private
+  houses, from the PDFs of the company that collects it,
+  [UAB "Utenos komunalininkas"](https://www.utenoskom.lt/paslaugos/atlieku-tvarkymas).
+- **Elektrėnai municipality**: mixed waste, packaging and glass, for the households that sort
+  their waste, from the web pages of the company that collects it,
+  [UAB "Elektrėnų komunalinis ūkis"](https://www.eku.lt/atlieku-ir-teritoriju-tvarkymas/atlieku-isvezimo-grafikai/569).
+  The pages name no streets of Elektrėnai and Vievis, so every street of both towns gets the
+  private houses' schedules, apartment buildings' too, whose shared containers have none here.
+- **Ignalina district**: mixed waste, packaging and glass, and food waste in Ignalina, Dūkštas and
+  a few villages, from the PDFs of the municipal company that collects it,
+  [SĮ "Kompata"](https://www.kompata.lt/grafikai/puslapis/).
+- **Širvintos district**: mixed waste, packaging and glass, for private houses, from the PDFs
+  [Širvintų rajono savivaldybė](https://www.sirvintos.lt/lt/atlieku-tvarkymas/misriu-komunaliniu-atlieku-surinkimo-grafikas-is-sirvintu-rajono-gyventoju/2998)
+  publishes. The waste is collected by UAB "Ecoservice".
 
 The cities of Vilnius, Kaunas, Klaipėda, Šiauliai, Panevėžys and Alytus aren't covered.
 

@@ -260,6 +260,18 @@ describe('a search for Kaunas city', () => {
   });
 });
 
+describe('a search for Vilnius city', () => {
+  it('is recognised, and is not the district', () => {
+    for (const query of ['Vilnius', 'vilnius', 'Vilniaus m.', 'Vilniaus miestas', 'Vilniaus miesto sav.', 'Vilniuje', 'Wilno', 'Вильнюс']) {
+      expect([query, uncoveredCitySearch(query)]).toEqual([query, 'vilnius']);
+    }
+    // "Vilniaus" alone is also the start of the district's name.
+    for (const query of ['Vilniaus r.', 'Vilnius district', 'Vilniaus rajonas', 'Vilniaus', 'Nemenčinė', 'Riešė']) {
+      expect([query, uncoveredCitySearch(query)]).toEqual([query, undefined]);
+    }
+  });
+});
+
 describe('a search for Klaipėda city', () => {
   it('is recognised, and is not the district', () => {
     for (const query of ['Klaipėda', 'klaipeda', 'Klaipėdos m.', 'Klaipėdos miestas', 'Klaipėdoje', 'Kłajpeda', 'Клайпеда']) {
@@ -326,5 +338,12 @@ describe('a search for a covered town', () => {
     for (const query of ['Marijampolė', 'Marijampolės m.', 'Tauragė', 'Radviliškis', 'Telšiai', 'Druskininkai']) {
       expect([query, uncoveredCitySearch(query)]).toEqual([query, undefined]);
     }
+  });
+
+  it('gets no hint in the districts added later', () => {
+    // Jonava as a whole town (its file names no streets), Utena by street; the others too.
+    const towns = ['Jonava', 'Jonavos m.', 'Utena', 'Utenos m.', 'Raseiniai', 'Kretinga', 'Šilutė', 'Trakai', 'Lentvaris'];
+    towns.push('Šalčininkai', 'Kėdainiai', 'Molėtai', 'Skuodas', 'Ukmergė', 'Anykščiai', 'Elektrėnai', 'Ignalina', 'Širvintos');
+    for (const query of towns) expect([query, uncoveredCitySearch(query)]).toEqual([query, undefined]);
   });
 });

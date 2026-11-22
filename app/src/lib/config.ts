@@ -45,8 +45,11 @@ export const EKONOVUS_SCHEDULES_URL = 'https://www.ekonovus.lt/aptarnavimo-grafi
  *
  * Built in, so the app finds them without regions.json (offline, or before it was published);
  * folders added later come from regions.json only: panevezio-ratc (Pasvalio r., Rokiškio r.,
- * Biržų r., and the packaging and glass of Panevėžio r.) and maatc (Marijampolės sav.,
- * Vilkaviškio r., Kalvarijos sav., Kazlų Rūdos sav. and Šakių r.).
+ * Biržų r., and the packaging and glass of Panevėžio r.), maatc (Marijampolės sav.,
+ * Vilkaviškio r., Kalvarijos sav., Kazlų Rūdos sav. and Šakių r.), ecoservice (Trakų r. and
+ * Šalčininkų r.), and a folder named after each of Raseinių r., Jonavos r., Kretingos r.,
+ * Šilutės r., Kėdainių r., Molėtų r., Skuodo r., Ukmergės r., Anykščių r., Utenos r., Elektrėnų
+ * sav., Ignalinos r. and Širvintų r. (raseiniu-r, elektrenu-sav, …).
  */
 export const REGION_URLS = ['mazeikiu-r', 'klaipedos-r', 'jurbarko-r', 'sratc', 'alytaus-ratc'].map(
   (folder) => `${SITE_URL}/${folder}`,
@@ -83,6 +86,20 @@ export const COMPANIES = [
   'UAB „Alytaus regiono atliekų tvarkymo centras“',
   'UAB „Panevėžio regiono atliekų tvarkymo centras“',
   'UAB „Marijampolės apskrities atliekų tvarkymo centras“',
+  'UAB „Raseinių komunalinės paslaugos“',
+  'UAB „Jonavos paslaugos“',
+  'SĮ „Kretingos komunalininkas“',
+  'Šilutės rajono savivaldybė',
+  'Kėdainių rajono savivaldybės administracija',
+  'UAB „Molėtų švara“',
+  'Skuodo rajono savivaldybė',
+  'Ukmergės rajono savivaldybė',
+  'UAB „Ukmergės autobusų parkas“',
+  'UAB „Anykščių komunalinis ūkis“',
+  'UAB „Utenos komunalininkas“',
+  'UAB „Elektrėnų komunalinis ūkis“',
+  'SĮ „Kompata“',
+  'Širvintų rajono savivaldybė',
 ];
 
 /** Highest schedule.json schemaVersion this app version understands. */

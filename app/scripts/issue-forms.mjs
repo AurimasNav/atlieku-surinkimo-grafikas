@@ -27,6 +27,21 @@ const OFFICIAL_SCHEDULES = [
   'UAB „Alytaus regiono atliekų tvarkymo centras“: https://www.aratc.lt/atlieku-surinkimo-grafikai/',
   'UAB „Panevėžio regiono atliekų tvarkymo centras“: https://www.pratc.lt/atlieku-isvezimas-atlieku-isvezimas/',
   'UAB „Marijampolės apskrities atliekų tvarkymo centras“: https://maatc.lt/atlieku-isvezimo-grafikai/',
+  'UAB „Raseinių komunalinės paslaugos“: https://www.rkp.lt/atlieku-tvarkymas/',
+  'UAB „Jonavos paslaugos“: https://www.jonavospaslaugos.lt/straipsniai/atlieku-tvarkymo-grafikas-jonavos-rajono-seniuniju-gyventojams',
+  'SĮ „Kretingos komunalininkas“: https://www.kretkom.lt/atlieku-isvezimo-grafikai/',
+  'UAB „Ecoservice“, Šilutės r.: https://www.silute.lt/veiklos-sritys/aplinkosauga-ir-atlieku-tvarkymas/atlieku-tvarkymas/10160',
+  'UAB „Ecoservice“, Trakų r.: https://ecoservice.lt/trakugrafikai/',
+  'UAB „Ecoservice“, Šalčininkų r.: https://ecoservice.lt/salcininkugrafikai/',
+  'Kėdainių rajono savivaldybės administracija: https://www.kedainiai.lt/gyventojui/atlieku-tvarkymas/atlieku-isvezimo-grafikai/1538',
+  'UAB „Molėtų švara“: https://www.moletusvara.lt/atlieku-surinkimo-grafikai/',
+  'Skuodo rajono savivaldybė: https://skuodas.lt/atlieku-tvarkymas-ir-surinkimo-grafikai-2025-m/',
+  'UAB „Ukmergės autobusų parkas“: https://www.ukmerge.lt/misrios-komunalines-atliekos/',
+  'UAB „Anykščių komunalinis ūkis“: https://anykom.lt/paslaugos/komunaliniu-atlieku-tvarkymas/',
+  'UAB „Utenos komunalininkas“: https://www.utenoskom.lt/paslaugos/atlieku-tvarkymas',
+  'UAB „Elektrėnų komunalinis ūkis“: https://www.eku.lt/atlieku-ir-teritoriju-tvarkymas/atlieku-isvezimo-grafikai/569',
+  'SĮ „Kompata“: https://www.kompata.lt/grafikai/puslapis/',
+  'Širvintų rajono savivaldybė: https://www.sirvintos.lt/lt/atlieku-tvarkymas/misriu-komunaliniu-atlieku-surinkimo-grafikas-is-sirvintu-rajono-gyventoju/2998',
 ]
   .map((line) => `- ${line}`)
   .join('\n');
@@ -354,10 +369,10 @@ const FORMS = {
         required: true,
         label: { en: 'Municipality', lt: 'Savivaldybė', ru: 'Самоуправление', pl: 'Samorząd' },
         placeholder: {
-          en: 'e.g. Ukmergės r.',
-          lt: 'pvz., Ukmergės r.',
-          ru: 'например, Ukmergės r.',
-          pl: 'np. Ukmergės r.',
+          en: 'e.g. Zarasų r.',
+          lt: 'pvz., Zarasų r.',
+          ru: 'например, Zarasų r.',
+          pl: 'np. Zarasų r.',
         },
       },
       {

@@ -127,11 +127,12 @@ export function searchKaunoTowns(towns: KaunoTown[], query: string): KaunoTown[]
  * Cities next to a covered district that aren't covered themselves: their names (and "in ...")
  * in the app's languages, and the genitive of "Kauno m.", as normalizeForSearch writes them
  * (it drops the breve of "й" and the dot of the Polish "ż"; the Polish "ł" stays).
- * `district`: only some schedules of the district are covered, so it isn't in the list of
- * covered areas, and a search for the district gets the city's hint too, which says so.
+ * `district`: only some schedules of the district are covered, and a search for the district gets
+ * the city's hint too, which says so.
  */
 type City = { names: string[]; genitive: string; district?: boolean };
 const CITIES = {
+  vilnius: { names: ['vilnius', 'vilniuje', 'wilno', 'вильнюс'], genitive: 'vilniaus' },
   kaunas: { names: ['kaunas', 'kaune', 'kowno', 'каунас'], genitive: 'kauno' },
   klaipeda: { names: ['klaipeda', 'klaipedoje', 'kłajpeda', 'клаипеда'], genitive: 'klaipedos' },
   siauliai: { names: ['siauliai', 'siauliuose', 'szawle', 'шяуляи', 'шауляи', 'шавли'], genitive: 'siauliu' },
@@ -144,8 +145,9 @@ export type UncoveredCity = keyof typeof CITIES;
 const DISTRICT = /^(r|raj|rajon\p{L}*|rejon\p{L}*|district|раион\p{L}*)$/u;
 
 /**
- * Whether a search was for a city the app doesn't cover, only the district around it: Kaunas,
- * Klaipėda, Šiauliai, Alytus or Panevėžys ("Kaunas", "Kauno m.", "klaipedos miestas", "Szawle").
+ * Whether a search was for a city the app doesn't cover, only the district around it: Vilnius,
+ * Kaunas, Klaipėda, Šiauliai, Alytus or Panevėžys ("Kaunas", "Kauno m.", "klaipedos miestas",
+ * "Szawle").
  * The app then says so: instead of the general "nothing found", or above the places it found,
  * since a village can have the city's name (Alytus in Alovės sen., Šiauliai in Veliuonos sen.).
  * For Panevėžys also the district ("Panevėžio r."), whose hint says what of it is covered, and

@@ -42,6 +42,7 @@ type Result = { key: string; location?: Location; kauno?: KaunoTown };
 
 /** What a search for a city that isn't covered says (see uncoveredCitySearch). */
 const CITY_HINTS = {
+  vilnius: 'setup.locationVilniusCity',
   kaunas: 'setup.locationKaunasCity',
   klaipeda: 'setup.locationKlaipedaCity',
   siauliai: 'setup.locationSiauliaiCity',

@@ -29,7 +29,7 @@
     "skip": "Tokio konteinerio neturiu"
   },
   "coverage": {
-    "areas": "Akmenės, Alytaus, Biržų, Joniškio, Jurbarko, Kaišiadorių, Kauno, Kelmės, Klaipėdos, Lazdijų, Mažeikių, Pakruojo, Pasvalio, Plungės, Prienų, Radviliškio, Rokiškio, Šakių, Šiaulių, Šilalės, Tauragės, Telšių, Varėnos, Vilkaviškio ir Vilniaus r. bei Birštono, Druskininkų, Kalvarijos, Kazlų Rūdos, Marijampolės, Pagėgių ir Rietavo sav."
+    "areas": "visuose rajonuose, išskyrus Kupiškio, Švenčionių ir Zarasų (Panevėžio r. – tik pakuotės ir stiklas), bei Birštono, Druskininkų, Elektrėnų, Kalvarijos, Kazlų Rūdos, Marijampolės, Pagėgių ir Rietavo sav."
   },
   "onboarding": {
     "title": "Konteineriai.\nLaiku.",
@@ -93,7 +93,8 @@
     "locationKlaipedaCity": "Klaipėdos miesto grafikų neturime, tik Klaipėdos rajono.",
     "locationSiauliaiCity": "Šiaulių miesto grafikų neturime, tik Šiaulių rajono.",
     "locationAlytusCity": "Alytaus miesto grafikų neturime, tik Alytaus rajono.",
-    "locationPanevezysCity": "Panevėžio miesto grafikų neturime, o Panevėžio rajono – tik pakuočių ir stiklo."
+    "locationPanevezysCity": "Panevėžio miesto grafikų neturime, o Panevėžio rajono – tik pakuočių ir stiklo.",
+    "locationVilniusCity": "Vilniaus miesto grafikų neturime, tik Vilniaus rajono."
   },
   "select": {
     "title": "{{kind}}: jūsų vietovė",

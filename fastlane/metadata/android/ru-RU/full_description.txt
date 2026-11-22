@@ -1,16 +1,9 @@
-Šiukšliavežė напомнит вечером накануне, что приедет мусоровоз, и вы больше не пропустите вывоз отходов. Приложение работает в сёлах и городах 33 самоуправлений по графикам, которые публикуют их компании по вывозу отходов:
+Šiukšliavežė напомнит вечером накануне, что приедет мусоровоз, и вы больше не пропустите вывоз отходов. Приложение работает в сёлах и городах 48 самоуправлений: 40 районов (все, кроме Зарасайского, Купишкского и Швенчёнского; в Паневежском — только упаковка и стекло) и Бирштонское, Друскининкское, Казлу-Рудское, Калварийское, Мариямпольское, Пагегяйское, Ретавское и Электренское самоуправления. Города Вильнюс, Каунас, Клайпеда, Шяуляй, Паневежис и Алитус не охвачены.
 
-• Вильнюсский район: UAB „Nemenčinės komunalininkas“ и UAB „Nemėžio komunalininkas“.
-• Каунасский и Кайшядорский районы: UAB „Kauno švara“, по адресам. Для стекла и упаковки в приложении есть ссылка на графики UAB „Ekonovus“.
-• Мажейкский, Тельшяйский и Плунгеский районы и Ретавское самоуправление: UAB „Telšių regiono atliekų tvarkymo centras“.
-• Клайпедский район: VšĮ „Gargždų švara“.
-• Юрбаркский, Таурагский и Шилальский районы и Пагегяйское самоуправление: UAB „Tauragės regiono atliekų tvarkymo centras“.
-• Шяуляйский, Акмянский, Йонишкский, Кельмеский, Пакруойский и Радвилишкский районы: UAB „Šiaulių regiono atliekų tvarkymo centras“.
-• Алитусский, Пренайский, Лаздийский и Варенский районы, Друскининкское и Бирштонское самоуправления: UAB „Alytaus regiono atliekų tvarkymo centras“.
-• Биржайский, Пасвальский и Рокишкский районы, а в Паневежском районе — только упаковка и стекло: UAB „Panevėžio regiono atliekų tvarkymo centras“.
-• Мариямпольское, Калварийское и Казлу-Рудское самоуправления, Вилкавишкский и Шакяйский районы: UAB „Marijampolės apskrities atliekų tvarkymo centras“.
-
-Смешанные отходы, упаковка и стекло, а там, где их собирают отдельно, — пищевые и зелёные отходы. Города Вильнюс, Каунас, Клайпеда, Шяуляй, Паневежис и Алитус не охвачены.
+Смешанные отходы, упаковка и стекло, а там, где их собирают отдельно, — пищевые и зелёные отходы. Даты взяты из графиков, которые публикуют:
+• Региональные центры обращения с отходами: UAB „Telšių regiono atliekų tvarkymo centras“, UAB „Tauragės regiono atliekų tvarkymo centras“, UAB „Šiaulių regiono atliekų tvarkymo centras“, UAB „Alytaus regiono atliekų tvarkymo centras“, UAB „Panevėžio regiono atliekų tvarkymo centras“ и UAB „Marijampolės apskrities atliekų tvarkymo centras“.
+• Компании по вывозу отходов: UAB „Nemenčinės komunalininkas“, UAB „Nemėžio komunalininkas“, UAB „Kauno švara“ (по адресам; для стекла и упаковки в приложении есть ссылка на графики UAB „Ekonovus“), VšĮ „Gargždų švara“, UAB „Raseinių komunalinės paslaugos“, UAB „Jonavos paslaugos“, SĮ „Kretingos komunalininkas“, UAB „Ecoservice“, UAB „Molėtų švara“, UAB „Ukmergės autobusų parkas“, UAB „Anykščių komunalinis ūkis“, UAB „Utenos komunalininkas“, UAB „Elektrėnų komunalinis ūkis“ и SĮ „Kompata“.
+• Самоуправления: Kėdainių rajono savivaldybės administracija, Skuodo rajono savivaldybė, Šilutės rajono savivaldybė, Širvintų rajono savivaldybė и Ukmergės rajono savivaldybė.
 
 В приложении населённые пункты указаны под официальными литовскими названиями (Nemenčinė, Garliava и т. д.).
 
