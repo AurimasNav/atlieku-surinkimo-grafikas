@@ -34,6 +34,8 @@ kedainiai.lt (docx, pdf)                  Kėdainių r.: site/kedainiu-r/ (from 
                                           pipeline/data when the site refuses the runners)
 moletusvara.lt (pdf)                      Molėtų r.: site/moletu-r/
 skuodas.lt (xls + xlsx)                   Skuodo r.: site/skuodo-r/
+ukmerge.lt (pdf)                          Ukmergės r.: site/ukmerges-r/ (from a copy in
+                                          pipeline/data when the site refuses the runners)
 anykom.lt (pdf)                           Anykščių r.: site/anyksciu-r/
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼

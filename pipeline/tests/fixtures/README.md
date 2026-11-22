@@ -171,6 +171,15 @@ a legacy Excel workbook), `pakuotes-2026.xlsx` "cia.xlsx" (packaging) and `stikl
 "cia-2.xlsx" (glass) (`test_skuodas.COPIES`). With the Address Register extract for Skuodo r. of
 the same day.
 
+`ukmerge/` has the mixed waste page of the Ukmergės r. municipality at
+<https://www.ukmerge.lt/misrios-komunalines-atliekos/> and the four 2026 PDFs of UAB "Ukmergės
+autobusų parkas" it links, downloaded on 2026-11-21 and renamed: `miestas-2026-h1.pdf` is
+"2026_m._sausio-gegus_mn._Ukmerges_miesto_komunalini_ir_pakuoi_atliek_surinkimo_grafikas_(002).pdf"
+(the town, January-May), `miestas-2026-h2.pdf` "2026_m._birelio-gruodio_mn._Ukmergs_miesto_...pdf"
+(the town, June-December), and `rajonas-2026-h1.pdf` and `rajonas-2026-h2.pdf` the district's of
+the same periods (`test_ukmerge.COPIES`). With the Address Register extract for Ukmergės r. of
+the same day.
+
 `anyksciai/` has the waste page of UAB "Anykščių komunalinis ūkis" (Anykščių r.) at
 <https://anykom.lt/paslaugos/komunaliniu-atlieku-tvarkymas/> and the two 2026 PDFs it links,
 downloaded on 2026-11-21 and renamed: `kaimai-2026.pdf` is `assets/uploads/2026/03/421f0ee1.pdf`
