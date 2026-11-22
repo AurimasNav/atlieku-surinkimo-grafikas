@@ -1,6 +1,10 @@
 import json
+from datetime import date
 
-from schedule_pipeline import status
+import pytest
+
+from schedule_pipeline import build, status
+from schedule_pipeline.model import Provider
 
 
 def test_metrics_for_both_sources(tmp_path):
@@ -67,8 +71,271 @@ def test_kaisiadorys_is_a_source_of_its_own(tmp_path):
         "areas": {"household": 36},
         "places": 7726,
         "warnings": 0,
+        "newWarnings": 0,
     }
 
 
 def test_no_data_is_an_error(tmp_path):
     assert status.main(["--site", str(tmp_path)]) == 1
+
+
+# --- new warnings: those pipeline/known-warnings.json doesn't list ----------------------
+
+
+def test_normalise_leaves_out_what_changes_from_run_to_run():
+    assert status.normalise(
+        "2026 m- birželis-gruodis mėn  Buitinių atliekų surinkimo grafikasP.xlsx row 715: kept as"
+        " text, no exact dates: 'kas antras mėnesio trečiadienis'"
+    ) == (
+        "# m- birželis-gruodis mėn  Buitinių atliekų surinkimo grafikasP.xlsx row #: kept as"
+        " text, no exact dates: 'kas antras mėnesio trečiadienis'"
+    )
+    # A site copy: its date and age, and whatever the site answered.
+    copy = "https://www.zarasai.lt/x/269: unavailable ({}); used the copy from {} ({})"
+    expected = "https://www.zarasai.lt/x/#: unavailable; used the copy"
+    for error, taken, age in (
+        ("HTTP Error 403: Forbidden", "2026-11-22", "0 days old"),
+        ("<urlopen error timed out>", "2026-10-01", "52 days old"),
+        ("HTTP Error 503: Service Unavailable (retry)", "2026-11-21", "1 day old"),
+    ):
+        assert status.normalise(copy.format(error, taken, age)) == expected
+    # Words stay as they are: a new place name is a new warning.
+    assert status.normalise("not linked to any settlement: household: Stražininkai") == (
+        "not linked to any settlement: household: Stražininkai"
+    )
+    assert status.normalise(
+        "not a settlement or a street: household: Kelmės miestas 3: S. Nėries g."
+    ) == ("not a settlement or a street: household: Kelmės miestas #: S. Nėries g.")
+
+
+def site_with(site, providers):
+    """A site with schedule.json of these providers' parts (as build.merge_parts writes it)."""
+    site.mkdir(exist_ok=True)
+    data = {
+        "generatedAt": "2026-11-22T04:20:00+00:00",
+        "areas": [{"kind": "household", "provider": p["id"]} for p in providers],
+        "locations": [],
+        "providers": providers,
+    }
+    (site / "schedule.json").write_text(json.dumps(data), encoding="utf-8")
+    return site
+
+
+def part(source, texts, **more):
+    entry = {"id": source, "generatedAt": "2026-11-22T04:20:00+00:00"}
+    if texts is None:
+        return {**entry, "warnings": more.pop("warnings", 0), **more}
+    return {**entry, "warnings": len(texts), "warningTexts": texts, **more}
+
+
+def test_new_warnings_are_those_the_baseline_doesnt_list(tmp_path):
+    site = site_with(
+        tmp_path,
+        [
+            # Row numbers moved, the place is known: nothing new.
+            part("nemezio", ["f.xlsx row 12: kept as text", "not linked to any settlement: A"]),
+            # A new place, twice (two kinds), and a known one.
+            part(
+                "sakiai",
+                [
+                    "not linked to any settlement: household: Naujas",
+                    "not linked to any settlement: glass: Naujas",
+                    "not linked to any settlement: household: Senas",
+                ],
+            ),
+            # Published before the builds published the texts: 6 warnings, none known to be new.
+            part("kalvarija", None, warnings=6),
+            # A source the baseline doesn't have yet: all of its warnings are new.
+            part("trakai", ["page 2: packaging of 'X' on 2026-11-17, not on its weekday"]),
+        ],
+    )
+    known = {
+        "nemezio": {"f.xlsx row #: kept as text", "not linked to any settlement: A"},
+        "sakiai": {"not linked to any settlement: household: Senas"},
+        "kalvarija": set(),
+    }
+    sources = status.collect(site, known)["sources"]
+    assert {s: (d["warnings"], d["newWarnings"]) for s, d in sources.items()} == {
+        "nemezio": (2, 0),
+        "sakiai": (3, 2),
+        "kalvarija": (6, 0),
+        "trakai": (1, 1),
+    }
+    text = status.metrics(status.collect(site, known))
+    assert "# TYPE siuksliaveze_data_new_warnings gauge" in text
+    assert 'siuksliaveze_data_new_warnings{source="sakiai"} 2' in text
+    assert 'siuksliaveze_data_new_warnings{source="kalvarija"} 0' in text
+    # The old count stays what it was.
+    assert 'siuksliaveze_data_warnings{source="kalvarija"} 6' in text
+
+
+def test_kauno_svara_and_its_other_municipalities_have_texts(tmp_path):
+    (tmp_path / "kauno-r").mkdir()
+    (tmp_path / "kauno-r" / "schedule.json").write_text(
+        json.dumps(
+            {
+                "generatedAt": "2026-11-21T04:20:00+00:00",
+                "warnings": 2,
+                "warningTexts": ["3 rows skipped: waste type „X“", "12 rows skipped: no date"],
+                "stats": {"addresses": 39200, "areas": {"household": 43}},
+                "otherMunicipalities": [
+                    {
+                        "id": "kaisiadorys",
+                        "stats": {"addresses": 7726, "areas": {"household": 36}},
+                        "warnings": 1,
+                        "warningTexts": ["1 rows skipped: waste type „Y“"],
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    known = {"kauno": {"# rows skipped: waste type „X“", "# rows skipped: no date"}}
+    sources = status.collect(tmp_path, known)["sources"]
+    assert sources["kauno"]["newWarnings"] == 0
+    assert sources["kaisiadorys"]["newWarnings"] == 1
+
+
+def test_write_known_acknowledges_the_sites_warnings(tmp_path):
+    site = site_with(
+        tmp_path / "site",
+        [
+            part("nemezio", ["b row 3", "a: Žąsinas", "b row 4"]),
+            part("kalvarija", None, warnings=6),
+        ],
+    )
+    known = tmp_path / "known-warnings.json"
+    known.write_text(
+        json.dumps({"nemezio": ["gone"], "kalvarija": ["kept"], "zarasai": ["not built"]}),
+        encoding="utf-8",
+    )
+    assert status.main(["--site", str(site), "--known", str(known), "--write-known"]) == 0
+    # Sorted, each once, UTF-8 as it is, one entry a line, a newline at the end. A warning the
+    # source no longer gives is dropped; sources without texts on this site keep theirs.
+    assert known.read_bytes().decode("utf-8") == (
+        "{\n"
+        '  "kalvarija": [\n    "kept"\n  ],\n'
+        '  "nemezio": [\n    "a: Žąsinas",\n    "b row #"\n  ],\n'
+        '  "zarasai": [\n    "not built"\n  ]\n'
+        "}\n"
+    )
+    published = json.loads((site / "status.json").read_text(encoding="utf-8"))
+    assert published["sources"]["nemezio"]["newWarnings"] == 0
+    # Then a new one appears.
+    site_with(site, [part("nemezio", ["b row 9", "a: Žąsinas", "a: Naujas"])])
+    assert status.main(["--site", str(site), "--known", str(known)]) == 0
+    assert 'siuksliaveze_data_new_warnings{source="nemezio"} 1' in (site / "metrics.txt").read_text(
+        encoding="utf-8"
+    )
+    report = json.loads((site / "warnings.json").read_text(encoding="utf-8"))
+    assert report["sources"]["nemezio"]["new"] == ["a: Naujas"]
+    assert report["sources"]["nemezio"]["known"] == ["b row 9", "a: Žąsinas"]
+
+
+def test_without_a_baseline_every_warning_is_new(tmp_path, capsys):
+    site = site_with(tmp_path / "site", [part("nemezio", ["a", "b"])])
+    missing = tmp_path / "none.json"
+    assert status.main(["--site", str(site), "--known", str(missing)]) == 0
+    assert "every warning counts as new" in capsys.readouterr().err
+    assert (
+        status.collect(site, status.load_known(missing))["sources"]["nemezio"]["newWarnings"] == 2
+    )
+    # --write-known creates it.
+    assert status.main(["--site", str(site), "--known", str(missing), "--write-known"]) == 0
+    assert json.loads(missing.read_text(encoding="utf-8")) == {"nemezio": ["a", "b"]}
+
+
+def test_the_committed_baseline_is_sorted_and_normalised():
+    if not status.KNOWN.exists():
+        pytest.skip("no pipeline/known-warnings.json yet")
+    text = status.KNOWN.read_text(encoding="utf-8")
+    known = json.loads(text)
+    assert list(known) == sorted(known)
+    for source, texts in known.items():
+        assert texts == sorted(set(texts)), source
+        assert all(status.normalise(t) == t for t in texts), source
+    # As --write-known writes it, so acknowledging changes only the lines that changed.
+    assert text == json.dumps(known, ensure_ascii=False, indent=2) + "\n"
+
+
+def test_the_warnings_page(tmp_path):
+    site = site_with(
+        tmp_path,
+        [
+            part("nemezio", ['not linked: <script>alert(1)</script> & "Ąžuolas"']),
+            part("sakiai", ["row 1: known"]),
+            part("kalvarija", None, warnings=6),
+        ],
+    )
+    known = tmp_path / "known.json"
+    known.write_text(json.dumps({"sakiai": ["row #: known"]}), encoding="utf-8")
+    assert status.main(["--site", str(site), "--known", str(known)]) == 0
+    page = (site / "warnings.html").read_text(encoding="utf-8")
+    # A section a source, as the alert links them (warnings.html#<source>).
+    for source in ("nemezio", "sakiai", "kalvarija"):
+        assert f'<section id="{source}">' in page
+    # Escaped, so a source's text can't add markup; no scripts at all.
+    assert "&lt;script&gt;alert(1)&lt;/script&gt; &amp; &quot;Ąžuolas&quot;" in page
+    assert "<script" not in page
+    # New ones first, marked; the source with new ones heads the list.
+    nemezio = page[page.index('<section id="nemezio">') :]
+    nemezio = nemezio[: nemezio.index("</section>")]
+    assert 'class="new">New: not in pipeline/known-warnings.json' in nemezio
+    assert page.index('<section id="nemezio">') < page.index('<section id="kalvarija">')
+    sakiai = page[page.index('<section id="sakiai">') :]
+    assert "<h3>Known</h3>" in sakiai[: sakiai.index("</section>")]
+    assert "Published before the builds published their warnings" in page
+    assert '<strong class="new">1 new</strong>' in page
+    # Times in Vilnius time.
+    assert "2026-11-22 06:20 (Vilnius)" in page
+
+
+# --- the builds publish the texts next to the count ---------------------------------------
+
+
+PROVIDER = Provider("sakiai", "UAB „X“", "https://example.lt/", frozenset())
+
+
+def a_part(**more):
+    return {
+        "schemaVersion": 1,
+        "generatedAt": "2026-11-22T04:20:00+00:00",
+        "files": [],
+        "coverage": {},
+        "matching": {},
+        "areas": [
+            {"id": "h-1", "kind": "household", "name": "X", "dates": [], "provider": "sakiai"}
+        ],
+        "locations": [],
+        **more,
+    }
+
+
+def test_build_parts_publishes_the_warnings_of_each_part(monkeypatch):
+    def download(today, keep_days):
+        return [], [
+            "https://example.lt/: unavailable (x); used the copy from 2026-11-22 (0 days old)"
+        ]
+
+    monkeypatch.setattr(build, "build_dataset", lambda *args: (a_part(), ["row 3: kept as text"]))
+    source = build.Source(PROVIDER, download, None, {})
+    (result,) = build.build_parts((source,), None, date(2026, 11, 22), 31, None)
+    texts = [
+        "https://example.lt/: unavailable (x); used the copy from 2026-11-22 (0 days old)",
+        "row 3: kept as text",
+    ]
+    assert result.part["warnings"] == 2 and result.part["warningTexts"] == texts
+    merged = build.merge_parts([(PROVIDER, result.part)])
+    assert merged["providers"][0]["warnings"] == 2
+    assert merged["providers"][0]["warningTexts"] == texts
+    # Kept as it was when the part's build fails the next day (published_part).
+    kept = build.published_part(merged, PROVIDER)
+    assert kept["warnings"] == 2 and kept["warningTexts"] == texts
+    assert build.merge_parts([(PROVIDER, kept)])["providers"] == merged["providers"]
+
+
+def test_a_part_published_before_the_texts_keeps_its_count_only():
+    old = build.merge_parts([(PROVIDER, a_part(warnings=6))])
+    assert "warningTexts" not in old["providers"][0]
+    kept = build.published_part(old, PROVIDER)
+    assert kept["warnings"] == 6 and "warningTexts" not in kept

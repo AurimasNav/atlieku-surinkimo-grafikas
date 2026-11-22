@@ -259,7 +259,7 @@ def published_part(published: dict, provider: Provider) -> dict | None:
     areas = [a for a in published["areas"] if _is_mine(a, provider)]
     if not areas:
         return None
-    return {
+    part = {
         "schemaVersion": published["schemaVersion"],
         "generatedAt": entry["generatedAt"],
         "source": provider.url,
@@ -271,6 +271,10 @@ def published_part(published: dict, provider: Provider) -> dict | None:
         "locations": [loc for loc in published.get("locations", []) if _is_mine(loc, provider)],
         "warnings": entry.get("warnings", 0),
     }
+    # Data published before the texts were (status.py: none of its warnings count as new).
+    if "warningTexts" in entry:
+        part["warningTexts"] = entry["warningTexts"]
+    return part
 
 
 def published_rows(published: dict, provider: Provider, keep: Callable[[dict], bool]) -> list[Area]:
@@ -298,7 +302,11 @@ def published_rows(published: dict, provider: Provider, keep: Callable[[dict], b
 
 def merge_parts(parts: list[tuple[Provider, dict]], source: str = PAGE_URL) -> dict:
     """schedule.json from the providers' parts. `source`, `files`, `coverage` and `matching`
-    keep their meaning for the first provider's data; `providers` has each part's own."""
+    keep their meaning for the first provider's data; `providers` has each part's own.
+
+    `warnings` is how many warnings the part's build gave and `warningTexts` what they said, for
+    monitoring (status.py compares them with pipeline/known-warnings.json). A part kept from data
+    published before there were texts has the count only."""
     providers = [
         {
             **provider.to_json(),
@@ -306,6 +314,7 @@ def merge_parts(parts: list[tuple[Provider, dict]], source: str = PAGE_URL) -> d
             "coverage": part["coverage"],
             "matching": part["matching"],
             "warnings": part.get("warnings", 0),
+            **({"warningTexts": part["warningTexts"]} if "warningTexts" in part else {}),
         }
         for provider, part in parts
     ]
@@ -362,6 +371,7 @@ def build_parts(
             part, warnings = build_dataset(files, registry, today, keep_days, source)
             warnings = download_warnings + warnings
             part["warnings"] = len(warnings)
+            part["warningTexts"] = list(warnings)
             results.append(PartResult(provider, part, warnings))
             continue
         except Exception as error:  # any failure of one source must not stop the others

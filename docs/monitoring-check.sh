@@ -44,6 +44,7 @@ text = status.metrics(
                 "areas": {"household": 12},
                 "places": 340,
                 "warnings": 0,
+                "newWarnings": 0,
                 "lastDate": {"household": "2026-12-31"},
             }
         },

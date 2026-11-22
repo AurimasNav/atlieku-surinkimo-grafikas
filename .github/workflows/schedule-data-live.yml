@@ -9,8 +9,8 @@ name: Schedule data live build
 # The builds run in parallel, a job each ("live (Kupiškio r.)"), listed in
 # pipeline/src/schedule_pipeline/live_builds.py: a new provider is an entry there, not a step
 # here. Each job uploads its folder of the site; then the job "live" puts the folders together,
-# compares schedule.json with the published data, indexes the regions and fails if a build
-# failed.
+# compares schedule.json with the published data, indexes the regions, fails if a build
+# failed, and fails if a build gave a warning pipeline/known-warnings.json doesn't list.
 on:
   pull_request:
     paths: ["pipeline/**", ".github/workflows/schedule-data-live.yml"]
@@ -141,6 +141,45 @@ jobs:
           EOF
       - name: Index the region folders (regions.json)
         run: uv run python -m schedule_pipeline.regions --site "$RUNNER_TEMP/site"
+      # status.json, metrics.txt and warnings.html/.json, as the daily job publishes them: the
+      # builds' warnings compared with this branch's pipeline/known-warnings.json.
+      - name: Publish the state of the data (status.json, warnings.html)
+        run: uv run python -m schedule_pipeline.status --site "$RUNNER_TEMP/site"
+      - name: Compare the warnings with the published data
+        run: |
+          curl -fsSL https://aurimasnav.github.io/atlieku-surinkimo-grafikas/status.json -o "$RUNNER_TEMP/published-status.json"
+          uv run python - "$RUNNER_TEMP/site/warnings.json" "$RUNNER_TEMP/published-status.json" <<'EOF'
+          import html
+          import json
+          import os
+          import sys
+
+          new, old = (json.load(open(path, encoding="utf-8")) for path in sys.argv[1:3])
+          published = {source: data["warnings"] for source, data in old["sources"].items()}
+          rows, lists = [], []
+          for source in sorted(set(published) | set(new["sources"])):
+              data = new["sources"].get(source)
+              cells = [published.get(source, "-")]
+              cells += [data["warnings"], data["newWarnings"]] if data else ["-", "-"]
+              rows.append(f"| {source} | " + " | ".join(map(str, cells)) + " |")
+              if data and data["new"]:
+                  items = "\n".join(f"- {html.escape(text)}" for text in data["new"])
+                  lists.append(
+                      f"<details><summary>{source}: {len(data['new'])} new</summary>\n\n{items}\n\n</details>\n"
+                  )
+          total = sum(data["newWarnings"] for data in new["sources"].values())
+          report = (
+              "### Warnings compared with the published data\n\n"
+              f"New: not in this branch's pipeline/known-warnings.json ({total} in all).\n\n"
+              "| Source | Published | This PR | New |\n|---|---|---|---|\n"
+              + "\n".join(rows)
+              + "\n\n"
+              + "\n".join(lists)
+          )
+          print(report)
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write(report)
+          EOF
       - name: Fail if a build failed
         if: needs.build.result != 'success'
         run: |
@@ -151,3 +190,33 @@ jobs:
           name: schedule-data-${{ github.event.pull_request.number || github.ref_name }}
           path: ${{ runner.temp }}/site
           retention-days: 14
+      # After the upload, so the data with the new warnings can be downloaded and acknowledged.
+      - name: Fail on warnings pipeline/known-warnings.json doesn't list
+        run: |
+          uv run python - "$RUNNER_TEMP/site/warnings.json" <<'EOF'
+          import json
+          import sys
+
+          report = json.load(open(sys.argv[1], encoding="utf-8"))
+
+
+          def escape(text):
+              return text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+
+          total = 0
+          for source, data in sorted(report["sources"].items()):
+              for text in data["new"]:
+                  total += 1
+                  print(f"::error title=New warning ({source})::{escape(text)}")
+          if total:
+              print(
+                  f"::error::{total} warnings that pipeline/known-warnings.json doesn't list (above, and"
+                  " in the job summary). Fix the parser, or acknowledge them: download this run's"
+                  " schedule-data artifact and run `uv run python -m schedule_pipeline.status --site"
+                  " <site> --write-known` in pipeline/, then commit pipeline/known-warnings.json"
+                  " (docs/monitoring.md, Build warnings)."
+              )
+              sys.exit(1)
+          print("No new warnings")
+          EOF

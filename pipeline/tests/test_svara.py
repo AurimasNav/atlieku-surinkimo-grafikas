@@ -469,10 +469,25 @@ def test_kaisiadorys_is_published_with_kauno_r(monkeypatch):
                 ),
             },
             "warnings": 0,
+            "warningTexts": [],
         }
     ]
     assert dataset["stats"]["rows"] == 9
     assert not [w for w in warnings if w.startswith("Kaišiadorių r.")]
+
+
+def test_the_warnings_are_published_with_their_count(monkeypatch):
+    # For monitoring: status.py compares the texts with pipeline/known-warnings.json.
+    other = "Kaišiadorių r. sav.;Paparčių sen.;Neravų k.;Ąžuolo g.;9;49-AT-1;2026-12-01;kas 7 dienas;Atliekų tvarkymas\n"
+    dataset, _, warnings = build_all(monkeypatch, csv=CSV + KAISIADORYS + other)
+    assert dataset["warnings"] == len(dataset["warningTexts"]) > 0
+    assert any("Atliekų tvarkymas" in w for w in dataset["warningTexts"])
+    (kaisiadorys,) = dataset["otherMunicipalities"]
+    assert kaisiadorys["warningTexts"] == ["1 rows skipped: waste type „Atliekų tvarkymas“"]
+    assert kaisiadorys["warnings"] == 1
+    # build() returns them all, the other municipalities' with their name.
+    named = [f"Kaišiadorių r.: {w}" for w in kaisiadorys["warningTexts"]]
+    assert warnings == dataset["warningTexts"] + named
 
 
 def test_kauno_r_stays_as_it_was_alone(monkeypatch):
@@ -484,7 +499,7 @@ def test_kauno_r_stays_as_it_was_alone(monkeypatch):
         assert both_files[name] == data
     assert both["areas"][: len(alone["areas"])] == alone["areas"]
     assert [e for e in both["elderships"] if "municipality" not in e] == alone["elderships"]
-    for key in ("municipality", "stats", "warnings"):
+    for key in ("municipality", "stats", "warnings", "warningTexts"):
         assert both[key] == alone[key]
 
 
