@@ -1,0 +1,65 @@
+{
+  "files": [
+    {
+      "url": "https://www.pratc.lt/uploads/rinkliava/pan_raj/2026%20grafikai/Mi%C5%A1ri%C5%B3%20komunalini%C5%B3%20grafikas1.doc",
+      "sha256": "f8352043987f4c82f342b8dd705e06b9b6a3a3ed448c957bb99a781a9dd1b021"
+    }
+  ],
+  "texts": [
+    "Nurodytomis dienomis, prašome gyventojų, konteinerius išstumti prie gatvės nuo 7 val. ryto. Dėl iškilusių klausimų skambinti į UAB „Švaros komanda“ tel. : 0 652 75772 ."
+  ],
+  "routes": [
+    {
+      "number": "3",
+      "text": "3. Dembavos, Vaivadų, Paežerio I (visos išskyrus Miglės, Kedrų ir Medeinos gatvės), Šeškų, Senamiesčio, Tičkūnų, Maksvytiškio, Šeškų, Ūtos, Velželio, Keravos, Vyčių gyvenviečių grafikas: (ketvirtadieniai) Sausis * 2-3; 15; 29 d. Liepa 02; 16; 30 d. Vasaris 12; 26 d. Rugpjūtis 13 ; 27 d. Kovas 12; 26 d. Rugsėjis 10; 24 d. Balandis 09; 23 d. Spalis 08; 22 d. Gegužė 07; 21 d. Lapkritis 05; 19 d. Birželis 04; 18 d. Gruodis 03; 17; 31 d. *Vietoje 2026m. sausio 1d. Šeškų, Tičkūnų, Ūtos, Senamiesčio, Maksvytiškių gyvenvietes aptarnausime sausio 2d.* **Vietoje 2026m. sausio 1d. Dembavos, Oželių, Vyčių, Keravos, Vaivadų, Velželio gyvenvietes aptarnausime sausio 3d. Panevėžio aplinkl. 201, Šeškų k., aptarnaujamas 01.15; 02.12; 03.12; 04.09; 05.07, 06.04; 07.02,30; 08.27; 09.24; 10.22; 11.19; 12.17",
+      "rows": [
+        {
+          "name": "Šeškų, Tičkūnų, Ūtos, Senamiesčio, Maksvytiškių gyvenviečių",
+          "dates": ["2026-01-02", "2026-01-15", "2026-01-29", "2026-02-12", "2026-02-26", "2026-03-12", "2026-03-26", "2026-04-09", "2026-04-23", "2026-05-07", "2026-05-21", "2026-06-04", "2026-06-18", "2026-07-02", "2026-07-16", "2026-07-30", "2026-08-13", "2026-08-27", "2026-09-10", "2026-09-24", "2026-10-08", "2026-10-22", "2026-11-05", "2026-11-19", "2026-12-03", "2026-12-17", "2026-12-31"]
+        },
+        {
+          "name": "Dembavos, Oželių, Vyčių, Keravos, Vaivadų, Velželio gyvenviečių",
+          "dates": ["2026-01-03", "2026-01-15", "2026-01-29", "2026-02-12", "2026-02-26", "2026-03-12", "2026-03-26", "2026-04-09", "2026-04-23", "2026-05-07", "2026-05-21", "2026-06-04", "2026-06-18", "2026-07-02", "2026-07-16", "2026-07-30", "2026-08-13", "2026-08-27", "2026-09-10", "2026-09-24", "2026-10-08", "2026-10-22", "2026-11-05", "2026-11-19", "2026-12-03", "2026-12-17", "2026-12-31"]
+        },
+        {
+          "name": "Paežerio I (visos išskyrus Miglės, Kedrų ir Medeinos gatvės)",
+          "dates": ["2026-01-15", "2026-01-29", "2026-02-12", "2026-02-26", "2026-03-12", "2026-03-26", "2026-04-09", "2026-04-23", "2026-05-07", "2026-05-21", "2026-06-04", "2026-06-18", "2026-07-02", "2026-07-16", "2026-07-30", "2026-08-13", "2026-08-27", "2026-09-10", "2026-09-24", "2026-10-08", "2026-10-22", "2026-11-05", "2026-11-19", "2026-12-03", "2026-12-17", "2026-12-31"]
+        },
+        {
+          "name": "Šeškų k. (Panevėžio aplinkl. 201)",
+          "dates": ["2026-01-15", "2026-02-12", "2026-03-12", "2026-04-09", "2026-05-07", "2026-06-04", "2026-07-02", "2026-07-30", "2026-08-27", "2026-09-24", "2026-10-22", "2026-11-19", "2026-12-17"]
+        }
+      ]
+    },
+    {
+      "number": "4",
+      "text": "4. Piniavos, Staniūnų, Velžio, Liūdynės, Skynimų gyvenviečių grafikas : (penktadieniai) Sausis 02, 16; 30 d. Liepa 03; 17; 31 d. Vasaris 13; 27 d. Rugpjūtis 14; 28 d. Kovas 13 27d Rugsėjis 11; 25 d. Balandis 10; 24d Spalis 09; 23 d. Gegužė 08; 22 d. Lapkritis 06; 20 d. Birželis 05; 19 d. Gruodis 04; 18 d. * Vietoje 2027m. sausio 1d. aptarnausime sausio 2d.*",
+      "rows": [
+        {
+          "name": "Piniavos, Staniūnų, Velžio, Liūdynės, Skynimų gyvenviečių",
+          "dates": ["2026-01-02", "2026-01-16", "2026-01-30", "2026-02-13", "2026-02-27", "2026-03-13", "2026-03-27", "2026-04-10", "2026-04-24", "2026-05-08", "2026-05-22", "2026-06-05", "2026-06-19", "2026-07-03", "2026-07-17", "2026-07-31", "2026-08-14", "2026-08-28", "2026-09-11", "2026-09-25", "2026-10-09", "2026-10-23", "2026-11-06", "2026-11-20", "2026-12-04", "2026-12-18", "2027-01-02"]
+        }
+      ]
+    },
+    {
+      "number": "13",
+      "text": "13. Bliūdžių, Dragonių, Skaistgirių, Paįstrio, Gegužinės, Puodžiūnų, Pragarėlės, Adomavos, Juodlėknio gyvenviečių grafikas: (penktadieniai) Sausis 23 d. Liepa 10 d. Vasaris 20 d. Rugpjūtis 07 d. Kovas 20 d. Rugsėjis 04 d. Balandis 17 d. Spalis 02; 30 d. Gegužė 15 d. Lapkritis 27 d. Birželis 12 d. Gruodis *26 d. *Vietoje 2026m. gruodžio 25d. aptarnausime 26d.*",
+      "rows": [
+        {
+          "name": "Bliūdžių, Dragonių, Skaistgirių, Paįstrio, Gegužinės, Puodžiūnų, Pragarėlės, Adomavos, Juodlėknio gyvenviečių",
+          "dates": ["2026-01-23", "2026-02-20", "2026-03-20", "2026-04-17", "2026-05-15", "2026-06-12", "2026-07-10", "2026-08-07", "2026-09-04", "2026-10-02", "2026-10-30", "2026-11-27", "2026-12-26"]
+        }
+      ]
+    },
+    {
+      "number": "14",
+      "text": "14. Bernatonių ir Bernatonių sodų, Klevečkinės, gyvenviečių grafikas: (penktadieniai) Sausis 09; 23 d. Liepa 10; 24 d. Vasaris 06; 20 d. Rugpjūtis 07; 21 d. Kovas 06; 20 d. Rugsėjis 04; 18 d. Balandis 03; 17 d. Spalis 02; 16; 30 d. Gegužė 01; 15; 29 d. Lapkritis 13; 27 d. Birželis 12; 26 d. Gruodis 11; *26 d. *Vietoje 2026m. gruodžio 25d. aptarnausime 26d.*",
+      "rows": [
+        {
+          "name": "Bernatonių ir Bernatonių sodų, Klevečkinės, gyvenviečių",
+          "dates": ["2026-01-09", "2026-01-23", "2026-02-06", "2026-02-20", "2026-03-06", "2026-03-20", "2026-04-03", "2026-04-17", "2026-05-01", "2026-05-15", "2026-05-29", "2026-06-12", "2026-06-26", "2026-07-10", "2026-07-24", "2026-08-07", "2026-08-21", "2026-09-04", "2026-09-18", "2026-10-02", "2026-10-16", "2026-10-30", "2026-11-13", "2026-11-27", "2026-12-11", "2026-12-26"]
+        }
+      ]
+    }
+  ]
+}
