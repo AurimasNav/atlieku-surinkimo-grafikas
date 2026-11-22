@@ -43,6 +43,9 @@ kompata.lt (pdf)                          Ignalinos r.: site/ignalinos-r/
 eku.lt (html)                             Elektrėnų sav.: site/elektrenu-sav/
 sirvintos.lt (pdf)                        Širvintų r.: site/sirvintu-r/ (from a copy in
                                           pipeline/data when the site refuses the runners)
+kupkom.lt (html + pdf)                    Kupiškio r.: site/kupiskio-r/
+svencionys.lt (pdf)                       Švenčionių r.: site/svencioniu-r/ (from a copy in
+                                          pipeline/data when the site refuses the runners)
 zarasai.lt (pdf; mixed waste a scan,      Zarasų r.: site/zarasu-r/ (from a copy in
   transcribed in pipeline/data)           pipeline/data when the site refuses the runners)
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
@@ -89,10 +92,11 @@ uv run ruff check . && uv run ruff format .
 
 **Address Register snapshot and site copies.** get.data.gov.lt and registrucentras.lt block
 requests from cloud servers, including GitHub Actions, so the daily job falls back to the
-snapshot in `pipeline/data/`. silute.lt, kedainiai.lt, ukmerge.lt, sirvintos.lt and zarasai.lt
-refuse GitHub's runners too, so the job reads copies of their pages and schedule files in
-`pipeline/data/schedules-silutes-r/`, `schedules-kedainiu-r/`, `schedules-ukmerges-r/`,
-`schedules-sirvintu-r/` and `schedules-zarasu-r/` (its build warning says how old they are).
+snapshot in `pipeline/data/`. silute.lt, kedainiai.lt, ukmerge.lt, sirvintos.lt, svencionys.lt
+and zarasai.lt refuse GitHub's runners too, so the job reads copies of their pages and schedule
+files in `pipeline/data/schedules-silutes-r/`, `schedules-kedainiu-r/`, `schedules-ukmerges-r/`,
+`schedules-sirvintu-r/`, `schedules-svencioniu-r/` and `schedules-zarasu-r/` (its build warning
+says how old they are).
 
 Both are refreshed automatically from the maintainer's cluster in Lithuania
 ([k8s-at-home](https://github.com/AurimasNav/k8s-at-home), `gitops/siuksliaveze-snapshot`): a
@@ -100,7 +104,10 @@ CronJob takes the copies daily at 03:00 UTC, another the register snapshots on t
 month. Each opens a PR from a bot branch (`data/site-copies`, `data/address-register`) when
 something changed and merges it once `check` and `build` pass, so a new schedule file is
 published the same morning. A copy whose files didn't change is left as it is, its `takenAt`
-too, even if the page's markup did, so most days there is no PR. If a job fails, its PR stays
+too, even if the page's markup did, so most days there is no PR. Google API keys in the saved
+pages (a site theme's Maps key) are replaced by `AIza_REDACTED`, and a test fails if a key or
+token of a known format is anywhere in `pipeline/data/` or the test fixtures (`test_secrets.py`),
+as these files are committed unattended. If a job fails, its PR stays
 open and the job fails in the cluster (`KubeJobFailed`). Only then refresh by hand from a
 computer in Lithuania and open a PR:
 

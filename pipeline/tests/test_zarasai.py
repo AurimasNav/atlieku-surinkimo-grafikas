@@ -626,7 +626,9 @@ def test_the_window_moves_with_the_day(scan, monkeypatch):
 
 # --- the copy --------------------------------------------------------------------
 
+# Made up here, so this file has none: a Google API key and a reCAPTCHA site key.
 KEY = "AIza" + "x" * 35
+RECAPTCHA = "6L" + "y" * 38
 
 
 def refused(url, timeout=0):
@@ -636,7 +638,8 @@ def refused(url, timeout=0):
 def test_the_copy_when_the_site_refuses_the_job(scan, tmp_path, monkeypatch):
     def with_a_key(url, timeout=0):
         page = serve(url)
-        return page.replace(b"</head>", f'<script src="x.js?key={KEY}"></script></head>'.encode())
+        keys = f'<script src="x.js?key={KEY}&render={RECAPTCHA}"></script></head>'
+        return page.replace(b"</head>", keys.encode())
 
     monkeypatch.setattr(zarasai.http, "get", with_a_key)
     copy = tmp_path / "copy"
@@ -647,6 +650,7 @@ def test_the_copy_when_the_site_refuses_the_job(scan, tmp_path, monkeypatch):
     assert index["files"] == ["misriu.pdf", PACKAGING_URL.rsplit("/", 1)[1]]
     page = (copy / "page.html").read_bytes()
     assert KEY.encode() not in page and b"AIza_REDACTED" in page
+    assert RECAPTCHA.encode() not in page and b"render=6L_REDACTED" in page
     # The same files again: no change, even with new markup.
     assert not zarasai.save_copy(copy, date(2026, 11, 23))
 

@@ -537,11 +537,9 @@ def _get(url: str) -> bytes:
 # machine in Lithuania (save_copy, run daily by snapshot.py --copies): zarasai.lt answers
 # GitHub's runners 403, as sirvintos.lt does. The hash check then compares the copy's scan.
 COPY_DIR = snapshot.ZARASAI_COPY_DIR
-# Keys in the page's markup (its reCAPTCHA site key), not kept in the copy.
-_KEYS = (
-    (re.compile(rb"AIza[0-9A-Za-z_-]{35}"), b"AIza_REDACTED"),
-    (re.compile(rb"\b6L[0-9A-Za-z_-]{38}"), b"6L_REDACTED"),
-)
+# The page's reCAPTCHA site key, not kept in the copy either (snapshot.save_site_copy leaves out
+# Google API keys).
+_RECAPTCHA_KEY = re.compile(rb"\b6L[0-9A-Za-z_-]{38}")
 
 
 def _fetch(
@@ -576,8 +574,7 @@ def save_copy(folder: Path | None = None, today: date | None = None) -> bool:
     copy already there, which is then left as it is."""
     today = today or snapshot.utc_today()
     html, files, contents = _fetch(today, 31, _get)
-    for pattern, placeholder in _KEYS:
-        html = pattern.sub(placeholder, html)
+    html = _RECAPTCHA_KEY.sub(b"6L_REDACTED", html)
     saved = [(f.url, contents[f.url]) for f in files]
     return snapshot.save_site_copy(folder or COPY_DIR, PAGE_URL, html, saved, today)
 

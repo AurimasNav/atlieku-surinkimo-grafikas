@@ -8,16 +8,17 @@ data changes slowly, so a snapshot refreshed from a machine in Lithuania is good
 
 The build tries the live sources first and falls back to these files. The same refresh saves
 copies of the pages and files of the sites that refuse GitHub's runners too (site_copies):
-silute.lt, kedainiai.lt, ukmerge.lt, sirvintos.lt and zarasai.lt. `--register` refreshes only the
-register's snapshots and `--copies` only the copies; a CronJob in the maintainer's cluster in
-Lithuania (k8s-at-home, gitops/siuksliaveze-snapshot) runs `--copies` daily and `--register`
-monthly and opens a PR with what changed. Run it by hand only when those jobs fail.
+silute.lt, kedainiai.lt, ukmerge.lt, sirvintos.lt, svencionys.lt and zarasai.lt. `--register`
+refreshes only the register's snapshots and `--copies` only the copies; a CronJob in the
+maintainer's cluster in Lithuania (k8s-at-home, gitops/siuksliaveze-snapshot) runs `--copies`
+daily and `--register` monthly and opens a PR with what changed. Run it by hand only when those jobs fail.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import traceback
 from collections.abc import Callable, Collection
@@ -203,6 +204,17 @@ SIRVINTOS_ADDRESSES_FILE = DATA_DIR / "address-points-sirvintu-r.json"
 # A copy of the Širvintų r. pages and the files they link: sirvintos.lt refuses GitHub's runners
 # (HTTP 403) too (sirvintos.save_copy).
 SIRVINTOS_COPY_DIR = DATA_DIR / "schedules-sirvintu-r"
+# Kupiškio r. (schedule_pipeline.kupiskis).
+KUPISKIS_MUNICIPALITY = ("Kupiškio rajono", 57)
+KUPISKIS_REGISTRY_FILE = DATA_DIR / "registry-kupiskio-r.json"
+KUPISKIS_ADDRESSES_FILE = DATA_DIR / "address-points-kupiskio-r.json"
+# Švenčionių r. (schedule_pipeline.svencionys).
+SVENCIONYS_MUNICIPALITY = ("Švenčionių rajono", 86)
+SVENCIONYS_REGISTRY_FILE = DATA_DIR / "registry-svencioniu-r.json"
+SVENCIONYS_ADDRESSES_FILE = DATA_DIR / "address-points-svencioniu-r.json"
+# A copy of the Švenčionių r. page and the files it links: svencionys.lt refuses GitHub's runners
+# (HTTP 403) too (svencionys.save_copy).
+SVENCIONYS_COPY_DIR = DATA_DIR / "schedules-svencioniu-r"
 # Zarasų r. (schedule_pipeline.zarasai).
 ZARASAI_MUNICIPALITY = ("Zarasų rajono", 43)
 ZARASAI_REGISTRY_FILE = DATA_DIR / "registry-zarasu-r.json"
@@ -267,10 +279,19 @@ def utc_today() -> date:
 
 
 # A copy of a site that refuses GitHub's runners (ecoservice: silute.lt, kedainiai: kedainiai.lt,
-# ukmerge: ukmerge.lt, sirvintos: sirvintos.lt, zarasai: zarasai.lt): its page as page.html, the
-# files it links under the last part of their URLs, and this index with when it was taken, the
-# page's URL and the files' names.
+# ukmerge: ukmerge.lt, sirvintos: sirvintos.lt, svencionys: svencionys.lt, zarasai: zarasai.lt):
+# its page as page.html, the files it links under the last part of their URLs, and this index
+# with when it was taken, the page's URL and the files' names.
 SITE_COPY_INDEX = "copy.json"
+# A Google API key in a site's markup (a WordPress theme's Maps key, as kupkom.lt's): the
+# publisher's browser key, but no secret scanner can tell, and the daily refresh commits the
+# copies unattended. Saved pages have it replaced (redact).
+GOOGLE_API_KEY = re.compile(rb"AIza[0-9A-Za-z_-]{35}")
+
+
+def redact(markup: bytes) -> bytes:
+    """A page with the Google API keys in it replaced by "AIza_REDACTED"."""
+    return GOOGLE_API_KEY.sub(b"AIza_REDACTED", markup)
 
 
 def _copy_name(url: str) -> str:
@@ -290,7 +311,8 @@ def save_site_copy(
     is left as it is, takenAt included, and the result is False: a page whose markup changed
     but whose schedule files didn't is no change, so the daily refresh opens no PR for it.
     `other_pages` are URLs among `files` that are pages too (sirvintos keeps a second page as
-    a file): like the page, their content alone is no change."""
+    a file): like the page, their content alone is no change. The pages are saved redacted
+    (redact): the parsers don't read the keys."""
     contents = {_copy_name(url): content for url, content in files}
     markup = {_copy_name(url) for url in other_pages}
     if _same_copy(folder, page, contents, markup):
@@ -298,9 +320,10 @@ def save_site_copy(
     folder.mkdir(parents=True, exist_ok=True)
     for old in folder.iterdir():
         old.unlink()
-    (folder / "page.html").write_bytes(html)
+    (folder / "page.html").write_bytes(redact(html))
     for url, content in files:
-        (folder / _copy_name(url)).write_bytes(content)
+        name = _copy_name(url)
+        (folder / name).write_bytes(redact(content) if name in markup else content)
     index = {"takenAt": today.isoformat(), "page": page, "files": [_copy_name(u) for u, _ in files]}
     (folder / SITE_COPY_INDEX).write_bytes((json.dumps(index, ensure_ascii=False) + "\n").encode())
     return True
@@ -349,13 +372,15 @@ def site_copies() -> list[tuple[str, Callable[[Path], bool], Path]]:
     """The copies of the sites that refuse GitHub's runners: (label, save, folder), where
     save(folder) saves the page and its files there and returns whether the copy changed
     (save_site_copy). A new site adds a line."""
-    from . import ecoservice, kedainiai, sirvintos, ukmerge, zarasai  # they import this module
+    # They import this module.
+    from . import ecoservice, kedainiai, sirvintos, svencionys, ukmerge, zarasai
 
     return [
         ("Šilutės r.", partial(ecoservice.save_copy, ecoservice.SILUTE), SILUTE_COPY_DIR),
         ("Kėdainių r.", kedainiai.save_copy, KEDAINIAI_COPY_DIR),
         ("Ukmergės r.", ukmerge.save_copy, UKMERGE_COPY_DIR),
         ("Širvintų r.", sirvintos.save_copy, SIRVINTOS_COPY_DIR),
+        ("Švenčionių r.", svencionys.save_copy, SVENCIONYS_COPY_DIR),
         ("Zarasų r.", zarasai.save_copy, ZARASAI_COPY_DIR),
     ]
 
@@ -515,6 +540,13 @@ def save_register() -> None:
             SIRVINTOS_MUNICIPALITY,
             SIRVINTOS_REGISTRY_FILE,
             SIRVINTOS_ADDRESSES_FILE,
+        ),
+        ("Kupiškio r.", KUPISKIS_MUNICIPALITY, KUPISKIS_REGISTRY_FILE, KUPISKIS_ADDRESSES_FILE),
+        (
+            "Švenčionių r.",
+            SVENCIONYS_MUNICIPALITY,
+            SVENCIONYS_REGISTRY_FILE,
+            SVENCIONYS_ADDRESSES_FILE,
         ),
         ("Zarasų r.", ZARASAI_MUNICIPALITY, ZARASAI_REGISTRY_FILE, ZARASAI_ADDRESSES_FILE),
     ):

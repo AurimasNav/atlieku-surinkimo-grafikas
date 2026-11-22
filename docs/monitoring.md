@@ -10,7 +10,7 @@ Users see it too: when the data of the company behind their schedule hasn't been
 days (`providers[].generatedAt`, or Kauno švara's `generatedAt`), the app shows a warning with a
 link to the company's official schedule (`app/src/lib/freshness.ts`).
 
-There are forty-one sources:
+There are forty-three sources:
 
 | `source` | Company | Published in |
 |---|---|---|
@@ -54,6 +54,8 @@ There are forty-one sources:
 | `ignalina` | SĮ „Kompata“, Ignalinos r. | `ignalinos-r/` |
 | `elektrenai` | UAB „Elektrėnų komunalinis ūkis“, Elektrėnų sav. | `elektrenu-sav/` |
 | `sirvintos` | Širvintų rajono savivaldybė (collected by UAB „Ecoservice“), Širvintų r. | `sirvintu-r/` (`provider: "sirvintos"`) |
+| `kupiskis` | UAB „Kupiškio komunalininkas“, Kupiškio r. | `kupiskio-r/` |
+| `svencionys` | Švenčionių rajono savivaldybė, Švenčionių r. | `svencioniu-r/` |
 | `zarasai` | Zarasų rajono savivaldybė (mixed waste collected by UAB „Zarasų būstas“, packaging and glass by UAB „Zarasų komunalininkas“), Zarasų r. | `zarasu-r/` (`provider: "zarasai"`) |
 
 The two Vilniaus r. companies share one `schedule.json`, so the app needs one download. When
@@ -288,6 +290,49 @@ page, so its markup alone is no change), with a build warning that says how old 
 period's or year's file reaches the site within a day of being posted (in 2026 two weeks into the
 mixed waste periods, packaging in December).
 
+`kupiskis` is Kupiškio r., from the page of UAB „Kupiškio komunalininkas“ on kupkom.lt. Its mixed
+waste exists only as rules on the page ("2-as mėnesio antradienis", the second Tuesday of every
+month), for the town's individual houses and for the villages of each eldership. Rules don't
+expire, so the build turns them into dates for a rolling window, from a month ago to the end of
+the 13th month ahead (in November 2026, to 31 December 2027), as Kauno švara's dates are
+calculated ahead: its last mixed waste date is always about a year away, so `ScheduleDataRunsOut`
+doesn't apply to it. What notices a broken page is the build itself: a rule in other words, a
+section of no place it knows, an eldership without rules or a page without the packaging file fail
+it, yesterday's folder is kept (its dates still reach a year ahead) and `ScheduleDataStale` fires
+the next day. The build can't notice a page left unchanged while the company changes its days;
+the town's dated schedule (a PDF a year) is checked against the town's rule, and other dates are a
+build warning (`ScheduleDataMoreWarnings`), as is a village that two rules name in two spellings.
+Packaging and glass come in a PDF a half year (January to June, July to December), the food waste
+of the town and four villages in one a year. The next period's file is read as soon as the page
+links it, next to the last one or in its place; until its months start, its blocks continue those
+in force that cover the same places. If no newer file is linked when a period ends, its blocks
+keep their last dates and the build warns ("the packaging schedule ended on 2026-12-31; no newer
+one is read"). Its own step builds `kupiskio-r/`; if it fails, yesterday's folder is kept.
+Installed apps find `kupiskio-r/` through `regions.json` (below).
+
+`svencionys` is Švenčionių r., from the PDFs on the municipality's page. Mixed waste is one
+sheet of **rules** with no dates and no year (made in January 2025): a weekday and weeks of the
+month, "I III" (the first and the third such weekday) or "II IV", per group of places. The build
+turns them into dates for a **rolling window**, from the 31 days back the data keeps to the end
+of the 13th month after today's (in November 2026: 22 October 2026 to 31 December 2027), so the
+window moves on with every daily run and the mixed waste rows never run out; a public holiday
+isn't moved (nothing in the files says it would be). Packaging and glass come a year at a time
+(the 2026 file was uploaded in December 2025 and corrected on 5 January 2026): dates for nine
+elderships, and for Pabradės and Magūnų sen. rules of the year's months ("IV pirmadienis", every
+month), which become that year's dates only, so the file runs out like any yearly file. Its
+own step builds `svencioniu-r/`. A file that can't be downloaded or read keeps its rows of
+yesterday's data, with a warning (`ScheduleDataMoreWarnings`), and the other file is still read;
+a page without both, a rule or a note in words the build doesn't know, or text next to the tables
+it doesn't know (a changed rule could be written there) fails that file. If the build fails as a
+whole, yesterday's folder is kept (`ScheduleDataStale`). Next year's packaging file is read as soon
+as the page links it; until its year starts, its rows continue this year's that cover the same
+places. A dated packaging column whose dates aren't the rule in its header ("II mėnesio
+trečiadienis") is a build warning. Installed apps find `svencioniu-r/` through `regions.json`
+(below). svencionys.lt refuses GitHub's runners (HTTP 403), so `svencionys` is built from the
+copy of its page and files in `pipeline/data/schedules-svencioniu-r/` that the daily refresh
+takes (as for Kėdainių r.), with a build warning that says how old it is: next year's packaging
+file, or a new sheet of rules, reaches the site within a day of being posted.
+
 `zarasai` is Zarasų r., from the municipality's page: mixed waste is a scanned image of rules
 ("2-ą ir paskutinį mėnesio pirmadienį", the second and the last Monday of the month, and the
 places of each route), which can't be read as text. It was transcribed once into
@@ -314,10 +359,10 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
-| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `taurage` / `silale` / `pagegiai` / `siauliai` / `radviliskis` / `alytus` / `pasvalys` / `rokiskis` / `birzai` / `panevezio-r` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` / `raseiniai` / `jonava` / `kretinga` / `silute` / `trakai` / `salcininkai` / `kedainiai` / `moletai` / `skuodas` / `ukmerge` / `anyksciai` / `utena` / `ignalina` / `elektrenai` / `sirvintos` / `zarasai` was built |
+| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `taurage` / `silale` / `pagegiai` / `siauliai` / `radviliskis` / `alytus` / `pasvalys` / `rokiskis` / `birzai` / `panevezio-r` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` / `raseiniai` / `jonava` / `kretinga` / `silute` / `trakai` / `salcininkai` / `kedainiai` / `moletai` / `skuodas` / `ukmerge` / `anyksciai` / `utena` / `ignalina` / `elektrenai` / `sirvintos` / `kupiskis` / `svencionys` / `zarasai` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
-| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai`, `radviliskis`, `alytus`, `pasvalys`, `rokiskis`, `birzai`, `panevezio-r`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda`, `sakiai`, `raseiniai`, `jonava`, `kretinga`, `silute`, `trakai`, `salcininkai`, `kedainiai`, `moletai`, `skuodas`, `ukmerge`, `anyksciai`, `utena`, `ignalina`, `elektrenai`, `sirvintos` and `zarasai` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
-| `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead; `zarasai`'s mixed waste dates are calculated ahead too, so its last date is always about 13 months away) |
+| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai`, `radviliskis`, `alytus`, `pasvalys`, `rokiskis`, `birzai`, `panevezio-r`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda`, `sakiai`, `raseiniai`, `jonava`, `kretinga`, `silute`, `trakai`, `salcininkai`, `kedainiai`, `moletai`, `skuodas`, `ukmerge`, `anyksciai`, `utena`, `ignalina`, `elektrenai`, `sirvintos`, `kupiskis`, `svencionys` and `zarasai` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
+| `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead; `kupiskis` mixed waste is calculated ahead too, to the end of the 13th month, and `svencionys` mixed waste, the end of its rules' rolling window, about 13 months ahead; `zarasai`'s mixed waste dates are calculated ahead too, so its last date is always about 13 months away) |
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
 
@@ -510,6 +555,26 @@ groups:
       # copy in pipeline/data takes it). Packaging and glass a year at a time (the 2026 file was
       # made on 18 December 2025), ending on 28 and 29 December 2026 (some route's glass in the
       # last week): a week's notice, so there is time to refresh the copy by hand if that fails.
+      # Kupiškio r.: its mixed waste is calculated ahead from the page's rules, to the end of the
+      # 13th month, so it never nears its last date and isn't watched: a page that can't be read
+      # fails the build, and ScheduleDataStale fires instead. Packaging comes half a year at a
+      # time (its last pickups on 30 June and 30 December). The files are posted around the
+      # start of their half years (the January-June 2025 one made on 18 December 2024 and
+      # uploaded in January, the July-December 2026 one made on 3 June and uploaded in July), so
+      # a week's notice would fire every half year: 2 days, as for Kretingos r. Not glass (twice
+      # a half year, last on 11-16 November 2026) nor the food waste of the town and four
+      # villages (every second and fourth Wednesday, last on 23 December 2026, the next year's
+      # file posted around New Year).
+      # Švenčionių r.: only packaging, a year at a time (the 2026 file was uploaded in December
+      # 2025), dates for nine elderships and the year's rules for Pabradės and Magūnų sen., the
+      # last pickup on 28 December 2026 (Pabradė's fourth Monday), so this fires from 21 December
+      # until next year's file is read (svencionys.lt refuses the runners: the daily refresh of
+      # the copy in pipeline/data takes it; a week's notice leaves time to refresh it by hand if
+      # that fails). Not mixed waste: its rules never end, and its dates run
+      # to the end of a window about 13 months ahead that moves with every build (its last date
+      # is never near; a build that fails shows as ScheduleDataStale). Not glass: four times a
+      # year in the nine elderships (last on 7 December 2026), every other month for Pabradė
+      # (last on 13 November).
       # Zarasų r.: packaging and glass a year at a time (the 2026 file was made on 29 December
       # 2025), ending on 18-30 December 2026 (every schedule has glass in December), so this fires
       # from about 23 December until next year's file is read (from the copy in pipeline/data:
@@ -564,6 +629,10 @@ groups:
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="sirvintos",kind="household"}[30m]) - time() < 2 * 86400
             or
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="sirvintos",kind=~"packaging|glass"}[30m]) - time() < 7 * 86400
+            or
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="kupiskis",kind="packaging"}[30m]) - time() < 2 * 86400
+            or
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="svencionys",kind="packaging"}[30m]) - time() < 7 * 86400
             or
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="zarasai",kind=~"packaging|glass"}[30m]) - time() < 7 * 86400
         for: 1h
@@ -622,5 +691,6 @@ source, query `status.json` (type JSON, URL above) and alert when
 `sources.moletai.generatedAt`, `sources.skuodas.generatedAt`,
 `sources.ukmerge.generatedAt`, `sources.anyksciai.generatedAt`,
 `sources.utena.generatedAt`, `sources.ignalina.generatedAt`,
-`sources.elektrenai.generatedAt`, `sources.sirvintos.generatedAt` or
+`sources.elektrenai.generatedAt`, `sources.sirvintos.generatedAt`,
+`sources.kupiskis.generatedAt`, `sources.svencionys.generatedAt` or
 `sources.zarasai.generatedAt` is older than 30 hours (or missing).
