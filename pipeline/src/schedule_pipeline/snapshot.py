@@ -11,7 +11,8 @@ copies of the pages and files of the sites that refuse GitHub's runners too (sit
 silute.lt, kedainiai.lt, ukmerge.lt, sirvintos.lt, svencionys.lt and zarasai.lt. `--register`
 refreshes only the register's snapshots and `--copies` only the copies; a CronJob in the
 maintainer's cluster in Lithuania (k8s-at-home, gitops/siuksliaveze-snapshot) runs `--copies`
-daily and `--register` monthly and opens a PR with what changed. Run it by hand only when those jobs fail.
+daily and `--register` monthly and opens a PR with what changed. Run it by hand only when those
+jobs fail.
 """
 
 from __future__ import annotations
