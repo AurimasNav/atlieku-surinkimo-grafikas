@@ -676,13 +676,42 @@ def test_the_copy_when_the_site_refuses_the_job(tmp_path, monkeypatch):
         f"{sirvintos.MIXED_PAGE}: unavailable (HTTP Error 403: Forbidden); used the copy from "
         "2026-11-22 (0 days old)"
     ]
-    # Over 60 days old, it asks for a refresh; the routes keep their last dates meanwhile.
+    # Months later it gives its age but asks for no refresh (snapshot.site_copy_note); the
+    # routes keep their last dates meanwhile.
     _, warnings = sirvintos.download(date(2027, 1, 25), 31)
-    assert warnings[0].endswith("uv run python -m schedule_pipeline.snapshot")
+    assert warnings[0].endswith("used the copy from 2026-11-22 (64 days old)")
     # Without a copy, the error.
     monkeypatch.setattr(sirvintos, "COPY_DIR", tmp_path / "none")
     with pytest.raises(OSError, match="403"):
         sirvintos.download(TODAY, 31)
+
+
+def test_the_copy_changes_only_with_its_files(tmp_path, monkeypatch):
+    """The packaging page is kept as a file ("2332") but counts as a page: new markup on either
+    page is no change, so the daily refresh leaves the copy, takenAt included, as it is."""
+    copy = tmp_path / "copy"
+    monkeypatch.setattr(sirvintos.http, "get", serve)
+    assert sirvintos.save_copy(copy, TODAY)
+    before = {p.name: p.read_bytes() for p in copy.iterdir()}
+
+    def new_markup(url, timeout=0):
+        page = serve(url)
+        return page.replace(b"</body>", b"<!-- 2026-11-23 --></body>") if url in PAGES else page
+
+    monkeypatch.setattr(sirvintos.http, "get", new_markup)
+    assert new_markup(sirvintos.RECYCLABLES_PAGE) != serve(sirvintos.RECYCLABLES_PAGE)
+    assert not sirvintos.save_copy(copy, date(2026, 11, 23))
+    assert {p.name: p.read_bytes() for p in copy.iterdir()} == before
+
+    # A corrected schedule file is a change: the copy is taken again.
+    def corrected(url, timeout=0):
+        return serve(url) + (b"%" if url == PACKAGING.url else b"")
+
+    monkeypatch.setattr(sirvintos.http, "get", corrected)
+    assert sirvintos.save_copy(copy, date(2026, 11, 23))
+    index = json.loads((copy / "copy.json").read_text(encoding="utf-8"))
+    assert index["takenAt"] == "2026-11-23"
+    assert (copy / PACKAGING.file_name).read_bytes() == content(PACKAGING) + b"%"
 
 
 def test_the_committed_copy_can_be_built(monkeypatch):

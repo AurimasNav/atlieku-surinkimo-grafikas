@@ -679,9 +679,10 @@ def test_the_copy_when_the_site_refuses_the_job(tmp_path, monkeypatch):
         f"{ukmerge.PAGE_URL}: unavailable (HTTP Error 403: Forbidden); used the copy from "
         "2026-11-21 (0 days old)"
     ]
-    # Over 60 days old, it asks for a refresh; the routes keep their last dates meanwhile.
+    # Months later it gives its age but asks for no refresh (snapshot.site_copy_note); the
+    # routes keep their last dates meanwhile.
     _, warnings = ukmerge.download(date(2027, 1, 25), 31)
-    assert warnings[0].endswith("uv run python -m schedule_pipeline.snapshot")
+    assert warnings[0].endswith("used the copy from 2026-11-21 (65 days old)")
     # Without a copy, the error.
     monkeypatch.setattr(ukmerge, "COPY_DIR", tmp_path / "none")
     with pytest.raises(OSError, match="403"):

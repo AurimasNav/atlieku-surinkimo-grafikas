@@ -512,9 +512,10 @@ def live_or_snapshot(name, fetch_live, load_snapshot):
             f"{name}: live source unavailable ({error}); "
             f"used the snapshot from {taken_at} ({age} days old)"
         )
-        if age > snapshot.MAX_AGE_DAYS:
+        if age > snapshot.MAX_AGE_DAYS:  # the monthly refresh failed twice
             note += (
-                " - please refresh it: cd pipeline && uv run python -m schedule_pipeline.snapshot"
+                " - please refresh it: cd pipeline && "
+                "uv run python -m schedule_pipeline.snapshot --register"
             )
         print(note, file=sys.stderr)
         return data, note

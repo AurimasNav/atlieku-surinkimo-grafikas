@@ -209,7 +209,7 @@ def _get(url: str) -> bytes:
 
 
 # A copy of the two pages and the files the daily job reads from them, taken from a machine in
-# Lithuania (save_copy, run by snapshot.py with the Address Register snapshots): sirvintos.lt
+# Lithuania (save_copy, run daily by snapshot.py --copies): sirvintos.lt
 # answers GitHub's runners 403, as silute.lt, kedainiai.lt and ukmerge.lt do. The mixed waste page
 # is the copy's page; the packaging page is kept as one of its files, under the last part of its
 # URL ("2332").
@@ -263,10 +263,12 @@ def download(today: date, keep_days: int) -> tuple[list[tuple[SourceFile, bytes]
         return files, [note, *warnings]
 
 
-def save_copy(folder: Path | None = None, today: date | None = None) -> None:
+def save_copy(folder: Path | None = None, today: date | None = None) -> bool:
     """Saves the pages and every file the daily job would download from them in `folder`
-    (COPY_DIR), for download when the site doesn't answer: python -m schedule_pipeline.snapshot.
-    Run it too when the pages get the next period's or year's file."""
+    (COPY_DIR), for download when the site doesn't answer: python -m schedule_pipeline.snapshot
+    --copies, daily, so the next period's or year's file comes within a day. False if the files
+    were those of the copy already there, which is then left as it is: the packaging page, kept
+    as a file, counts as a page, so its markup alone is no change."""
     today = today or snapshot.utc_today()
     pages, found, contents, warnings = _fetch(today, 31, _get)
     _, notes = select_files(found, today)
@@ -275,7 +277,9 @@ def save_copy(folder: Path | None = None, today: date | None = None) -> None:
     files = [(RECYCLABLES_PAGE, pages[RECYCLABLES_PAGE])] + [
         (f.url, contents[f.url]) for f in found
     ]
-    snapshot.save_site_copy(folder or COPY_DIR, MIXED_PAGE, pages[MIXED_PAGE], files, today)
+    return snapshot.save_site_copy(
+        folder or COPY_DIR, MIXED_PAGE, pages[MIXED_PAGE], files, today, [RECYCLABLES_PAGE]
+    )
 
 
 # --- the tables ------------------------------------------------------------------
