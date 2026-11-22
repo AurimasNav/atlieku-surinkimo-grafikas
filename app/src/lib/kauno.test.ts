@@ -305,30 +305,17 @@ describe('a search for Šiauliai or Alytus city', () => {
   });
 });
 
-describe('a search for Panevėžys', () => {
-  it('is recognised for the city and, since only its packaging and glass are covered, the district', () => {
-    const queries = [
-      'Panevėžys',
-      'panevezys',
-      'Panevėžio m.',
-      'Panevėžio miestas',
-      'Panevėžyje',
-      'Poniewież',
-      'Паневежис',
-      'Panevėžio r.',
-      'Panevėžio rajonas',
-      'Panevėžio r. sav.',
-      'Panevėžys district',
-      // Also Panevėžio sen., around the city, in the district.
-      'Panevėžio',
-    ];
+describe('a search for Panevėžys city', () => {
+  it('is recognised in every spelling', () => {
+    const queries = ['Panevėžys', 'panevezys', 'Panevėžio m.', 'Panevėžio miestas', 'Panevėžio miesto sav.', 'Panevėžyje', 'Poniewież', 'Паневежис'];
     for (const query of queries) expect([query, uncoveredCitySearch(query)]).toEqual([query, 'panevezys']);
   });
 
-  it('is not a town of the district or a covered city', () => {
-    for (const query of ['Ramygala', 'Panevėžiukas', 'panevez', 'Pasvalys', 'Biržai', 'Rokiškis']) {
-      expect([query, uncoveredCitySearch(query)]).toEqual([query, undefined]);
-    }
+  it('is not the district, now that its mixed waste is covered too, or a town of it', () => {
+    // "Panevėžio" alone is also Panevėžio sen., around the city, in the district.
+    const queries = ['Panevėžio r.', 'Panevėžio rajonas', 'Panevėžio r. sav.', 'Panevėžys district', 'Panevėžio'];
+    queries.push('Ramygala', 'Panevėžiukas', 'panevez', 'Pasvalys', 'Biržai', 'Rokiškis');
+    for (const query of queries) expect([query, uncoveredCitySearch(query)]).toEqual([query, undefined]);
   });
 });
 
@@ -341,9 +328,11 @@ describe('a search for a covered town', () => {
   });
 
   it('gets no hint in the districts added later', () => {
-    // Jonava as a whole town (its file names no streets), Utena by street; the others too.
+    // Jonava and Kupiškis as whole towns (their files name no streets), Utena, Pabradė, Zarasai and
+    // Krekenava by street; the others too.
     const towns = ['Jonava', 'Jonavos m.', 'Utena', 'Utenos m.', 'Raseiniai', 'Kretinga', 'Šilutė', 'Trakai', 'Lentvaris'];
     towns.push('Šalčininkai', 'Kėdainiai', 'Molėtai', 'Skuodas', 'Ukmergė', 'Anykščiai', 'Elektrėnai', 'Ignalina', 'Širvintos');
+    towns.push('Kupiškis', 'Kupiškio m.', 'Švenčionys', 'Švenčionėliai', 'Pabradė', 'Zarasai', 'Dusetos', 'Krekenava');
     for (const query of towns) expect([query, uncoveredCitySearch(query)]).toEqual([query, undefined]);
   });
 });
