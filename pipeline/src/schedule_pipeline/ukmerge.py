@@ -188,7 +188,7 @@ def save_copy(folder: Path | None = None, today: date | None = None) -> None:
     """Saves the page and the files the daily job would read from it in `folder` (COPY_DIR),
     for download when the site doesn't answer: python -m schedule_pipeline.snapshot. Run it
     too when the page gets the next period's files (December and May)."""
-    today = today or date.today()
+    today = today or snapshot.utc_today()
     html = _get(PAGE_URL)
     found, warnings = find_files(html.decode("utf-8", errors="replace"))
     chosen, notes = select_files(found, today)
