@@ -208,6 +208,26 @@ waste, November 2026 to April 2027), `pakuotes-2026.pdf`
 "Maisto_atlieku_isvezimo_grafikas_2026-2027m_.pdf" (food waste) (`test_ignalina.COPIES`). With
 the Address Register extract for Ignalinos r. of the same day.
 
+`elektrenai/` has the schedule pages of UAB "Elektrėnų komunalinis ūkis" (Elektrėnų sav.) on
+eku.lt, downloaded on 2026-11-22 (line endings made LF) and named after their titles: `grafikai.html`
+is the list of the years' pages, "Atliekų išvežimo grafikai"
+(<https://www.eku.lt/atlieku-ir-teritoriju-tvarkymas/atlieku-isvezimo-grafikai/569>), `2026.html`
+the page "2026 m." (…/2026-m./652), `2026-rusiuoju.html` its "Rūšiuoju buitinės atliekas" (…/654),
+`2026-buitiniu.html` "Buitinių atliekų išvežimo grafikas" (…/656, mixed waste) and
+`2026-antriniu.html` "Antrinių (rūšiuojamų) atliekų išvežimo grafikas" (…/653, packaging and
+glass); the `2025*.html` files are the same pages of 2025 (…/651, 629, 627, 628)
+(`test_elektrenai.COPIES`). With the Address Register extract for Elektrėnų sav. of the same day.
+
+`sirvintos/` has the two schedule pages of the Širvintų r. municipality (sirvintos.lt),
+`misrios-page.html` (mixed waste) and `antrines-page.html` (packaging and glass), and the PDFs
+they link, downloaded on 2026-11-22 and renamed: `misrios-2026-06-12.pdf` is
+"misrios-grafikas-2026-m_06-16.pdf" (mixed waste, June-December 2026), `misrios-2026-04-06.pdf`
+"grafikas-mk-2026-m..pdf" (April-June 2026) and `antrines-2026.pdf`
+"sirvintos-2026-m.-grafikas.pdf" (packaging and glass, 2026) (`test_sirvintos.COPIES`); and
+`misrios-2025-05-2026-04.pdf`, "grafikas-sirvintos-mka-2025-2026.pdf" (May 2025-April 2026), which
+the page linked in 2025 (web archive) and the site still serves. With the Address Register extract
+for Širvintų r. of the same day.
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 

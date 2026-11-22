@@ -89,6 +89,24 @@ def test_a_copy_whose_files_changed_is_replaced(tmp_path, page, files):
     }
 
 
+def test_another_page_kept_as_a_file_is_compared_as_a_page(tmp_path):
+    other = "https://www.example.lt/kitas-puslapis/2332"
+    copy = tmp_path / "copy"
+    files = [(other, b"<p>other page</p>"), *FILES]
+    snapshot.save_site_copy(copy, PAGE, b"<p>page</p>", files, date(2026, 11, 1), [other])
+    before = saved(copy)
+    # Its new markup alone is no change...
+    files = [(other, b"<p>other page, new markup</p>"), *FILES]
+    assert not snapshot.save_site_copy(
+        copy, PAGE, b"<p>page</p>", files, date(2026, 11, 2), [other]
+    )
+    assert saved(copy) == before
+    # ...but it has to be there.
+    (copy / "2332").unlink()
+    assert snapshot.save_site_copy(copy, PAGE, b"<p>page</p>", files, date(2026, 11, 3), [other])
+    assert (copy / "2332").read_bytes() == b"<p>other page, new markup</p>"
+
+
 def test_a_damaged_copy_is_replaced(tmp_path):
     copy = tmp_path / "copy"
     snapshot.save_site_copy(copy, PAGE, b"<p>page</p>", FILES, date(2026, 11, 1))
@@ -135,7 +153,8 @@ def test_a_copy_that_fails_doesnt_stop_the_others(monkeypatch, tmp_path, capsys)
 def test_every_site_copy_is_committed():
     """Each copy the refresh saves is in pipeline/data, where its module reads it."""
     copies = snapshot.site_copies()
-    assert [label for label, _, _ in copies] == ["Šilutės r.", "Kėdainių r.", "Ukmergės r."]
+    labels = ["Šilutės r.", "Kėdainių r.", "Ukmergės r.", "Širvintų r."]
+    assert [label for label, _, _ in copies] == labels
     for _, save, folder in copies:
         assert callable(save)
         assert json.loads((folder / snapshot.SITE_COPY_INDEX).read_text(encoding="utf-8"))["files"]

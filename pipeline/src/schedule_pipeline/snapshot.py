@@ -8,10 +8,10 @@ data changes slowly, so a snapshot refreshed from a machine in Lithuania is good
 
 The build tries the live sources first and falls back to these files. The same refresh saves
 copies of the pages and files of the sites that refuse GitHub's runners too (site_copies):
-silute.lt, kedainiai.lt and ukmerge.lt. `--register` refreshes only the register's snapshots
-and `--copies` only the copies; a CronJob in the maintainer's cluster in Lithuania
-(k8s-at-home, gitops/siuksliaveze-snapshot) runs `--copies` daily and `--register` monthly and
-opens a PR with what changed. Run it by hand only when those jobs fail.
+silute.lt, kedainiai.lt, ukmerge.lt and sirvintos.lt. `--register` refreshes only the
+register's snapshots and `--copies` only the copies; a CronJob in the maintainer's cluster in
+Lithuania (k8s-at-home, gitops/siuksliaveze-snapshot) runs `--copies` daily and `--register`
+monthly and opens a PR with what changed. Run it by hand only when those jobs fail.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ import argparse
 import json
 import sys
 import traceback
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 from datetime import UTC, date, datetime
 from functools import partial
 from pathlib import Path, PurePosixPath
@@ -192,6 +192,17 @@ UTENA_ADDRESSES_FILE = DATA_DIR / "address-points-utenos-r.json"
 IGNALINA_MUNICIPALITY = ("Ignalinos rajono", 45)
 IGNALINA_REGISTRY_FILE = DATA_DIR / "registry-ignalinos-r.json"
 IGNALINA_ADDRESSES_FILE = DATA_DIR / "address-points-ignalinos-r.json"
+# Elektrėnų sav. (schedule_pipeline.elektrenai).
+ELEKTRENAI_MUNICIPALITY = ("Elektrėnų", 42)
+ELEKTRENAI_REGISTRY_FILE = DATA_DIR / "registry-elektrenu-sav.json"
+ELEKTRENAI_ADDRESSES_FILE = DATA_DIR / "address-points-elektrenu-sav.json"
+# Širvintų r. (schedule_pipeline.sirvintos).
+SIRVINTOS_MUNICIPALITY = ("Širvintų rajono", 89)
+SIRVINTOS_REGISTRY_FILE = DATA_DIR / "registry-sirvintu-r.json"
+SIRVINTOS_ADDRESSES_FILE = DATA_DIR / "address-points-sirvintu-r.json"
+# A copy of the Širvintų r. pages and the files they link: sirvintos.lt refuses GitHub's runners
+# (HTTP 403) too (sirvintos.save_copy).
+SIRVINTOS_COPY_DIR = DATA_DIR / "schedules-sirvintu-r"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -249,8 +260,9 @@ def utc_today() -> date:
 
 
 # A copy of a site that refuses GitHub's runners (ecoservice: silute.lt, kedainiai: kedainiai.lt,
-# ukmerge: ukmerge.lt): its page as page.html, the files it links under the last part of their
-# URLs, and this index with when it was taken, the page's URL and the files' names.
+# ukmerge: ukmerge.lt, sirvintos: sirvintos.lt): its page as page.html, the files it links under
+# the last part of their URLs, and this index with when it was taken, the page's URL and the
+# files' names.
 SITE_COPY_INDEX = "copy.json"
 
 
@@ -259,14 +271,22 @@ def _copy_name(url: str) -> str:
 
 
 def save_site_copy(
-    folder: Path, page: str, html: bytes, files: list[tuple[str, bytes]], today: date
+    folder: Path,
+    page: str,
+    html: bytes,
+    files: list[tuple[str, bytes]],
+    today: date,
+    other_pages: Collection[str] = (),
 ) -> bool:
     """Saves a page and the files it links, (URL, content), in `folder`, replacing what was
     there, and returns True. If the copy there is of the same page and has the same files, it
     is left as it is, takenAt included, and the result is False: a page whose markup changed
-    but whose schedule files didn't is no change, so the daily refresh opens no PR for it."""
+    but whose schedule files didn't is no change, so the daily refresh opens no PR for it.
+    `other_pages` are URLs among `files` that are pages too (sirvintos keeps a second page as
+    a file): like the page, their content alone is no change."""
     contents = {_copy_name(url): content for url, content in files}
-    if _same_copy(folder, page, contents):
+    markup = {_copy_name(url) for url in other_pages}
+    if _same_copy(folder, page, contents, markup):
         return False
     folder.mkdir(parents=True, exist_ok=True)
     for old in folder.iterdir():
@@ -279,16 +299,21 @@ def save_site_copy(
     return True
 
 
-def _same_copy(folder: Path, page: str, contents: dict[str, bytes]) -> bool:
+def _same_copy(folder: Path, page: str, contents: dict[str, bytes], markup: set[str]) -> bool:
     """Whether the copy in `folder` is of `page` and has exactly these files (name: content),
-    in any order."""
+    in any order; of the pages among them (`markup`), only that they are there."""
     try:
         index = json.loads((folder / SITE_COPY_INDEX).read_text(encoding="utf-8"))
         return (
             index["page"] == page
             and sorted(index["files"]) == sorted(contents)
             and (folder / "page.html").is_file()
-            and all((folder / name).read_bytes() == data for name, data in contents.items())
+            and all((folder / name).is_file() for name in markup)
+            and all(
+                (folder / name).read_bytes() == data
+                for name, data in contents.items()
+                if name not in markup
+            )
         )
     except (OSError, ValueError, KeyError, TypeError):
         return False
@@ -317,12 +342,13 @@ def site_copies() -> list[tuple[str, Callable[[Path], bool], Path]]:
     """The copies of the sites that refuse GitHub's runners: (label, save, folder), where
     save(folder) saves the page and its files there and returns whether the copy changed
     (save_site_copy). A new site adds a line."""
-    from . import ecoservice, kedainiai, ukmerge  # they import this module
+    from . import ecoservice, kedainiai, sirvintos, ukmerge  # they import this module
 
     return [
         ("Šilutės r.", partial(ecoservice.save_copy, ecoservice.SILUTE), SILUTE_COPY_DIR),
         ("Kėdainių r.", kedainiai.save_copy, KEDAINIAI_COPY_DIR),
         ("Ukmergės r.", ukmerge.save_copy, UKMERGE_COPY_DIR),
+        ("Širvintų r.", sirvintos.save_copy, SIRVINTOS_COPY_DIR),
     ]
 
 
@@ -470,6 +496,18 @@ def save_register() -> None:
         ),
         ("Utenos r.", UTENA_MUNICIPALITY, UTENA_REGISTRY_FILE, UTENA_ADDRESSES_FILE),
         ("Ignalinos r.", IGNALINA_MUNICIPALITY, IGNALINA_REGISTRY_FILE, IGNALINA_ADDRESSES_FILE),
+        (
+            "Elektrėnų sav.",
+            ELEKTRENAI_MUNICIPALITY,
+            ELEKTRENAI_REGISTRY_FILE,
+            ELEKTRENAI_ADDRESSES_FILE,
+        ),
+        (
+            "Širvintų r.",
+            SIRVINTOS_MUNICIPALITY,
+            SIRVINTOS_REGISTRY_FILE,
+            SIRVINTOS_ADDRESSES_FILE,
+        ),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)
