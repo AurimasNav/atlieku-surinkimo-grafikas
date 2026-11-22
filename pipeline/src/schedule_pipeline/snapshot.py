@@ -159,6 +159,10 @@ KEDAINIAI_ADDRESSES_FILE = DATA_DIR / "address-points-kedainiu-r.json"
 # A copy of the Kėdainių r. page and the elderships' files it links: kedainiai.lt refuses
 # GitHub's runners (HTTP 403) too (kedainiai.save_copy).
 KEDAINIAI_COPY_DIR = DATA_DIR / "schedules-kedainiu-r"
+# Molėtų r. (schedule_pipeline.moletai).
+MOLETAI_MUNICIPALITY = ("Molėtų rajono", 62)
+MOLETAI_REGISTRY_FILE = DATA_DIR / "registry-moletu-r.json"
+MOLETAI_ADDRESSES_FILE = DATA_DIR / "address-points-moletu-r.json"
 # Anykščių r. (schedule_pipeline.anyksciai).
 ANYKSCIAI_MUNICIPALITY = ("Anykščių rajono", 34)
 ANYKSCIAI_REGISTRY_FILE = DATA_DIR / "registry-anyksciu-r.json"
@@ -211,6 +215,12 @@ def load_points(path: Path = ADDRESSES_FILE) -> tuple[list[AddressPoint], str]:
 
 def age_days(taken_at: str, today: date) -> int:
     return (today - date.fromisoformat(taken_at)).days
+
+
+def utc_today() -> date:
+    """Today in UTC, the date the snapshots and GitHub's runners use: a copy saved after
+    midnight in Lithuania would otherwise be a day "younger" than the runner's today."""
+    return datetime.now(UTC).date()
 
 
 # A copy of a site that refuses GitHub's runners (ecoservice: silute.lt, kedainiai: kedainiai.lt):
@@ -370,6 +380,7 @@ def main() -> int:
             KEDAINIAI_REGISTRY_FILE,
             KEDAINIAI_ADDRESSES_FILE,
         ),
+        ("Molėtų r.", MOLETAI_MUNICIPALITY, MOLETAI_REGISTRY_FILE, MOLETAI_ADDRESSES_FILE),
         (
             "Anykščių r.",
             ANYKSCIAI_MUNICIPALITY,
