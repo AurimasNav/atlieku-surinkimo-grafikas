@@ -33,7 +33,7 @@ There are forty-one sources:
 | `pasvalys` | UAB „Panevėžio regiono atliekų tvarkymo centras“, Pasvalio r. | `panevezio-ratc/` (`provider: "pasvalys"`) |
 | `rokiskis` | UAB „Panevėžio regiono atliekų tvarkymo centras“, Rokiškio r. | `panevezio-ratc/` (`provider: "rokiskis"`) |
 | `birzai` | UAB „Panevėžio regiono atliekų tvarkymo centras“, Biržų r. | `panevezio-ratc/` (`provider: "birzai"`) |
-| `panevezio-r` | UAB „Panevėžio regiono atliekų tvarkymo centras“, Panevėžio r. (packaging and glass) | `panevezio-ratc/` (`provider: "panevezio-r"`) |
+| `panevezio-r` | UAB „Panevėžio regiono atliekų tvarkymo centras“, Panevėžio r. | `panevezio-ratc/` (`provider: "panevezio-r"`) |
 | `marijampole` | UAB „Marijampolės apskrities atliekų tvarkymo centras“, Marijampolės sav. | `maatc/` (`provider: "marijampole"`) |
 | `vilkaviskis` | UAB „Marijampolės apskrities atliekų tvarkymo centras“, Vilkaviškio r. | `maatc/` (`provider: "vilkaviskis"`) |
 | `kalvarija` | UAB „Marijampolės apskrities atliekų tvarkymo centras“, Kalvarijos sav. | `maatc/` (`provider: "kalvarija"`) |
@@ -116,9 +116,22 @@ The four municipalities of Panevėžio RATC share `panevezio-ratc/schedule.json`
 fails, or whose settlements stop getting schedules (`pratc.check_places`), keeps its part of
 yesterday's file (its `generatedAt` stays old, so `ScheduleDataStale` fires for it) and the run
 gets a warning annotation; the others are still updated. If none can be built, yesterday's
-`panevezio-ratc/` is kept. `panevezio-r` has packaging and glass only: the centre publishes
-Panevėžio r.'s mixed waste schedule as a Word document of rules with exceptions, which isn't
-read. The app doesn't download this folder yet.
+`panevezio-ratc/` is kept. Installed apps find `panevezio-ratc/` through `regions.json` (below).
+
+Panevėžio r.'s mixed waste schedule is a Word document (.doc), a table of routes, some with
+notes in free words under them (a pickup moved for a holiday, for some villages only; one house
+with a route of its own). The routes without notes are read from the file. Those with notes are
+read from their transcription in `pipeline/data/schedule-panevezio-r-mixed.json`, which is used
+only while a route's text in the file is exactly the text transcribed (`pratc_word.py`). If the
+file can't be read, because a route has notes (or a text after the table) the transcription
+doesn't have or its layout changed, `panevezio-r` keeps its mixed waste rows of yesterday's data,
+its packaging and glass are still updated, and the build warns ("Mišrių komunalinių
+grafikas1.doc: can't be read (ValueError: …: notes that schedule-panevezio-r-mixed.json doesn't
+have: route 13 (…); re-transcribe it …); yesterday's 29 household rows of Panevėžio r. are
+kept"), so `ScheduleDataMoreWarnings` fires but `generatedAt` moves. Re-transcribe the routes
+it names (CONTRIBUTING.md). Next year's document will need that too, since its notes are about
+next year's holidays: until it is transcribed, this year's rows run out and
+`ScheduleDataRunsOut` fires for `panevezio-r` mixed waste.
 
 The five municipalities of Marijampolė county share `maatc/schedule.json` in the same way, a
 part each, built by one step from the regional waste centre's page of each municipality (the
@@ -414,7 +427,11 @@ groups:
       # 25-31 December 2026 (glass is collected once a quarter, but some route has a pickup in
       # the last week). Not food waste, whose last pickups are on 10-23 December. Its 2026
       # files were uploaded on 30 and 31 December 2025, so expect this to fire in the last week
-      # of December until next year's are read.
+      # of December until next year's are read. Panevėžio r.'s mixed waste (a Word document,
+      # dated, a year at a time) ends on 2 January 2027, a pickup a note of the 2026 document
+      # moves from 1 January, so it fires from 26 December; the 2026 document was uploaded on 5
+      # January 2026, and next year's must be transcribed before it is read (its notes), so
+      # expect it to fire into January.
       # The five municipalities of Marijampolė county get calendar-year files, posted in
       # December (the 2026 PDFs were made between 2 and 16 December 2025). Mixed waste,
       # packaging and food waste end on 28-31 December everywhere. Not glass: every four weeks,

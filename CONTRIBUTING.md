@@ -20,8 +20,9 @@ sratc.lt (pdf)                            Šiaulių r., Akmenės r., Joniškio r
                                           Pakruojo r., Radviliškio r.: site/sratc/
 aratc.lt (pdf)                            Alytaus r., Prienų r., Lazdijų r., Varėnos r.,
                                           Druskininkai, Birštonas: site/alytaus-ratc/
-pratc.lt (xlsx)                           Pasvalio r., Rokiškio r., Biržų r., Panevėžio r.:
-                                          site/panevezio-ratc/
+pratc.lt (xlsx, doc)                      Pasvalio r., Rokiškio r., Biržų r., Panevėžio r.:
+                                          site/panevezio-ratc/ (Panevėžio r.'s mixed waste
+                                          with a transcription of its notes in pipeline/data)
 maatc.lt (pdf)                            Marijampolės sav., Vilkaviškio r., Kalvarijos sav.,
                                           Kazlų Rūdos sav., Šakių r.: site/maatc/
 rkp.lt (pdf)                              Raseinių r.: site/raseiniu-r/
@@ -126,6 +127,31 @@ when you fix a mismatch.
 2. Add a failing test that shows the problem.
 3. Fix the parser. Keep it strict: an unrecognised cell should raise an error rather than be
    skipped silently, so mistakes never reach users.
+
+**Panevėžio r.'s mixed waste: re-transcribing its notes.** Panevėžio RATC publishes it as a
+Word document (.doc) of routes, some with notes in free words under them ("Vietoje 2026m.
+sausio 1d. ... aptarnausime sausio 2d."). Routes without notes are read from the file; those
+with notes, or marks in their days ("*26", "2-3"), from their transcription in
+`pipeline/data/schedule-panevezio-r-mixed.json` (`pratc_word.py`), which is used only while the
+route's text is exactly the same. When the centre changes such a route, or posts next year's
+document, the daily build keeps yesterday's mixed waste rows of Panevėžio r. and warns ("... can't
+be read (... notes that schedule-panevezio-r-mixed.json doesn't have: route 13 (...);
+re-transcribe it ...)"), and the live-build check of every pipeline PR fails. To transcribe:
+
+```sh
+cd pipeline
+uv run python -m schedule_pipeline.pratc_word   # reads the page's document, updates the file
+```
+
+It keeps the entries still used and adds a draft of each missing one: the route's `text`, its
+places as the name of one row and its days as that row's `dates` (both days of a range). Then,
+from the notes at the end of each new entry's `text`, correct its `rows`: a row for each group
+of places the notes treat differently (named as a list of places, in the genitive like the
+route's, or "Šeškų k. (Panevėžio aplinkl. 201)" for one house), each with all its dates; a
+pickup a note moves into next year belongs to the row too. Check that a new text after the table
+(`texts`) changes no date. Save the document as `pipeline/tests/fixtures/pratc/panevezio-r-mka.doc`,
+update `test_pratc.py` (`test_the_transcription_agrees_with_the_days_of_its_routes` says how the
+rows differ from the days) and open a PR.
 
 ### App (Expo)
 

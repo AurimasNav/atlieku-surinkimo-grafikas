@@ -116,7 +116,10 @@ aptarnavimo grafikas.xlsx", `birzu-r-maistas.xlsx` "NAUJAS Maisto atliekų konte
 aptranavimo grafikas_Biržų r-.xlsx", `panevezio-r-pakuotes.xlsx` "Pakuočių konteinerių
 (individualių valdų) aptarnavimo grafikas1.xlsx" and `panevezio-r-stiklas.xlsx` "Pakuočių stiklo
 konteinerių (individualių valdų) aptarnavimo grafikas.xlsx". With the Address Register extracts
-for Pasvalio r., Rokiškio r., Biržų r. and Panevėžio r. of the same day.
+for Pasvalio r., Rokiškio r., Biržų r. and Panevėžio r. of the same day. `panevezio-r-mka.doc` is
+Panevėžio r.'s 2026 mixed waste schedule, "Mišrių komunalinių grafikas1.doc" (a Word 97-2003
+document, uploaded on 5 January 2026), downloaded on 2026-11-22; the transcription of its notes
+in `pipeline/data/schedule-panevezio-r-mixed.json` is of this file.
 
 `kedainiai/` has the page of waste schedules of Kėdainių rajono savivaldybė at
 <https://www.kedainiai.lt/gyventojui/atlieku-tvarkymas/atlieku-isvezimo-grafikai/1538> (line
