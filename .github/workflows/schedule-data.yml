@@ -3,6 +3,10 @@ name: Schedule data
 # Scrapes nemenkom.lt, nkom.lt, Kauno švara, tratc.lt, gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt, ecoservice.lt, kedainiai.lt, moletusvara.lt, skuodas.lt, ukmerge.lt, anykom.lt, utenoskom.lt, kompata.lt, eku.lt, sirvintos.lt, kupkom.lt, svencionys.lt and zarasai.lt daily and
 # publishes the data + the privacy policy to GitHub Pages. If parsing or validation fails, nothing is deployed and the last good
 # data stays live; a provider whose build fails keeps its part of yesterday's data instead.
+#
+# Two jobs side by side: `build` runs the lint and the unit tests (on pull requests too, where it
+# is all that runs; a required check, so the name stays), and `data` builds the providers' data
+# and the site. deploy waits for both, so a failing test still deploys nothing.
 on:
   schedule:
     - cron: "17 4 * * *" # daily, 04:17 UTC
@@ -29,7 +33,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: pipeline
@@ -39,8 +43,24 @@ jobs:
       - run: uv sync --locked
       - run: uv run ruff check . && uv run ruff format --check .
       - run: uv run pytest
+
+  # The builds take about 20 minutes one after another (26 sources), the tests about 8.
+  data:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: pipeline
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      # Only `build` saves the uv cache, so the two jobs don't both try to save the same one.
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3 # publishes exact version tags only
+        with:
+          enable-cache: true
+          save-cache: false
+      - run: uv sync --locked
       - name: Build schedule.json from the live websites
-        if: github.event_name != 'pull_request'
         # Vilniaus r.: Nemenčinės and Nemėžio komunalininkas. If one company's build fails, its
         # part of yesterday's schedule.json is kept and the step logs a warning annotation.
         run: uv run python -m schedule_pipeline --out ../site/schedule.json
@@ -49,7 +69,6 @@ jobs:
       # files published yesterday are kept instead.
       - name: Build the Kauno r. and Kaišiadorių r. schedules (Kauno švara)
         id: kauno
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.svara --out ../site/kauno-r
       - name: Keep the published Kauno r. data if today's build failed
@@ -73,7 +92,6 @@ jobs:
       # part of yesterday's file; if none can be built, yesterday's files are kept.
       - name: Build the Mažeikių r., Telšių r., Plungės r. and Rietavo sav. schedules (TRATC)
         id: mazeikiai
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.tratc --out ../site/mazeikiu-r
       - name: Keep the published TRATC data if today's build failed
@@ -98,7 +116,6 @@ jobs:
       # Klaipėdos r., from the spreadsheet of Gargždų švara (site/klaipedos-r): the same rule.
       - name: Build the Klaipėdos r. schedule (Gargždų švara)
         id: klaipedos
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.gargzdu --out ../site/klaipedos-r
       - name: Keep the published Klaipėdos r. data if today's build failed
@@ -123,7 +140,6 @@ jobs:
       # yesterday's file; if none can be built, yesterday's files are kept.
       - name: Build the Jurbarko r., Tauragės r., Šilalės r. and Pagėgių sav. schedules (Tauragės RATC)
         id: jurbarkas
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.taurage --out ../site/jurbarko-r
       - name: Keep the published Tauragės RATC data if today's build failed
@@ -149,7 +165,6 @@ jobs:
       # yesterday's files are kept.
       - name: Build the Šiaulių RATC schedules (six municipalities)
         id: siauliai
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.sratc --out ../site/sratc
       - name: Keep the published Šiaulių RATC data if today's build failed
@@ -173,7 +188,6 @@ jobs:
       # of Alytaus RATC (site/alytaus-ratc): the same rule.
       - name: Build the Alytaus RATC schedule (six municipalities)
         id: alytus
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.aratc --out ../site/alytaus-ratc
       - name: Keep the published Alytaus RATC data if today's build failed
@@ -199,7 +213,6 @@ jobs:
       # can't be read its mixed waste rows; if none can be built, yesterday's files are kept.
       - name: Build the Pasvalio r., Rokiškio r., Biržų r. and Panevėžio r. schedules (Panevėžio RATC)
         id: panevezys
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.pratc --out ../site/panevezio-ratc
       - name: Keep the published Panevėžio RATC data if today's build failed
@@ -225,7 +238,6 @@ jobs:
       # files are kept.
       - name: Build the Marijampolės AATC schedules (five municipalities)
         id: marijampole
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.maatc --out ../site/maatc
       - name: Keep the published Marijampolės AATC data if today's build failed
@@ -250,7 +262,6 @@ jobs:
       # yesterday's files are kept.
       - name: Build the Raseinių r. schedule (Raseinių komunalinės paslaugos)
         id: raseiniai
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.raseiniai --out ../site/raseiniu-r
       - name: Keep the published Raseinių r. data if today's build failed
@@ -273,7 +284,6 @@ jobs:
       # Jonavos r., from the PDFs of UAB „Jonavos paslaugos“ (site/jonavos-r): the same rules.
       - name: Build the Jonavos r. schedule (Jonavos paslaugos)
         id: jonava
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.jonava --out ../site/jonavos-r
       - name: Keep the published Jonavos r. data if today's build failed
@@ -297,7 +307,6 @@ jobs:
       # build fails, yesterday's files are kept.
       - name: Build the Kretingos r. schedule (Kretingos komunalininkas)
         id: kretinga
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.kretinga --out ../site/kretingos-r
       - name: Keep the published Kretingos r. data if today's build failed
@@ -324,7 +333,6 @@ jobs:
       # yesterday's file; if none of a folder's can be built, yesterday's files are kept.
       - name: Build the Šilutės r. schedule (Ecoservice)
         id: silute
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.ecoservice --region silutes-r --out ../site/silutes-r
       - name: Keep the published Šilutės r. data if today's build failed
@@ -346,7 +354,6 @@ jobs:
           fi
       - name: Build the Trakų r. and Šalčininkų r. schedules (Ecoservice)
         id: ecoservice
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.ecoservice --region ecoservice --out ../site/ecoservice
       - name: Keep the published Trakų r. and Šalčininkų r. data if today's build failed
@@ -372,7 +379,6 @@ jobs:
       # part is kept, or yesterday's files, or none.
       - name: Build the Kėdainių r. schedule (kedainiai.lt)
         id: kedainiai
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.kedainiai --out ../site/kedainiu-r
       - name: Keep the published Kėdainių r. data if today's build failed
@@ -396,7 +402,6 @@ jobs:
       # its rows of yesterday's data; if the whole build fails, yesterday's files are kept.
       - name: Build the Molėtų r. schedule (Molėtų švara)
         id: moletai
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.moletai --out ../site/moletu-r
       - name: Keep the published Molėtų r. data if today's build failed
@@ -420,7 +425,6 @@ jobs:
       # build fails, yesterday's files are kept.
       - name: Build the Skuodo r. schedule (Skuodo rajono savivaldybė)
         id: skuodas
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.skuodas --out ../site/skuodo-r
       - name: Keep the published Skuodo r. data if today's build failed
@@ -445,7 +449,6 @@ jobs:
       # today's build fails, yesterday's files are kept.
       - name: Build the Ukmergės r. schedule (Ukmergės autobusų parkas)
         id: ukmerge
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.ukmerge --out ../site/ukmerges-r
       - name: Keep the published Ukmergės r. data if today's build failed
@@ -470,7 +473,6 @@ jobs:
       # are kept.
       - name: Build the Anykščių r. schedule (Anykščių komunalinis ūkis)
         id: anyksciai
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.anyksciai --out ../site/anyksciu-r
       - name: Keep the published Anykščių r. data if today's build failed
@@ -495,7 +497,6 @@ jobs:
       # kept.
       - name: Build the Utenos r. schedule (Utenos komunalininkas)
         id: utena
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.utena --out ../site/utenos-r
       - name: Keep the published Utenos r. data if today's build failed
@@ -519,7 +520,6 @@ jobs:
       # today's build fails, yesterday's files are kept.
       - name: Build the Ignalinos r. schedule (Kompata)
         id: ignalina
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.ignalina --out ../site/ignalinos-r
       - name: Keep the published Ignalinos r. data if today's build failed
@@ -543,7 +543,6 @@ jobs:
       # (site/elektrenu-sav): if today's build fails, yesterday's files are kept.
       - name: Build the Elektrėnų sav. schedule (Elektrėnų komunalinis ūkis)
         id: elektrenai
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.elektrenai --out ../site/elektrenu-sav
       - name: Keep the published Elektrėnų sav. data if today's build failed
@@ -568,7 +567,6 @@ jobs:
       # yesterday's files are kept.
       - name: Build the Širvintų r. schedule (Širvintų rajono savivaldybė)
         id: sirvintos
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.sirvintos --out ../site/sirvintu-r
       - name: Keep the published Širvintų r. data if today's build failed
@@ -592,7 +590,6 @@ jobs:
       # it links (site/kupiskio-r): if today's build fails, yesterday's files are kept.
       - name: Build the Kupiškio r. schedule (Kupiškio komunalininkas)
         id: kupiskis
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.kupiskis --out ../site/kupiskio-r
       - name: Keep the published Kupiškio r. data if today's build failed
@@ -617,7 +614,6 @@ jobs:
       # its rows of yesterday's data; if the whole build fails, yesterday's files are kept.
       - name: Build the Švenčionių r. schedule (Švenčionių rajono savivaldybė)
         id: svencionys
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.svencionys --out ../site/svencioniu-r
       - name: Keep the published Švenčionių r. data if today's build failed
@@ -643,7 +639,6 @@ jobs:
       # changed scan), yesterday's files are kept.
       - name: Build the Zarasų r. schedule (Zarasų rajono savivaldybė)
         id: zarasai
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: uv run python -m schedule_pipeline.zarasai --out ../site/zarasu-r
       - name: Keep the published Zarasų r. data if today's build failed
@@ -665,25 +660,21 @@ jobs:
           fi
       # status.json and metrics.txt for monitoring (docs/monitoring.md).
       - name: Publish the state of the data
-        if: github.event_name != 'pull_request'
         run: uv run python -m schedule_pipeline.status --site ../site
       - name: Render privacy policy
-        if: github.event_name != 'pull_request'
         run: uv run python -m schedule_pipeline.site ../PRIVACY.md --out ../site/privacy/index.html --title "Privacy Policy / Privatumo politika"
       # regions.json: every region folder in site/ as it is deployed, so installed apps download
       # a new one without an update (schedule_pipeline.regions). Last, after the builds and the
       # steps that keep yesterday's data.
       - name: Publish the index of regions
-        if: github.event_name != 'pull_request'
         run: uv run python -m schedule_pipeline.regions --site ../site
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
-        if: github.event_name != 'pull_request'
         with:
           path: site
 
   deploy:
     if: github.event_name != 'pull_request'
-    needs: build
+    needs: [build, data]
     runs-on: ubuntu-latest
     permissions:
       pages: write
