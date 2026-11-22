@@ -403,7 +403,8 @@ def draft(documents: list[tuple[str, bytes]], old: dict) -> tuple[dict, list[str
                 }
             )
             todo.append(
-                f"route {route.number}: apply its notes and marks to its rows: {route.notes}"
+                f"route {route.number}: apply its notes and marks to its rows: "
+                f"{route.notes or [route.first_note()]}"
             )
     new_texts = [t for t in texts if t not in old.get("texts", [])]
     todo += [f"a text after the table: check that it changes no date: {t!r}" for t in new_texts]

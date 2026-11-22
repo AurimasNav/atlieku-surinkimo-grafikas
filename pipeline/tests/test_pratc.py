@@ -374,7 +374,8 @@ def test_the_routes_of_the_document():
     assert sorted(first.dates(2026))[:4] == [
         date(2026, 1, 8),
         date(2026, 2, 5),
-        *[date(2026, 3, 5), date(2026, 4, 2)],
+        date(2026, 3, 5),
+        date(2026, 4, 2),
     ]
     # A list of streets over two lines without a comma between them.
     assert "Birutės, Ievų, Laisvės, Liaudies" in document.routes[6].places
@@ -511,11 +512,12 @@ def test_a_document_that_cannot_be_read_keeps_yesterdays_mixed_waste(parts):
     result = pratc.parse_file(source, damaged, pratc.PANEVEZIO_R, lambda: published)
     household = [a for a in data["areas"] if a["kind"] == "household"]
     assert sorted(a.id for a in result.areas) == sorted(a["id"] for a in household)
-    assert result.warnings == [
-        f"Mišrių komunalinių grafikas1.doc: can't be read ({result.warnings[0].split('(', 1)[1]}"
-    ]
-    assert result.warnings[0].endswith("yesterday's 29 household rows of Panevėžio r. are kept")
-    # The spreadsheets are still read; without published data the build fails.
+    [warning] = result.warnings
+    assert warning.startswith(
+        "Mišrių komunalinių grafikas1.doc: can't be read (ValueError: a damaged Word document"
+    )
+    assert warning.endswith("yesterday's 29 household rows of Panevėžio r. are kept")
+    # Without published data (--strict), it fails.
     with pytest.raises(ValueError):
         pratc.parse_file(source, damaged, pratc.PANEVEZIO_R)
 
