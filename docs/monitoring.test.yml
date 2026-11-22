@@ -137,6 +137,9 @@ tests:
       # Ignalinos r.'s half-yearly mixed waste (November to April): ends tomorrow.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ignalina",kind="household"}'
         values: "86400x20"
+      # Elektrėnų sav.'s yearly mixed waste: ends in 6 days.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="elektrenai",kind="household"}'
+        values: "518400x20"
       # Ends in 30 days: no alert.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="glass"}'
         values: "2592000x20"
@@ -251,6 +254,9 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ignalina",kind="food"}'
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ignalina",kind="glass"}'
+        values: "86400x20"
+      # Elektrėnų sav. glass (four times a year): not watched.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="elektrenai",kind="glass"}'
         values: "86400x20"
     alert_rule_test:
       - eval_time: 40m
@@ -454,6 +460,13 @@ tests:
               severity: warning
             exp_annotations:
               summary: "ignalina: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: elektrenai
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "elektrenai: the household schedule ends within a week"
 
   - name: fewer places and more warnings than a day before
     interval: 15m
@@ -565,6 +578,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="utena",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ignalina",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="elektrenai",kind="packaging"}'
         values: "25920000x191"
       - series: 'up{job="siuksliaveze-data"}'
         values: "1x191"
