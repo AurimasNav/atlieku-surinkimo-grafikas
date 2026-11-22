@@ -29,7 +29,7 @@
     "skip": "I don't have this container"
   },
   "coverage": {
-    "areas": "40 districts (all but Kupiškis, Švenčionys and Zarasai; in Panevėžys, only packaging and glass) and Birštonas, Druskininkai, Elektrėnai, Kalvarija, Kazlų Rūda, Marijampolė, Pagėgiai and Rietavas municipalities"
+    "areas": "all 43 districts and Birštonas, Druskininkai, Elektrėnai, Kalvarija, Kazlų Rūda, Marijampolė, Pagėgiai and Rietavas municipalities"
   },
   "onboarding": {
     "title": "Bins out.\nOn time.",
@@ -93,7 +93,7 @@
     "locationKlaipedaCity": "Klaipėda city isn't covered, only Klaipėda district (Klaipėdos r.).",
     "locationSiauliaiCity": "Šiauliai city isn't covered, only Šiauliai district (Šiaulių r.).",
     "locationAlytusCity": "Alytus city isn't covered, only Alytus district (Alytaus r.).",
-    "locationPanevezysCity": "Panevėžys city isn't covered. For Panevėžys district (Panevėžio r.), there are only packaging and glass schedules.",
+    "locationPanevezysCity": "Panevėžys city isn't covered, only Panevėžys district (Panevėžio r.).",
     "locationVilniusCity": "Vilnius city isn't covered, only Vilnius district (Vilniaus r.)."
   },
   "select": {

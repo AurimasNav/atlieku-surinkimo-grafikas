@@ -127,18 +127,15 @@ export function searchKaunoTowns(towns: KaunoTown[], query: string): KaunoTown[]
  * Cities next to a covered district that aren't covered themselves: their names (and "in ...")
  * in the app's languages, and the genitive of "Kauno m.", as normalizeForSearch writes them
  * (it drops the breve of "й" and the dot of the Polish "ż"; the Polish "ł" stays).
- * `district`: only some schedules of the district are covered, and a search for the district gets
- * the city's hint too, which says so.
  */
-type City = { names: string[]; genitive: string; district?: boolean };
+type City = { names: string[]; genitive: string };
 const CITIES = {
   vilnius: { names: ['vilnius', 'vilniuje', 'wilno', 'вильнюс'], genitive: 'vilniaus' },
   kaunas: { names: ['kaunas', 'kaune', 'kowno', 'каунас'], genitive: 'kauno' },
   klaipeda: { names: ['klaipeda', 'klaipedoje', 'kłajpeda', 'клаипеда'], genitive: 'klaipedos' },
   siauliai: { names: ['siauliai', 'siauliuose', 'szawle', 'шяуляи', 'шауляи', 'шавли'], genitive: 'siauliu' },
   alytus: { names: ['alytus', 'alytuje', 'olita', 'алитус'], genitive: 'alytaus' },
-  // Panevėžio r.: packaging and glass only (its mixed waste schedule isn't readable).
-  panevezys: { names: ['panevezys', 'panevezyje', 'poniewiez', 'паневежис'], genitive: 'panevezio', district: true },
+  panevezys: { names: ['panevezys', 'panevezyje', 'poniewiez', 'паневежис'], genitive: 'panevezio' },
 } satisfies Record<string, City>;
 export type UncoveredCity = keyof typeof CITIES;
 /** The word after it that makes it the district. */
@@ -150,8 +147,8 @@ const DISTRICT = /^(r|raj|rajon\p{L}*|rejon\p{L}*|district|раион\p{L}*)$/u;
  * "Szawle").
  * The app then says so: instead of the general "nothing found", or above the places it found,
  * since a village can have the city's name (Alytus in Alovės sen., Šiauliai in Veliuonos sen.).
- * For Panevėžys also the district ("Panevėžio r."), whose hint says what of it is covered, and
- * "Panevėžio" alone: the hint then shows above the villages of Panevėžio sen., in that district.
+ * The genitive alone isn't one: it also starts the district's name ("Panevėžio r."), which is
+ * covered, and often an eldership's (Panevėžio sen., Alytaus sen.).
  */
 export function uncoveredCitySearch(query: string): UncoveredCity | undefined {
   const [first, second, ...rest] = normalizeForSearch(query)
@@ -160,11 +157,11 @@ export function uncoveredCitySearch(query: string): UncoveredCity | undefined {
   const isDistrict = Boolean(second) && DISTRICT.test(second);
   // "miestas", "miesto", also while it is typed ("kauno mies").
   const isCity = Boolean(second) && ['miestas', 'miesto'].some((word) => word.startsWith(second));
-  for (const [city, { names, genitive, district }] of Object.entries(CITIES) as [UncoveredCity, City][]) {
+  for (const [city, { names, genitive }] of Object.entries(CITIES) as [UncoveredCity, City][]) {
     // "Kaunas", "Kaunas m.", "Kowno", "Каунас", but not "Kaunas r." or "Kaunas district".
-    if (names.includes(first)) return !isDistrict || district ? city : undefined;
-    // "Kauno m.", "Kauno miestas", "Kauno miesto sav."; for Panevėžys also "Panevėžio r.".
-    if (first === genitive && (isCity || (district && (!second || isDistrict))) && rest.length <= 1) return city;
+    if (names.includes(first)) return isDistrict ? undefined : city;
+    // "Kauno m.", "Kauno miestas", "Kauno miesto sav.".
+    if (first === genitive && isCity && rest.length <= 1) return city;
   }
   return undefined;
 }

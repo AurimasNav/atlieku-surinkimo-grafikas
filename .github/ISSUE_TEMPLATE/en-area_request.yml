@@ -11,7 +11,7 @@ body:
     id: municipality
     attributes:
       label: "Municipality"
-      placeholder: "e.g. Zarasų r."
+      placeholder: "e.g. Neringos sav."
     validations:
       required: true
   - type: input

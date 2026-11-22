@@ -1,9 +1,9 @@
 # Šiukšliavežė
 
 Android app that reminds you when waste is collected at your address, based on the
-schedules the waste companies publish. It covers 48 municipalities: 40 districts (all but
-Kupiškis, Švenčionys and Zarasai) and Birštonas, Druskininkai, Elektrėnai, Kalvarija, Kazlų Rūda,
-Marijampolė, Pagėgiai and Rietavas municipalities. By publisher:
+schedules the waste companies publish. It covers 51 municipalities: all 43 districts and
+Birštonas, Druskininkai, Elektrėnai, Kalvarija, Kazlų Rūda, Marijampolė, Pagėgiai and Rietavas
+municipalities. By publisher:
 
 - **Vilnius district**: mixed waste, packaging and glass, from the schedule files of
   [UAB "Nemenčinės komunalininkas"](https://www.nemenkom.lt/buitiniu-ir-pakuociu-atlieku-surinkimo-grafikas/)
@@ -40,12 +40,12 @@ Marijampolė, Pagėgiai and Rietavas municipalities. By publisher:
   for private houses, from the PDFs of the regional waste centre,
   [UAB "Alytaus regiono atliekų tvarkymo centras"](https://www.aratc.lt/atlieku-surinkimo-grafikai/),
   which publishes the schedules of every company that empties the containers.
-- **Biržai, Pasvalys and Rokiškis districts, and packaging and glass in Panevėžys district**:
-  mixed waste, packaging and glass, and food waste in parts of Biržai, Pasvalys and Rokiškis and a
-  few villages, for private houses, from the spreadsheets of the regional waste centre,
+- **Biržai, Pasvalys, Rokiškis and Panevėžys districts**: mixed waste, packaging and glass, and
+  food waste in parts of Biržai, Pasvalys and Rokiškis and a few villages, for private houses,
+  from the spreadsheets and documents of the regional waste centre,
   [UAB "Panevėžio regiono atliekų tvarkymo centras"](https://www.pratc.lt/atlieku-isvezimas-atlieku-isvezimas/).
-  Panevėžys district publishes its mixed waste schedule as a document of rules that the app
-  doesn't read, so only its packaging and glass are in the app.
+  Panevėžys district's mixed waste comes from a Word document whose routes name 248 of its 737
+  settlements. The document gives the phone number of UAB "Švaros komanda" for questions.
 - **Marijampolė, Kalvarija and Kazlų Rūda municipalities and Vilkaviškis and Šakiai
   districts**: mixed waste, packaging and glass, and food waste in the towns and a few villages,
   for private houses, from the PDFs of the regional waste centre,
@@ -100,6 +100,21 @@ Marijampolė, Pagėgiai and Rietavas municipalities. By publisher:
 - **Širvintos district**: mixed waste, packaging and glass, for private houses, from the PDFs
   [Širvintų rajono savivaldybė](https://www.sirvintos.lt/lt/atlieku-tvarkymas/misriu-komunaliniu-atlieku-surinkimo-grafikas-is-sirvintu-rajono-gyventoju/2998)
   publishes. The waste is collected by UAB "Ecoservice".
+- **Kupiškis district**: mixed waste, packaging and glass, and food waste in Kupiškis and four
+  villages, from the page and PDFs of the company that collects it,
+  [UAB "Kupiškio komunalininkas"](http://www.kupkom.lt/atlieku-isvezimas/). Mixed waste is
+  published as rules ("the first Wednesday of the month"), which become dates about a year ahead.
+  The page names no streets of Kupiškis, so every street of the town gets the private houses'
+  schedules, apartment buildings' too.
+- **Švenčionys district**: mixed waste, packaging and glass, from the PDFs of
+  [Švenčionių rajono savivaldybė](https://svencionys.lt/aplinkosauga/komunaliniu-atlieku-isvezimo-grafikai/).
+  Mixed waste is published as rules (weekdays of given weeks of the month), which become dates
+  about a year ahead.
+- **Zarasai district**: mixed waste, packaging and glass, for private houses, from the schedules
+  [Zarasų rajono savivaldybė](https://www.zarasai.lt/veiklos-sritys/aplinkos-apsauga/atlieku-tvarkymas/269)
+  publishes. Its mixed waste schedule is a scan of rules, typed in by hand and used only while the
+  published scan stays the same. Mixed waste is collected by UAB "Zarasų būstas", packaging and
+  glass by UAB "Zarasų komunalininkas".
 
 The cities of Vilnius, Kaunas, Klaipėda, Šiauliai, Panevėžys and Alytus aren't covered.
 

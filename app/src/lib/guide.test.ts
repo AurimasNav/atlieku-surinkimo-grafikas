@@ -262,6 +262,7 @@ describe('regionOf', () => {
     ids.push('marijampole', 'vilkaviskis', 'kalvarija', 'kazluruda', 'sakiai');
     ids.push('raseiniai', 'jonava', 'kretinga', 'silute', 'trakai', 'salcininkai', 'kedainiai', 'moletai');
     ids.push('skuodas', 'ukmerge', 'anyksciai', 'utena', 'elektrenai', 'ignalina', 'sirvintos');
+    ids.push('kupiskis', 'svencionys', 'zarasai');
     for (const provider of ids) {
       const location: Location = { id: provider, name: provider, type: 'k.', district: provider, provider, schedule: { glass: { area: `${provider}-g` } } };
       const more = { ...data, areas: [...data.areas, area(`${provider}-g`, 'glass', { provider })], locations: [...data.locations!, location] };
@@ -270,7 +271,8 @@ describe('regionOf', () => {
       const region = regionOf(place, resolved);
       const available = availableKinds(place, resolved);
       expect([provider, region]).toEqual([provider, undefined]);
-      // Panevėžio r. has no mixed waste data: the container every home has is still there.
+      // A place without a mixed waste schedule (as many in Panevėžio r.): the container every
+      // home has is still there.
       expect(available).toEqual(kinds('household', 'glass'));
       expect(advise(item('aerosol'), region, available).to).toEqual(['site']);
       expect(advise(item('peels'), region, available)).toMatchObject({ to: ['compost', 'household'], missing: 'food' });

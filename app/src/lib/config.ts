@@ -45,11 +45,11 @@ export const EKONOVUS_SCHEDULES_URL = 'https://www.ekonovus.lt/aptarnavimo-grafi
  *
  * Built in, so the app finds them without regions.json (offline, or before it was published);
  * folders added later come from regions.json only: panevezio-ratc (Pasvalio r., Rokiškio r.,
- * Biržų r., and the packaging and glass of Panevėžio r.), maatc (Marijampolės sav.,
- * Vilkaviškio r., Kalvarijos sav., Kazlų Rūdos sav. and Šakių r.), ecoservice (Trakų r. and
- * Šalčininkų r.), and a folder named after each of Raseinių r., Jonavos r., Kretingos r.,
- * Šilutės r., Kėdainių r., Molėtų r., Skuodo r., Ukmergės r., Anykščių r., Utenos r., Elektrėnų
- * sav., Ignalinos r. and Širvintų r. (raseiniu-r, elektrenu-sav, …).
+ * Biržų r. and Panevėžio r.), maatc (Marijampolės sav., Vilkaviškio r., Kalvarijos sav., Kazlų
+ * Rūdos sav. and Šakių r.), ecoservice (Trakų r. and Šalčininkų r.), and a folder named after each
+ * of Raseinių r., Jonavos r., Kretingos r., Šilutės r., Kėdainių r., Molėtų r., Skuodo r.,
+ * Ukmergės r., Anykščių r., Utenos r., Elektrėnų sav., Ignalinos r., Širvintų r., Kupiškio r.,
+ * Švenčionių r. and Zarasų r. (raseiniu-r, elektrenu-sav, …).
  */
 export const REGION_URLS = ['mazeikiu-r', 'klaipedos-r', 'jurbarko-r', 'sratc', 'alytaus-ratc'].map(
   (folder) => `${SITE_URL}/${folder}`,
@@ -85,6 +85,7 @@ export const COMPANIES = [
   'UAB „Svarinta“',
   'UAB „Alytaus regiono atliekų tvarkymo centras“',
   'UAB „Panevėžio regiono atliekų tvarkymo centras“',
+  'UAB „Švaros komanda“',
   'UAB „Marijampolės apskrities atliekų tvarkymo centras“',
   'UAB „Raseinių komunalinės paslaugos“',
   'UAB „Jonavos paslaugos“',
@@ -100,6 +101,11 @@ export const COMPANIES = [
   'UAB „Elektrėnų komunalinis ūkis“',
   'SĮ „Kompata“',
   'Širvintų rajono savivaldybė',
+  'UAB „Kupiškio komunalininkas“',
+  'Švenčionių rajono savivaldybė',
+  'Zarasų rajono savivaldybė',
+  'UAB „Zarasų būstas“',
+  'UAB „Zarasų komunalininkas“',
 ];
 
 /** Highest schedule.json schemaVersion this app version understands. */

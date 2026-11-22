@@ -1,5 +1,5 @@
 import { KAUNO_SOURCE_PAGE_URL, SOURCE_PAGE_URL } from './config';
-import { isCustomArea, type Place, type Resolved } from './resolve';
+import { isCustomArea, isWebPage, type Place, type Resolved } from './resolve';
 import { kaunoKey } from './kauno';
 import { personalsOf, type ScheduleData } from './schedule';
 
@@ -37,7 +37,7 @@ export function staleSources(data: ScheduleData | null, place: Place | null, res
     if (!provider && id !== 'nemencine') return [];
     const since = provider ? provider.generatedAt : data.generatedAt;
     if (!older(since, STALE_DATA_DAYS, now)) return [];
-    const url = provider?.url.startsWith('https://') ? provider.url : SOURCE_PAGE_URL;
+    const url = provider && isWebPage(provider.url) ? provider.url : SOURCE_PAGE_URL;
     return [{ name: provider?.name ?? 'UAB „Nemenčinės komunalininkas“', url, since: since! }];
   });
 }

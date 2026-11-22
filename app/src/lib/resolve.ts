@@ -156,6 +156,13 @@ export function placeLabel(place: Place | null, resolved: Resolved): { name?: st
 }
 
 /**
+ * Whether a company's page from the data is one the browser can open. Not only https: the site of
+ * UAB „Kupiškio komunalininkas“ (kupkom.lt) has a certificate for another name, so the data links
+ * its page over http.
+ */
+export const isWebPage = (url: string | undefined): url is string => /^https?:\/\/[^/]/.test(url ?? '');
+
+/**
  * The official schedule page of the company that serves the place: Kauno švara for an address
  * of its data (Kauno r., Kaišiadorių r.), otherwise the `provider` of the location (or of a row
  * picked by hand) as listed in the data. Places without one are Nemenčinės komunalininkas', as in
@@ -165,5 +172,5 @@ export function sourcePageUrl(data: ScheduleData | null, place: Place | null, re
   if (place?.kauno) return KAUNO_SOURCE_PAGE_URL;
   const id = resolved.location?.provider ?? resolved.areas.find((area) => !isCustomArea(area))?.provider;
   const url = data?.providers?.find((provider) => provider.id === id)?.url;
-  return url?.startsWith('https://') ? url : SOURCE_PAGE_URL;
+  return isWebPage(url) ? url : SOURCE_PAGE_URL;
 }

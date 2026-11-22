@@ -42,6 +42,9 @@ const OFFICIAL_SCHEDULES = [
   'UAB „Elektrėnų komunalinis ūkis“: https://www.eku.lt/atlieku-ir-teritoriju-tvarkymas/atlieku-isvezimo-grafikai/569',
   'SĮ „Kompata“: https://www.kompata.lt/grafikai/puslapis/',
   'Širvintų rajono savivaldybė: https://www.sirvintos.lt/lt/atlieku-tvarkymas/misriu-komunaliniu-atlieku-surinkimo-grafikas-is-sirvintu-rajono-gyventoju/2998',
+  'UAB „Kupiškio komunalininkas“: http://www.kupkom.lt/atlieku-isvezimas/',
+  'Švenčionių rajono savivaldybė: https://svencionys.lt/aplinkosauga/komunaliniu-atlieku-isvezimo-grafikai/',
+  'Zarasų rajono savivaldybė: https://www.zarasai.lt/veiklos-sritys/aplinkos-apsauga/atlieku-tvarkymas/269',
 ]
   .map((line) => `- ${line}`)
   .join('\n');
@@ -369,10 +372,10 @@ const FORMS = {
         required: true,
         label: { en: 'Municipality', lt: 'Savivaldybė', ru: 'Самоуправление', pl: 'Samorząd' },
         placeholder: {
-          en: 'e.g. Zarasų r.',
-          lt: 'pvz., Zarasų r.',
-          ru: 'например, Zarasų r.',
-          pl: 'np. Zarasų r.',
+          en: 'e.g. Neringos sav.',
+          lt: 'pvz., Neringos sav.',
+          ru: 'например, Neringos sav.',
+          pl: 'np. Neringos sav.',
         },
       },
       {
