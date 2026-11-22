@@ -195,6 +195,19 @@ Utenos mieste.pdf" (the town) and `seniunijos-2026.pdf` "Grafikas antrinių ir m
 Utenos rajono seniūnijose.pdf" (the elderships, with their mixed waste rules)
 (`test_utena.COPIES`). With the Address Register extract for Utenos r. of the same day.
 
+`ignalina/` has the three schedule pages of SĮ "Kompata" (Ignalinos r.) at
+<https://www.kompata.lt/grafikai/puslapis/> (`komunaliniu.html`, mixed waste),
+<https://www.kompata.lt/grafikai/pakuociu-surinkimo-grafikas/> (`pakuociu.html`) and
+<https://www.kompata.lt/grafikai/maisto-atlieku-surinkimo-grafikas/> (`maisto.html`), and the
+three PDFs of the whole municipality they link, downloaded on 2026-11-22 and renamed:
+`misrios-2026-11-2027-04.pdf` is
+"Komunaliniu_atlieku_surinkimo_is_individualiu_konteineriu_2026m_-_2027m_11-04men-1.pdf" (mixed
+waste, November 2026 to April 2027), `pakuotes-2026.pdf`
+"2026_metu_plastiko__popieriaus__metalo__stiklo_pakuociu_surinkimo_is_individualiu_konteineriu_grafikas__atsisiusti_PDF_-1.pdf"
+(packaging and glass, 2026) and `maisto-2026-11-2027-04.pdf`
+"Maisto_atlieku_isvezimo_grafikas_2026-2027m_.pdf" (food waste) (`test_ignalina.COPIES`). With
+the Address Register extract for Ignalinos r. of the same day.
+
 `elektrenai/` has the schedule pages of UAB "Elektrėnų komunalinis ūkis" (Elektrėnų sav.) on
 eku.lt, downloaded on 2026-11-22 (line endings made LF) and named after their titles: `grafikai.html`
 is the list of the years' pages, "Atliekų išvežimo grafikai"

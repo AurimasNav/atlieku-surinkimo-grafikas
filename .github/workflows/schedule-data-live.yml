@@ -2,7 +2,7 @@ name: Schedule data live build
 
 # Pull requests that change the pipeline (code or dependencies, e.g. a Renovate update of
 # openpyxl or pdfplumber) build the data from today's files on nemenkom.lt, nkom.lt, tratc.lt,
-# gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt, ecoservice.lt, kedainiai.lt, moletusvara.lt, skuodas.lt, ukmerge.lt, anykom.lt, utenoskom.lt and eku.lt and from Kauno švara's open data, the way the daily job does, and compare
+# gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt, ecoservice.lt, kedainiai.lt, moletusvara.lt, skuodas.lt, ukmerge.lt, anykom.lt, utenoskom.lt, kompata.lt and eku.lt and from Kauno švara's open data, the way the daily job does, and compare
 # schedule.json with the published data. The unit tests in Schedule data / build only parse stored copies of the
 # files. Nothing is deployed.
 on:
@@ -88,6 +88,8 @@ jobs:
       - name: Build the Utenos r. schedule from the PDFs on utenoskom.lt
         # --strict: a file that can't be read fails the check.
         run: uv run python -m schedule_pipeline.utena --strict --out "$RUNNER_TEMP/site/utenos-r"
+      - name: Build the Ignalinos r. schedule from the PDFs on kompata.lt
+        run: uv run python -m schedule_pipeline.ignalina --out "$RUNNER_TEMP/site/ignalinos-r"
       - name: Build the Elektrėnų sav. schedule from the schedule pages on eku.lt
         run: uv run python -m schedule_pipeline.elektrenai --out "$RUNNER_TEMP/site/elektrenu-sav"
       - name: Compare with the published data

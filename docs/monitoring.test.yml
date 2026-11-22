@@ -134,6 +134,9 @@ tests:
       # Utenos r.'s yearly packaging.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="utena",kind="packaging"}'
         values: "518400x20"
+      # Ignalinos r.'s half-yearly mixed waste (November to April): ends tomorrow.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ignalina",kind="household"}'
+        values: "86400x20"
       # Elektrėnų sav.'s yearly mixed waste: ends in 6 days.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="elektrenai",kind="household"}'
         values: "518400x20"
@@ -243,6 +246,15 @@ tests:
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="utena",kind="green"}'
         values: "172800x20"
+      # Ignalinos r.: its files are made in the last days before their periods, so its
+      # packaging 3 days before its end raises nothing, nor do its food waste (last in mid-April
+      # and mid-October) and glass (twice a year).
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ignalina",kind="packaging"}'
+        values: "259200x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ignalina",kind="food"}'
+        values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ignalina",kind="glass"}'
+        values: "86400x20"
       # Elektrėnų sav. glass (four times a year): not watched.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="elektrenai",kind="glass"}'
         values: "86400x20"
@@ -443,6 +455,13 @@ tests:
               summary: "utena: the packaging schedule ends within a week"
           - exp_labels:
               job: siuksliaveze-data
+              source: ignalina
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "ignalina: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
               source: elektrenai
               kind: household
               severity: warning
@@ -557,6 +576,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="anyksciai",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="utena",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ignalina",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="elektrenai",kind="packaging"}'
         values: "25920000x191"
