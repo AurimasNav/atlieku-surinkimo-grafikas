@@ -203,6 +203,10 @@ SIRVINTOS_ADDRESSES_FILE = DATA_DIR / "address-points-sirvintu-r.json"
 # A copy of the Širvintų r. pages and the files they link: sirvintos.lt refuses GitHub's runners
 # (HTTP 403) too (sirvintos.save_copy).
 SIRVINTOS_COPY_DIR = DATA_DIR / "schedules-sirvintu-r"
+# Švenčionių r. (schedule_pipeline.svencionys).
+SVENCIONYS_MUNICIPALITY = ("Švenčionių rajono", 86)
+SVENCIONYS_REGISTRY_FILE = DATA_DIR / "registry-svencioniu-r.json"
+SVENCIONYS_ADDRESSES_FILE = DATA_DIR / "address-points-svencioniu-r.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -507,6 +511,12 @@ def save_register() -> None:
             SIRVINTOS_MUNICIPALITY,
             SIRVINTOS_REGISTRY_FILE,
             SIRVINTOS_ADDRESSES_FILE,
+        ),
+        (
+            "Švenčionių r.",
+            SVENCIONYS_MUNICIPALITY,
+            SVENCIONYS_REGISTRY_FILE,
+            SVENCIONYS_ADDRESSES_FILE,
         ),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)

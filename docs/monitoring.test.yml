@@ -145,6 +145,9 @@ tests:
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="sirvintos",kind="glass"}'
         values: "518400x20"
+      # Švenčionių r.'s yearly packaging (dates and the year's rules): ends in 6 days.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="svencionys",kind="packaging"}'
+        values: "518400x20"
       # Ends in 30 days: no alert.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="glass"}'
         values: "2592000x20"
@@ -262,6 +265,12 @@ tests:
         values: "86400x20"
       # Elektrėnų sav. glass (four times a year): not watched.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="elektrenai",kind="glass"}'
+        values: "86400x20"
+      # Švenčionių r.: glass (four times a year, every other month in Pabradė) and mixed waste
+      # (rules whose dates run ~13 months ahead, moved on by every build) are not watched.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="svencionys",kind="glass"}'
+        values: "86400x20"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="svencionys",kind="household"}'
         values: "86400x20"
     alert_rule_test:
       - eval_time: 40m
@@ -486,6 +495,13 @@ tests:
               severity: warning
             exp_annotations:
               summary: "sirvintos: the glass schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
+              source: svencionys
+              kind: packaging
+              severity: warning
+            exp_annotations:
+              summary: "svencionys: the packaging schedule ends within a week"
 
   - name: Širvintų r. mixed waste 3 days before its end
     interval: 15m
@@ -615,6 +631,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="elektrenai",kind="packaging"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="sirvintos",kind="household"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="svencionys",kind="packaging"}'
         values: "25920000x191"
       - series: 'up{job="siuksliaveze-data"}'
         values: "1x191"

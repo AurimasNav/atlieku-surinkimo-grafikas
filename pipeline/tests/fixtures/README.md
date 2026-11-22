@@ -228,6 +228,14 @@ they link, downloaded on 2026-11-22 and renamed: `misrios-2026-06-12.pdf` is
 the page linked in 2025 (web archive) and the site still serves. With the Address Register extract
 for Širvintų r. of the same day.
 
+`svencionys/` has the page "Komunalinių atliekų išvežimo grafikai" of the Švenčionių r.
+municipality (<https://svencionys.lt/aplinkosauga/komunaliniu-atlieku-isvezimo-grafikai/>, line
+endings made LF) and the two PDFs it links that are read, downloaded on 2026-11-22 and renamed:
+`misrios-2025.pdf` is "Misriuju-komunliniu-atlieku-isvezimo-grafikai_20250120.pdf" (the mixed
+waste rules) and `pakuotes-2026.pdf` "Pakuociu-atlieku-isvezimo-grafikai_2026.pdf" (packaging and
+glass, 2026) (`test_svencionys.COPIES`). With the Address Register extract for Švenčionių r. of
+the same day.
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 
