@@ -93,7 +93,8 @@
     "locationKlaipedaCity": "Miasta Kłajpedy nie obejmujemy, tylko rejon kłajpedzki (Klaipėdos r.).",
     "locationSiauliaiCity": "Miasta Szawli nie obejmujemy, tylko rejon szawelski (Šiaulių r.).",
     "locationAlytusCity": "Miasta Olity nie obejmujemy, tylko rejon olicki (Alytaus r.).",
-    "locationPanevezysCity": "Miasta Poniewieża nie obejmujemy, a w rejonie poniewieskim (Panevėžio r.) tylko opakowania i szkło."
+    "locationPanevezysCity": "Miasta Poniewieża nie obejmujemy, a w rejonie poniewieskim (Panevėžio r.) tylko opakowania i szkło.",
+    "locationVilniusCity": "Miasta Wilna nie obejmujemy, tylko rejon wileński (Vilniaus r.)."
   },
   "select": {
     "title": "{{kind}}: Twoja miejscowość",

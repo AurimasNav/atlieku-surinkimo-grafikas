@@ -147,6 +147,13 @@ it('says that Klaipėda city is not covered', async () => {
   expect(await screen.findByText(i18n.t('setup.locationKlaipedaCity'))).toBeOnTheScreen();
 });
 
+it('says that Vilnius city is not covered', async () => {
+  await renderRouter(routes, { initialUrl: '/setup/location' });
+  await search('Vilnius');
+  expect(await screen.findByText(i18n.t('setup.locationVilniusCity'))).toBeOnTheScreen();
+  expect(screen.queryByText(i18n.t('setup.locationNone', { areas: i18n.t('coverage.areas') }))).toBeNull();
+});
+
 it('says that Šiauliai city is not covered above a village of that name', async () => {
   // A village of Jurbarko r. is called Šiauliai.
   const village = { id: 'g1', name: 'Šiauliai', type: 'k.', district: 'Veliuonos', provider: 'jurbarkas' };

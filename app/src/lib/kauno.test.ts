@@ -260,6 +260,18 @@ describe('a search for Kaunas city', () => {
   });
 });
 
+describe('a search for Vilnius city', () => {
+  it('is recognised, and is not the district', () => {
+    for (const query of ['Vilnius', 'vilnius', 'Vilniaus m.', 'Vilniaus miestas', 'Vilniaus miesto sav.', 'Vilniuje', 'Wilno', 'Вильнюс']) {
+      expect([query, uncoveredCitySearch(query)]).toEqual([query, 'vilnius']);
+    }
+    // "Vilniaus" alone is also the start of the district's name.
+    for (const query of ['Vilniaus r.', 'Vilnius district', 'Vilniaus rajonas', 'Vilniaus', 'Nemenčinė', 'Riešė']) {
+      expect([query, uncoveredCitySearch(query)]).toEqual([query, undefined]);
+    }
+  });
+});
+
 describe('a search for Klaipėda city', () => {
   it('is recognised, and is not the district', () => {
     for (const query of ['Klaipėda', 'klaipeda', 'Klaipėdos m.', 'Klaipėdos miestas', 'Klaipėdoje', 'Kłajpeda', 'Клайпеда']) {
