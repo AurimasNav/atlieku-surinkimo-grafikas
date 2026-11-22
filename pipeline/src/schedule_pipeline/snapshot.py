@@ -163,6 +163,10 @@ KEDAINIAI_COPY_DIR = DATA_DIR / "schedules-kedainiu-r"
 MOLETAI_MUNICIPALITY = ("Molėtų rajono", 62)
 MOLETAI_REGISTRY_FILE = DATA_DIR / "registry-moletu-r.json"
 MOLETAI_ADDRESSES_FILE = DATA_DIR / "address-points-moletu-r.json"
+# Skuodo r. (schedule_pipeline.skuodas).
+SKUODAS_MUNICIPALITY = ("Skuodo rajono", 75)
+SKUODAS_REGISTRY_FILE = DATA_DIR / "registry-skuodo-r.json"
+SKUODAS_ADDRESSES_FILE = DATA_DIR / "address-points-skuodo-r.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -377,6 +381,7 @@ def main() -> int:
             KEDAINIAI_ADDRESSES_FILE,
         ),
         ("Molėtų r.", MOLETAI_MUNICIPALITY, MOLETAI_REGISTRY_FILE, MOLETAI_ADDRESSES_FILE),
+        ("Skuodo r.", SKUODAS_MUNICIPALITY, SKUODAS_REGISTRY_FILE, SKUODAS_ADDRESSES_FILE),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)

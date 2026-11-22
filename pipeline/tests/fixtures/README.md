@@ -164,6 +164,13 @@ downloaded on 2026-11-21 and renamed after their elderships: `alantos.pdf` is
 grafikas.pdf", `moletu-m.pdf` "2026_MOLETU_MIESTAS_(1).pdf" (the town) and so on
 (`test_moletai.COPIES`). With the Address Register extract for Molėtų r. of the same day.
 
+`skuodas/` has the schedule page of Skuodo rajono savivaldybė (Skuodo r.) at
+<https://skuodas.lt/atlieku-tvarkymas-ir-surinkimo-grafikai-2025-m/> and the 2026 spreadsheets
+it links, downloaded on 2026-11-21 and renamed: `misrios-2026.xls` is "cia-1.xls" (mixed waste,
+a legacy Excel workbook), `pakuotes-2026.xlsx` "cia.xlsx" (packaging) and `stiklo-2026.xlsx`
+"cia-2.xlsx" (glass) (`test_skuodas.COPIES`). With the Address Register extract for Skuodo r. of
+the same day.
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 
