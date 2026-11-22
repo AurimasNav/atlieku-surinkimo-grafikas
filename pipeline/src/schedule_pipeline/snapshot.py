@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import traceback
 from collections.abc import Callable, Collection
@@ -203,6 +204,10 @@ SIRVINTOS_ADDRESSES_FILE = DATA_DIR / "address-points-sirvintu-r.json"
 # A copy of the Širvintų r. pages and the files they link: sirvintos.lt refuses GitHub's runners
 # (HTTP 403) too (sirvintos.save_copy).
 SIRVINTOS_COPY_DIR = DATA_DIR / "schedules-sirvintu-r"
+# Kupiškio r. (schedule_pipeline.kupiskis).
+KUPISKIS_MUNICIPALITY = ("Kupiškio rajono", 57)
+KUPISKIS_REGISTRY_FILE = DATA_DIR / "registry-kupiskio-r.json"
+KUPISKIS_ADDRESSES_FILE = DATA_DIR / "address-points-kupiskio-r.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -264,6 +269,15 @@ def utc_today() -> date:
 # the last part of their URLs, and this index with when it was taken, the page's URL and the
 # files' names.
 SITE_COPY_INDEX = "copy.json"
+# A Google API key in a site's markup (a WordPress theme's Maps key, as kupkom.lt's): the
+# publisher's browser key, but no secret scanner can tell, and the daily refresh commits the
+# copies unattended. Saved pages have it replaced (redact).
+GOOGLE_API_KEY = re.compile(rb"AIza[0-9A-Za-z_-]{35}")
+
+
+def redact(markup: bytes) -> bytes:
+    """A page with the Google API keys in it replaced by "AIza_REDACTED"."""
+    return GOOGLE_API_KEY.sub(b"AIza_REDACTED", markup)
 
 
 def _copy_name(url: str) -> str:
@@ -283,7 +297,8 @@ def save_site_copy(
     is left as it is, takenAt included, and the result is False: a page whose markup changed
     but whose schedule files didn't is no change, so the daily refresh opens no PR for it.
     `other_pages` are URLs among `files` that are pages too (sirvintos keeps a second page as
-    a file): like the page, their content alone is no change."""
+    a file): like the page, their content alone is no change. The pages are saved redacted
+    (redact): the parsers don't read the keys."""
     contents = {_copy_name(url): content for url, content in files}
     markup = {_copy_name(url) for url in other_pages}
     if _same_copy(folder, page, contents, markup):
@@ -291,9 +306,10 @@ def save_site_copy(
     folder.mkdir(parents=True, exist_ok=True)
     for old in folder.iterdir():
         old.unlink()
-    (folder / "page.html").write_bytes(html)
+    (folder / "page.html").write_bytes(redact(html))
     for url, content in files:
-        (folder / _copy_name(url)).write_bytes(content)
+        name = _copy_name(url)
+        (folder / name).write_bytes(redact(content) if name in markup else content)
     index = {"takenAt": today.isoformat(), "page": page, "files": [_copy_name(u) for u, _ in files]}
     (folder / SITE_COPY_INDEX).write_bytes((json.dumps(index, ensure_ascii=False) + "\n").encode())
     return True
@@ -508,6 +524,7 @@ def save_register() -> None:
             SIRVINTOS_REGISTRY_FILE,
             SIRVINTOS_ADDRESSES_FILE,
         ),
+        ("Kupiškio r.", KUPISKIS_MUNICIPALITY, KUPISKIS_REGISTRY_FILE, KUPISKIS_ADDRESSES_FILE),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)
