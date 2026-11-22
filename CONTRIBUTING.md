@@ -46,6 +46,8 @@ sirvintos.lt (pdf)                        Širvintų r.: site/sirvintu-r/ (from 
 kupkom.lt (html + pdf)                    Kupiškio r.: site/kupiskio-r/
 svencionys.lt (pdf)                       Švenčionių r.: site/svencioniu-r/ (from a copy in
                                           pipeline/data when the site refuses the runners)
+zarasai.lt (pdf; mixed waste a scan,      Zarasų r.: site/zarasu-r/ (from a copy in
+  transcribed in pipeline/data)           pipeline/data when the site refuses the runners)
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
 pipeline/   Python: scrape → parse → validate → schedule.json
@@ -90,10 +92,11 @@ uv run ruff check . && uv run ruff format .
 
 **Address Register snapshot and site copies.** get.data.gov.lt and registrucentras.lt block
 requests from cloud servers, including GitHub Actions, so the daily job falls back to the
-snapshot in `pipeline/data/`. silute.lt, kedainiai.lt, ukmerge.lt, sirvintos.lt and svencionys.lt
-refuse GitHub's runners too, so the job reads copies of their pages and schedule files in
-`pipeline/data/schedules-silutes-r/`, `schedules-kedainiu-r/`, `schedules-ukmerges-r/`,
-`schedules-sirvintu-r/` and `schedules-svencioniu-r/` (its build warning says how old they are).
+snapshot in `pipeline/data/`. silute.lt, kedainiai.lt, ukmerge.lt, sirvintos.lt, svencionys.lt
+and zarasai.lt refuse GitHub's runners too, so the job reads copies of their pages and schedule
+files in `pipeline/data/schedules-silutes-r/`, `schedules-kedainiu-r/`, `schedules-ukmerges-r/`,
+`schedules-sirvintu-r/`, `schedules-svencioniu-r/` and `schedules-zarasu-r/` (its build warning
+says how old they are).
 
 Both are refreshed automatically from the maintainer's cluster in Lithuania
 ([k8s-at-home](https://github.com/AurimasNav/k8s-at-home), `gitops/siuksliaveze-snapshot`): a
@@ -131,6 +134,37 @@ when you fix a mismatch.
 2. Add a failing test that shows the problem.
 3. Fix the parser. Keep it strict: an unrecognised cell should raise an error rather than be
    skipped silently, so mistakes never reach users.
+
+**When Zarasų r. publishes a new mixed waste scan.** Its mixed waste schedule is a scanned
+image of rules ("2-ą ir paskutinį mėnesio pirmadienį – Zarasų sen. Šaltupės g. …"), so it was
+transcribed by hand into `pipeline/data/rules-zarasu-r.json`, with the scan's address and
+SHA-256. When the page links a scan with another hash (the daily refresh of the site copies
+takes it into `pipeline/data/schedules-zarasu-r/`, as zarasai.lt refuses GitHub's runners), the
+daily build fails with "the published scan changed (new hash …); re-transcribe
+pipeline/data/rules-zarasu-r.json", the site keeps yesterday's Zarasų r. data and
+`ScheduleDataStale` fires the next day (docs/monitoring.md). To transcribe it again:
+
+1. Take the scan from the copy, `pipeline/data/schedules-zarasu-r/` (or download the one the
+   "Komunalinės atliekos" row of
+   <https://www.zarasai.lt/veiklos-sritys/aplinkos-apsauga/atlieku-tvarkymas/269> links) and
+   check that its SHA-256 (`sha256sum misriu.pdf`, or `Get-FileHash` in PowerShell) is the hash
+   in the error.
+2. Its pages are images: open it in a PDF viewer, zoomed in. In the JSON, set `url`, `sha256`
+   (lower case), the date it was approved (above the title) and `transcribed`, and write one
+   entry in `rules` per paragraph, in the scan's order: `rule` is its words as printed ("1-ą ir
+   3-ą mėnesio antradienį", "PIRMAS MĖN. PIRMADIENIS"), `weekday` and `weeks` what they mean
+   (-1 for "paskutinį", the last), and `places` the places after each eldership printed in bold,
+   split at commas, semicolons and "ir" between places, house numbers with the street or village
+   before them ("Aušros g. 7, 8, 10, 10A"). Keep the spellings as printed; the build reads them.
+   Check every line against the image again, and write down in the PR anything you can't read
+   instead of guessing.
+3. `uv run python -m schedule_pipeline.zarasai --out ../site/zarasu-r` builds the folder. Its
+   warnings list the places the Address Register doesn't have: look each one up in the scan
+   again (a misread letter, or the publisher's spelling: then an alias in `zarasai.PROVIDER`).
+   The build is strict: words of a rule it doesn't understand, a weekday or weeks that don't
+   match them, or a place of no known kind fail it.
+4. `uv run pytest tests/test_zarasai.py` pins places and counts of the old scan: update them
+   to what the new one says, then open a PR. The day it is merged, the site gets the new rules.
 
 **Panevėžio r.'s mixed waste: re-transcribing its notes.** Panevėžio RATC publishes it as a
 Word document (.doc) of routes, some with notes in free words under them ("Vietoje 2026m.

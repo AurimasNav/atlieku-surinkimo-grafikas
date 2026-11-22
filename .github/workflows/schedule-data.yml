@@ -1,6 +1,6 @@
 name: Schedule data
 
-# Scrapes nemenkom.lt, nkom.lt, Kauno švara, tratc.lt, gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt, ecoservice.lt, kedainiai.lt, moletusvara.lt, skuodas.lt, ukmerge.lt, anykom.lt, utenoskom.lt, kompata.lt, eku.lt, sirvintos.lt, kupkom.lt and svencionys.lt daily and
+# Scrapes nemenkom.lt, nkom.lt, Kauno švara, tratc.lt, gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt, ecoservice.lt, kedainiai.lt, moletusvara.lt, skuodas.lt, ukmerge.lt, anykom.lt, utenoskom.lt, kompata.lt, eku.lt, sirvintos.lt, kupkom.lt, svencionys.lt and zarasai.lt daily and
 # publishes the data + the privacy policy to GitHub Pages. If parsing or validation fails, nothing is deployed and the last good
 # data stays live; a provider whose build fails keeps its part of yesterday's data instead.
 on:
@@ -635,6 +635,32 @@ jobs:
             echo "::warning::The Švenčionių r. build failed and there is no published data to keep."
           else
             echo "::error::The Švenčionių r. build failed and the published data couldn't be downloaded (HTTP $code)."
+            exit 1
+          fi
+      # Zarasų r., from the municipality's page or, as zarasai.lt refuses the runners, its copy
+      # in pipeline/data: mixed waste from the transcription of its scan while the scan's hash is
+      # the same, packaging and glass from a PDF (site/zarasu-r). If today's build fails (a
+      # changed scan), yesterday's files are kept.
+      - name: Build the Zarasų r. schedule (Zarasų rajono savivaldybė)
+        id: zarasai
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: uv run python -m schedule_pipeline.zarasai --out ../site/zarasu-r
+      - name: Keep the published Zarasų r. data if today's build failed
+        if: steps.zarasai.outcome == 'failure'
+        run: |
+          base=https://aurimasnav.github.io/atlieku-surinkimo-grafikas/zarasu-r
+          out=../site/zarasu-r
+          rm -rf "$out" && mkdir -p "$out"
+          get() { curl -sS --retry 3 --max-time 120 -o "$out/$1" -w '%{http_code}' "$base/$1" || true; }
+          code=$(get schedule.json)
+          if [ "$code" = 200 ] && [ "$(get addresses.json)" = 200 ]; then
+            echo "::warning::The Zarasų r. build failed; yesterday's published data is kept."
+          elif [ "$code" = 404 ]; then
+            rm -rf "$out"
+            echo "::warning::The Zarasų r. build failed and there is no published data to keep."
+          else
+            echo "::error::The Zarasų r. build failed and the published data couldn't be downloaded (HTTP $code)."
             exit 1
           fi
       # status.json and metrics.txt for monitoring (docs/monitoring.md).

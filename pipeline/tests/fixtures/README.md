@@ -250,6 +250,14 @@ waste rules) and `pakuotes-2026.pdf` "Pakuociu-atlieku-isvezimo-grafikai_2026.pd
 glass, 2026) (`test_svencionys.COPIES`). With the Address Register extract for Švenčionių r. of
 the same day.
 
+`zarasai/` has the waste page of the Zarasų r. municipality
+(<https://www.zarasai.lt/veiklos-sritys/aplinkos-apsauga/atlieku-tvarkymas/269>) and
+`pakuotes-2026.pdf`, the packaging and glass PDF it links
+("pakuociu-ir-antriniu-zaliavu-isvezimo-is-ind.-valdu-grafikas_2026.pdf"), downloaded on
+2026-11-22, with the Address Register extract for Zarasų r. of the same day. The mixed waste scan
+("misriu.pdf", 1.4 MB of images) isn't kept: `test_zarasai` reads the committed transcription in
+`pipeline/data/rules-zarasu-r.json` with the hash of a few test bytes in place of the scan's.
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 

@@ -1,0 +1,755 @@
+{
+  "url": "https://www.zarasai.lt/data/public/uploads/2026/03/misriu.pdf",
+  "sha256": "c62a6642851ca1074b7d0edefe30230b0677bfc5be98da71cb3ed916d1722575",
+  "title": "UAB „Zarasų būstas“ ZARASŲ RAJ. MIŠRIŲ KOMUNALINIŲ ATLIEKŲ IŠVEŽIMO GRAFIKAS 2026 m.",
+  "approved": "2026-02-23",
+  "transcribed": "2026-11-22",
+  "notes": [
+    "A transcription of the scan (3 pages, no text layer) that the municipality's page links as the mixed waste schedule; schedule_pipeline.zarasai reads it while the scan's SHA-256 is this one.",
+    "A rule per paragraph of the scan, in its order: its words as printed ('rule'), the weekday and the weeks of the month they give (-1: the last), and the places after each eldership printed in bold.",
+    "Places are split at the scan's commas and semicolons and at 'ir' between places; house numbers stay with the street or village before them. Spellings are as printed ('Veselavos k' without its dot, '1-ą i 3-ą'); the full stop after the last place of a paragraph is left out."
+  ],
+  "rules": [
+    {
+      "rule": "2-ą ir paskutinį mėnesio pirmadienį",
+      "weekday": "pirmadienis",
+      "weeks": [2, -1],
+      "places": [
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Šaltupės g. nuo 66 nr. iki 70 nr.",
+            "Magutiškių vs.",
+            "Statybininkų g.",
+            "Valstiečių g.",
+            "Igno Pašilio g.",
+            "Kauno g. nuo 44 nr. iki 90 nr."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "1-ą mėnesio pirmadienį",
+      "weekday": "pirmadienis",
+      "weeks": [1],
+      "places": [
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Sarokiškio k.",
+            "Apkartų I k.",
+            "Gulbinės k.",
+            "Sasnaukos k.",
+            "Gaideliškių k.",
+            "Juodalaukių k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "1-ą ir 3-ą mėnesio antradienį",
+      "weekday": "antradienis",
+      "weeks": [1, 3],
+      "places": [
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Aušros skg. 1,3,5,7",
+            "Aušros g. 7, 8, 10, 10A, 11, 12,13, 14,16",
+            "K. Būgos g.",
+            "Bažnyčios g.",
+            "Pušyno g.",
+            "Turmanto g."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "2-ą mėnesio antradienį",
+      "weekday": "antradienis",
+      "weeks": [2],
+      "places": [
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Dimitriškių k.",
+            "Liaudiškių k.",
+            "Laukesos k.",
+            "Smėlynės k.",
+            "Žalmedžių k.",
+            "Baraukos k.",
+            "Kizirniškių k.",
+            "Jurasiškių k.",
+            "Riešutinės I k.",
+            "Kikiškių k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "1-ą mėnesio trečiadienį",
+      "weekday": "trečiadienis",
+      "weeks": [1],
+      "places": [
+        {
+          "eldership": "Dusetų",
+          "places": [
+            "Dusetų vs.",
+            "Padustėlio k. Vytauto Striogos g. 1, 2, 3, 4, 5, 7, 9, 11 ir 15 nr.",
+            "Užtiltės k.",
+            "Didžiadvario k.",
+            "Gipėnų k.",
+            "Velikuškių k.",
+            "Zaduojos k.",
+            "Pasartės k.",
+            "Jaskoniškių k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "1-ą ir 3-ą mėnesio trečiadienį",
+      "weekday": "trečiadienis",
+      "weeks": [1, 3],
+      "places": [
+        {
+          "eldership": "Dusetų",
+          "places": [
+            "Dusetų m."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "2-ą mėnesio trečiadienį",
+      "weekday": "trečiadienis",
+      "weeks": [2],
+      "places": [
+        {
+          "eldership": "Dusetų",
+          "places": [
+            "Pakniškių k.",
+            "Brogiškės k.",
+            "Pažiegės k.",
+            "Eivenių k.",
+            "Davainių k.",
+            "Likančių k. 1, 2",
+            "Vosgėlių k.",
+            "Bileišių k.",
+            "Kavolių k.",
+            "Kalbutiškių k.",
+            "Didžiadvario k.",
+            "Pasartės g. 1, 3, 5"
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "3-ą mėnesio trečiadienį",
+      "weekday": "trečiadienis",
+      "weeks": [3],
+      "places": [
+        {
+          "eldership": "Dusetų",
+          "places": [
+            "Padustėlio k. Alyvų g.",
+            "Beržų g.",
+            "Pušų g.",
+            "Šilo g.",
+            "Upės g.",
+            "Gasių g.",
+            "Pievų g.",
+            "Vytauto Striogos g. 6, 8, 10, 12 nr. ir nuo 17 nr. iki 47 nr.",
+            "Dikmonių k.",
+            "Lungelių k.",
+            "Plisiškių k.",
+            "Piliakalnio k.",
+            "Vainiūnų k.",
+            "Žukliškių k.",
+            "Marciūniškių k.",
+            "Smilgės k.",
+            "Vabolių k.",
+            "Morkūnų k.",
+            "Indučių k.",
+            "Savičiūnų k.",
+            "Šaltamalkių k.",
+            "Sirotiškių k.",
+            "Kuikių k.",
+            "Vencavų k.",
+            "Vencavo g. 8",
+            "Malūno g. 2,6,8",
+            "Baltriškių k.",
+            "Jakunčių k. 1, 2, 3, 4, 6, 7"
+          ]
+        },
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Grybiškių k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "4-ą mėnesio trečiadienį",
+      "weekday": "trečiadienis",
+      "weeks": [4],
+      "places": [
+        {
+          "eldership": "Dusetų",
+          "places": [
+            "Butkelių k. 9, 6, 4, 3",
+            "Jasų k. 5"
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "Paskutinį mėn. trečiadienį",
+      "weekday": "trečiadienis",
+      "weeks": [-1],
+      "places": [
+        {
+          "eldership": "Dusetų",
+          "places": [
+            "Užtiltės k. Vasaknų g. 12, 14, 24, 26, 30",
+            "Vasaknų k.",
+            "Siratavos k. 6, 7",
+            "Drageliškių k.",
+            "Brogiškių k. Indrajos g. 11,13,17,19,20",
+            "Šlapių k.",
+            "Eivenių k. 10,7",
+            "Garmuliškio k.",
+            "Jurkiškių k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "1-ą i 3-ą mėnesio ketvirtadienį",
+      "weekday": "ketvirtadienis",
+      "weeks": [1, 3],
+      "places": [
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Jauneikių g.",
+            "Petro Cvirkos g.",
+            "Fausto Kiršos g.",
+            "Vilniaus g. nuo Salos g. iki Vytauto g. sankryžos"
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "2-ą ir paskutinį mėnesio ketvirtadienį",
+      "weekday": "ketvirtadienis",
+      "weeks": [2, -1],
+      "places": [
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Palaukės g.",
+            "Juozo Gruodžio g. 21, 23, 23A, 25, 44, 48, 50, 52, 54, 56, 60",
+            "Žemaitės g.",
+            "Kauno skg.",
+            "Kauno g. 26, 28, 30, 32, 34, 38, 40, 43, 43A",
+            "Žaliosios g.",
+            "Savanorių g."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "2-ą ir paskutinį mėnesio penktadienį",
+      "weekday": "penktadienis",
+      "weeks": [2, -1],
+      "places": [
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Bajorų g.",
+            "Smėlynės g.",
+            "Aukštaičių g.",
+            "Birutės g.",
+            "Dariaus ir Girėno g.",
+            "D. Bukonto g.",
+            "Griežto g.",
+            "Juozo Gruodžio g. nuo Žemaitės g. iki Dariaus ir Girėno g. sankryžos",
+            "Malūno g.",
+            "Pakalnės g.",
+            "E. Pliaterytės g.",
+            "Sinagogos g.",
+            "Šaltupės g.",
+            "Šaltupės skg.",
+            "Šiaulių g.",
+            "Taikos g.",
+            "Vytauto g.",
+            "Vilniaus g. nuo Vytauto g. iki K. Būgos g. sankryžos",
+            "Zarasų g.",
+            "Kauno g. išskyrus nurodytus ketvirtadienį ir pirmadienį"
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "1-ą ir 3-ą mėnesio penktadienį",
+      "weekday": "penktadienis",
+      "weeks": [1, 3],
+      "places": [
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "K. Donelaičio g.",
+            "K. Donelaičio skg.",
+            "Žemaitės skg."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "1-ą mėnesio penktadienį",
+      "weekday": "penktadienis",
+      "weeks": [1],
+      "places": [
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Vosyliškio k.",
+            "Palazdinės k.",
+            "Purveliškių k.",
+            "Raudondvario k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "PIRMAS MĖN. PIRMADIENIS",
+      "weekday": "pirmadienis",
+      "weeks": [1],
+      "places": [
+        {
+          "eldership": "Imbrado",
+          "places": [
+            "Avilių mstl.",
+            "Kuklių k.",
+            "Petrauciškių k.",
+            "Grumbinų II k.",
+            "Midolkų k. 2",
+            "Smėlių k.",
+            "Kelpšiškių k.",
+            "Maniuliškių k."
+          ]
+        },
+        {
+          "eldership": "Dusetų",
+          "places": [
+            "Antazavės mstl.",
+            "Ivoniškių k.",
+            "Dervinių k.",
+            "Rokėnų k.",
+            "Dumblynės k.",
+            "Pakerių k.",
+            "Ilgašilio k.",
+            "Butiškių k.",
+            "Sviliškių k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "PIRMAS MĖN. ANTRADIENIS",
+      "weekday": "antradienis",
+      "weeks": [1],
+      "places": [
+        {
+          "eldership": "Turmanto",
+          "places": [
+            "Turmanto mstl.",
+            "Kimbartiškių k.",
+            "Tilžės k.",
+            "Lupenkos k.",
+            "Martyniškių k.",
+            "Bogdoniškių k.",
+            "Bartkiškių k.",
+            "Kamariškės k.",
+            "Šakių k.",
+            "Čepukiškių k.",
+            "Kumpuočių k.",
+            "Zvaniškių k.",
+            "Galiniškių II k.",
+            "Degutiškių k.",
+            "Dulkiškės k.",
+            "Barteliškės k.",
+            "Veselavos k",
+            "Padrūkšės k.",
+            "Girvydiškės k.",
+            "Skirnų k.",
+            "Mištautų k. 1",
+            "Burnių k."
+          ]
+        },
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Rėpkos k.",
+            "Girvydiškių k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "ANTRAS MĖN. ANTRADIENIS",
+      "weekday": "antradienis",
+      "weeks": [2],
+      "places": [
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Dukiškių k.",
+            "Magučių k.",
+            "Bernotiškių k.",
+            "Apidemiškių k.",
+            "Šaulių I k.",
+            "Rusteikių k.",
+            "Petrūniškių k.",
+            "Kopūstinės k.",
+            "Jakštiškių k.",
+            "Minaukos k.",
+            "Bachmatų k.",
+            "Meldutiškių I k.",
+            "Lengveniškių k.",
+            "Berčiūnų k.",
+            "Zakoniškio k.",
+            "Grebeniškių k.",
+            "Štadvilių k.",
+            "Sniegiškių k.",
+            "Tirylių k.",
+            "Nadūnų k.",
+            "Šlyninkos k.",
+            "Ditkūnų k.",
+            "Gružtų k.",
+            "Liepkalnio k.",
+            "Šukiškių k.",
+            "Girsių k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "TREČIAS MĖN. ANTRADIENIS",
+      "weekday": "antradienis",
+      "weeks": [3],
+      "places": [
+        {
+          "eldership": "Imbrado",
+          "places": [
+            "Zablatiškių k.",
+            "Julijanavos k.",
+            "Karčiomkos k.",
+            "Šeštokiškių k.",
+            "Neišeriškių k.",
+            "Stumbrinių vs.",
+            "Čepelaukos vs.",
+            "Kirilaukos vs.",
+            "Feklistaukos k.",
+            "Prekeliškių k.",
+            "Laužadžių k.",
+            "Adomaukos vs.",
+            "Ragaukos vs.",
+            "Kiečių k.",
+            "Jancavos vs.",
+            "Stelmužės k.",
+            "Martyniškių vs.",
+            "Kiviškių k. Suvieko kel. 21, 22",
+            "Kartašovkos vs. Suvieko k.",
+            "Katkuškių k.",
+            "Anupriškio k.",
+            "Novinkų vs.",
+            "Balčiūniškių k. 1, 2",
+            "Boleslavovos k.",
+            "Konecpolio k.",
+            "Meiriškėlių k.",
+            "Rudėnų k.",
+            "Ažvertiniškių k.",
+            "Mironiškio k.",
+            "Dagilių k.",
+            "Paupinės k.",
+            "Patiltinių k.",
+            "Raudinės k.",
+            "Grybinės k. 15,16"
+          ]
+        },
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Tamuliškio vs. 1",
+            "Medeikiškių k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "PIRMAS MĖN. TREČIADIENIS",
+      "weekday": "trečiadienis",
+      "weeks": [1],
+      "places": [
+        {
+          "eldership": "Salako",
+          "places": [
+            "Salako mstl.",
+            "Luodkų k.",
+            "Luodžių k.",
+            "Paluodės k.",
+            "Zarkiškių k.",
+            "Bikėnų k.",
+            "Nečeskų k.",
+            "Sabalunkų k.",
+            "Avinuostos k.",
+            "Rudakiškės k. 2, 5, 6, 8, 9, 10",
+            "Gruodiškės k.",
+            "Aštrakalnio k.",
+            "Vajasiškio k.",
+            "Dundulių k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "ANTRAS MĖN. TREČIADIENIS",
+      "weekday": "trečiadienis",
+      "weeks": [2],
+      "places": [
+        {
+          "eldership": "Turmanto",
+          "places": [
+            "Smalvų k.",
+            "Salos k.",
+            "Santupių k.",
+            "Pakalniškių k. 6",
+            "Kirkliškių k.",
+            "Avižinės k.",
+            "Rotuliškių k.",
+            "Rutiniškio k.",
+            "Kalniškių k.",
+            "Samsanavo k.",
+            "Gailiutiškės vs.",
+            "Antaniškio k."
+          ]
+        },
+        {
+          "eldership": "Salako",
+          "places": [
+            "Biržūnų k.",
+            "Tiltiškių k.",
+            "Kiemionių k.",
+            "Polivarko k.",
+            "Rudakiškės k. 1, 3, 4",
+            "Giteniškės k.",
+            "Grybiškės k.",
+            "Čigoniškės k.",
+            "Pakerniškių k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "TREČIAS MĖN. TREČIADIENIS",
+      "weekday": "trečiadienis",
+      "weeks": [3],
+      "places": [
+        {
+          "eldership": "Salako",
+          "places": [
+            "Murliškių k.",
+            "Daneikių k.",
+            "Ignalinos k.",
+            "Krūminių k.",
+            "Šiukščių k.",
+            "Galminių k.",
+            "Baibių k.",
+            "Jureliškio k."
+          ]
+        },
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Degučių k.",
+            "Šiliniškių k.",
+            "Šunelės k.",
+            "Asavytų k.",
+            "Liminiškių k.",
+            "Narsūniškių k. 2, 6",
+            "Matuikiškių k.",
+            "Raistiniškių k."
+          ]
+        },
+        {
+          "eldership": "Dusetų",
+          "places": [
+            "Pažemio k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "PIRMAS MĖN. KETVIRTADIENIS",
+      "weekday": "ketvirtadienis",
+      "weeks": [1],
+      "places": [
+        {
+          "eldership": "Dusetų",
+          "places": [
+            "Antalieptės mstl.",
+            "Purvynės k.",
+            "Kaniūkų k.",
+            "Zabičiūnų k.",
+            "Veleikių k.",
+            "Padusčio k.",
+            "Maderų k.",
+            "Kimbariškio II k.",
+            "Guntulių k.",
+            "Naršėnų k.",
+            "Šilinės k.",
+            "Gaspariškių k.",
+            "Pociškių k.",
+            "Gaidelių k.",
+            "Gutaučių k.",
+            "Kunotų k.",
+            "Vencavų k. Vencavo g. 13, 19, 23, 25",
+            "Jakunčių k. 8, 9, 10"
+          ]
+        },
+        {
+          "eldership": "Salako",
+          "places": [
+            "Dulių k.",
+            "Šalinėnų k."
+          ]
+        },
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Gudelių k.",
+            "Rapkaučiznos k.",
+            "Vaikučių k.",
+            "Mukulių k.",
+            "Lokių k.",
+            "Žandariškių k.",
+            "Pasiekų vs.",
+            "Šukiškių k.",
+            "Ežero g. 7, 5, 9, 11, 2A"
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "ANTRAS MĖN. KETVIRTADIENIS",
+      "weekday": "ketvirtadienis",
+      "weeks": [2],
+      "places": [
+        {
+          "eldership": "Imbrado",
+          "places": [
+            "Imbrado k.",
+            "Milžinų k.",
+            "Rutuliškių k.",
+            "Žagarių k.",
+            "Bakaleriškio k.",
+            "Novinkų k.",
+            "Briedlaukio k.",
+            "Smėlių k. 3,11",
+            "Ropiškių k.",
+            "Antaniškių k.",
+            "Zagurnų k.",
+            "Kamšos k."
+          ]
+        },
+        {
+          "eldership": "Dusetų",
+          "places": [
+            "Sadūnų k.",
+            "Jodaugių k.",
+            "Narkyčių k.",
+            "Merkių k.",
+            "Peškaitiškių k."
+          ]
+        },
+        {
+          "eldership": "Zarasų",
+          "places": [
+            "Avilių k.",
+            "Maršoniškių k.",
+            "Kamionkos vs.",
+            "Brastos vs.",
+            "Petkūnų k.",
+            "Šaulių k. Vilties g.",
+            "Zablatiškių k.",
+            "Mozūrų k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "TREČIAS MĖN. KETVIRTADIENIS",
+      "weekday": "ketvirtadienis",
+      "weeks": [3],
+      "places": [
+        {
+          "eldership": "Turmanto",
+          "places": [
+            "Ilgiškės k. 2",
+            "Rataniškių k.",
+            "Vyšniaukos k.",
+            "Vilenkos k.",
+            "Kumpuočių k. 18, 17, 14",
+            "Stačiūnų k.",
+            "Križovkos k.",
+            "Kamariškių g."
+          ]
+        },
+        {
+          "eldership": "Salako",
+          "places": [
+            "Drobiškių k.",
+            "Aželių k.",
+            "Pratkūnų k.",
+            "Tolimėnų k.",
+            "Vyželių k.",
+            "Balinių k.",
+            "Trinkuškių k. 2, 6",
+            "Kloviškių k.",
+            "Senųjų Baibių g.",
+            "Baibių k."
+          ]
+        }
+      ]
+    },
+    {
+      "rule": "PIRMAS MĖN. PENKTADIENIS",
+      "weekday": "penktadienis",
+      "weeks": [1],
+      "places": [
+        {
+          "eldership": "Imbrado",
+          "places": [
+            "Kiviškių k.",
+            "Raginės k.",
+            "Grybinės k.",
+            "Bikūnų k.",
+            "Samanių k.",
+            "Vaidminių k.",
+            "Kumpuolių k.",
+            "Šniukštų k.",
+            "Bugų k.",
+            "Didėjos k.",
+            "Vėdarių k.",
+            "Astraučiznos k.",
+            "Čičirių k.",
+            "Bakučių k."
+          ]
+        }
+      ]
+    }
+  ]
+}
