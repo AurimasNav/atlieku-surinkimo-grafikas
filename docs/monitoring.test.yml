@@ -121,6 +121,9 @@ tests:
       # Molėtų r.'s mixed waste.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="moletai",kind="household"}'
         values: "518400x20"
+      # Skuodo r.'s yearly mixed waste.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="skuodas",kind="household"}'
+        values: "518400x20"
       # Ukmergės r.'s packaging of January-May or June-December: ends in 6 days, and the
       # next period's files reach the site only with a refresh of its copy.
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ukmerge",kind="packaging"}'
@@ -213,6 +216,9 @@ tests:
         values: "86400x20"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="moletai",kind="green"}'
         values: "172800x20"
+      # Skuodo r. glass (five times a year, last in early December): not watched.
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="skuodas",kind="glass"}'
+        values: "86400x20"
       # Ukmergės r.: its mixed waste 10 days before its end raises nothing, nor does its glass
       # (once or twice a period, weeks before its end).
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ukmerge",kind="household"}'
@@ -388,6 +394,13 @@ tests:
               summary: "moletai: the household schedule ends within a week"
           - exp_labels:
               job: siuksliaveze-data
+              source: skuodas
+              kind: household
+              severity: warning
+            exp_annotations:
+              summary: "skuodas: the household schedule ends within a week"
+          - exp_labels:
+              job: siuksliaveze-data
               source: ukmerge
               kind: packaging
               severity: warning
@@ -494,6 +507,8 @@ tests:
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="trakai",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="moletai",kind="packaging"}'
+        values: "25920000x191"
+      - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="skuodas",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="ukmerge",kind="household"}'
         values: "25920000x191"

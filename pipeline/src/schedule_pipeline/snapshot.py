@@ -163,6 +163,10 @@ KEDAINIAI_COPY_DIR = DATA_DIR / "schedules-kedainiu-r"
 MOLETAI_MUNICIPALITY = ("Molėtų rajono", 62)
 MOLETAI_REGISTRY_FILE = DATA_DIR / "registry-moletu-r.json"
 MOLETAI_ADDRESSES_FILE = DATA_DIR / "address-points-moletu-r.json"
+# Skuodo r. (schedule_pipeline.skuodas).
+SKUODAS_MUNICIPALITY = ("Skuodo rajono", 75)
+SKUODAS_REGISTRY_FILE = DATA_DIR / "registry-skuodo-r.json"
+SKUODAS_ADDRESSES_FILE = DATA_DIR / "address-points-skuodo-r.json"
 # Ukmergės r. (schedule_pipeline.ukmerge).
 UKMERGE_MUNICIPALITY = ("Ukmergės rajono", 81)
 UKMERGE_REGISTRY_FILE = DATA_DIR / "registry-ukmerges-r.json"
@@ -384,6 +388,7 @@ def main() -> int:
             KEDAINIAI_ADDRESSES_FILE,
         ),
         ("Molėtų r.", MOLETAI_MUNICIPALITY, MOLETAI_REGISTRY_FILE, MOLETAI_ADDRESSES_FILE),
+        ("Skuodo r.", SKUODAS_MUNICIPALITY, SKUODAS_REGISTRY_FILE, SKUODAS_ADDRESSES_FILE),
         ("Ukmergės r.", UKMERGE_MUNICIPALITY, UKMERGE_REGISTRY_FILE, UKMERGE_ADDRESSES_FILE),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)

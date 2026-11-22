@@ -33,6 +33,7 @@ ecoservice.lt (pdf)                       Trakų r., Šalčininkų r.: site/ecos
 kedainiai.lt (docx, pdf)                  Kėdainių r.: site/kedainiu-r/ (from a copy in
                                           pipeline/data when the site refuses the runners)
 moletusvara.lt (pdf)                      Molėtų r.: site/moletu-r/
+skuodas.lt (xls + xlsx)                   Skuodo r.: site/skuodo-r/
 ukmerge.lt (pdf)                          Ukmergės r.: site/ukmerges-r/ (from a copy in
                                           pipeline/data when the site refuses the runners)
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
