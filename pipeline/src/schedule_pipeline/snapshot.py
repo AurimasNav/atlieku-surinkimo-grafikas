@@ -174,6 +174,10 @@ UKMERGE_ADDRESSES_FILE = DATA_DIR / "address-points-ukmerges-r.json"
 # A copy of the Ukmergės r. page and the files it links: ukmerge.lt refuses GitHub's runners
 # (HTTP 403) too (ukmerge.save_copy).
 UKMERGE_COPY_DIR = DATA_DIR / "schedules-ukmerges-r"
+# Elektrėnų sav. (schedule_pipeline.elektrenai).
+ELEKTRENAI_MUNICIPALITY = ("Elektrėnų", 42)
+ELEKTRENAI_REGISTRY_FILE = DATA_DIR / "registry-elektrenu-sav.json"
+ELEKTRENAI_ADDRESSES_FILE = DATA_DIR / "address-points-elektrenu-sav.json"
 # Older than this, the job summary asks for a refresh (the build still succeeds).
 MAX_AGE_DAYS = 60
 
@@ -390,6 +394,12 @@ def main() -> int:
         ("Molėtų r.", MOLETAI_MUNICIPALITY, MOLETAI_REGISTRY_FILE, MOLETAI_ADDRESSES_FILE),
         ("Skuodo r.", SKUODAS_MUNICIPALITY, SKUODAS_REGISTRY_FILE, SKUODAS_ADDRESSES_FILE),
         ("Ukmergės r.", UKMERGE_MUNICIPALITY, UKMERGE_REGISTRY_FILE, UKMERGE_ADDRESSES_FILE),
+        (
+            "Elektrėnų sav.",
+            ELEKTRENAI_MUNICIPALITY,
+            ELEKTRENAI_REGISTRY_FILE,
+            ELEKTRENAI_ADDRESSES_FILE,
+        ),
     ):
         registry, points = address_register.fetch(name), address_points.fetch(code)
         save(registry, points, registry_file, addresses_file)

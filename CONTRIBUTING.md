@@ -36,6 +36,7 @@ moletusvara.lt (pdf)                      Molėtų r.: site/moletu-r/
 skuodas.lt (xls + xlsx)                   Skuodo r.: site/skuodo-r/
 ukmerge.lt (pdf)                          Ukmergės r.: site/ukmerges-r/ (from a copy in
                                           pipeline/data when the site refuses the runners)
+eku.lt (html)                             Elektrėnų sav.: site/elektrenu-sav/
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
 pipeline/   Python: scrape → parse → validate → schedule.json

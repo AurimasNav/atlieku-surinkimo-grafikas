@@ -10,7 +10,7 @@ Users see it too: when the data of the company behind their schedule hasn't been
 days (`providers[].generatedAt`, or Kauno švara's `generatedAt`), the app shows a warning with a
 link to the company's official schedule (`app/src/lib/freshness.ts`).
 
-There are thirty-five sources:
+There are thirty-six sources:
 
 | `source` | Company | Published in |
 |---|---|---|
@@ -49,6 +49,7 @@ There are thirty-five sources:
 | `moletai` | UAB „Molėtų švara“, Molėtų r. | `moletu-r/` (`provider: "moletai"`) |
 | `skuodas` | Skuodo rajono savivaldybė (collected by UAB „Ekonovus“), Skuodo r. | `skuodo-r/` |
 | `ukmerge` | UAB „Ukmergės autobusų parkas“, Ukmergės r. | `ukmerges-r/` |
+| `elektrenai` | UAB „Elektrėnų komunalinis ūkis“, Elektrėnų sav. | `elektrenu-sav/` |
 
 The two Vilniaus r. companies share one `schedule.json`, so the app needs one download. When
 one of them fails, its part of yesterday's file is kept (its `providers[].generatedAt` stays
@@ -206,6 +207,16 @@ period's files reach the site only with a refresh, so run it when they are poste
 and mid-May), and `ScheduleDataRunsOut` fires for `ukmerge` in late May and December until one
 is done.
 
+`elektrenai` is Elektrėnų sav., from the schedule pages (HTML tables, no files) of UAB
+„Elektrėnų komunalinis ūkis“ on eku.lt: mixed waste, and packaging and glass, of the households
+that sort their waste, a page each per year. The pages are found from the company's list of the
+years' pages ("2026 m."). Its own step builds `elektrenu-sav/`; if it fails (a table, a note or
+a page of a layout it doesn't know), yesterday's folder is kept. Next year's pages are read as
+soon as its year's page lists them (a year's page that doesn't list them yet is a build warning
+until its year starts); until then, its routes continue this year's that cover the same places.
+If no newer year is listed when a year ends, its routes keep their last dates and the build
+warns ("no page of 2027"). Installed apps find `elektrenu-sav/` through `regions.json` (below).
+
 The job therefore publishes the state of the data with every run:
 
 - `https://aurimasnav.github.io/atlieku-surinkimo-grafikas/metrics.txt` (Prometheus format)
@@ -213,9 +224,9 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
-| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `taurage` / `silale` / `pagegiai` / `siauliai` / `radviliskis` / `alytus` / `pasvalys` / `rokiskis` / `birzai` / `panevezio-r` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` / `raseiniai` / `jonava` / `kretinga` / `silute` / `trakai` / `salcininkai` / `kedainiai` / `moletai` / `skuodas` / `ukmerge` was built |
+| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `taurage` / `silale` / `pagegiai` / `siauliai` / `radviliskis` / `alytus` / `pasvalys` / `rokiskis` / `birzai` / `panevezio-r` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` / `raseiniai` / `jonava` / `kretinga` / `silute` / `trakai` / `salcininkai` / `kedainiai` / `moletai` / `skuodas` / `ukmerge` / `elektrenai` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
-| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai`, `radviliskis`, `alytus`, `pasvalys`, `rokiskis`, `birzai`, `panevezio-r`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda`, `sakiai`, `raseiniai`, `jonava`, `kretinga`, `silute`, `trakai`, `salcininkai`, `kedainiai`, `moletai`, `skuodas` and `ukmerge` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
+| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai`, `radviliskis`, `alytus`, `pasvalys`, `rokiskis`, `birzai`, `panevezio-r`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda`, `sakiai`, `raseiniai`, `jonava`, `kretinga`, `silute`, `trakai`, `salcininkai`, `kedainiai`, `moletai`, `skuodas`, `ukmerge` and `elektrenai` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
 | `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead) |
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
@@ -370,6 +381,11 @@ groups:
       # glass, once or twice a period and last weeks before its end (1 May and 4 December
       # 2026). The town's and the district's files are one source: a late file of one of them
       # doesn't fire while the other's newer file is read.
+      # Elektrėnų sav.: a page per kind and calendar year. Mixed waste ends on 1-17 December 2026
+      # (Elektrėnai's individual houses last, every two weeks), packaging on 1-29 December, so
+      # this fires from 10 December until the 2027 pages are read; when the 2026 pages were
+      # posted isn't known (they carry no date). Not glass: four times a year (last on 3
+      # November to 28 December 2026, by route).
       - alert: ScheduleDataRunsOut
         expr: |-
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"mazeikiai|telsiai|plunge"}[30m]) - time() < 7 * 86400
@@ -405,6 +421,8 @@ groups:
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="skuodas",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
             or
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="ukmerge",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
+            or
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="elektrenai",kind=~"household|packaging"}[30m]) - time() < 7 * 86400
         for: 1h
         labels: { severity: warning }
         annotations:
@@ -458,6 +476,6 @@ source, query `status.json` (type JSON, URL above) and alert when
 `sources.sakiai.generatedAt`, `sources.raseiniai.generatedAt`, `sources.jonava.generatedAt`,
 `sources.kretinga.generatedAt`, `sources.silute.generatedAt`, `sources.trakai.generatedAt`,
 `sources.salcininkai.generatedAt`, `sources.kedainiai.generatedAt`,
-`sources.moletai.generatedAt`, `sources.skuodas.generatedAt` or
-`sources.ukmerge.generatedAt` is older than 30 hours (or
+`sources.moletai.generatedAt`, `sources.skuodas.generatedAt`,
+`sources.ukmerge.generatedAt` or `sources.elektrenai.generatedAt` is older than 30 hours (or
 missing).
