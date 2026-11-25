@@ -87,7 +87,7 @@ def test_normalise_leaves_out_what_changes_from_run_to_run():
         "2026 m- birželis-gruodis mėn  Buitinių atliekų surinkimo grafikasP.xlsx row 715: kept as"
         " text, no exact dates: 'kas antras mėnesio trečiadienis'"
     ) == (
-        "# m- birželis-gruodis mėn  Buitinių atliekų surinkimo grafikasP.xlsx row #: kept as"
+        "# m- # mėn  Buitinių atliekų surinkimo grafikasP.xlsx row #: kept as"
         " text, no exact dates: 'kas antras mėnesio trečiadienis'"
     )
     # A site copy: its date and age, and whatever the site answered.
@@ -103,9 +103,89 @@ def test_normalise_leaves_out_what_changes_from_run_to_run():
     assert status.normalise("not linked to any settlement: household: Stražininkai") == (
         "not linked to any settlement: household: Stražininkai"
     )
-    assert status.normalise(
-        "not a settlement or a street: household: Kelmės miestas 3: S. Nėries g."
-    ) == ("not a settlement or a street: household: Kelmės miestas #: S. Nėries g.")
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        'not linked to any settlement: household: SB "Girios -7"',
+        "not a settlement or a street: household: Kelmės miestas 3: S. Nėries g.",
+        "not a settlement or a street: household: Naujasodžių k.: Linų g. 2",
+        "not a settlement or a street: glass: Šeduvos miesto sen.: Sausio 13-osios g.",
+        "not a settlement of the eldership: household: Bogušiai (Marijampolio sen.)",
+        # A month in a place's name stays too.
+        "not a settlement or a street: household: Zarasų sen.: Liepkalnio k.",
+    ],
+)
+def test_normalise_keeps_a_places_numbers(text):
+    # A place's numbers are part of its name, and these warnings have no row numbers.
+    assert status.normalise(text) == text
+
+
+def test_another_place_or_route_with_other_numbers_is_new():
+    known = {
+        status.normalise(t)
+        for t in (
+            'not linked to any settlement: household: SB "Girios -7"',
+            "not a settlement or a street: household: Naujasodžių k.: Linų g. 2",
+            "not a settlement or a street: household: Kelmės miestas 1: P. Cvirkos g.",
+            "Mišrių komunalinių grafikas1.doc route 3*: 2026-12-03 isn't a day of the rule"
+            " 'ketvirtadieniai'",
+        )
+    }
+    assert status.new_warnings(
+        [
+            'not linked to any settlement: household: SB "Girios -8"',
+            "not a settlement or a street: household: Naujasodžių k.: Linų g. 14",
+            "not a settlement or a street: household: Kelmės miestas 3: P. Cvirkos g.",
+            # Another route is other places.
+            "Mišrių komunalinių grafikas1.doc route 13*: 2026-12-03 isn't a day of the rule"
+            " 'ketvirtadieniai'",
+            # The same route on another date: known.
+            "Mišrių komunalinių grafikas1.doc route 3*: 2027-01-07 isn't a day of the rule"
+            " 'ketvirtadieniai'",
+        ],
+        known,
+    ) == [
+        'not linked to any settlement: household: SB "Girios -8"',
+        "not a settlement or a street: household: Naujasodžių k.: Linų g. 14",
+        "not a settlement or a street: household: Kelmės miestas 3: P. Cvirkos g.",
+        "Mišrių komunalinių grafikas1.doc route 13*: 2026-12-03 isn't a day of the rule"
+        " 'ketvirtadieniai'",
+    ]
+
+
+def test_next_half_years_file_keeps_its_warnings_known():
+    # Nemenčinė posts a file per half year; its name has the months. The rules kept as text
+    # stay the same warnings whichever half year the file is of.
+    rule = ": kept as text, no exact dates: 'kas antras mėnesio trečiadienis'"
+    known = {
+        status.normalise(
+            f"2026 m- birželis-gruodis mėn  Buitinių atliekų surinkimo grafikasP.xlsx row 715{rule}"
+        )
+    }
+    for name in (
+        "2027 m- sausis-birželis mėn  Buitinių atliekų surinkimo grafikasP.xlsx",
+        "2027 m- sausio–birželio mėn  Buitinių atliekų surinkimo grafikasP.xlsx",
+        "2027 m- liepa-gruodis mėn  Buitinių atliekų surinkimo grafikasP.xlsx",
+    ):
+        assert status.new_warnings([f"{name} row 20{rule}"], known) == [], name
+    # Another rule is new; so is another file.
+    other = ": kept as text, no exact dates: 'kas antras mėnesio penktadienis'"
+    assert status.new_warnings(
+        [
+            f"2027 m- sausis-birželis mėn  Buitinių atliekų surinkimo grafikasP.xlsx row 20{other}",
+            f"2027 m- sausis-birželis mėn  Konteinerių grafikas.xlsx row 20{rule}",
+        ],
+        known,
+    ) == [
+        f"2027 m- sausis-birželis mėn  Buitinių atliekų surinkimo grafikasP.xlsx row 20{other}",
+        f"2027 m- sausis-birželis mėn  Konteinerių grafikas.xlsx row 20{rule}",
+    ]
+    # The months of a rule, after the file name, stay: another month is another rule.
+    assert status.normalise("G.xlsx row 4: kept as text, no exact dates: 'liepos mėn. 1 d.'") == (
+        "G.xlsx row #: kept as text, no exact dates: 'liepos mėn. # d.'"
+    )
 
 
 def site_with(site, providers):

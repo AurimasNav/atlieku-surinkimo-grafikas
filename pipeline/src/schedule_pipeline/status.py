@@ -170,18 +170,44 @@ def read(site: Path) -> tuple[dict, dict[str, list[str] | None]]:
 # --- warnings someone has checked ------------------------------------------------
 
 
+# A place the build couldn't link (build.build_dataset): "not linked to any settlement:
+# household: SB "Girios -7"". Its numbers are part of the place's name ("Kelmės miestas 3",
+# "Sausio 13-osios g.", a house), and it has no row or page number.
+PLACE = re.compile(
+    r"not (?:linked to any settlement|a settlement or a street|a settlement of the eldership): "
+)
+# A Lithuanian month, any case ("birželis", "birželio"), as a file's period names it.
+MONTH = r"(?:saus|vasar|kov|baland|gegu[žz]|bir[žz]el|liep|rugpj|rugs[ėe]j|spal|lapkri|gruod)\w*"
+# The months of a file's period in its name: a range ("birželis-gruodis mėn",
+# "sausio–birželio"), a month before "mėn", or right after the year ("2026 m- spalio.pdf").
+PERIOD = re.compile(
+    rf"\b{MONTH}\s*[-–—]\s*{MONTH}|\b{MONTH}(?=\s+mėn)|(?<=\d m- ){MONTH}|(?<=\d m\. ){MONTH}",
+    re.IGNORECASE,
+)
+# The name of the file a warning starts with ("2026 m- birželis-gruodis mėn  Buitinių atliekų
+# surinkimo grafikasP.xlsx row 715: ..."): only there do months name a period. A rule's text
+# after it ("liepos mėn. paskutinis penktadienis") keeps its months.
+FILE_NAME = re.compile(r"^[^:]*?\.(?:xlsx?|pdf|docx?|csv)\b", re.IGNORECASE)
+# A site copy read instead of the site (snapshot.site_copy_note): the site refused the runner.
+COPY = re.compile(r"unavailable \(.*\); used the copy from \S+ \(\d+ days? old\)")
+USED_THE_COPY = ": unavailable; used the copy"
+
+
 def normalise(text: str) -> str:
     """A warning as pipeline/known-warnings.json lists it: without what changes from one run to
     the next while the warning stays the same. A site copy's date and age, and the error the site
-    gave (the copy is read either way), are left out, and every number becomes #: row, page and
-    line numbers move when a row is added above, and dates and years change with every period,
-    so "... row 715: kept as text ..." is known whatever its row."""
-    text = re.sub(
-        r"unavailable \(.*\); used the copy from \S+ \(\d+ days? old\)",
-        "unavailable; used the copy",
-        text,
-    )
-    return re.sub(r"\d+", "#", text)
+    gave (the copy is read either way), are left out. Numbers, and the months of the period in
+    the name of the file a warning starts with, become #: row, page and line numbers move when a
+    row is added above, and dates, years and a file's months change with every period, so
+    "2026 m- birželis-gruodis mėn ... row 715: kept as text ..." is known whatever its row, and
+    so is next half year's file. Except for those that are part of a name: a place's (PLACE)
+    keeps its numbers, and so does a route ("route 13" is other places than "route 3")."""
+    text = COPY.sub(USED_THE_COPY[2:], text)
+    if PLACE.match(text):
+        return text
+    if name := FILE_NAME.match(text):
+        text = PERIOD.sub("#", name[0]) + text[name.end() :]
+    return re.sub(r"(\broute )?\d+", lambda m: m[0] if m[1] else "#", text)
 
 
 def load_known(path: Path = KNOWN) -> dict[str, set[str]]:

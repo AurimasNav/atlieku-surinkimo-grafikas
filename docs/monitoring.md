@@ -384,8 +384,14 @@ them with [`pipeline/known-warnings.json`](../pipeline/known-warnings.json), the
 someone has checked, per source. `siuksliaveze_data_new_warnings` counts the rest, and
 `warnings.html` lists them first.
 
-The comparison leaves out what changes from run to run while the warning stays the same: every
-number becomes `#` (row, page and line numbers, dates and years), and a site copy's
+The comparison leaves out what changes from run to run while the warning stays the same: numbers
+become `#` (row, page and line numbers, dates and years), and so do the months of the period in
+the name of the file a warning starts with (`2026 m- birželis-gruodis mėn …xlsx row 715` and
+next half year's `2027 m- sausis-birželis mėn …xlsx row 20` are both `# m- # mėn …xlsx row #`;
+a rule's months, after the file name, stay). The numbers of a name stay: those of a place a row
+names (`SB "Girios -7"`, `Kelmės miestas 3`, a house number, in "not a settlement …" and "not
+linked to any settlement …" warnings, which have no row numbers) and a route's (`route 13` is
+other places than `route 3`). A site copy's
 "unavailable (…); used the copy from … (… days old)" becomes "unavailable; used the copy". A
 source that published its data before the texts were published counts no new warnings.
 
