@@ -232,7 +232,7 @@ tests:
   - name: one missed scrape resolves nothing
     interval: 15m
     input_series:
-      # As two tests above, with the scrape at 32h00 failed.
+      # As three tests above, with the scrape at 32h00 failed.
       - series: 'siuksliaveze_status_checked_timestamp_seconds{job="siuksliaveze-data"}'
         values: "0x127 _ 0x15"
       - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
@@ -261,6 +261,33 @@ tests:
             exp_annotations:
               summary: "Schedule data of zarasai is 2d 8h 15m 0s old"
               description: *stale
+
+  - name: two missed scrapes in a row don't resolve ScheduleDataNotPublished
+    interval: 15m
+    input_series:
+      # The job stopped after the run at 0h00; the scrapes at 32h00 and 32h15 failed, so at
+      # 32h29 the last sample is 44 minutes old.
+      - series: 'siuksliaveze_status_checked_timestamp_seconds{job="siuksliaveze-data"}'
+        values: "0x127 _ _ 0x14"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
+        values: "-600x127 _ _ -600x14"
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "1x127 0 0 1x14"
+    alert_rule_test:
+      - eval_time: 32h29m
+        alertname: ScheduleDataNotPublished
+        exp_alerts:
+          - exp_labels:
+              job: siuksliaveze-data
+              severity: warning
+            exp_annotations:
+              summary: "The daily job hasn't published for 1d 8h 29m 0s"
+              description: "Check the last run of the Schedule data workflow on GitHub."
+    promql_expr_test:
+      # Firing from 30h31m without a break: never back to pending after it first fired.
+      - expr: group by (alertname, alertstate) (last_over_time(ALERTS{alertname="ScheduleDataNotPublished",alertstate="pending"}[3h]))
+        eval_time: 34h
+        exp_samples: []
 
   - name: no checked time in metrics.txt raises no alert per source
     interval: 15m
