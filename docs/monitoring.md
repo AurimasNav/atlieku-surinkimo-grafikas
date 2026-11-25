@@ -410,7 +410,9 @@ and they don't fail the check, so one new warning on the site doesn't turn every
 (Renovate's too) red. To acknowledge them, after checking that they are harmless:
 
 1. Get the site the warnings come from: the `schedule-data-<PR>` artifact of the PR's live
-   check (or the `github-pages` artifact of the daily run).
+   check, or the `github-pages` artifact of the daily run. The latter is a zip with
+   `artifact.tar` inside, kept for one day:
+   `gh run download <run> -n github-pages -D dl && mkdir site && tar -xf dl/artifact.tar -C site`.
 2. In `pipeline/`, run `uv run python -m schedule_pipeline.status --site <site> --write-known`.
    It rewrites `known-warnings.json` from the site's warnings: a source's list becomes what its
    build gave, so warnings it no longer gives are dropped; sources the site doesn't have keep
