@@ -366,8 +366,10 @@ The job therefore publishes the state of the data with every run:
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
 
-If a source fails, its `generated` time stays old while `checked` keeps moving. If the job
-doesn't run at all, both stay old.
+If a source fails, its `generated` time stays old while `checked` keeps moving:
+`ScheduleDataStale` (below) fires for that source. If the job doesn't publish at all (the
+schedule didn't start, the run hit its time limit, the deploy failed), both stay old together:
+that is one problem, so only `ScheduleDataNotPublished` fires, not an alert per source.
 
 ### The index of regions
 
@@ -416,14 +418,34 @@ Keep the window at least twice the scrape interval.
 groups:
   - name: siuksliaveze-data
     rules:
+      - alert: ScheduleDataNotPublished
+        # The job runs daily at 04:17 UTC and writes checked_timestamp at the end of every run
+        # that publishes, whatever its sources' builds did: 30 hours means the job itself missed
+        # a run (the schedule didn't start, the run hit its time limit, the deploy failed). One
+        # alert for all sources.
+        expr: time() - last_over_time(siuksliaveze_status_checked_timestamp_seconds[30m]) > 30 * 3600
+        for: 30m
+        labels: { severity: warning }
+        annotations:
+          summary: "The daily job hasn't published for {{ $value | humanizeDuration }}"
+          description: "Check the last run of the Schedule data workflow on GitHub."
       - alert: ScheduleDataStale
-        # The job runs daily at 04:17 UTC; 30 hours means one run was missed or failed.
-        expr: time() - last_over_time(siuksliaveze_data_generated_timestamp_seconds[30m]) > 30 * 3600
+        # A source the last published run didn't rebuild: its build failed and yesterday's part
+        # was kept, so its data lags the job's checked time by more than a run takes (2 hours).
+        # It fires 30 hours after the source's last good build. While the whole job is late,
+        # every source is about as old as the checked time, so only ScheduleDataNotPublished
+        # fires. max(): `on ()` needs one checked series.
+        expr: |-
+          (time() - last_over_time(siuksliaveze_data_generated_timestamp_seconds[30m]) > 30 * 3600)
+            and
+          (max(last_over_time(siuksliaveze_status_checked_timestamp_seconds[30m]))
+            - on () group_right last_over_time(siuksliaveze_data_generated_timestamp_seconds[30m])
+            > 2 * 3600)
         for: 30m
         labels: { severity: warning }
         annotations:
           summary: "Schedule data of {{ $labels.source }} is {{ $value | humanizeDuration }} old"
-          description: "The daily build of this source fails or doesn't run. See the Schedule data workflow on GitHub."
+          description: "The daily build of this source fails, so the job keeps publishing its old data. See the Schedule data workflow on GitHub."
       - alert: ScheduleDataShrank
         expr: last_over_time(siuksliaveze_data_places[30m]) < 0.9 * last_over_time(siuksliaveze_data_places[30m] offset 1d)
         labels: { severity: warning }
@@ -674,8 +696,9 @@ promtool and python3).
 ## Grafana without Prometheus
 
 Add the [Infinity](https://grafana.com/grafana/plugins/yesoreyeram-infinity-datasource/) data
-source, query `status.json` (type JSON, URL above) and alert when
-`sources.nemencine.generatedAt`, `sources.nemezio.generatedAt`, `sources.kauno.generatedAt`,
+source, query `status.json` (type JSON, URL above) and alert when `checkedAt` is older than
+30 hours (the job didn't publish), and when `sources.nemencine.generatedAt`,
+`sources.nemezio.generatedAt`, `sources.kauno.generatedAt`,
 `sources.kaisiadorys.generatedAt`, `sources.mazeikiai.generatedAt`,
 `sources.telsiai.generatedAt`, `sources.plunge.generatedAt`, `sources.rietavas.generatedAt`,
 `sources.klaipedos.generatedAt`, `sources.jurbarkas.generatedAt`,
@@ -693,4 +716,6 @@ source, query `status.json` (type JSON, URL above) and alert when
 `sources.utena.generatedAt`, `sources.ignalina.generatedAt`,
 `sources.elektrenai.generatedAt`, `sources.sirvintos.generatedAt`,
 `sources.kupiskis.generatedAt`, `sources.svencionys.generatedAt` or
-`sources.zarasai.generatedAt` is older than 30 hours (or missing).
+`sources.zarasai.generatedAt` is older than 30 hours and more than 2 hours older than
+`checkedAt` (that source's build fails), or missing. Without the second condition, a job that
+doesn't publish raises an alert for every source.
