@@ -395,6 +395,12 @@ other places than `route 3`). A site copy's
 "unavailable (…); used the copy from … (… days old)" becomes "unavailable; used the copy". A
 source that published its data before the texts were published counts no new warnings.
 
+A site copy used is never new, and `--write-known` doesn't list it: six sites (`kedainiai`,
+`silute`, `sirvintos`, `svencionys`, `ukmerge`, `zarasai`) refuse GitHub's runners on some days
+and answer on others, which nobody has to act on, and a baseline written on a day such a site
+answered would otherwise turn its next refusal into an alert. A source whose build keeps failing
+is `ScheduleDataStale`'s.
+
 A new warning stays new until it is fixed or acknowledged, however many days pass. The live
 check of a PR that touches `pipeline/` shows the same: its job summary compares each source's
 warnings with the published ones and lists the new ones, and the check fails while there are

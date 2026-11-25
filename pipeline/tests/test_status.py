@@ -188,6 +188,37 @@ def test_next_half_years_file_keeps_its_warnings_known():
     )
 
 
+COPY = "https://www.zarasai.lt/x/: unavailable (HTTP Error 403: Forbidden); used the copy from {}"
+
+
+def test_a_site_copy_used_is_never_new():
+    # Six sites refuse GitHub's runners on some days and answer on others: reading their copy
+    # needs nobody to act, so it is never new, listed or not.
+    copy = COPY.format("2026-11-02 (23 days old)")
+    assert status.used_the_copy(copy)
+    assert not status.used_the_copy("not linked to any settlement: household: Kopija")
+    assert status.new_warnings([copy, "row 3: kept as text"], set()) == ["row 3: kept as text"]
+
+
+def test_write_known_never_lists_a_site_copy_used(tmp_path):
+    # Acknowledged on a day the site answered, or on a day it didn't: the same file, so the next
+    # refusal isn't new either way.
+    known = tmp_path / "known-warnings.json"
+    known.write_text(json.dumps({"zarasai": ["old"]}), encoding="utf-8")
+    for texts in (
+        ["row 3: kept as text"],
+        [COPY.format("2026-11-02 (0 days old)"), "row 4: kept as text"],
+    ):
+        site = site_with(tmp_path / "site", [part("zarasai", texts)])
+        assert status.main(["--site", str(site), "--known", str(known), "--write-known"]) == 0
+        assert json.loads(known.read_text(encoding="utf-8")) == {"zarasai": ["row #: kept as text"]}
+    site_with(site, [part("zarasai", [COPY.format("2026-11-03 (1 day old)")])])
+    assert status.main(["--site", str(site), "--known", str(known)]) == 0
+    report = json.loads((site / "warnings.json").read_text(encoding="utf-8"))
+    assert report["sources"]["zarasai"]["new"] == []
+    assert report["sources"]["zarasai"]["known"] == [COPY.format("2026-11-03 (1 day old)")]
+
+
 def site_with(site, providers):
     """A site with schedule.json of these providers' parts (as build.merge_parts writes it)."""
     site.mkdir(exist_ok=True)
@@ -334,6 +365,8 @@ def test_the_committed_baseline_is_sorted_and_normalised():
     for source, texts in known.items():
         assert texts == sorted(set(texts)), source
         assert all(status.normalise(t) == t for t in texts), source
+        # Never new, so never listed (status.known_from).
+        assert not any(status.used_the_copy(t) for t in texts), source
     # As --write-known writes it, so acknowledging changes only the lines that changed.
     assert text == json.dumps(known, ensure_ascii=False, indent=2) + "\n"
 

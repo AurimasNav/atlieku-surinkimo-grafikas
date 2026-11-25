@@ -210,6 +210,14 @@ def normalise(text: str) -> str:
     return re.sub(r"(\broute )?\d+", lambda m: m[0] if m[1] else "#", text)
 
 
+def used_the_copy(text: str) -> bool:
+    """Whether a warning only says that the build read a site's copy because the site refused
+    GitHub's runner. Never new: some sites refuse it some days and answer others, and nobody
+    has to act on that (a source whose build keeps failing is ScheduleDataStale's). So it isn't
+    in pipeline/known-warnings.json either, whichever day it was written."""
+    return normalise(text).endswith(USED_THE_COPY)
+
+
 def load_known(path: Path = KNOWN) -> dict[str, set[str]]:
     """The warnings someone has checked, per source (normalised). No file: none."""
     try:
@@ -222,9 +230,12 @@ def load_known(path: Path = KNOWN) -> dict[str, set[str]]:
 
 
 def new_warnings(texts: list[str] | None, known: set[str]) -> list[str]:
-    """The warnings of `texts` whose normalised text `known` doesn't list, in the build's order.
-    None (data published before the builds published their warnings) has none."""
-    return [text for text in texts or [] if normalise(text) not in known]
+    """The warnings of `texts` whose normalised text `known` doesn't list, in the build's order,
+    but for a site copy used (used_the_copy). None (data published before the builds published
+    their warnings) has none."""
+    return [
+        text for text in texts or [] if not used_the_copy(text) and normalise(text) not in known
+    ]
 
 
 def count_new(status: dict, texts: dict[str, list[str] | None], known: dict[str, set[str]]) -> None:
@@ -238,12 +249,14 @@ def known_from(
     texts: dict[str, list[str] | None], before: dict[str, set[str]]
 ) -> dict[str, list[str]]:
     """pipeline/known-warnings.json from the warnings of a site: each source's warnings,
-    normalised, so one it no longer gives is dropped. A source the site doesn't have (its build
-    failed or wasn't run), or whose data has no texts, keeps what it had."""
+    normalised, so one it no longer gives is dropped. A site copy used isn't listed: it is never
+    new (used_the_copy), so the file is the same whether or not the site answered that day. A
+    source the site doesn't have (its build failed or wasn't run), or whose data has no texts,
+    keeps what it had."""
     known = {source: sorted(found) for source, found in before.items()}
     for source, found in texts.items():
         if found is not None:
-            known[source] = sorted({normalise(text) for text in found})
+            known[source] = sorted({normalise(t) for t in found if not used_the_copy(t)})
     return dict(sorted(known.items()))
 
 
@@ -338,8 +351,9 @@ def warnings_page(report: dict) -> str:
 <body>
 <h1>Build warnings</h1>
 <p>What the last build of each source warned about. <strong class="new">{total} new</strong>:
-warnings that <a href="{KNOWN_URL}">pipeline/known-warnings.json</a> doesn't list (numbers and
-a site copy's date are left out when comparing). Fix the parser, or acknowledge them as
+warnings that <a href="{KNOWN_URL}">pipeline/known-warnings.json</a> doesn't list (numbers, the
+months of a file's period and a site copy's date are left out when comparing; a site copy used
+because the site refused GitHub's runner is never new). Fix the parser, or acknowledge them as
 <a href="{DOCS_URL}">docs/monitoring.md</a> says.</p>
 <p><small>Checked {e(_vilnius(report["checkedAt"]))}.</small></p>
 <table>

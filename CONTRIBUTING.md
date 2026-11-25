@@ -133,7 +133,7 @@ when you fix a mismatch.
 cleanly (a place that isn't a settlement, a text kept without exact dates, a site copy used).
 The ones someone has checked are listed per source in `pipeline/known-warnings.json`, with
 row, page and date numbers left out (`#`), so a moved row is still known; a place's own numbers
-stay. A warning that file doesn't list is new: the
+stay, and a site copy used is never new. A warning that file doesn't list is new: the
 live-build check of a pipeline PR lists it in its job summary and fails, and after a merge
 the `ScheduleDataNewWarnings` alert fires until it is fixed or acknowledged
 ([docs/monitoring.md](docs/monitoring.md#build-warnings)). If it is harmless (and whenever you
