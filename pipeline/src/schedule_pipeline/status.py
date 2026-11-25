@@ -264,6 +264,26 @@ def write_known(path: Path, known: dict[str, list[str]]) -> None:
     path.write_text(json.dumps(known, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def split_new(
+    report: dict, published: dict | None
+) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
+    """The new warnings of a PR's build (`report`, its warnings.json), per source, in two: those
+    the published data doesn't have as new (the PR's), and those it does (`published`, the
+    published warnings.json: already live, the alert is firing, so not the PR's doing). Compared
+    normalised, by this code. No published warnings.json (None): all are the PR's."""
+    live = {
+        source: {normalise(text) for text in data["new"]}
+        for source, data in (published or {"sources": {}})["sources"].items()
+    }
+    mine: dict[str, list[str]] = {}
+    already: dict[str, list[str]] = {}
+    for source, data in report["sources"].items():
+        for text in data["new"]:
+            group = already if normalise(text) in live.get(source, set()) else mine
+            group.setdefault(source, []).append(text)
+    return mine, already
+
+
 def warnings_report(
     status: dict, texts: dict[str, list[str] | None], known: dict[str, set[str]]
 ) -> dict:

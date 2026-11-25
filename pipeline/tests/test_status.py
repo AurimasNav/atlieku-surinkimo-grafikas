@@ -219,6 +219,36 @@ def test_write_known_never_lists_a_site_copy_used(tmp_path):
     assert report["sources"]["zarasai"]["known"] == [COPY.format("2026-11-03 (1 day old)")]
 
 
+def test_split_new_leaves_out_what_is_already_live():
+    # The live check of a PR: a new warning the published data has as new too is already live
+    # (the alert fires anyway); only the others are the PR's.
+    report = {
+        "sources": {
+            "nemezio": {"new": ["f.xlsx row 12: kept as text", "not linked: Naujas"]},
+            "sakiai": {"new": ["row 3: other"]},
+            "trakai": {"new": []},
+        }
+    }
+    published = {
+        "sources": {
+            # Row numbers moved since the daily run: still the same warning.
+            "nemezio": {"new": ["f.xlsx row 9: kept as text"], "known": []},
+            # The PR's warning is known on the site: not live.
+            "sakiai": {"new": [], "known": ["row 3: other"]},
+        }
+    }
+    mine, already = status.split_new(report, published)
+    assert mine == {"nemezio": ["not linked: Naujas"], "sakiai": ["row 3: other"]}
+    assert already == {"nemezio": ["f.xlsx row 12: kept as text"]}
+    # Before the daily job published warnings.json: all of them are the PR's.
+    mine, already = status.split_new(report, None)
+    assert mine == {
+        "nemezio": ["f.xlsx row 12: kept as text", "not linked: Naujas"],
+        "sakiai": ["row 3: other"],
+    }
+    assert already == {}
+
+
 def site_with(site, providers):
     """A site with schedule.json of these providers' parts (as build.merge_parts writes it)."""
     site.mkdir(exist_ok=True)

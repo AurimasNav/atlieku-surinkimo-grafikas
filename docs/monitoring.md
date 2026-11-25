@@ -404,7 +404,10 @@ is `ScheduleDataStale`'s.
 A new warning stays new until it is fixed or acknowledged, however many days pass. The live
 check of a PR that touches `pipeline/` shows the same: its job summary compares each source's
 warnings with the published ones and lists the new ones, and the check fails while there are
-any. To acknowledge them, after checking that they are harmless:
+any that the published `warnings.json` doesn't list as new too. Those it does are already live
+(the alert is firing, whatever the PR does): the summary lists them apart, as "already live",
+and they don't fail the check, so one new warning on the site doesn't turn every pipeline PR
+(Renovate's too) red. To acknowledge them, after checking that they are harmless:
 
 1. Get the site the warnings come from: the `schedule-data-<PR>` artifact of the PR's live
    check (or the `github-pages` artifact of the daily run).

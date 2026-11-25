@@ -10,7 +10,8 @@ name: Schedule data live build
 # pipeline/src/schedule_pipeline/live_builds.py: a new provider is an entry there, not a step
 # here. Each job uploads its folder of the site; then the job "live" puts the folders together,
 # compares schedule.json with the published data, indexes the regions, fails if a build
-# failed, and fails if a build gave a warning pipeline/known-warnings.json doesn't list.
+# failed, and fails if a build gave a warning pipeline/known-warnings.json doesn't list (unless
+# the published data already has it as new: that one isn't the PR's).
 on:
   pull_request:
     paths: ["pipeline/**", ".github/workflows/schedule-data-live.yml"]
@@ -145,33 +146,64 @@ jobs:
       # builds' warnings compared with this branch's pipeline/known-warnings.json.
       - name: Publish the state of the data (status.json, warnings.html)
         run: uv run python -m schedule_pipeline.status --site "$RUNNER_TEMP/site"
+      # A new warning the published data already has (its warnings.json lists it as new, so the
+      # alert is firing) isn't this PR's: it is listed apart and doesn't fail the check, or every
+      # pipeline PR (Renovate's too) would fail until it is fixed or acknowledged. The rest are
+      # this PR's: $RUNNER_TEMP/pr-new.json, for the last step. Before the daily job published
+      # warnings.json (404), every new warning is this PR's.
       - name: Compare the warnings with the published data
         run: |
           curl -fsSL https://aurimasnav.github.io/atlieku-surinkimo-grafikas/status.json -o "$RUNNER_TEMP/published-status.json"
-          uv run python - "$RUNNER_TEMP/site/warnings.json" "$RUNNER_TEMP/published-status.json" <<'EOF'
+          code=$(curl -sSL https://aurimasnav.github.io/atlieku-surinkimo-grafikas/warnings.json -o "$RUNNER_TEMP/published-warnings.json" -w '%{http_code}')
+          case "$code" in
+            200) ;;
+            404) rm -f "$RUNNER_TEMP/published-warnings.json" ;;
+            *) echo "::error::warnings.json of the published data: HTTP $code"; exit 1 ;;
+          esac
+          uv run python - "$RUNNER_TEMP/site/warnings.json" "$RUNNER_TEMP/published-status.json" "$RUNNER_TEMP/published-warnings.json" "$RUNNER_TEMP/pr-new.json" <<'EOF'
           import html
           import json
           import os
           import sys
 
-          new, old = (json.load(open(path, encoding="utf-8")) for path in sys.argv[1:3])
+          from schedule_pipeline.status import split_new
+
+          site, status_path, warnings_path, out = sys.argv[1:5]
+          new, old = (json.load(open(path, encoding="utf-8")) for path in (site, status_path))
           published = {source: data["warnings"] for source, data in old["sources"].items()}
+          if os.path.exists(warnings_path):
+              mine, already = split_new(new, json.load(open(warnings_path, encoding="utf-8")))
+              note = "Already live: the published data has them as new too (the alert is firing); they don't fail this check."
+          else:
+              mine, already = split_new(new, None)
+              note = "The published data has no warnings.json yet: every new warning counts as this PR's."
+          with open(out, "w", encoding="utf-8") as file:
+              json.dump({"new": mine, "alreadyLive": already}, file, ensure_ascii=False)
+
+
+          def details(source, texts, what):
+              items = "\n".join(f"- {html.escape(text)}" for text in texts)
+              return f"<details><summary>{source}: {len(texts)} {what}</summary>\n\n{items}\n\n</details>\n"
+
+
           rows, lists = [], []
           for source in sorted(set(published) | set(new["sources"])):
               data = new["sources"].get(source)
               cells = [published.get(source, "-")]
-              cells += [data["warnings"], data["newWarnings"]] if data else ["-", "-"]
+              if data:
+                  cells += [data["warnings"], len(mine.get(source, [])), len(already.get(source, []))]
+              else:
+                  cells += ["-", "-", "-"]
               rows.append(f"| {source} | " + " | ".join(map(str, cells)) + " |")
-              if data and data["new"]:
-                  items = "\n".join(f"- {html.escape(text)}" for text in data["new"])
-                  lists.append(
-                      f"<details><summary>{source}: {len(data['new'])} new</summary>\n\n{items}\n\n</details>\n"
-                  )
-          total = sum(data["newWarnings"] for data in new["sources"].values())
+              if source in mine:
+                  lists.append(details(source, mine[source], "new"))
+              if source in already:
+                  lists.append(details(source, already[source], "already live"))
+          total = sum(map(len, mine.values()))
           report = (
               "### Warnings compared with the published data\n\n"
-              f"New: not in this branch's pipeline/known-warnings.json ({total} in all).\n\n"
-              "| Source | Published | This PR | New |\n|---|---|---|---|\n"
+              f"New: not in this branch's pipeline/known-warnings.json ({total} in all). {note}\n\n"
+              "| Source | Published | This PR | New | Already live |\n|---|---|---|---|---|\n"
               + "\n".join(rows)
               + "\n\n"
               + "\n".join(lists)
@@ -193,7 +225,7 @@ jobs:
       # After the upload, so the data with the new warnings can be downloaded and acknowledged.
       - name: Fail on warnings pipeline/known-warnings.json doesn't list
         run: |
-          uv run python - "$RUNNER_TEMP/site/warnings.json" <<'EOF'
+          uv run python - "$RUNNER_TEMP/pr-new.json" <<'EOF'
           import json
           import sys
 
@@ -204,9 +236,19 @@ jobs:
               return text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
 
 
+          live = 0
+          for source, texts in sorted(report["alreadyLive"].items()):
+              for text in texts:
+                  live += 1
+                  print(f"::notice title=Already live ({source})::{escape(text)}")
+          if live:
+              print(
+                  f"::notice::{live} new warnings the published data already has (the alert is firing):"
+                  " not this PR's, so they don't fail it. Fix or acknowledge them in a PR of their own."
+              )
           total = 0
-          for source, data in sorted(report["sources"].items()):
-              for text in data["new"]:
+          for source, texts in sorted(report["new"].items()):
+              for text in texts:
                   total += 1
                   print(f"::error title=New warning ({source})::{escape(text)}")
           if total:
