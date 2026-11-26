@@ -130,7 +130,7 @@ doesn't have or its layout changed, `panevezio-r` keeps its mixed waste rows of 
 its packaging and glass are still updated, and the build warns ("Mišrių komunalinių
 grafikas1.doc: can't be read (ValueError: …: notes that schedule-panevezio-r-mixed.json doesn't
 have: route 13 (…); re-transcribe it …); yesterday's 29 household rows of Panevėžio r. are
-kept"), so `ScheduleDataMoreWarnings` fires but `generatedAt` moves. Re-transcribe the routes
+kept"), so `ScheduleDataNewWarnings` fires but `generatedAt` moves. Re-transcribe the routes
 it names (CONTRIBUTING.md). Next year's document will need that too, since its notes are about
 next year's holidays: until it is transcribed, this year's rows run out and
 `ScheduleDataRunsOut` fires for `panevezio-r` mixed waste.
@@ -171,7 +171,7 @@ page"). Installed apps find `kedainiu-r/` through `regions.json` (below).
 from a PDF per eldership and kind (25 files of Raseinių r., 9 of Jonavos r.). A file that can't be
 downloaded or read keeps its rows of yesterday's data and the run's other files are still read:
 the build warns ("Betygalos sen. mišrios komunalinės atliekos.pdf: can't be read (...);
-yesterday's 4 household rows of Betygalos sen. are kept"), so `ScheduleDataMoreWarnings` fires,
+yesterday's 4 household rows of Betygalos sen. are kept"), so `ScheduleDataNewWarnings` fires,
 but `generatedAt` moves. A page that no longer links a file of every eldership fails the build,
 and yesterday's folder is kept (`ScheduleDataStale`). Installed apps find both folders through
 `regions.json` (below).
@@ -204,7 +204,7 @@ waste. Its own step builds `moletu-r/`. As for `raseiniai` and `jonava`, a file 
 downloaded or read keeps its rows of yesterday's data, with a warning, and the other files are
 still read; a page that no longer links a file of every eldership fails the build, and
 yesterday's folder is kept. A notice next to a file on the page other than the one it had in
-2026 is a build warning (`ScheduleDataMoreWarnings`). Installed apps find `moletu-r/` through
+2026 is a build warning (`ScheduleDataNewWarnings`). Installed apps find `moletu-r/` through
 `regions.json` (below).
 
 `skuodas` is Skuodo r., from the three spreadsheets on the municipality's page (mixed waste,
@@ -234,7 +234,7 @@ waste: one of the villages and small towns (mixed waste, packaging and glass) an
 Anykščiai (also green waste). Its own step builds `anyksciu-r/`. A file that can't be downloaded
 or read keeps its rows of yesterday's data and the other file is still read, with a build warning
 ("421f0ee1.pdf: can't be read (...); yesterday's 69 rows of the villages are kept"), so
-`ScheduleDataMoreWarnings` fires but `generatedAt` moves; a page that no longer links both fails
+`ScheduleDataNewWarnings` fires but `generatedAt` moves; a page that no longer links both fails
 the build, and yesterday's folder is kept (`ScheduleDataStale`). The company revises a year's
 file in its year (the villages' 2026 file on 30 March): the page links the new one by the same
 text, and of two files of one year the one uploaded last is read. Installed apps find
@@ -249,7 +249,7 @@ the next day as the file's note says; a rule in other words fails the build. Its
 yesterday's data, with a warning, and the other file is still read; a page without the town's or
 the elderships' file fails the build, and yesterday's folder is kept. The page writes the rules
 too; if the elderships it gives a day differ from the file's, the build warns
-(`ScheduleDataMoreWarnings`). Installed apps find `utenos-r/` through `regions.json` (below).
+(`ScheduleDataNewWarnings`). Installed apps find `utenos-r/` through `regions.json` (below).
 
 `ignalina` is Ignalinos r., from the PDFs of SĮ „Kompata“ on kompata.lt: mixed waste and food
 waste half a year at a time (November to April, May to October: a period crosses the new year),
@@ -261,7 +261,7 @@ its rows keep their last dates and the build warns ("the mixed waste schedule en
 2027-04-30; no newer one is read"). If a page replaces the last period's file before the next
 one starts, its last dates are lost, with a warning ("no mixed waste schedule for today; the
 next starts on …"). Text next to a file's table other than its usual notes (a changed pickup,
-say) is a build warning (`ScheduleDataMoreWarnings`). Installed apps find `ignalinos-r/`
+say) is a build warning (`ScheduleDataNewWarnings`). Installed apps find `ignalinos-r/`
 through `regions.json` (below).
 
 `elektrenai` is Elektrėnų sav., from the schedule pages (HTML tables, no files) of UAB
@@ -301,7 +301,7 @@ section of no place it knows, an eldership without rules or a page without the p
 it, yesterday's folder is kept (its dates still reach a year ahead) and `ScheduleDataStale` fires
 the next day. The build can't notice a page left unchanged while the company changes its days;
 the town's dated schedule (a PDF a year) is checked against the town's rule, and other dates are a
-build warning (`ScheduleDataMoreWarnings`), as is a village that two rules name in two spellings.
+build warning (`ScheduleDataNewWarnings`), as is a village that two rules name in two spellings.
 Packaging and glass come in a PDF a half year (January to June, July to December), the food waste
 of the town and four villages in one a year. The next period's file is read as soon as the page
 links it, next to the last one or in its place; until its months start, its blocks continue those
@@ -321,7 +321,7 @@ isn't moved (nothing in the files says it would be). Packaging and glass come a 
 elderships, and for Pabradės and Magūnų sen. rules of the year's months ("IV pirmadienis", every
 month), which become that year's dates only, so the file runs out like any yearly file. Its
 own step builds `svencioniu-r/`. A file that can't be downloaded or read keeps its rows of
-yesterday's data, with a warning (`ScheduleDataMoreWarnings`), and the other file is still read;
+yesterday's data, with a warning (`ScheduleDataNewWarnings`), and the other file is still read;
 a page without both, a rule or a note in words the build doesn't know, or text next to the tables
 it doesn't know (a changed rule could be written there) fails that file. If the build fails as a
 whole, yesterday's folder is kept (`ScheduleDataStale`). Next year's packaging file is read as soon
@@ -356,6 +356,9 @@ The job therefore publishes the state of the data with every run:
 
 - `https://aurimasnav.github.io/atlieku-surinkimo-grafikas/metrics.txt` (Prometheus format)
 - `https://aurimasnav.github.io/atlieku-surinkimo-grafikas/status.json` (the same as JSON)
+- `https://aurimasnav.github.io/atlieku-surinkimo-grafikas/warnings.html` (every source's build
+  warnings, the new ones first; `warnings.html#<source>` jumps to a source) and `warnings.json`
+  (the same as JSON)
 
 | Metric | Meaning |
 |---|---|
@@ -363,13 +366,64 @@ The job therefore publishes the state of the data with every run:
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
 | `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai`, `radviliskis`, `alytus`, `pasvalys`, `rokiskis`, `birzai`, `panevezio-r`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda`, `sakiai`, `raseiniai`, `jonava`, `kretinga`, `silute`, `trakai`, `salcininkai`, `kedainiai`, `moletai`, `skuodas`, `ukmerge`, `anyksciai`, `utena`, `ignalina`, `elektrenai`, `sirvintos`, `kupiskis`, `svencionys` and `zarasai` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
 | `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead; `kupiskis` mixed waste is calculated ahead too, to the end of the 13th month, and `svencionys` mixed waste, the end of its rules' rolling window, about 13 months ahead; `zarasai`'s mixed waste dates are calculated ahead too, so its last date is always about 13 months away) |
-| `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement: new typos show up here |
+| `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement |
+| `siuksliaveze_data_new_warnings{source}` | warnings of the last build that [`pipeline/known-warnings.json`](../pipeline/known-warnings.json) doesn't list: new typos and renamed places show up here (see [Build warnings](#build-warnings)) |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
 
 If a source fails, its `generated` time stays old while `checked` keeps moving:
 `ScheduleDataStale` (below) fires for that source. If the job doesn't publish at all (the
 schedule didn't start, the run hit its time limit, the deploy failed), both stay old together:
 that is one problem, so only `ScheduleDataNotPublished` fires, not an alert per source.
+
+### Build warnings
+
+Every build lists what it couldn't read cleanly: a row whose place isn't a settlement, a text
+kept without exact dates, a site copy used because the site didn't answer. Most of them stay the
+same from day to day and have been checked, so the count alone says little. Each part of
+`schedule.json` (and Kauno švara's `kauno-r/schedule.json`, with its other municipalities)
+therefore publishes the texts next to the count (`warningTexts`), and the status step compares
+them with [`pipeline/known-warnings.json`](../pipeline/known-warnings.json), the warnings
+someone has checked, per source. `siuksliaveze_data_new_warnings` counts the rest, and
+`warnings.html` lists them first.
+
+The comparison leaves out what changes from run to run while the warning stays the same: numbers
+become `#` (row, page and line numbers, dates and years), and so do the months of the period in
+the name of the file a warning starts with (`2026 m- birželis-gruodis mėn …xlsx row 715` and
+next half year's `2027 m- sausis-birželis mėn …xlsx row 20` are both `# m- # mėn …xlsx row #`;
+a rule's months, after the file name, stay). The numbers of a name stay: those of a place a row
+names (`SB "Girios -7"`, `Kelmės miestas 3`, a house number, in "not a settlement …" and "not
+linked to any settlement …" warnings, which have no row numbers) and a route's (`route 13` is
+other places than `route 3`). A site copy's
+"unavailable (…); used the copy from … (… days old)" becomes "unavailable; used the copy". A
+source that published its data before the texts were published counts no new warnings.
+
+A site copy used is never new, and `--write-known` doesn't list it: six sites (`kedainiai`,
+`silute`, `sirvintos`, `svencionys`, `ukmerge`, `zarasai`) refuse GitHub's runners on some days
+and answer on others, which nobody has to act on, and a baseline written on a day such a site
+answered would otherwise turn its next refusal into an alert. A source whose build keeps failing
+is `ScheduleDataStale`'s.
+
+A new warning stays new until it is fixed or acknowledged, however many days pass. The live
+check of a PR that touches `pipeline/` shows the same: its job summary compares each source's
+warnings with the published ones and lists the new ones, and the check fails while there are
+any that the published `warnings.json` doesn't list as new too. Those it does are already live
+(the alert is firing, whatever the PR does): the summary lists them apart, as "already live",
+and they don't fail the check, so one new warning on the site doesn't turn every pipeline PR
+(Renovate's too) red. To acknowledge them, after checking that they are harmless:
+
+1. Get the site the warnings come from: the `schedule-data-<PR>` artifact of the PR's live
+   check, or the `github-pages` artifact of the daily run. The latter is a zip with
+   `artifact.tar` inside, kept for one day:
+   `gh run download <run> -n github-pages -D dl && mkdir site && tar -xf dl/artifact.tar -C site`.
+2. In `pipeline/`, run `uv run python -m schedule_pipeline.status --site <site> --write-known`.
+   It rewrites `known-warnings.json` from the site's warnings: a source's list becomes what its
+   build gave, so warnings it no longer gives are dropped; sources the site doesn't have keep
+   their lists.
+3. Commit `pipeline/known-warnings.json` (a branch and a PR, as always). Once it is merged and
+   the next run has deployed, the metric goes back to 0 and the alert resolves.
+
+To fix a warning instead, fix the parser or the data (an alias, a correction); once the build no
+longer gives it, `--write-known` drops it from the file the next time.
 
 ### The index of regions
 
@@ -451,11 +505,15 @@ groups:
         labels: { severity: warning }
         annotations:
           summary: "{{ $labels.source }} covers 10% fewer places than yesterday"
-      - alert: ScheduleDataMoreWarnings
-        expr: last_over_time(siuksliaveze_data_warnings[30m]) > last_over_time(siuksliaveze_data_warnings[30m] offset 1d)
-        labels: { severity: info }
+      # A warning pipeline/known-warnings.json doesn't list (new typo or renamed place?). It
+      # stays until the parser is fixed or the warning acknowledged (see Build warnings).
+      - alert: ScheduleDataNewWarnings
+        expr: last_over_time(siuksliaveze_data_new_warnings[30m]) > 0
+        for: 30m
+        labels: { severity: warning }
         annotations:
-          summary: "{{ $labels.source }}: more build warnings than yesterday (new typo or renamed place?)"
+          summary: "{{ $labels.source }}: {{ $value }} new build warnings (not in pipeline/known-warnings.json)"
+          dashboard: "https://aurimasnav.github.io/atlieku-surinkimo-grafikas/warnings.html#{{ $labels.source }}"
       # Mažeikių r., Klaipėdos r., Jurbarko r. and Šiaulių RATC get one file per year. If next
       # year's isn't posted, or the job no longer recognises it, the build stays green while
       # the reminders stop after the last date. Only these sources: the quarterly files of the
@@ -689,7 +747,7 @@ groups:
 CI checks these examples with promtool whenever this file, the code that writes `metrics.txt`
 or the tests change. They must parse, use only metrics the data job writes, and pass the
 scenarios in [`monitoring.test.yml`](monitoring.test.yml) with the 15-minute scrape above:
-stale data, a failing fetch, a schedule running out, fewer places, more warnings, a vanished
+stale data, a failing fetch, a schedule running out, fewer places, new warnings, a vanished
 source and healthy data. Run the same locally with `sh docs/monitoring-check.sh` (needs
 promtool and python3).
 

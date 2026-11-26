@@ -72,7 +72,8 @@ a form or a field `id`, update `feedback.ts` too**, or the prefill silently stop
 - **Wrong or missing dates:** open an issue with your area (as shown in the app), the date you
   expected, and a link to the official schedule file.
 - **The schedule stopped updating:** check the latest run of the *Schedule data* workflow on the
-  Actions tab. The job summary lists parse warnings.
+  Actions tab. The job summary lists parse warnings, and
+  <https://aurimasnav.github.io/atlieku-surinkimo-grafikas/warnings.html> those of every source.
 - **Security issues:** please don't open a public issue. Use GitHub's
   *Report a vulnerability* (Security tab).
 
@@ -127,6 +128,26 @@ its row in every schedule. The job summary on the Actions tab shows how many pla
 to a single row, need a street, need the user to choose, or aren't in a schedule, and lists
 rows that matched nothing. Tests in `tests/test_locations.py` pin hand-checked cases; add one
 when you fix a mismatch.
+
+**Build warnings and `pipeline/known-warnings.json`.** Every build lists what it couldn't read
+cleanly (a place that isn't a settlement, a text kept without exact dates, a site copy used).
+The ones someone has checked are listed per source in `pipeline/known-warnings.json`, with
+row, page and date numbers left out (`#`), so a moved row is still known; a place's own numbers
+stay, and a site copy used is never new. A warning that file doesn't list is new: the
+live-build check of a pipeline PR lists it in its job summary and fails (unless the published
+data already has it as new), and after a merge the `ScheduleDataNewWarnings` alert fires
+until it is fixed or acknowledged
+([docs/monitoring.md](docs/monitoring.md#build-warnings)). If it is harmless (and whenever you
+add a provider, or change what a build warns about), take the check's `schedule-data-<PR>`
+artifact and acknowledge the warnings in the same PR:
+
+```sh
+cd pipeline
+uv run python -m schedule_pipeline.status --site <the artifact, unzipped> --write-known
+```
+
+It rewrites the file from the site's warnings, dropping the ones the builds no longer give;
+review the diff, it is what you are acknowledging.
 
 **When the publisher changes the file format** (this will happen):
 

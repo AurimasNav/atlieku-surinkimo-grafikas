@@ -887,19 +887,15 @@ tests:
       - eval_time: 2h10m
         alertname: ScheduleDataRunsOut
 
-  - name: fewer places and more warnings than a day before
+  - name: fewer places than a day before
     interval: 15m
     input_series:
-      # 100 places and 3 warnings until 24h00, then 80 and 5.
+      # 100 places until 24h00, then 80.
       - series: 'siuksliaveze_data_places{job="siuksliaveze-data",source="nemencine"}'
         values: "100x96 80x10"
-      - series: 'siuksliaveze_data_warnings{job="siuksliaveze-data",source="nemezio"}'
-        values: "3x96 5x10"
     alert_rule_test:
       - eval_time: 23h10m
         alertname: ScheduleDataShrank
-      - eval_time: 23h10m
-        alertname: ScheduleDataMoreWarnings
       # At the scrape that brings the change, and 7 and 14 minutes later.
       - eval_time: 24h15m
         alertname: ScheduleDataShrank
@@ -916,15 +912,51 @@ tests:
       - eval_time: 24h29m
         alertname: ScheduleDataShrank
         exp_alerts: *shrank
-      - eval_time: 24h22m
-        alertname: ScheduleDataMoreWarnings
-        exp_alerts:
+
+  - name: a warning pipeline/known-warnings.json doesn't list
+    interval: 15m
+    input_series:
+      # nemezio: 2 new warnings from 2h00 (8 scrapes of 0, then 2) for two days, until
+      # acknowledged at 50h00.
+      - series: 'siuksliaveze_data_new_warnings{job="siuksliaveze-data",source="nemezio"}'
+        values: "0x7 2x191 0x20"
+      # Known warnings only: 6 of them, none new.
+      - series: 'siuksliaveze_data_warnings{job="siuksliaveze-data",source="panevezio-r"}'
+        values: "6x220"
+      - series: 'siuksliaveze_data_new_warnings{job="siuksliaveze-data",source="panevezio-r"}'
+        values: "0x220"
+      # A source with warnings but no new_warnings series at all: nothing to compare.
+      - series: 'siuksliaveze_data_warnings{job="siuksliaveze-data",source="kalvarija"}'
+        values: "6x220"
+    alert_rule_test:
+      - eval_time: 1h50m
+        alertname: ScheduleDataNewWarnings
+      # Pending for 30 minutes after the scrape at 2h00.
+      - eval_time: 2h20m
+        alertname: ScheduleDataNewWarnings
+      - eval_time: 2h40m
+        alertname: ScheduleDataNewWarnings
+        exp_alerts: &new
           - exp_labels:
               job: siuksliaveze-data
               source: nemezio
-              severity: info
+              severity: warning
             exp_annotations:
-              summary: "nemezio: more build warnings than yesterday (new typo or renamed place?)"
+              summary: "nemezio: 2 new build warnings (not in pipeline/known-warnings.json)"
+              dashboard: "https://aurimasnav.github.io/atlieku-surinkimo-grafikas/warnings.html#nemezio"
+      # Between two scrapes, and a day later: it doesn't clear by itself.
+      - eval_time: 12h07m
+        alertname: ScheduleDataNewWarnings
+        exp_alerts: *new
+      - eval_time: 26h40m
+        alertname: ScheduleDataNewWarnings
+        exp_alerts: *new
+      - eval_time: 49h50m
+        alertname: ScheduleDataNewWarnings
+        exp_alerts: *new
+      # Acknowledged: back to 0 at 50h00.
+      - eval_time: 50h10m
+        alertname: ScheduleDataNewWarnings
 
   - name: a source disappears from metrics.txt
     interval: 15m
@@ -960,6 +992,8 @@ tests:
         values: "100x191"
       - series: 'siuksliaveze_data_warnings{job="siuksliaveze-data",source="nemencine"}'
         values: "3x191"
+      - series: 'siuksliaveze_data_new_warnings{job="siuksliaveze-data",source="nemencine"}'
+        values: "0x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="mazeikiai",kind="household"}'
         values: "25920000x191"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="klaipedos",kind="household"}'
@@ -1021,7 +1055,7 @@ tests:
       - eval_time: 36h10m
         alertname: ScheduleDataShrank
       - eval_time: 36h10m
-        alertname: ScheduleDataMoreWarnings
+        alertname: ScheduleDataNewWarnings
       - eval_time: 36h10m
         alertname: ScheduleDataRunsOut
       - eval_time: 36h10m

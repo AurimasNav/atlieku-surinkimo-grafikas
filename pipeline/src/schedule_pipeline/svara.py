@@ -833,8 +833,9 @@ def assemble(parts: list[Part], today: date) -> tuple[dict, list[dict[str, dict]
         "source": SHARE_URL,
         "municipality": first.municipality.spellings[0],
         "stats": _stats(first),
-        # For monitoring (status.py).
+        # For monitoring (status.py): how many warnings, and what they said.
         "warnings": len(first.warnings),
+        "warningTexts": list(first.warnings),
     }
     if others:
         # The same for the other municipalities: a source each in monitoring.
@@ -844,6 +845,7 @@ def assemble(parts: list[Part], today: date) -> tuple[dict, list[dict[str, dict]
                 "name": part.municipality.name,
                 "stats": _stats(part),
                 "warnings": len(part.warnings),
+                "warningTexts": list(part.warnings),
             }
             for part in others
         ]
