@@ -12,25 +12,311 @@ rule_files:
 evaluation_interval: 1m
 
 tests:
-  - name: data older than 30 hours
+  # ScheduleDataNotPublished and ScheduleDataStale. The job writes checked_timestamp at the end
+  # of every run that publishes, and generated_timestamp per source when that source is built
+  # (a source whose build fails keeps yesterday's). Each test lists, at its end, every alert
+  # that was ever pending or firing (ALERTS over the whole test), so "nothing else" is checked at
+  # every evaluation, not only at the eval_times.
+  - name: the job stops publishing, every source built in its last run
     interval: 15m
     input_series:
+      # The run at 0h00 (published at checked 0), then nothing until the run at 40h00. Its
+      # sources were built up to 40 minutes before the checked time, as a run takes.
+      - series: 'siuksliaveze_status_checked_timestamp_seconds{job="siuksliaveze-data"}'
+        values: "0x159 144000x16"
       - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
-        values: "0x140"
+        values: "-2400x159 141600x16"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="kauno"}'
+        values: "-1200x159 142800x16"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="zarasai"}'
+        values: "-60x159 143940x16"
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "1x176"
     alert_rule_test:
-      # Over 30 h since 30h01m, so pending until 30h31m.
-      - eval_time: 30h10m
+      # nemencine's data is over 30 hours old from 29h20m, 40 minutes before the job's checked
+      # time: still no alert for it.
+      - eval_time: 29h50m
         alertname: ScheduleDataStale
-      - eval_time: 31h10m
+      # Over 30 hours since the job published from 30h01m, so pending until 30h31m.
+      - eval_time: 30h20m
+        alertname: ScheduleDataNotPublished
+      - eval_time: 30h40m
+        alertname: ScheduleDataNotPublished
+        exp_alerts: &not-published
+          - exp_labels:
+              job: siuksliaveze-data
+              severity: warning
+            exp_annotations:
+              summary: "The daily job hasn't published for 1d 6h 40m 0s"
+              description: "Check the last run of the Schedule data workflow on GitHub."
+      - eval_time: 30h40m
+        alertname: ScheduleDataStale
+      # Published again at 40h00: resolved.
+      - eval_time: 40h10m
+        alertname: ScheduleDataNotPublished
+    promql_expr_test:
+      - expr: group by (alertname, alertstate) (last_over_time(ALERTS[45h]))
+        eval_time: 44h
+        exp_samples:
+          - labels: '{alertname="ScheduleDataNotPublished",alertstate="pending"}'
+            value: 1
+          - labels: '{alertname="ScheduleDataNotPublished",alertstate="firing"}'
+            value: 1
+
+  - name: a source's build fails while the job publishes daily
+    interval: 15m
+    input_series:
+      # Runs at 0h00, 24h00, 48h00 and 72h00. zarasai's build fails at 24h00 and 48h00, so its
+      # data from the run at 0h00 is kept; it is rebuilt at 72h00.
+      - series: 'siuksliaveze_status_checked_timestamp_seconds{job="siuksliaveze-data"}'
+        values: "0x95 86400x95 172800x95 259200x32"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
+        values: "-600x95 85800x95 172200x95 258600x32"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="zarasai"}'
+        values: "-60x287 259140x32"
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "1x320"
+    alert_rule_test:
+      # Over 30 hours old from 30h00m, so pending until 30h30m.
+      - eval_time: 30h20m
+        alertname: ScheduleDataStale
+      - eval_time: 30h40m
         alertname: ScheduleDataStale
         exp_alerts:
           - exp_labels:
               job: siuksliaveze-data
-              source: nemencine
+              source: zarasai
               severity: warning
             exp_annotations:
-              summary: "Schedule data of nemencine is 1d 7h 10m 0s old"
-              description: "The daily build of this source fails or doesn't run. See the Schedule data workflow on GitHub."
+              summary: "Schedule data of zarasai is 1d 6h 41m 0s old"
+              description: &stale "The daily build of this source fails, so the job keeps publishing its old data. See the Schedule data workflow on GitHub."
+      # Still firing after the next run, which fails for it again, until it is rebuilt.
+      - eval_time: 71h50m
+        alertname: ScheduleDataStale
+        exp_alerts:
+          - exp_labels:
+              job: siuksliaveze-data
+              source: zarasai
+              severity: warning
+            exp_annotations:
+              summary: "Schedule data of zarasai is 2d 23h 51m 0s old"
+              description: *stale
+      - eval_time: 72h10m
+        alertname: ScheduleDataStale
+    promql_expr_test:
+      - expr: group by (alertname, alertstate, source) (last_over_time(ALERTS[81h]))
+        eval_time: 80h
+        exp_samples:
+          - labels: '{alertname="ScheduleDataStale",alertstate="pending",source="zarasai"}'
+            value: 1
+          - labels: '{alertname="ScheduleDataStale",alertstate="firing",source="zarasai"}'
+            value: 1
+
+  - name: the job stops publishing while a source already lags
+    interval: 15m
+    input_series:
+      # The run at 0h00 is the last one, and zarasai's build already failed in it: its data is
+      # from the run a day before.
+      - series: 'siuksliaveze_status_checked_timestamp_seconds{job="siuksliaveze-data"}'
+        values: "0x144"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
+        values: "-600x144"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="zarasai"}'
+        values: "-86460x144"
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "1x144"
+    alert_rule_test:
+      # zarasai: 30 hours after its last build (5h59m), plus 30 minutes.
+      - eval_time: 6h20m
+        alertname: ScheduleDataStale
+      - eval_time: 30h40m
+        alertname: ScheduleDataStale
+        exp_alerts:
+          - exp_labels:
+              job: siuksliaveze-data
+              source: zarasai
+              severity: warning
+            exp_annotations:
+              summary: "Schedule data of zarasai is 2d 6h 41m 0s old"
+              description: *stale
+      - eval_time: 30h40m
+        alertname: ScheduleDataNotPublished
+        exp_alerts: *not-published
+    promql_expr_test:
+      - expr: group by (alertname, source) (last_over_time(ALERTS[37h]))
+        eval_time: 36h
+        exp_samples:
+          - labels: '{alertname="ScheduleDataNotPublished"}'
+            value: 1
+          - labels: '{alertname="ScheduleDataStale",source="zarasai"}'
+            value: 1
+
+  - name: the run that ends an outage fails for one source
+    interval: 15m
+    input_series:
+      # No run between 0h00 and 40h00; zarasai is rebuilt at 0h00 but fails at 40h00. Its alert
+      # follows its own 30 minutes from 40h00: a second problem, which only that run shows.
+      - series: 'siuksliaveze_status_checked_timestamp_seconds{job="siuksliaveze-data"}'
+        values: "0x159 144000x16"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
+        values: "-600x159 143400x16"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="zarasai"}'
+        values: "-60x175"
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "1x175"
+    alert_rule_test:
+      - eval_time: 39h50m
+        alertname: ScheduleDataStale
+      - eval_time: 40h20m
+        alertname: ScheduleDataStale
+      - eval_time: 40h40m
+        alertname: ScheduleDataStale
+        exp_alerts:
+          - exp_labels:
+              job: siuksliaveze-data
+              source: zarasai
+              severity: warning
+            exp_annotations:
+              summary: "Schedule data of zarasai is 1d 16h 41m 0s old"
+              description: *stale
+      - eval_time: 40h40m
+        alertname: ScheduleDataNotPublished
+    promql_expr_test:
+      - expr: group by (alertname, source) (last_over_time(ALERTS[44h]))
+        eval_time: 43h45m
+        exp_samples:
+          - labels: '{alertname="ScheduleDataNotPublished"}'
+            value: 1
+          - labels: '{alertname="ScheduleDataStale",source="zarasai"}'
+            value: 1
+
+  - name: a merge run 3 hours after the daily run in which a source failed
+    interval: 15m
+    input_series:
+      # Daily runs at 0h00, 24h00 and 48h00, a run after a merge at 27h00. zarasai fails from
+      # 24h00. kupiskis fails in the merge run only: 3 hours behind its checked time, but its
+      # data is a few hours old.
+      - series: 'siuksliaveze_status_checked_timestamp_seconds{job="siuksliaveze-data"}'
+        values: "0x95 86400x11 97200x83 172800x8"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
+        values: "-600x95 85800x11 96600x83 172200x8"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="zarasai"}'
+        values: "-60x200"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="kupiskis"}'
+        values: "-60x95 86340x95 172740x8"
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "1x200"
+    alert_rule_test:
+      # As when the job runs once a day: pending from 30h00m, firing from 30h30m.
+      - eval_time: 30h20m
+        alertname: ScheduleDataStale
+      - eval_time: 30h40m
+        alertname: ScheduleDataStale
+        exp_alerts:
+          - exp_labels:
+              job: siuksliaveze-data
+              source: zarasai
+              severity: warning
+            exp_annotations:
+              summary: "Schedule data of zarasai is 1d 6h 41m 0s old"
+              description: *stale
+    promql_expr_test:
+      - expr: group by (alertname, alertstate, source) (last_over_time(ALERTS[51h]))
+        eval_time: 50h
+        exp_samples:
+          - labels: '{alertname="ScheduleDataStale",alertstate="pending",source="zarasai"}'
+            value: 1
+          - labels: '{alertname="ScheduleDataStale",alertstate="firing",source="zarasai"}'
+            value: 1
+
+  - name: one missed scrape resolves nothing
+    interval: 15m
+    input_series:
+      # As two tests above, with the scrape at 32h00 failed.
+      - series: 'siuksliaveze_status_checked_timestamp_seconds{job="siuksliaveze-data"}'
+        values: "0x127 _ 0x15"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
+        values: "-600x127 _ -600x15"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="zarasai"}'
+        values: "-86460x127 _ -86460x15"
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "1x127 0 1x15"
+    alert_rule_test:
+      - eval_time: 32h14m
+        alertname: ScheduleDataNotPublished
+        exp_alerts:
+          - exp_labels:
+              job: siuksliaveze-data
+              severity: warning
+            exp_annotations:
+              summary: "The daily job hasn't published for 1d 8h 14m 0s"
+              description: "Check the last run of the Schedule data workflow on GitHub."
+      - eval_time: 32h14m
+        alertname: ScheduleDataStale
+        exp_alerts:
+          - exp_labels:
+              job: siuksliaveze-data
+              source: zarasai
+              severity: warning
+            exp_annotations:
+              summary: "Schedule data of zarasai is 2d 8h 15m 0s old"
+              description: *stale
+
+  - name: no checked time in metrics.txt raises no alert per source
+    interval: 15m
+    input_series:
+      # The file is fetched, but without checked_timestamp (the monitoring check fails if the
+      # data job stops writing a metric these rules use). The sources are 36 hours old.
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
+        values: "-60x144"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="zarasai"}'
+        values: "-60x144"
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "1x144"
+    promql_expr_test:
+      - expr: group by (alertname) (last_over_time(ALERTS[37h]))
+        eval_time: 36h
+        exp_samples: []
+
+  - name: the run after an outage drops a source
+    interval: 15m
+    input_series:
+      # As on 25 November 2026: the run at 40h00 ends a 40-hour outage, and kaisiadorys is no
+      # longer in metrics.txt. For 15 minutes its last sample, 40 hours old, is next to the new
+      # checked time: ScheduleDataStale is pending, then ScheduleDataSourceMissing takes over.
+      - series: 'siuksliaveze_status_checked_timestamp_seconds{job="siuksliaveze-data"}'
+        values: "0x159 144000x16"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="kauno"}'
+        values: "-1200x159 142800x16"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="kaisiadorys"}'
+        values: "-1200x159"
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "1x175"
+    alert_rule_test:
+      - eval_time: 40h10m
+        alertname: ScheduleDataStale
+      - eval_time: 40h50m
+        alertname: ScheduleDataSourceMissing
+        exp_alerts:
+          - exp_labels:
+              source: kaisiadorys
+              severity: warning
+            exp_annotations:
+              summary: "kaisiadorys is missing from metrics.txt"
+    promql_expr_test:
+      - expr: group by (alertname, alertstate, source) (last_over_time(ALERTS[44h]))
+        eval_time: 43h45m
+        exp_samples:
+          - labels: '{alertname="ScheduleDataNotPublished",alertstate="pending"}'
+            value: 1
+          - labels: '{alertname="ScheduleDataNotPublished",alertstate="firing"}'
+            value: 1
+          - labels: '{alertname="ScheduleDataStale",alertstate="pending",source="kaisiadorys"}'
+            value: 1
+          - labels: '{alertname="ScheduleDataSourceMissing",alertstate="pending",source="kaisiadorys"}'
+            value: 1
+          - labels: '{alertname="ScheduleDataSourceMissing",alertstate="firing",source="kaisiadorys"}'
+            value: 1
 
   - name: metrics.txt can't be fetched
     interval: 15m
@@ -553,6 +839,9 @@ tests:
       # dates of its rules 13 months ahead.
       - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="zarasai"}'
         values: "0x140"
+      # The job publishes at 0h00 and 24h00.
+      - series: 'siuksliaveze_status_checked_timestamp_seconds{job="siuksliaveze-data"}'
+        values: "0x95 86400x44"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="zarasai",kind="household"}'
         values: "34000000x140"
       - series: 'siuksliaveze_data_last_date_timestamp_seconds{job="siuksliaveze-data",source="zarasai",kind="packaging"}'
@@ -571,7 +860,7 @@ tests:
               severity: warning
             exp_annotations:
               summary: "Schedule data of zarasai is 1d 7h 10m 0s old"
-              description: "The daily build of this source fails or doesn't run. See the Schedule data workflow on GitHub."
+              description: *stale
 
   - name: Kupiškio r. packaging 3 days before its end
     interval: 15m
@@ -697,6 +986,8 @@ tests:
       # Rebuilt at 24h00; the yearly schedules end in 300 days.
       - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
         values: "0x95 86400x96"
+      - series: 'siuksliaveze_status_checked_timestamp_seconds{job="siuksliaveze-data"}'
+        values: "60x95 86460x96"
       - series: 'siuksliaveze_data_places{job="siuksliaveze-data",source="nemencine"}'
         values: "100x191"
       - series: 'siuksliaveze_data_warnings{job="siuksliaveze-data",source="nemencine"}'
@@ -771,3 +1062,5 @@ tests:
         alertname: ScheduleDataSourceMissing
       - eval_time: 36h10m
         alertname: ScheduleDataNotScraped
+      - eval_time: 36h10m
+        alertname: ScheduleDataNotPublished
