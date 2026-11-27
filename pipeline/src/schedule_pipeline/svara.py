@@ -1,4 +1,4 @@
-"""Kauno r. and Kaišiadorių r.: schedules from the open-data file of UAB „Kauno švara“.
+"""Kauno r.: schedules from the open-data file of UAB „Kauno švara“.
 
 The company shares one CSV with every container it empties (nine municipalities, ~390k rows,
 refreshed nightly). A row is one container at one address with its next pickup date and how
@@ -7,12 +7,15 @@ often it is emptied:
     Kauno r. sav.;Ringaudų sen.;Karkiškių k.;Ganyklų g.;2;52-MK-042246;2026-11-25;
     kas 14 dienų;Mišrios komunalinės   (one line in the file)
 
-Two of the municipalities are read (MUNICIPALITIES): Kauno r. and Kaišiadorių r., where the
-company empties only mixed waste. Both are published together, so app versions that know Kauno
-r. find the Kaišiadorių r. addresses too; elderships of Kaišiadorių r. say so (`municipality`).
-The others are left out on purpose: Kauno m., Vilniaus m. and Alytaus m. are cities, which the
-project doesn't cover; Alytaus r. has only packaging and glass here; and Prienų r., Birštonas
-and Druskininkai come from the schedules of Alytaus RATC (FROM_ALYTAUS_RATC).
+One of the municipalities is read (MUNICIPALITIES): Kauno r. The file can carry more, published
+together with it (elderships of another municipality say so, `municipality`); until November
+2026 Kaišiadorių r. was one, where UAB „Švara ID“ emptied only mixed waste. The others are left
+out on purpose: Kauno m., Vilniaus m. and Alytaus m. are cities, which the project doesn't
+cover; Alytaus r. has only packaging and glass here; Prienų r., Birštonas and Druskininkai come
+from the schedules of Alytaus RATC (FROM_ALYTAUS_RATC); and Kaišiadorių r. from its new
+operator, SĮ „Kaišiadorių paslaugos“ (FROM_KAISIADORIU_PASLAUGOS; schedule_pipeline.kaisiadorys).
+A municipality of MUNICIPALITIES whose rows can't be read fails the build, and the daily job
+keeps yesterday's files: its addresses never silently vanish from the site.
 
 Only a few hundred distinct schedules hide behind the tens of thousands of containers, so the
 output is the same shape as for Nemenčinė: a short list of schedules ("areas") with dates, and
@@ -95,9 +98,9 @@ class Municipality:
 
 # Kauno r. first. Its file names, schedule positions, `stats` and `warnings` stay what they were
 # when it was alone in the files, for the app versions and monitoring that know only Kauno r.;
-# elderships of the others have a `municipality`. If the rows of Kauno r. can't be read, the
-# build fails; another municipality is left out instead, with a warning.
-MUNICIPALITIES = (
+# elderships of the others (none now) have a `municipality`. If the rows of any of them can't be
+# read, the build fails and yesterday's files are kept.
+MUNICIPALITIES: tuple[Municipality, ...] = (
     # 2026: 63k rows, 39k addresses.
     Municipality(
         "Kauno r.",
@@ -108,22 +111,18 @@ MUNICIPALITIES = (
         registry_file=snapshot.KAUNO_REGISTRY_FILE,
         addresses_file=snapshot.KAUNO_ADDRESSES_FILE,
     ),
-    # 2026: 8.7k rows, 7.8k addresses, mixed waste only.
-    Municipality(
-        "Kaišiadorių r.",
-        "kaisiadorys",
-        ("Kaišiadorių r. sav.", "Kaišiadorių rajono sav."),
-        min_rows=4_000,
-        min_addresses=3_500,
-        registry_file=snapshot.KAISIADORIU_REGISTRY_FILE,
-        addresses_file=snapshot.KAISIADORIU_ADDRESSES_FILE,
-    ),
 )
 # In the file too, but never read here: their schedules come from UAB „Alytaus regiono atliekų
 # tvarkymo centras“ (aratc.lt), the official source for them. Reading them here as well would
 # give their addresses two sources. Their rules in this file ("pirmąjį mėnesyje ketvirtadienį",
 # "30 mėnesio dieną, spalį") aren't all understood either.
 FROM_ALYTAUS_RATC = frozenset({"Prienų r. sav.", "Birštono sav.", "Druskininkų sav."})
+# Read here until November 2026 (8,738 containers at 7,726 addresses on 23 November, mixed waste
+# only), never since: SĮ „Kaišiadorių paslaugos“ took over its collection from UAB „Švara ID“ on
+# 16 November 2026, its rows left the file on 24 November, and schedule_pipeline.kaisiadorys
+# reads the new operator's schedules (site/kaisiadoriu-r, the same source id, "kaisiadorys").
+# Reading rows of it here too, should they come back, would give its addresses two sources.
+FROM_KAISIADORIU_PASLAUGOS = frozenset({"Kaišiadorių r. sav.", "Kaišiadorių rajono sav."})
 
 KINDS = {
     "Mišrios komunalinės": "household",
@@ -699,9 +698,9 @@ def read_part(
 def read(
     content: bytes, today: date, registries: dict[str, Registry] | None = None
 ) -> tuple[list[Part], list[str], Counter[str]]:
-    """The parts of MUNICIPALITIES that can be read, Kauno r. first; `registries` are their
-    Address Register snapshots by municipality id. Also returns warnings about municipalities
-    left out, and how many rows each municipality that isn't read has."""
+    """The parts of MUNICIPALITIES, Kauno r. first; `registries` are their Address Register
+    snapshots by municipality id. Also returns how many rows each municipality that isn't read
+    has. Raises ValidationError if the rows of one can't be read."""
     reader = csv.reader(io.StringIO(content.decode("utf-8-sig")), delimiter=";")
     rows = [[clean_text(c) for c in row] for row in reader if len(row) == 9]
     municipality_of = {name: m for m in MUNICIPALITIES for name in m.spellings}
@@ -714,19 +713,11 @@ def read(
             not_read[row[0]] += 1
 
     registries = registries or {}
-    parts: list[Part] = []
-    left_out: list[str] = []
-    for municipality in MUNICIPALITIES:
-        rows = rows_of[municipality.id]
-        try:
-            parts.append(read_part(municipality, rows, today, registries.get(municipality.id)))
-        except ValidationError as error:
-            # Kauno r. fails the build (yesterday's files are kept). The others must not hold
-            # it back: their addresses are left out until their rows can be read again.
-            if not parts:
-                raise
-            left_out.append(f"{municipality.name} left out: {error}")
-    return parts, left_out, not_read
+    # A municipality whose rows can't be read fails the build, and the daily job keeps
+    # yesterday's files with every municipality's addresses: one published yesterday must not
+    # vanish from the site (until November 2026 Kaišiadorių r. was left out with a warning).
+    parts = [read_part(m, rows_of[m.id], today, registries.get(m.id)) for m in MUNICIPALITIES]
+    return parts, not_read
 
 
 def _stats(part: Part) -> dict:
@@ -859,14 +850,14 @@ def build(
 ) -> tuple[dict, dict[str, dict], list[str]]:
     """Returns (schedule.json, {eldership file: addresses file}, warnings); warnings of the
     municipalities after Kauno r. start with their name. `registries`: see read()."""
-    parts, left_out, _ = read(content, today, registries)
+    parts, _ = read(content, today, registries)
     dataset, files_of = assemble(parts, today)
     files = {name: data for files in files_of for name, data in files.items()}
     first, *others = parts
     warnings = first.warnings + [
         f"{part.municipality.name}: {warning}" for part in others for warning in part.warnings
     ]
-    return dataset, files, warnings + left_out
+    return dataset, files, warnings
 
 
 def _house(number: str) -> str:
@@ -1014,7 +1005,7 @@ def main(argv: list[str] | None = None) -> int:
     }
     today = date.today()
     try:
-        parts, left_out, not_read = read(content, today, registries)
+        parts, not_read = read(content, today, registries)
     except ValidationError as error:
         print(f"Validation failed: {error}", file=sys.stderr)
         return 1
@@ -1039,13 +1030,16 @@ def main(argv: list[str] | None = None) -> int:
             json.dumps(join_tables(tables), ensure_ascii=False, separators=(",", ":")),
             encoding="utf-8",
         )
-    lines += [f"- warning: {w}" for w in left_out]
+    elsewhere = {
+        **dict.fromkeys(FROM_ALYTAUS_RATC, "Alytaus RATC"),
+        **dict.fromkeys(FROM_KAISIADORIU_PASLAUGOS, "Kaišiadorių paslaugos"),
+    }
     lines += [
         "",
         "Not read: "
         + ", ".join(
             f"{name or '(no municipality)'} ({count} rows"
-            + (", from Alytaus RATC)" if name in FROM_ALYTAUS_RATC else ")")
+            + (f", from {elsewhere[name]})" if name in elsewhere else ")")
             for name, count in not_read.most_common()
         ),
     ]

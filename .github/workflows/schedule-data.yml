@@ -69,10 +69,10 @@ jobs:
         # Vilniaus r.: Nemenčinės and Nemėžio komunalininkas. If one company's build fails, its
         # part of yesterday's schedule.json is kept and the step logs a warning annotation.
         run: uv run python -m schedule_pipeline --out ../site/schedule.json
-      # Its own file and app download (site/kauno-r, with Kaišiadorių r. from the same file of
-      # Kauno švara): its failure must not hold back the Vilniaus r. data, so on failure the
-      # files published yesterday are kept instead.
-      - name: Build the Kauno r. and Kaišiadorių r. schedules (Kauno švara)
+      # Its own file and app download (site/kauno-r; Kaišiadorių r. has its own folder since its
+      # operator changed in November 2026): its failure must not hold back the Vilniaus r. data,
+      # so on failure the files published yesterday are kept instead.
+      - name: Build the Kauno r. schedule (Kauno švara)
         id: kauno
         continue-on-error: true
         run: uv run python -m schedule_pipeline.svara --out ../site/kauno-r

@@ -75,6 +75,45 @@ def test_kaisiadorys_is_a_source_of_its_own(tmp_path):
     }
 
 
+def test_kaisiadorys_comes_from_its_own_folder(tmp_path):
+    # Since its operator changed (November 2026) Kaišiadorių r. has a folder of its own
+    # (schedule_pipeline.kaisiadorys), the same source id: an old kauno-r part of it doesn't count.
+    test_kaisiadorys_is_a_source_of_its_own(tmp_path)
+    mine = {"provider": "kaisiadorys"}
+    (tmp_path / "kaisiadoriu-r").mkdir()
+    (tmp_path / "kaisiadoriu-r" / "schedule.json").write_text(
+        json.dumps(
+            {
+                "generatedAt": "2026-11-27T04:20:00+00:00",
+                "providers": [
+                    {
+                        "id": "kaisiadorys",
+                        "generatedAt": "2026-11-27T04:20:00+00:00",
+                        "warnings": 1,
+                        "warningTexts": ["not linked to any settlement: household: Kapinės"],
+                    }
+                ],
+                "areas": [
+                    {"id": "a", "kind": "household", "dates": ["2026-12-29"], **mine},
+                    {"id": "b", "kind": "glass", "dates": ["2026-12-17"], **mine},
+                ],
+                "locations": [{"id": "g1", "schedule": {"household": {"area": "a"}}, **mine}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    sources = status.collect(tmp_path)["sources"]
+    assert sources["kauno"]["places"] == 39200
+    assert sources["kaisiadorys"] == {
+        "generatedAt": "2026-11-27T04:20:00+00:00",
+        "areas": {"glass": 1, "household": 1},
+        "places": 1,
+        "warnings": 1,
+        "lastDate": {"glass": "2026-12-17", "household": "2026-12-29"},
+        "newWarnings": 1,
+    }
+
+
 def test_no_data_is_an_error(tmp_path):
     assert status.main(["--site", str(tmp_path)]) == 1
 

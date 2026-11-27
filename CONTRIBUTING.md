@@ -10,7 +10,7 @@ No separate agreement is needed.
 
 ```
 nemenkom.lt (xlsx + pdf), nkom.lt (pdf)   Vilniaus r.: one schedule.json
-grafikai.svara.lt (open-data xlsx)        Kauno r., Kaišiadorių r.: site/kauno-r/
+grafikai.svara.lt (open-data xlsx)        Kauno r.: site/kauno-r/
 tratc.lt (xlsx)                           Mažeikių r., Telšių r., Plungės r., Rietavo sav.:
                                           site/mazeikiu-r/
 gargzdusvara.eu (xlsx)                    Klaipėdos r.: site/klaipedos-r/
@@ -48,6 +48,9 @@ svencionys.lt (pdf)                       Švenčionių r.: site/svencioniu-r/ (
                                           pipeline/data when the site refuses the runners)
 zarasai.lt (pdf; mixed waste a scan,      Zarasų r.: site/zarasu-r/ (from a copy in
   transcribed in pipeline/data)           pipeline/data when the site refuses the runners)
+kaisiadoriupaslaugos.lt (json)            Kaišiadorių r.: site/kaisiadoriu-r/ (until
+                                          November 2026 from Kauno švara's file, with
+                                          Kauno r.)
    │  daily GitHub Action (.github/workflows/schedule-data.yml)
    ▼
 pipeline/   Python: scrape → parse → validate → schedule.json
