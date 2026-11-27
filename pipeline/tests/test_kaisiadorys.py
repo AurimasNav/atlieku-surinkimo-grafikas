@@ -57,6 +57,10 @@ def place(data, name, kind=None, district=None):
 def rows(data, location, waste="household"):
     schedule = location["schedule"][waste]
     ids = [schedule["area"]] if "area" in schedule else schedule["candidates"]
+    return rows_of(data, ids)
+
+
+def rows_of(data, ids):
     by_id = {a["id"]: a for a in data["areas"]}
     return [by_id[i]["name"] for i in ids]
 
@@ -73,8 +77,14 @@ def test_the_pages_settings():
 
 def test_this_year_and_the_next_are_read(built):
     files, waits, _, _ = built
-    # 2027 has no schedules yet: left out. One request every 10 seconds (robots.txt).
-    assert [f.year for f, _ in files] == [2026]
+    # 2027 has no schedules yet: left out. A file per kind of each year; one request every 10
+    # seconds (robots.txt).
+    assert [(f.year, f.kind, f.first) for f, _ in files] == [
+        (2026, "household", True),
+        (2026, "packaging", False),
+        (2026, "glass", False),
+        (2026, "green", False),
+    ]
     assert waits == [10, 10]
     assert kaisiadorys.years(TODAY, 31) == [2026, 2027]
     # In January, last year too, while its dates are kept.
@@ -87,6 +97,10 @@ def test_answers_that_are_not_the_years_data_fail():
     year = kaisiadorys.Year(2026, kaisiadorys.PAGE_URL)
     with pytest.raises(ValueError, match="not a successful answer"):
         kaisiadorys.parse_file(year, b'{"success": false, "data": "Invalid nonce"}')
+    # WordPress's answer to a nonce it refuses, or an action it doesn't know.
+    for answer in (b"-1", b"0"):
+        with pytest.raises(ValueError, match="not a successful answer"):
+            kaisiadorys.parse_file(year, answer)
     with pytest.raises(ValueError, match="the answer is of 2027"):
         kaisiadorys.parse_file(year, empty(2027))
     data = json.loads(DATA)
@@ -95,19 +109,34 @@ def test_answers_that_are_not_the_years_data_fail():
         kaisiadorys.parse_file(year, json.dumps(data).encode())
 
 
+def parse_year(content, year=2026):
+    """Every kind's file of the year, as download lists them."""
+    data = json.loads(content)["data"]
+    kinds = kaisiadorys._kinds(data)
+    return [
+        kaisiadorys.parse_file(kaisiadorys.Year(year, kaisiadorys.PAGE_URL, kind, i == 0), content)
+        for i, kind in enumerate(kinds)
+    ]
+
+
 def test_the_rows():
-    result = kaisiadorys.parse_file(kaisiadorys.Year(2026, kaisiadorys.PAGE_URL), DATA)
+    results = parse_year(DATA)
     kinds = {}
-    for area in result.areas:
-        kinds[area.kind] = kinds.get(area.kind, 0) + 1
+    for result in results:
+        for area in result.areas:
+            kinds[area.kind] = kinds.get(area.kind, 0) + 1
     # 392 locations with a schedule, 5 of them cemeteries and the shared containers.
     assert kinds == {"household": 387, "packaging": 385, "glass": 385, "green": 195}
+    # Each file has only its kind's rows; the year's warnings come with its first file.
+    assert all(len({a.kind for a in r.areas}) == 1 for r in results)
+    assert [r.warnings for r in results[1:]] == [[], [], []]
+    result = results[0]
     assert result.warnings == [
         "rows that aren't homes left out: Nemaitonių kapinės (Nemaitonių sen.); Palomenės "
         "kapinės (Palomenės sen.); Paparčių kapinės (Paparčių sen.); Pusiau požeminiai mišrių "
         "atliekų konteineriai; Žaslių kapinės (Žaslių sen.)"
     ]
-    navasodai = [a for a in result.areas if a.name == "Navasodų k."]
+    navasodai = [a for r in results for a in r.areas if a.name == "Navasodų k."]
     assert {a.kind for a in navasodai} == {"household", "packaging", "glass", "green"}
     household = next(a for a in navasodai if a.kind == "household")
     assert household.district == "Kaišiadorių apylinkės"
@@ -132,7 +161,7 @@ def test_counts(built):
     assert stats["locations"] == 391
     assert (stats["household.single"], stats["household.ambiguous"]) == (275, 1)
     assert (stats["household.byStreet"], stats["household.none"]) == (1, 114)
-    assert stats["unmatchedRows"] == 37
+    assert stats["unmatchedRows"] == 30
     kinds = {}
     for area in data["areas"]:
         kinds[area["kind"]] = kinds.get(area["kind"], 0) + 1
@@ -146,14 +175,16 @@ def test_counts(built):
         "Mičiūnų k.",
         "Paramotės Krušonys",
         "Prozariškių k.",
-        "S. Gegužinės k.",
         'S/B „BALTASIS BERŽELIS"',
         'S/B „GIRELĖ"',
         'S/B „SODŽIUS"',
         "SB „Marios“",
         "SB „Šilas“.",
-        "Vladiškių g.",
     ]
+    # Typos the spellings settle: Vladikiškių g. of Kaišiadorys has its own packaging rows.
+    town = place(data, "Kaišiadorys", "m.")
+    street = next(key for key, name in town["streets"] if name == "Vladikiškių g.")
+    assert rows_of(data, town["schedule"]["packaging"]["streets"][street]) == ["Vladiškių g."]
 
 
 def test_villages_towns_and_typos(built):
@@ -191,9 +222,9 @@ def test_the_streets_of_kaisiadorys(built):
     for kind in ("household", "green"):
         assert town["schedule"][kind] == {"area": town["schedule"][kind]["area"]}
         assert rows(data, town, kind) == ["Kaišiadorių miestas"]
-    # Packaging: 18 streets have other dates; glass: 74.
-    assert len(town["schedule"]["packaging"]["streets"]) == 18
-    assert len(town["schedule"]["glass"]["streets"]) == 74
+    # Packaging: 19 streets have other dates; glass: 75.
+    assert len(town["schedule"]["packaging"]["streets"]) == 19
+    assert len(town["schedule"]["glass"]["streets"]) == 75
     names = dict(town["streets"])
     by_id = {a["id"]: a for a in data["areas"]}
     zvejy = next(k for k, v in names.items() if v == "Žvejų g.")
@@ -241,3 +272,29 @@ def test_the_folder(tmp_path, monkeypatch):
     assert status.main(["--site", str(tmp_path)]) == 0
     text = (tmp_path / "metrics.txt").read_text(encoding="utf-8")
     assert 'siuksliaveze_data_places{source="kaisiadorys"}' in text
+
+
+def test_next_years_first_kinds_leave_this_years_others_current():
+    """In January the next year's answer may have only mixed waste: this year's packaging,
+    glass and green rows stay the newest of their kind, so their places keep them."""
+    data = json.loads(DATA)
+    data["data"]["year"] = 2027
+    data["data"]["schedules"] = {
+        location: {t: months for t, months in by.items() if t == "1"}
+        for location, by in data["data"]["schedules"].items()
+    }
+    mixed_only = json.dumps(data).encode()
+
+    def answers(url, form):
+        return {"2026": DATA, "2027": mixed_only}.get(form["year"]) or empty(int(form["year"]))
+
+    registry = Registry.load(FIXTURES / REGISTRY)
+    for today in (date(2027, 1, 1), date(2027, 1, 10)):
+        files, _ = kaisiadorys.download(today, 31, get, answers, lambda seconds: None)
+        assert [(f.year, f.kind) for f, _ in files if f.year == 2027] == [(2027, "household")]
+        data_, _ = build_dataset(files, registry, today, 31, kaisiadorys.SOURCE)
+        served = {}
+        for loc in data_["locations"]:
+            for kind in loc.get("schedule", {}):
+                served[kind] = served.get(kind, 0) + 1
+        assert served == {"household": 277, "packaging": 277, "glass": 277, "green": 99}

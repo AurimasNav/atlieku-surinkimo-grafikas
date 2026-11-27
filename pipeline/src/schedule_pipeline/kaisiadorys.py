@@ -23,7 +23,10 @@ list, not an object, when the year has none). The waste types are read by their 
 mixed waste, packaging (paper, plastic and metal), glass and green waste; it has no food waste
 yet, although food waste is collected in the towns since 23 November 2026. A type of another
 name is left out, with a warning. Each location with a schedule is a row of each waste type it
-has, with the eldership the data gives it (the register's names). This year and the next are
+has, with the eldership the data gives it (the register's names). A year's answer is read as a
+file per waste type it has, so each type's newest schedule is its own: next year's answer may
+come with mixed waste only, and this year's packaging, glass and green rows must stay current
+until next year's appear. This year and the next are
 read (and last year in January, while its dates are kept), so next year's dates are read on the
 day they appear; the site asks for at most one page every 10 seconds (robots.txt), so the
 requests wait for each other. A year whose data has no schedules is left out.
@@ -112,10 +115,8 @@ KINDS: tuple[tuple[str, Kind], ...] = (
     ("biologiskai skaid", "green"),
     ("maist", "food"),
 )
-# One file a year with every kind.
-FILE_KINDS: dict[Kind, tuple[Kind, ...]] = {
-    "household": ("household", "packaging", "glass", "green")
-}
+# The kinds in the order a year's files are listed.
+KIND_ORDER: tuple[Kind, ...] = ("household", "packaging", "glass", "green", "food")
 # Rows that aren't homes: cemeteries, the shared semi-underground containers, the washing of the
 # containers.
 _NOT_HOMES = re.compile(r"(?i:\bkapin\w*|\bpusiau\s+požemin\w*|\bplovim\w*|\bdezinfek\w*)")
@@ -128,16 +129,25 @@ _SPELLINGS = (
     (re.compile(r"\bmiestas\b", re.I), "m."),
     (re.compile(r"\b(k|vs|mstl|m)$"), r"\1."),
     (re.compile(r"\)\s*\.$"), ")"),
+    # Typos the typo match can't settle: a street of Kaišiadorys ("Vladiškių g." is
+    # Vladikiškių g.), and "S. Gegužinės k." of Palomenės (the dates of its Gegužinės k. row).
+    (re.compile(r"^Vladiškių g\.$"), "Vladikiškių g."),
+    (re.compile(r"^S\. Gegužinės k\.$"), "Gegužinės k."),
 )
 _TAG = re.compile(r"var\s+tobaltWaste\s*=\s*(\{.*?\});", re.S)
 
 
 class Year(SourceFile):
-    """The data of one year, as the site answers it."""
+    """One kind of the data of one year, as the site answers it: a file per kind, so each kind's
+    newest schedule is its own (build.current_rows). Next year's answer may have only some kinds
+    at first; with one file for the year, its kinds would make this year's others old in
+    January. The year's own warnings (waste types not read, rows that aren't homes) come with
+    its first file (`first`)."""
 
-    def __init__(self, year: int, url: str):
-        super().__init__("household", url, f"{year} m. atliekų išvežimo grafikai")
+    def __init__(self, year: int, url: str, kind: Kind = "household", first: bool = True):
+        super().__init__(kind, url, f"{year} m. atliekų išvežimo grafikai")
         self.year = year
+        self.first = first
 
 
 @dataclass(frozen=True)
@@ -181,15 +191,20 @@ def download(
     post: Callable[[str, dict[str, str]], bytes] | None = None,
     sleep: Callable[[float], None] | None = None,
 ) -> tuple[list[tuple[SourceFile, bytes]], list[str]]:
-    """The data of each year that has schedules (years); a year without is left out."""
+    """The data of each year that has schedules (years), a file per kind it has; a year
+    without is left out."""
     get, post, sleep = get or _get, post or _post, sleep or _wait
     tag = read_tag(get(PAGE_URL).decode("utf-8"))
     sources: list[tuple[SourceFile, bytes]] = []
     for year in years(today, keep_days):
         sleep(CRAWL_DELAY)
         content = post(tag.ajax_url, {"action": ACTION, "nonce": tag.nonce, "year": str(year)})
-        if _data(content, year)["schedules"]:
-            sources.append((Year(year, PAGE_URL), content))
+        data = _data(content, year)
+        if data["schedules"]:
+            kinds: list[Kind] = _kinds(data) or ["household"]
+            sources += [
+                (Year(year, PAGE_URL, kind, first=i == 0), content) for i, kind in enumerate(kinds)
+            ]
     if not sources:
         raise build.ValidationError(
             f"no schedules for {', '.join(map(str, years(today, keep_days)))}"
@@ -199,8 +214,9 @@ def download(
 
 def _data(content: bytes, year: int) -> dict:
     answer = json.loads(content)
+    # WordPress answers a refused nonce or an unknown action with a bare -1 or 0.
     data = answer.get("data") if isinstance(answer, dict) else None
-    if not answer.get("success") or not isinstance(data, dict):
+    if not isinstance(answer, dict) or not answer.get("success") or not isinstance(data, dict):
         raise ValueError(f"the data of {year}: not a successful answer: {content[:200]!r}")
     if int(data.get("year", 0)) != year:
         raise ValueError(f"the data of {year}: the answer is of {data.get('year')}")
@@ -215,13 +231,21 @@ def kind_of(name: str) -> Kind | None:
     return next((kind for words, kind in KINDS if words in folded), None)
 
 
+def _kinds(data: dict) -> list[Kind]:
+    """The kinds the year's schedules have, in KIND_ORDER."""
+    schedules = data["schedules"] if isinstance(data["schedules"], dict) else {}
+    types = {str(t["id"]): t["name"] for t in data["wasteTypes"]}
+    found = {kind_of(types.get(t, t)) for by in schedules.values() for t in by if by[t]}
+    return [kind for kind in KIND_ORDER if kind in found]
+
+
 def _weekday(dates: set[date]) -> str | None:
     days = {d.weekday() for d in dates}
     return WEEKDAY_NAMES[days.pop()] if len(days) == 1 else None
 
 
 def parse_file(source: SourceFile, content: bytes) -> ParseResult:
-    """The rows of one year: a row per location and waste type, with its dates."""
+    """The rows of one kind of one year: a row per location, with its dates."""
     assert isinstance(source, Year)
     data = _data(content, source.year)
     schedules = data["schedules"] or {}
@@ -233,7 +257,8 @@ def parse_file(source: SourceFile, content: bytes) -> ParseResult:
     unknown_types = sorted(
         {types.get(t, t) for by in schedules.values() for t in by if not kind_of(types.get(t, t))}
     )
-    warnings += [f"waste type „{name}“ isn't read" for name in unknown_types]
+    if source.first:
+        warnings += [f"waste type „{name}“ isn't read" for name in unknown_types]
     areas: list[Area] = []
     not_homes: list[str] = []
     for location_id, by_type in schedules.items():
@@ -249,7 +274,7 @@ def parse_file(source: SourceFile, content: bytes) -> ParseResult:
             continue
         for type_id, months in by_type.items():
             kind = kind_of(types.get(type_id, type_id))
-            if not kind:
+            if kind != source.kind:
                 continue
             dates = set()
             for month, days in months.items():
@@ -263,7 +288,7 @@ def parse_file(source: SourceFile, content: bytes) -> ParseResult:
             if dates:
                 areas.append(
                     Area(
-                        kind=kind,
+                        kind=source.kind,
                         name=name,
                         district=district,
                         weekday=_weekday(dates),
@@ -271,7 +296,7 @@ def parse_file(source: SourceFile, content: bytes) -> ParseResult:
                         provider=PROVIDER_ID,
                     )
                 )
-    if not_homes:
+    if not_homes and source.first:
         warnings.append("rows that aren't homes left out: " + "; ".join(sorted(set(not_homes))))
     return ParseResult(areas, warnings)
 
@@ -442,7 +467,8 @@ MUNICIPALITY = maatc.Municipality(
     min_household_places=200,
     min_address_points=10_000,
     label=LABEL,
-    file_kinds=FILE_KINDS,
+    # A file per kind (Year): none has more than one.
+    file_kinds={},
 )
 SOURCE = build.Source(
     PROVIDER,
@@ -450,7 +476,7 @@ SOURCE = build.Source(
     parse_file,
     MUNICIPALITY.min_areas,
     MUNICIPALITY.min_household_places,
-    FILE_KINDS,
+    {},
     combine,
 )
 
