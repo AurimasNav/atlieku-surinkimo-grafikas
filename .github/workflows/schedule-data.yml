@@ -82,15 +82,33 @@ jobs:
           base=https://aurimasnav.github.io/atlieku-surinkimo-grafikas/kauno-r
           out=../site/kauno-r
           rm -rf "$out" && mkdir -p "$out/addresses"
-          if curl -fsS "$base/schedule.json" -o "$out/schedule.json"; then
+          get() { curl -sS --retry 3 --max-time 120 -o "$out/$1" -w '%{http_code}' "$base/$1" || true; }
+          code=$(get schedule.json)
+          if [ "$code" = 200 ]; then
             for id in $(python3 -c "import json, sys; print(' '.join(e['id'] for e in json.load(open(sys.argv[1], encoding='utf-8'))['elderships']))" "$out/schedule.json"); do
-              curl -fsS "$base/addresses/$id.json" -o "$out/addresses/$id.json"
+              address=$(get "addresses/$id.json")
+              if [ "$address" != 200 ]; then
+                echo "::error::The Kauno r. build failed and the published addresses of $id couldn't be downloaded (HTTP $address)."
+                exit 1
+              fi
             done
-            curl -fsS "$base/points.json" -o "$out/points.json" || true
+            # The app's GPS search: kept like the rest, so it can't drop off the site either.
+            points=$(get points.json)
+            if [ "$points" = 404 ]; then
+              rm -f "$out/points.json"
+            elif [ "$points" != 200 ]; then
+              echo "::error::The Kauno r. build failed and the published points.json couldn't be downloaded (HTTP $points)."
+              exit 1
+            fi
             echo "::warning::The Kauno r. build failed; yesterday's published data is kept."
-          else
+          elif [ "$code" = 404 ]; then
             rm -rf "$out"
             echo "::warning::The Kauno r. build failed and there is no published data to keep."
+          else
+            # Publishing now would take the Kauno r. files off the site: fail, and the site
+            # keeps everything it has.
+            echo "::error::The Kauno r. build failed and the published data couldn't be downloaded (HTTP $code)."
+            exit 1
           fi
       # Mažeikių r., Telšių r., Plungės r. and Rietavo sav., from the files of the regional
       # waste centre (site/mazeikiu-r, a part each): a municipality whose build fails keeps its
