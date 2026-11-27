@@ -366,10 +366,10 @@ warning (`ScheduleDataNewWarnings`), as are typos it matched; too few schedules 
 for either year fail the build, and yesterday's `kaisiadoriu-r/` is kept (`ScheduleDataStale`).
 The schedules are a year at a time: in November 2026 they ended on 31 December (mixed waste;
 packaging 23 December, glass 17 December, green waste 24 December), and their last dates are in
-`metrics.txt` (`siuksliaveze_data_last_date_timestamp_seconds`); the example rule below doesn't
-watch `kaisiadorys` yet. Installed apps find `kaisiadoriu-r/` through
-`regions.json` (below); app versions that knew only `kauno-r/` lost Kaišiadorių r. on 24
-November 2026 with Kauno švara's file.
+`metrics.txt` (`siuksliaveze_data_last_date_timestamp_seconds`), and `ScheduleDataRunsOut` fires
+for `kaisiadorys` mixed waste from 24 December if 2027's isn't read by then. Installed apps find
+`kaisiadoriu-r/` through `regions.json` (below); app versions that knew only `kauno-r/` lost
+Kaišiadorių r. on 24 November 2026 with Kauno švara's file.
 
 The job therefore publishes the state of the data with every run:
 
@@ -681,6 +681,10 @@ groups:
       # daily refresh fails). Not its mixed waste: rules,
       # turned into dates 13 months ahead every day; a changed scan stops the build instead, and
       # ScheduleDataStale fires.
+      # Kaišiadorių r.: SĮ Kaišiadorių paslaugos publishes a year at a time. Mixed waste runs
+      # all year (the 2026 data has dates in every month) and ends on 31 December 2026, so this
+      # fires from 24 December until next year's mixed waste is read. Not packaging and glass
+      # (2026: April to December) nor green waste (December only): their gap over winter is normal.
       - alert: ScheduleDataRunsOut
         expr: |-
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source=~"mazeikiai|telsiai|plunge"}[30m]) - time() < 7 * 86400
@@ -734,6 +738,8 @@ groups:
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="svencionys",kind="packaging"}[30m]) - time() < 7 * 86400
             or
           last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="zarasai",kind=~"packaging|glass"}[30m]) - time() < 7 * 86400
+            or
+          last_over_time(siuksliaveze_data_last_date_timestamp_seconds{source="kaisiadorys",kind="household"}[30m]) - time() < 7 * 86400
         for: 1h
         labels: { severity: warning }
         annotations:
