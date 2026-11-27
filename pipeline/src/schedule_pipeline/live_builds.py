@@ -21,6 +21,11 @@ prints the jobs as the matrix of the workflow, JSON on one line:
 - `out`: the build's folder in the site; for the site root (Vilniaus r.) schedule.json, which
   the build writes addresses.json next to.
 - `artifact`: the name of the folder uploaded for the last job.
+
+Each build also names the sources (`source` in metrics.txt, schedule_pipeline.status) it
+publishes. Together they are pipeline/expected-sources.json, the sources the site should have
+(tests/test_live_builds.py checks both against the providers each module defines), and the
+live check names a build when one of its sources is missing (status --check-expected).
 """
 
 from __future__ import annotations
@@ -40,6 +45,8 @@ class Build:
     title: str
     module: str
     folder: str  # "" for the site root
+    # The sources it publishes, as status.json and metrics.txt name them.
+    sources: tuple[str, ...]
     args: tuple[str, ...] = ()
 
     @property
@@ -63,6 +70,7 @@ BUILDS: tuple[Build, ...] = (
         title="Build schedule.json from the live websites",
         module="schedule_pipeline",
         folder="",
+        sources=("nemencine", "nemezio"),
         args=(STRICT,),  # a company whose build fails fails the check
     ),
     Build(
@@ -70,6 +78,7 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Kauno r. schedule from Kauno švara's open-data file",
         module="schedule_pipeline.svara",
         folder="kauno-r",
+        sources=("kauno",),
     ),
     Build(
         name="Mažeikių r., Telšių r., Plungės r., Rietavo sav.",
@@ -79,6 +88,7 @@ BUILDS: tuple[Build, ...] = (
         ),
         module="schedule_pipeline.tratc",
         folder="mazeikiu-r",
+        sources=("mazeikiai", "telsiai", "plunge", "rietavas"),
         args=(STRICT,),  # a municipality whose build fails fails the check
     ),
     Build(
@@ -86,6 +96,7 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Klaipėdos r. schedule from the spreadsheet on gargzdusvara.eu",
         module="schedule_pipeline.gargzdu",
         folder="klaipedos-r",
+        sources=("klaipedos",),
     ),
     Build(
         name="Jurbarko r., Tauragės r., Šilalės r., Pagėgių sav.",
@@ -95,6 +106,7 @@ BUILDS: tuple[Build, ...] = (
         ),
         module="schedule_pipeline.taurage",
         folder="jurbarko-r",
+        sources=("jurbarkas", "taurage", "silale", "pagegiai"),
         args=(STRICT,),  # a municipality whose build fails fails the check
     ),
     Build(
@@ -102,6 +114,7 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Šiaulių RATC schedules (six municipalities) from the PDFs on sratc.lt",
         module="schedule_pipeline.sratc",
         folder="sratc",
+        sources=("siauliai", "radviliskis"),
         args=(STRICT,),  # a part (the five, or Radviliškio r.) whose build fails fails the check
     ),
     Build(
@@ -109,6 +122,7 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Alytaus RATC schedule from the PDFs on aratc.lt",
         module="schedule_pipeline.aratc",
         folder="alytaus-ratc",
+        sources=("alytus",),
     ),
     Build(
         name="Pasvalio r., Rokiškio r., Biržų r., Panevėžio r.",
@@ -118,6 +132,7 @@ BUILDS: tuple[Build, ...] = (
         ),
         module="schedule_pipeline.pratc",
         folder="panevezio-ratc",
+        sources=("pasvalys", "rokiskis", "birzai", "panevezio-r"),
         # A municipality whose build fails fails the check, and so does Panevėžio r.'s mixed
         # waste document if it can't be read (a route with notes that
         # pipeline/data/schedule-panevezio-r-mixed.json doesn't have: re-transcribe it).
@@ -130,6 +145,7 @@ BUILDS: tuple[Build, ...] = (
         ),
         module="schedule_pipeline.maatc",
         folder="maatc",
+        sources=("marijampole", "vilkaviskis", "kalvarija", "kazluruda", "sakiai"),
         args=(STRICT,),  # a municipality whose build fails fails the check
     ),
     Build(
@@ -137,6 +153,7 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Raseinių r. schedule from the PDFs on rkp.lt",
         module="schedule_pipeline.raseiniai",
         folder="raseiniu-r",
+        sources=("raseiniai",),
         args=(STRICT,),  # a file that can't be read fails the check
     ),
     Build(
@@ -144,6 +161,7 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Jonavos r. schedule from the PDFs on jonavospaslaugos.lt",
         module="schedule_pipeline.jonava",
         folder="jonavos-r",
+        sources=("jonava",),
         args=(STRICT,),  # a file that can't be read fails the check
     ),
     Build(
@@ -151,6 +169,7 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Kretingos r. schedule from the PDFs on kretkom.lt",
         module="schedule_pipeline.kretinga",
         folder="kretingos-r",
+        sources=("kretinga",),
     ),
     # silute.lt refuses the runners: the copy in pipeline/data is read instead, with a warning.
     Build(
@@ -158,6 +177,7 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Šilutės r. schedule from the PDF on silute.lt (or its copy)",
         module="schedule_pipeline.ecoservice",
         folder="silutes-r",
+        sources=("silute",),
         args=("--region", "silutes-r", STRICT),  # a build that fails fails the check
     ),
     Build(
@@ -165,6 +185,7 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Trakų r. and Šalčininkų r. schedules from the PDFs on ecoservice.lt",
         module="schedule_pipeline.ecoservice",
         folder="ecoservice",
+        sources=("trakai", "salcininkai"),
         args=("--region", "ecoservice", STRICT),  # a municipality whose build fails fails it
     ),
     # kedainiai.lt refuses the runners: the copy in pipeline/data is read instead, with a warning.
@@ -176,6 +197,7 @@ BUILDS: tuple[Build, ...] = (
         ),
         module="schedule_pipeline.kedainiai",
         folder="kedainiu-r",
+        sources=("kedainiai",),
         args=(STRICT,),  # a file that can't be read fails the check
     ),
     Build(
@@ -183,6 +205,7 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Molėtų r. schedule from the PDFs on moletusvara.lt",
         module="schedule_pipeline.moletai",
         folder="moletu-r",
+        sources=("moletai",),
         args=(STRICT,),  # a file that can't be read fails the check
     ),
     Build(
@@ -190,6 +213,7 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Skuodo r. schedule from the spreadsheets on skuodas.lt",
         module="schedule_pipeline.skuodas",
         folder="skuodo-r",
+        sources=("skuodas",),
     ),
     # ukmerge.lt refuses the runners: the copy in pipeline/data is read instead, with a warning.
     Build(
@@ -197,12 +221,14 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Ukmergės r. schedule from the PDFs on ukmerge.lt (or their copy)",
         module="schedule_pipeline.ukmerge",
         folder="ukmerges-r",
+        sources=("ukmerge",),
     ),
     Build(
         name="Anykščių r.",
         title="Build the Anykščių r. schedule from the PDFs on anykom.lt",
         module="schedule_pipeline.anyksciai",
         folder="anyksciu-r",
+        sources=("anyksciai",),
         args=(STRICT,),  # a file that can't be read fails the check
     ),
     Build(
@@ -210,6 +236,7 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Utenos r. schedule from the PDFs on utenoskom.lt",
         module="schedule_pipeline.utena",
         folder="utenos-r",
+        sources=("utena",),
         args=(STRICT,),  # a file that can't be read fails the check
     ),
     Build(
@@ -217,12 +244,14 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Ignalinos r. schedule from the PDFs on kompata.lt",
         module="schedule_pipeline.ignalina",
         folder="ignalinos-r",
+        sources=("ignalina",),
     ),
     Build(
         name="Elektrėnų sav.",
         title="Build the Elektrėnų sav. schedule from the schedule pages on eku.lt",
         module="schedule_pipeline.elektrenai",
         folder="elektrenu-sav",
+        sources=("elektrenai",),
     ),
     # sirvintos.lt refuses the runners: the copy in pipeline/data is read instead, with a warning.
     Build(
@@ -230,12 +259,14 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Širvintų r. schedule from the PDFs on sirvintos.lt (or their copy)",
         module="schedule_pipeline.sirvintos",
         folder="sirvintu-r",
+        sources=("sirvintos",),
     ),
     Build(
         name="Kupiškio r.",
         title="Build the Kupiškio r. schedule from the page and PDFs on kupkom.lt",
         module="schedule_pipeline.kupiskis",
         folder="kupiskio-r",
+        sources=("kupiskis",),
     ),
     # svencionys.lt refuses the runners: the copy in pipeline/data is read instead, with a
     # warning.
@@ -244,6 +275,7 @@ BUILDS: tuple[Build, ...] = (
         title="Build the Švenčionių r. schedule from the PDFs on svencionys.lt (or their copy)",
         module="schedule_pipeline.svencionys",
         folder="svencioniu-r",
+        sources=("svencionys",),
         args=(STRICT,),  # a file that can't be read fails the check
     ),
     # zarasai.lt refuses the runners: the copy in pipeline/data is read instead, with a warning.
@@ -256,12 +288,14 @@ BUILDS: tuple[Build, ...] = (
         ),
         module="schedule_pipeline.zarasai",
         folder="zarasu-r",
+        sources=("zarasai",),
     ),
     Build(
         name="Kaišiadorių r.",
         title="Build the Kaišiadorių r. schedule from kaisiadoriupaslaugos.lt",
         module="schedule_pipeline.kaisiadorys",
         folder="kaisiadoriu-r",
+        sources=("kaisiadorys",),
     ),
 )
 

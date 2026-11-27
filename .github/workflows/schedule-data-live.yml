@@ -10,8 +10,9 @@ name: Schedule data live build
 # pipeline/src/schedule_pipeline/live_builds.py: a new provider is an entry there, not a step
 # here. Each job uploads its folder of the site; then the job "live" puts the folders together,
 # compares schedule.json with the published data, indexes the regions, fails if a build
-# failed, and fails if a build gave a warning pipeline/known-warnings.json doesn't list (unless
-# the published data already has it as new: that one isn't the PR's).
+# failed, fails if a build gave a warning pipeline/known-warnings.json doesn't list (unless
+# the published data already has it as new: that one isn't the PR's), and fails if the sources
+# built aren't those pipeline/expected-sources.json lists.
 on:
   pull_request:
     paths: ["pipeline/**", ".github/workflows/schedule-data-live.yml"]
@@ -145,6 +146,7 @@ jobs:
       # status.json, metrics.txt and warnings.html/.json, as the daily job publishes them: the
       # builds' warnings compared with this branch's pipeline/known-warnings.json.
       - name: Publish the state of the data (status.json, warnings.html)
+        id: status
         run: uv run python -m schedule_pipeline.status --site "$RUNNER_TEMP/site"
       # A new warning the published data already has (its warnings.json lists it as new, so the
       # alert is firing) isn't this PR's: it is listed apart and doesn't fail the check, or every
@@ -262,3 +264,12 @@ jobs:
               sys.exit(1)
           print("No new warnings")
           EOF
+      # The sources built against pipeline/expected-sources.json, which metrics.txt publishes for
+      # the source-missing alert: a PR that adds a provider adds its source to the list, and one
+      # that removes a provider removes it, so the alert never fires for either. A listed source
+      # whose build failed is only a notice here (its live (…) job fails the check already). Only
+      # here: the daily job publishes what it has, and the alert names what is missing. Runs after
+      # failed builds and new warnings too, so every reason the check fails shows at once.
+      - name: Fail if the sources built aren't pipeline/expected-sources.json
+        if: ${{ !cancelled() && steps.status.outcome == 'success' }}
+        run: uv run python -m schedule_pipeline.status --site "$RUNNER_TEMP/site" --check-expected

@@ -521,3 +521,127 @@ def test_a_part_published_before_the_texts_keeps_its_count_only():
     assert "warningTexts" not in old["providers"][0]
     kept = build.published_part(old, PROVIDER)
     assert kept["warnings"] == 6 and "warningTexts" not in kept
+
+
+# --- the sources the site should have (pipeline/expected-sources.json) ------------------
+
+
+def expected_file(tmp_path, sources):
+    path = tmp_path / "expected-sources.json"
+    path.write_text(json.dumps(sources), encoding="utf-8")
+    return path
+
+
+def test_metrics_start_with_the_expected_sources(tmp_path):
+    site = site_with(tmp_path / "site", [part("nemezio", []), part("sakiai", [])])
+    expected = expected_file(tmp_path, ["kauno", "nemezio", "sakiai"])
+    assert status.main(["--site", str(site), "--expected", str(expected)]) == 0
+    lines = (site / "metrics.txt").read_text(encoding="utf-8").splitlines()
+    # The first family, so a file cut short loses it last: one series a listed source, built
+    # or not, each 1.
+    assert lines[:5] == [
+        "# HELP siuksliaveze_data_expected 1 for every source the site should have"
+        " (pipeline/expected-sources.json). A source with this but without"
+        " siuksliaveze_data_generated_timestamp_seconds is missing.",
+        "# TYPE siuksliaveze_data_expected gauge",
+        'siuksliaveze_data_expected{source="kauno"} 1',
+        'siuksliaveze_data_expected{source="nemezio"} 1',
+        'siuksliaveze_data_expected{source="sakiai"} 1',
+    ]
+    assert lines[5].startswith("# HELP siuksliaveze_data_generated_timestamp_seconds ")
+    assert sum(line.startswith("siuksliaveze_data_expected") for line in lines) == 3
+    published = json.loads((site / "status.json").read_text(encoding="utf-8"))
+    assert published["expected"] == ["kauno", "nemezio", "sakiai"]
+    assert published["notBuilt"] == ["kauno"]
+    assert published["notListed"] == []
+    assert sorted(published["sources"]) == ["nemezio", "sakiai"]
+
+
+def test_without_a_list_no_source_is_expected(tmp_path, capsys):
+    # The daily job still publishes; the alert falls back to the sources it saw lately.
+    site = site_with(tmp_path / "site", [part("nemezio", [])])
+    missing = tmp_path / "none.json"
+    assert status.main(["--site", str(site), "--expected", str(missing)]) == 0
+    assert "no expected sources published" in capsys.readouterr().err
+    text = (site / "metrics.txt").read_text(encoding="utf-8")
+    assert "siuksliaveze_data_expected{" not in text
+    assert json.loads((site / "status.json").read_text(encoding="utf-8"))["notListed"] == [
+        "nemezio"
+    ]
+
+
+def test_the_committed_list_is_sorted():
+    text = status.EXPECTED.read_text(encoding="utf-8")
+    expected = json.loads(text)
+    assert expected == sorted(set(expected)) and all(isinstance(s, str) for s in expected)
+    assert text == json.dumps(expected, indent=2) + "\n"
+
+
+def check(site, expected, monkeypatch, tmp_path):
+    summary = tmp_path / "summary.md"
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
+    code = status.main(["--site", str(site), "--expected", str(expected), "--check-expected"])
+    return code, summary.read_text(encoding="utf-8")
+
+
+def test_check_expected_passes_when_the_built_sources_are_the_list(tmp_path, monkeypatch, capsys):
+    site = site_with(tmp_path / "site", [part("nemencine", []), part("nemezio", [])])
+    expected = expected_file(tmp_path, ["nemencine", "nemezio"])
+    code, summary = check(site, expected, monkeypatch, tmp_path)
+    assert code == 0
+    assert "::error" not in capsys.readouterr().out
+    assert "2 listed, 2 built: 0 differences" in summary
+    # It only compares: the status step writes the files.
+    assert not (site / "metrics.txt").exists() and not (site / "status.json").exists()
+
+
+def test_check_expected_fails_on_a_built_source_not_listed(tmp_path, monkeypatch, capsys):
+    # A new provider whose PR didn't add it to the list.
+    site = site_with(tmp_path / "site", [part("nemencine", []), part("nemezio", [])])
+    expected = expected_file(tmp_path, ["nemencine"])
+    code, summary = check(site, expected, monkeypatch, tmp_path)
+    assert code == 1
+    out = capsys.readouterr().out
+    assert (
+        "::error title=Not in pipeline/expected-sources.json (nemezio)::nemezio is built but not"
+        " listed. Add it to pipeline/expected-sources.json in this PR: the published list is what"
+        " the source-missing alert watches."
+    ) in out
+    assert "1 differences" in summary
+
+
+def test_check_expected_fails_on_a_listed_source_not_built(tmp_path, monkeypatch, capsys):
+    # Vilniaus r.'s build passed (schedule.json is there) without nemezio's part, and a source no
+    # build has: a provider removed without removing it from the list.
+    site = site_with(tmp_path / "site", [part("nemencine", [])])
+    expected = expected_file(tmp_path, ["nemencine", "nemezio", "vilnius"])
+    code, summary = check(site, expected, monkeypatch, tmp_path)
+    assert code == 1
+    out = capsys.readouterr().out
+    assert (
+        "::error title=Not built (nemezio)::nemezio is in pipeline/expected-sources.json, but live"
+        " (Vilniaus r.) didn't publish it. Fix its build or, if the provider is removed on"
+        " purpose, remove it from the list in the PR that removes the provider."
+    ) in out
+    assert (
+        "::error title=Not built (vilnius)::vilnius is in pipeline/expected-sources.json, but no"
+        " build in live_builds.py publishes it. Remove it from the list in the PR that removes"
+        " the provider."
+    ) in out
+    assert "2 differences" in summary
+
+
+def test_check_expected_leaves_a_failed_build_to_its_own_job(tmp_path, monkeypatch, capsys):
+    # live (Kauno r.) failed, so its folder isn't in the site: that job fails the check already,
+    # and the list is right. A notice, not a second error.
+    site = site_with(tmp_path / "site", [part("nemencine", [])])
+    expected = expected_file(tmp_path, ["kauno", "nemencine"])
+    code, summary = check(site, expected, monkeypatch, tmp_path)
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "::error" not in out
+    assert (
+        "::notice title=Not built (kauno)::kauno is listed, but its build, live (Kauno r.),"
+        " failed: that job fails this check on its own."
+    ) in out
+    assert "0 differences, 1 listed sources whose build failed" in summary

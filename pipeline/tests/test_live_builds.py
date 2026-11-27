@@ -1,15 +1,23 @@
 """The builds of the live check on pull requests (schedule_pipeline.live_builds): every provider,
 once, as the daily job builds it."""
 
+import dataclasses
+import importlib
 import json
 import re
 from pathlib import Path
+from types import ModuleType
 
-from schedule_pipeline import ecoservice, live_builds
+from schedule_pipeline import build as schedule_build
+from schedule_pipeline import ecoservice, live_builds, svara
 from schedule_pipeline.live_builds import BUILDS
+from schedule_pipeline.model import Provider
 
 PACKAGE = Path(live_builds.__file__).parent
-DAILY = Path(__file__).resolve().parents[2] / ".github" / "workflows" / "schedule-data.yml"
+ROOT = Path(__file__).resolve().parents[2]
+DAILY = ROOT / ".github" / "workflows" / "schedule-data.yml"
+EXPECTED = ROOT / "pipeline" / "expected-sources.json"
+MONITORING = ROOT / "docs" / "monitoring.md"
 
 
 def module_name(build):
@@ -102,3 +110,60 @@ def test_prints_the_matrix_on_one_line(capsys):
         "out": "silutes-r",
         "artifact": "live-silutes-r",
     } in jobs
+
+
+def module_sources(build):
+    """The sources a build's module defines: its providers' ids (status.py names a source by its
+    provider), Kauno švara's municipalities, each Ecoservice folder's municipalities."""
+    module = importlib.import_module(build.module)
+    if build.module == "schedule_pipeline":
+        return {source.provider.id for source in schedule_build.SOURCES}
+    if module is svara:
+        return {municipality.id for municipality in svara.MUNICIPALITIES}
+    if module is ecoservice:
+        region = ecoservice.REGIONS[build.args[build.args.index("--region") + 1]]
+        return {municipality.provider.id for municipality in region.municipalities}
+    found: set[str] = set()
+    seen: set[int] = set()
+
+    def walk(value, depth=0):
+        if id(value) in seen or depth > 4:
+            return
+        seen.add(id(value))
+        if isinstance(value, Provider):
+            found.add(value.id)
+        elif isinstance(value, (list, tuple, set, frozenset)):
+            for item in value:
+                walk(item, depth + 1)
+        elif isinstance(value, dict):
+            for item in value.values():
+                walk(item, depth + 1)
+        elif dataclasses.is_dataclass(value) and not isinstance(value, type):
+            for f in dataclasses.fields(value):
+                walk(getattr(value, f.name), depth + 1)
+
+    for name, value in vars(module).items():
+        if not name.startswith("_") and not isinstance(value, ModuleType):
+            walk(value)
+    return found
+
+
+def test_every_build_names_the_sources_its_module_defines():
+    for build in BUILDS:
+        assert set(build.sources) == module_sources(build), build.name
+        assert len(build.sources) == len(set(build.sources)), build.name
+
+
+def test_the_expected_sources_are_those_the_builds_publish():
+    # pipeline/expected-sources.json: a PR that adds or removes a provider changes both.
+    built = [source for build in BUILDS for source in build.sources]
+    assert len(built) == len(set(built))
+    assert json.loads(EXPECTED.read_text(encoding="utf-8")) == sorted(built)
+
+
+def test_the_monitoring_doc_lists_the_expected_sources():
+    # The table of sources in docs/monitoring.md, one row a source.
+    doc = MONITORING.read_text(encoding="utf-8")
+    table = doc[doc.index("| `source` | Company | Published in |") :].split("\n\n")[0]
+    rows = re.findall(r"^\| `([\w-]+)` \| ", table, flags=re.M)[1:]
+    assert sorted(rows) == json.loads(EXPECTED.read_text(encoding="utf-8"))
