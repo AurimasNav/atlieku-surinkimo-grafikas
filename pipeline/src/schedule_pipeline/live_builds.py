@@ -257,6 +257,12 @@ BUILDS: tuple[Build, ...] = (
         module="schedule_pipeline.zarasai",
         folder="zarasu-r",
     ),
+    Build(
+        name="Kaišiadorių r.",
+        title="Build the Kaišiadorių r. schedule from kaisiadoriupaslaugos.lt",
+        module="schedule_pipeline.kaisiadorys",
+        folder="kaisiadoriu-r",
+    ),
 )
 
 

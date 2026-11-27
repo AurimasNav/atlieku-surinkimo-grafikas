@@ -2,7 +2,7 @@ name: Schedule data live build
 
 # Pull requests that change the pipeline (code or dependencies, e.g. a Renovate update of
 # openpyxl or pdfplumber) build the data from today's files on nemenkom.lt, nkom.lt, tratc.lt,
-# gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt, ecoservice.lt, kedainiai.lt, moletusvara.lt, skuodas.lt, ukmerge.lt, anykom.lt, utenoskom.lt, kompata.lt, eku.lt, sirvintos.lt, kupkom.lt, svencionys.lt and zarasai.lt and from Kauno švara's open data, the way the daily job does, and compare
+# gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt, ecoservice.lt, kedainiai.lt, moletusvara.lt, skuodas.lt, ukmerge.lt, anykom.lt, utenoskom.lt, kompata.lt, eku.lt, sirvintos.lt, kupkom.lt, svencionys.lt, zarasai.lt and kaisiadoriupaslaugos.lt and from Kauno švara's open data, the way the daily job does, and compare
 # schedule.json with the published data. The unit tests in Schedule data / build only parse stored copies of the
 # files. Nothing is deployed.
 #
