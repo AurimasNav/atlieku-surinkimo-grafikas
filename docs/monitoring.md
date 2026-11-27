@@ -17,7 +17,7 @@ There are forty-three sources:
 | `nemencine` | UAB „Nemenčinės komunalininkas“, 12 elderships of Vilniaus r. | `schedule.json` (rows and places without a `provider` field) |
 | `nemezio` | UAB „Nemėžio komunalininkas“, the other 11 elderships of Vilniaus r. | `schedule.json` (`provider: "nemezio"`) |
 | `kauno` | UAB „Kauno švara“, Kauno r. | `kauno-r/` |
-| `kaisiadorys` | UAB „Kauno švara“, Kaišiadorių r. | `kauno-r/` (elderships with `municipality: "Kaišiadorių r."`) |
+| `kaisiadorys` | SĮ „Kaišiadorių paslaugos“, Kaišiadorių r. (until November 2026 UAB „Kauno švara“'s file, in `kauno-r/`) | `kaisiadoriu-r/` (`provider: "kaisiadorys"`) |
 | `mazeikiai` | UAB „Telšių regiono atliekų tvarkymo centras“, Mažeikių r. | `mazeikiu-r/` |
 | `telsiai` | UAB „Telšių regiono atliekų tvarkymo centras“, Telšių r. | `mazeikiu-r/` (`provider: "telsiai"`) |
 | `plunge` | UAB „Telšių regiono atliekų tvarkymo centras“, Plungės r. | `mazeikiu-r/` (`provider: "plunge"`) |
@@ -63,13 +63,12 @@ one of them fails, its part of yesterday's file is kept (its `providers[].genera
 old) and the run gets a warning annotation; the other part is still updated. If a company has
 no published part to keep, the file is published without it.
 
-`kauno` and `kaisiadorys` come from one file of Kauno švara and are built by one step into
-`kauno-r/`, so installed apps find Kaišiadorių r. addresses without an update. They share
-`generatedAt` but are counted apart (Kaišiadorių r. in `otherMunicipalities[]` of
-`kauno-r/schedule.json`). If the rows of Kauno r. can't be read, the step fails and yesterday's
-`kauno-r/` is kept for both. If only those of Kaišiadorių r. can't (too few, or too many not
-understood), Kauno r. is published without them: `kaisiadorys` disappears from `metrics.txt`
-and `ScheduleDataSourceMissing` fires.
+`kauno` comes from the open-data file of Kauno švara, built into `kauno-r/`. The file can
+carry other municipalities, published with Kauno r. and counted apart
+(`otherMunicipalities[]` of `kauno-r/schedule.json`); until November 2026 Kaišiadorių r. was
+one, as `kaisiadorys`. If the rows of any municipality it reads can't be read (too few, or too
+many not understood), the step fails and yesterday's `kauno-r/` is kept for all of them
+(`ScheduleDataStale`): none is published without the others.
 
 `siauliai` is one file a year for each of five municipalities, from one site in one template,
 built by one step into `sratc/`. If any of the five files can't be read, their part of
@@ -352,6 +351,26 @@ file in `pipeline/data/schedules-zarasu-r/` that the daily refresh takes (as for
 with a build warning that says how old it is, and the hash check compares the copy's scan: a new
 scan reaches the copy within a day of being posted, and the build stops the day the copy has it.
 
+`kaisiadorys` is Kaišiadorių r., from SĮ „Kaišiadorių paslaugos“, which took over its collection
+from UAB „Švara ID“ on 16 November 2026 (for three months, or until a tender picks an operator).
+Until then its mixed waste came from Kauno švara's file, with Kauno r. in `kauno-r/`; the same
+source id now has its own folder, `kaisiadoriu-r/`. The build reads the company's schedules
+page: the page's script asks the site for a year's data (`admin-ajax.php`, with a token from the
+page), every location (a village, a street of Kaišiadorys, a garden community) with its dates
+of mixed waste, packaging, glass and green waste. This year and the next are read, one request
+every 10 seconds (the site's crawl delay): next year's schedules are read the day the site has
+them. There is no food waste in the data, though the company collects it in seven towns since
+23 November 2026. A location the Address Register doesn't have in its eldership is a build
+warning (`ScheduleDataNewWarnings`), as are typos it matched; too few schedules of a kind (under
+200 of mixed waste, packaging or glass), an answer that isn't the year's data, or no schedules
+for either year fail the build, and yesterday's `kaisiadoriu-r/` is kept (`ScheduleDataStale`).
+The schedules are a year at a time: in November 2026 they ended on 31 December (mixed waste;
+packaging 23 December, glass 17 December, green waste 24 December), and their last dates are in
+`metrics.txt` (`siuksliaveze_data_last_date_timestamp_seconds`); the example rule below doesn't
+watch `kaisiadorys` yet. Installed apps find `kaisiadoriu-r/` through
+`regions.json` (below); app versions that knew only `kauno-r/` lost Kaišiadorių r. on 24
+November 2026 with Kauno švara's file.
+
 The job therefore publishes the state of the data with every run:
 
 - `https://aurimasnav.github.io/atlieku-surinkimo-grafikas/metrics.txt` (Prometheus format)
@@ -362,10 +381,10 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
-| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `kaisiadorys` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `taurage` / `silale` / `pagegiai` / `siauliai` / `radviliskis` / `alytus` / `pasvalys` / `rokiskis` / `birzai` / `panevezio-r` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` / `raseiniai` / `jonava` / `kretinga` / `silute` / `trakai` / `salcininkai` / `kedainiai` / `moletai` / `skuodas` / `ukmerge` / `anyksciai` / `utena` / `ignalina` / `elektrenai` / `sirvintos` / `kupiskis` / `svencionys` / `zarasai` was built |
+| `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `taurage` / `silale` / `pagegiai` / `siauliai` / `radviliskis` / `alytus` / `pasvalys` / `rokiskis` / `birzai` / `panevezio-r` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` / `raseiniai` / `jonava` / `kretinga` / `silute` / `trakai` / `salcininkai` / `kedainiai` / `moletai` / `skuodas` / `ukmerge` / `anyksciai` / `utena` / `ignalina` / `elektrenai` / `sirvintos` / `kupiskis` / `svencionys` / `zarasai` / `kaisiadorys` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
-| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai`, `radviliskis`, `alytus`, `pasvalys`, `rokiskis`, `birzai`, `panevezio-r`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda`, `sakiai`, `raseiniai`, `jonava`, `kretinga`, `silute`, `trakai`, `salcininkai`, `kedainiai`, `moletai`, `skuodas`, `ukmerge`, `anyksciai`, `utena`, `ignalina`, `elektrenai`, `sirvintos`, `kupiskis`, `svencionys` and `zarasai` those with a schedule) or addresses (`kauno`, `kaisiadorys`) covered |
-| `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno` and `kaisiadorys`, whose dates are calculated ahead; `kupiskis` mixed waste is calculated ahead too, to the end of the 13th month, and `svencionys` mixed waste, the end of its rules' rolling window, about 13 months ahead; `zarasai`'s mixed waste dates are calculated ahead too, so its last date is always about 13 months away) |
+| `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai`, `radviliskis`, `alytus`, `pasvalys`, `rokiskis`, `birzai`, `panevezio-r`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda`, `sakiai`, `raseiniai`, `jonava`, `kretinga`, `silute`, `trakai`, `salcininkai`, `kedainiai`, `moletai`, `skuodas`, `ukmerge`, `anyksciai`, `utena`, `ignalina`, `elektrenai`, `sirvintos`, `kupiskis`, `svencionys`, `zarasai` and `kaisiadorys` those with a schedule) or addresses (`kauno`) covered |
+| `siuksliaveze_data_last_date_timestamp_seconds{source,kind}` | the last pickup date in the published schedules (not for `kauno`, whose dates are calculated ahead; `kupiskis` mixed waste is calculated ahead too, to the end of the 13th month, and `svencionys` mixed waste, the end of its rules' rolling window, about 13 months ahead; `zarasai`'s mixed waste dates are calculated ahead too, so its last date is always about 13 months away) |
 | `siuksliaveze_data_warnings{source}` | warnings of the last build, e.g. rows not linked to a settlement |
 | `siuksliaveze_data_new_warnings{source}` | warnings of the last build that [`pipeline/known-warnings.json`](../pipeline/known-warnings.json) doesn't list: new typos and renamed places show up here (see [Build warnings](#build-warnings)) |
 | `siuksliaveze_status_checked_timestamp_seconds` | when the daily job last wrote this file |
@@ -757,7 +776,7 @@ Add the [Infinity](https://grafana.com/grafana/plugins/yesoreyeram-infinity-data
 source, query `status.json` (type JSON, URL above) and alert when `checkedAt` is older than
 30 hours (the job didn't publish), and when `sources.nemencine.generatedAt`,
 `sources.nemezio.generatedAt`, `sources.kauno.generatedAt`,
-`sources.kaisiadorys.generatedAt`, `sources.mazeikiai.generatedAt`,
+`sources.mazeikiai.generatedAt`,
 `sources.telsiai.generatedAt`, `sources.plunge.generatedAt`, `sources.rietavas.generatedAt`,
 `sources.klaipedos.generatedAt`, `sources.jurbarkas.generatedAt`,
 `sources.taurage.generatedAt`, `sources.silale.generatedAt`, `sources.pagegiai.generatedAt`,
@@ -773,7 +792,7 @@ source, query `status.json` (type JSON, URL above) and alert when `checkedAt` is
 `sources.ukmerge.generatedAt`, `sources.anyksciai.generatedAt`,
 `sources.utena.generatedAt`, `sources.ignalina.generatedAt`,
 `sources.elektrenai.generatedAt`, `sources.sirvintos.generatedAt`,
-`sources.kupiskis.generatedAt`, `sources.svencionys.generatedAt` or
-`sources.zarasai.generatedAt` is older than 30 hours and more than 2 hours older than
+`sources.kupiskis.generatedAt`, `sources.svencionys.generatedAt`,
+`sources.zarasai.generatedAt` or `sources.kaisiadorys.generatedAt` is older than 30 hours and more than 2 hours older than
 `checkedAt` (that source's build fails), or missing. Without the second condition, a job that
 doesn't publish raises an alert for every source.
