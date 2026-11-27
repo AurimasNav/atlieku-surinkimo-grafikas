@@ -4,7 +4,7 @@ from datetime import date
 
 import pytest
 
-from schedule_pipeline import svara
+from schedule_pipeline import snapshot, svara
 from schedule_pipeline.svara import Rule, parse_rule
 
 TODAY = date(2026, 11, 16)  # a Monday
@@ -398,8 +398,8 @@ def test_without_the_register_no_names_are_published(monkeypatch):
     assert not any("registerNames" in e for e in dataset["elderships"])
 
 
-# Rows of the other municipalities, as the file has them (2026-11-21; Kauno švara's container
-# numbers). Kaišiadorių r. is written two ways, and a few rows have it as their eldership.
+# Rows of the other municipalities, as the file had them (2026-11-21; Kauno švara's container
+# numbers). Kaišiadorių r. was written two ways, and a few rows had it as their eldership.
 KAISIADORYS = """\
 Kaišiadorių r. sav.;Kaišiadorių miesto sen.;Kaišiadorių m.;Beržyno g.;23;49-MK-000002;2026-12-03;kas 14 dienų;Mišrios komunalinės
 Kaišiadorių r. sav.;Kaišiadorių miesto sen.;Kaišiadorių m.;Laisvės g.;6;49-MK-000003;2026-12-03;kas 14 dienų;Mišrios komunalinės
@@ -416,18 +416,49 @@ Birštono sav.;Birštono sen.;Birštono m.;Jaunimo g.;2;BI-1;2026-11-26;kas 14 d
 Druskininkų sav.;Leipalingio sen.;Leipalingio mstl.;Ežero g.;3;DR-1;2026-11-26;kas 14 dienų;Mišrios komunalinės
 """
 NOVEMBER_21 = date(2026, 11, 21)
+# A second municipality of the file, published with Kauno r., as Kaišiadorių r. was until its
+# operator changed in November 2026 (svara.FROM_KAISIADORIU_PASLAUGOS): the tests of reading
+# several municipalities read its rows of then.
+KAISIADORIU_R = svara.Municipality(
+    "Kaišiadorių r.",
+    "kaisiadorys",
+    ("Kaišiadorių r. sav.", "Kaišiadorių rajono sav."),
+    min_rows=4_000,
+    min_addresses=3_500,
+    registry_file=snapshot.KAISIADORIU_REGISTRY_FILE,
+    addresses_file=snapshot.KAISIADORIU_ADDRESSES_FILE,
+)
 
 
-def build_all(monkeypatch, csv=CSV + KAISIADORYS + ALYTAUS_RATC, registries=None):
+def with_kaisiadorys(monkeypatch):
+    monkeypatch.setattr(svara, "MUNICIPALITIES", (*svara.MUNICIPALITIES, KAISIADORIU_R))
+
+
+def build_all(monkeypatch, csv=CSV + KAISIADORYS + ALYTAUS_RATC, registries=None, both=True):
+    if both:
+        with_kaisiadorys(monkeypatch)
     relax(monkeypatch, max_skipped=0.5)
     return svara.build(csv.encode("utf-8"), NOVEMBER_21, registries)
+
+
+def test_kaisiadorys_is_never_read_here(monkeypatch):
+    # Kaišiadorių paslaugos empties its containers since 16 November 2026, read by
+    # schedule_pipeline.kaisiadorys: rows of it here would give its addresses two sources.
+    read = {name for m in svara.MUNICIPALITIES for name in m.spellings}
+    assert not read & svara.FROM_KAISIADORIU_PASLAUGOS
+    assert [m.id for m in svara.MUNICIPALITIES] == ["kauno"]
+    relax(monkeypatch, max_skipped=0.5)
+    dataset, files, warnings = svara.build((CSV + KAISIADORYS).encode("utf-8"), NOVEMBER_21)
+    assert "otherMunicipalities" not in dataset
+    assert set(files) == {"ringaudu", "uzliedziu"}
+    assert not [w for w in warnings if "Kaišiadorių" in w]
 
 
 def dates_of(dataset, ids):
     return sorted({d for i in ids for d in dataset["areas"][i]["dates"]})
 
 
-def test_kaisiadorys_is_published_with_kauno_r(monkeypatch):
+def test_another_municipality_is_published_with_kauno_r(monkeypatch):
     dataset, files, warnings = build_all(monkeypatch)
     kaisiadorys = [e for e in dataset["elderships"] if e.get("municipality") == "Kaišiadorių r."]
     assert [e["name"] for e in kaisiadorys] == [
@@ -491,7 +522,7 @@ def test_the_warnings_are_published_with_their_count(monkeypatch):
 
 
 def test_kauno_r_stays_as_it_was_alone(monkeypatch):
-    alone, alone_files, _ = build_all(monkeypatch, csv=CSV)
+    alone, alone_files, _ = build_all(monkeypatch, csv=CSV, both=False)
     both, both_files, _ = build_all(monkeypatch)
     assert "otherMunicipalities" not in alone
     # Same file names and contents, schedules at the same positions, the same numbers.
@@ -514,15 +545,20 @@ def test_alytaus_ratc_municipalities_are_never_read(monkeypatch):
         assert place not in text
 
 
-def test_a_municipality_that_cant_be_read_is_left_out(monkeypatch):
+def test_a_municipality_that_cant_be_read_fails_the_build(monkeypatch, tmp_path, capsys):
+    # Not published without it: the daily job keeps yesterday's files, its addresses with them,
+    # so a municipality published yesterday never silently vanishes from the site.
     relax(monkeypatch, max_skipped=0.5)
-    kauno, kaisiadorys = svara.MUNICIPALITIES
-    monkeypatch.setattr(svara, "MUNICIPALITIES", (kauno, replace(kaisiadorys, min_rows=100)))
-    dataset, files, warnings = svara.build((CSV + KAISIADORYS).encode("utf-8"), NOVEMBER_21)
-    # Kauno r. is published without it.
-    assert "otherMunicipalities" not in dataset
-    assert set(files) == {"ringaudu", "uzliedziu"}
-    assert "Kaišiadorių r. left out: only 8 rows for Kaišiadorių r." in warnings
+    (kauno,) = svara.MUNICIPALITIES
+    monkeypatch.setattr(svara, "MUNICIPALITIES", (kauno, replace(KAISIADORIU_R, min_rows=100)))
+    with pytest.raises(svara.ValidationError, match="only 8 rows for Kaišiadorių r."):
+        svara.build((CSV + KAISIADORYS).encode("utf-8"), NOVEMBER_21)
+    source = tmp_path / "svara.csv"
+    source.write_text(CSV + KAISIADORYS, encoding="utf-8")
+    out = tmp_path / "kauno-r"
+    assert svara.main(["--out", str(out), "--csv", str(source)]) == 1
+    assert not out.exists()
+    assert "only 8 rows for Kaišiadorių r." in capsys.readouterr().err
 
 
 def test_one_day_of_the_month(monkeypatch):

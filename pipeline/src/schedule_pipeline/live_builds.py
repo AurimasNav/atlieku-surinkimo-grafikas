@@ -66,8 +66,8 @@ BUILDS: tuple[Build, ...] = (
         args=(STRICT,),  # a company whose build fails fails the check
     ),
     Build(
-        name="Kauno r., Kaišiadorių r.",
-        title="Build the Kauno r. and Kaišiadorių r. schedules from Kauno švara's open-data file",
+        name="Kauno r.",
+        title="Build the Kauno r. schedule from Kauno švara's open-data file",
         module="schedule_pipeline.svara",
         folder="kauno-r",
     ),
@@ -256,6 +256,12 @@ BUILDS: tuple[Build, ...] = (
         ),
         module="schedule_pipeline.zarasai",
         folder="zarasu-r",
+    ),
+    Build(
+        name="Kaišiadorių r.",
+        title="Build the Kaišiadorių r. schedule from kaisiadoriupaslaugos.lt",
+        module="schedule_pipeline.kaisiadorys",
+        folder="kaisiadoriu-r",
     ),
 )
 

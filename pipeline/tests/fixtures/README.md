@@ -258,6 +258,13 @@ the same day.
 ("misriu.pdf", 1.4 MB of images) isn't kept: `test_zarasai` reads the committed transcription in
 `pipeline/data/rules-zarasu-r.json` with the hash of a few test bytes in place of the scan's.
 
+`kaisiadorys/` has the schedules page of SĮ „Kaišiadorių paslaugos“
+(<https://www.kaisiadoriupaslaugos.lt/kaisiadoriu-atlieku-isvezimo-grafikai/>, line endings made
+LF) and `data-2026.json`, the site's answer to the page's request for the 2026 data
+(`action=tobalt_waste_get_data&nonce=...&year=2026` to `/wp-admin/admin-ajax.php`), downloaded
+on 2026-11-27 (the 2027 answer had no schedules), with the Address Register extract for
+Kaišiadorių r. of 2026-11-21 (`pipeline/data/registry-kaisiadoriu-r.json`).
+
 These files belong to their publishers and are **not** covered by this project's Apache 2.0
 license.
 

@@ -79,6 +79,8 @@ def read(site: Path) -> tuple[dict, dict[str, list[str] | None]]:
     # kupiskio-r is Kupiškio r. (schedule_pipeline.kupiskis), "kupiskis".
     # svencioniu-r is Švenčionių r. (schedule_pipeline.svencionys), "svencionys".
     # zarasu-r is Zarasų r. (schedule_pipeline.zarasai), "zarasai".
+    # kaisiadoriu-r is Kaišiadorių r. (schedule_pipeline.kaisiadorys), "kaisiadorys": read from
+    # Kauno švara's file with Kauno r. until its operator changed on 16 November 2026.
     for path in (
         site / "schedule.json",
         site / "mazeikiu-r" / "schedule.json",
@@ -105,6 +107,7 @@ def read(site: Path) -> tuple[dict, dict[str, list[str] | None]]:
         site / "kupiskio-r" / "schedule.json",
         site / "svencioniu-r" / "schedule.json",
         site / "zarasu-r" / "schedule.json",
+        site / "kaisiadoriu-r" / "schedule.json",
     ):
         if not path.exists():
             continue
@@ -153,9 +156,12 @@ def read(site: Path) -> tuple[dict, dict[str, list[str] | None]]:
             "warnings": data.get("warnings", 0),
         }
         texts["kauno"] = data.get("warningTexts")
-        # The other municipalities of Kauno švara's file, published with Kauno r. (Kaišiadorių
-        # r.: "kaisiadorys"): built together, counted apart.
+        # The other municipalities of Kauno švara's file, published with Kauno r.: built
+        # together, counted apart (none since Kaišiadorių r. left it; a source a folder of its
+        # own has published, as "kaisiadorys" now, is that folder's).
         for part in data.get("otherMunicipalities", []):
+            if part["id"] in sources:
+                continue
             sources[part["id"]] = {
                 "generatedAt": data["generatedAt"],
                 "areas": part["stats"]["areas"],
@@ -415,7 +421,7 @@ def metrics(status: dict) -> str:
             "rokiskis, birzai, panevezio-r, marijampole, vilkaviskis, kalvarija, kazluruda, "
             "sakiai, raseiniai, jonava, kretinga, silute, trakai, salcininkai, kedainiai, "
             "moletai, skuodas, ukmerge, anyksciai, utena, ignalina, elektrenai, sirvintos, "
-            "kupiskis, svencionys, zarasai) or addresses (kauno, kaisiadorys) the data covers.",
+            "kupiskis, svencionys, zarasai, kaisiadorys) or addresses (kauno) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (

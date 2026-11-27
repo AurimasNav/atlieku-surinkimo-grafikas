@@ -50,6 +50,35 @@ def test_the_daily_job_builds_the_same():
     assert sorted((m, a.split(), o) for m, a, o in daily) == sorted(live)
 
 
+def daily_steps():
+    """The steps of the daily job, each as its text from its `- name:` line on."""
+    text = DAILY.read_text(encoding="utf-8")
+    return re.split(r"\n(?=      - (?:name|id|uses|run):)", text)
+
+
+def test_every_build_that_may_fail_keeps_yesterdays_folder():
+    # A build that fails (continue-on-error) is followed by a step that downloads the folder
+    # published yesterday. Only a 404 (nothing was published) may leave the folder out: any
+    # other error fails the job, so the site keeps everything it has and a part published
+    # yesterday never silently vanishes.
+    steps = daily_steps()
+    builds = [
+        (re.search(r"id: (\w+)", s)[1], re.search(r"--out \.\./site/([\w.-]+)", s)[1])
+        for s in steps
+        if "continue-on-error: true" in s and "--out ../site/" in s
+    ]
+    assert len(builds) == len(BUILDS) - 1  # all but the root build, which keeps parts itself
+    for step_id, folder in builds:
+        (keep,) = [s for s in steps if f"if: steps.{step_id}.outcome == 'failure'" in s]
+        assert f"out=../site/{folder}\n" in keep
+        assert f"/atlieku-surinkimo-grafikas/{folder}\n" in keep
+        assert "|| true" not in keep.replace("-w '%{http_code}' \"$base/$1\" || true;", "")
+        dropped, failed = keep.split('elif [ "$code" = 404 ]; then')
+        assert 'rm -rf "$out"\n' in failed.split("else")[0]
+        assert "exit 1" in failed.split("else", 1)[1]
+        assert "exit 1" not in dropped or "couldn't be downloaded" in dropped
+
+
 def test_prints_the_matrix_on_one_line(capsys):
     assert live_builds.main(["--matrix"]) == 0
     out = capsys.readouterr().out

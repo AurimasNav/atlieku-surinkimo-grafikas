@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 USER_AGENT = (
@@ -17,6 +18,18 @@ def get(url: str, timeout: float = 120, user_agent: str = USER_AGENT, sleep=time
     """GET `url`, retrying server errors, rate limits and network failures with backoff
     (2, 4, 8, 16 s). Other HTTP errors, like 404, fail immediately."""
     request = urllib.request.Request(url, headers={"User-Agent": user_agent})
+    return _open(request, timeout, sleep)
+
+
+def post(url: str, form: dict[str, str], timeout: float = 120, sleep=time.sleep) -> bytes:
+    """POST `form` to `url` (application/x-www-form-urlencoded), retrying as get does."""
+    request = urllib.request.Request(
+        url, data=urllib.parse.urlencode(form).encode(), headers={"User-Agent": USER_AGENT}
+    )
+    return _open(request, timeout, sleep)
+
+
+def _open(request: urllib.request.Request, timeout: float, sleep) -> bytes:
     for attempt in range(1, ATTEMPTS + 1):
         try:
             with urllib.request.urlopen(request, timeout=timeout) as response:

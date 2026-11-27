@@ -1,6 +1,6 @@
 name: Schedule data
 
-# Scrapes nemenkom.lt, nkom.lt, Kauno švara, tratc.lt, gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt, ecoservice.lt, kedainiai.lt, moletusvara.lt, skuodas.lt, ukmerge.lt, anykom.lt, utenoskom.lt, kompata.lt, eku.lt, sirvintos.lt, kupkom.lt, svencionys.lt and zarasai.lt daily and
+# Scrapes nemenkom.lt, nkom.lt, Kauno švara, tratc.lt, gargzdusvara.eu, uabtratc.lt, sratc.lt, aratc.lt, pratc.lt, maatc.lt, rkp.lt, jonavospaslaugos.lt, kretkom.lt, silute.lt, ecoservice.lt, kedainiai.lt, moletusvara.lt, skuodas.lt, ukmerge.lt, anykom.lt, utenoskom.lt, kompata.lt, eku.lt, sirvintos.lt, kupkom.lt, svencionys.lt, zarasai.lt and kaisiadoriupaslaugos.lt daily and
 # publishes the data + the privacy policy to GitHub Pages. If parsing or validation fails, nothing is deployed and the last good
 # data stays live; a provider whose build fails keeps its part of yesterday's data instead.
 #
@@ -69,10 +69,10 @@ jobs:
         # Vilniaus r.: Nemenčinės and Nemėžio komunalininkas. If one company's build fails, its
         # part of yesterday's schedule.json is kept and the step logs a warning annotation.
         run: uv run python -m schedule_pipeline --out ../site/schedule.json
-      # Its own file and app download (site/kauno-r, with Kaišiadorių r. from the same file of
-      # Kauno švara): its failure must not hold back the Vilniaus r. data, so on failure the
-      # files published yesterday are kept instead.
-      - name: Build the Kauno r. and Kaišiadorių r. schedules (Kauno švara)
+      # Its own file and app download (site/kauno-r; Kaišiadorių r. has its own folder since its
+      # operator changed in November 2026): its failure must not hold back the Vilniaus r. data,
+      # so on failure the files published yesterday are kept instead.
+      - name: Build the Kauno r. schedule (Kauno švara)
         id: kauno
         continue-on-error: true
         run: uv run python -m schedule_pipeline.svara --out ../site/kauno-r
@@ -82,15 +82,33 @@ jobs:
           base=https://aurimasnav.github.io/atlieku-surinkimo-grafikas/kauno-r
           out=../site/kauno-r
           rm -rf "$out" && mkdir -p "$out/addresses"
-          if curl -fsS "$base/schedule.json" -o "$out/schedule.json"; then
+          get() { curl -sS --retry 3 --max-time 120 -o "$out/$1" -w '%{http_code}' "$base/$1" || true; }
+          code=$(get schedule.json)
+          if [ "$code" = 200 ]; then
             for id in $(python3 -c "import json, sys; print(' '.join(e['id'] for e in json.load(open(sys.argv[1], encoding='utf-8'))['elderships']))" "$out/schedule.json"); do
-              curl -fsS "$base/addresses/$id.json" -o "$out/addresses/$id.json"
+              address=$(get "addresses/$id.json")
+              if [ "$address" != 200 ]; then
+                echo "::error::The Kauno r. build failed and the published addresses of $id couldn't be downloaded (HTTP $address)."
+                exit 1
+              fi
             done
-            curl -fsS "$base/points.json" -o "$out/points.json" || true
+            # The app's GPS search: kept like the rest, so it can't drop off the site either.
+            points=$(get points.json)
+            if [ "$points" = 404 ]; then
+              rm -f "$out/points.json"
+            elif [ "$points" != 200 ]; then
+              echo "::error::The Kauno r. build failed and the published points.json couldn't be downloaded (HTTP $points)."
+              exit 1
+            fi
             echo "::warning::The Kauno r. build failed; yesterday's published data is kept."
-          else
+          elif [ "$code" = 404 ]; then
             rm -rf "$out"
             echo "::warning::The Kauno r. build failed and there is no published data to keep."
+          else
+            # Publishing now would take the Kauno r. files off the site: fail, and the site
+            # keeps everything it has.
+            echo "::error::The Kauno r. build failed and the published data couldn't be downloaded (HTTP $code)."
+            exit 1
           fi
       # Mažeikių r., Telšių r., Plungės r. and Rietavo sav., from the files of the regional
       # waste centre (site/mazeikiu-r, a part each): a municipality whose build fails keeps its
@@ -661,6 +679,30 @@ jobs:
             echo "::warning::The Zarasų r. build failed and there is no published data to keep."
           else
             echo "::error::The Zarasų r. build failed and the published data couldn't be downloaded (HTTP $code)."
+            exit 1
+          fi
+      # Kaišiadorių r., from the schedules page of SĮ „Kaišiadorių paslaugos“ (the JSON its
+      # plugin asks for, this year's and the next; site/kaisiadoriu-r): if today's build fails,
+      # yesterday's files are kept.
+      - name: Build the Kaišiadorių r. schedule (Kaišiadorių paslaugos)
+        id: kaisiadorys
+        continue-on-error: true
+        run: uv run python -m schedule_pipeline.kaisiadorys --out ../site/kaisiadoriu-r
+      - name: Keep the published Kaišiadorių r. data if today's build failed
+        if: steps.kaisiadorys.outcome == 'failure'
+        run: |
+          base=https://aurimasnav.github.io/atlieku-surinkimo-grafikas/kaisiadoriu-r
+          out=../site/kaisiadoriu-r
+          rm -rf "$out" && mkdir -p "$out"
+          get() { curl -sS --retry 3 --max-time 120 -o "$out/$1" -w '%{http_code}' "$base/$1" || true; }
+          code=$(get schedule.json)
+          if [ "$code" = 200 ] && [ "$(get addresses.json)" = 200 ]; then
+            echo "::warning::The Kaišiadorių r. build failed; yesterday's published data is kept."
+          elif [ "$code" = 404 ]; then
+            rm -rf "$out"
+            echo "::warning::The Kaišiadorių r. build failed and there is no published data to keep."
+          else
+            echo "::error::The Kaišiadorių r. build failed and the published data couldn't be downloaded (HTTP $code)."
             exit 1
           fi
       # status.json and metrics.txt for monitoring (docs/monitoring.md).
