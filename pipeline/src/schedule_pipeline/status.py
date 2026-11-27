@@ -14,6 +14,10 @@ writes
 Run after the builds: python -m schedule_pipeline.status --site ../site
 After checking that the new warnings of a build are harmless (or to start a new source's list),
 acknowledge them: python -m schedule_pipeline.status --site ../site --write-known
+The live check of a pull request also compares the sources the builds published with
+pipeline/expected-sources.json, and fails if they differ (the daily job doesn't: it publishes
+what it has, and the alert names what is missing):
+python -m schedule_pipeline.status --site ../site --check-expected
 See docs/monitoring.md for the scrape job and alert rules.
 """
 
@@ -22,6 +26,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import os
 import re
 import sys
 from collections import Counter
@@ -29,12 +34,18 @@ from datetime import UTC, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from .live_builds import BUILDS
+
 FIRST = "nemencine"  # the source of schedule.json rows without a `provider`
 # The warnings someone has checked, per source, as normalise() writes them.
 KNOWN = Path(__file__).resolve().parents[2] / "known-warnings.json"
 REPO_URL = "https://github.com/AurimasNav/atlieku-surinkimo-grafikas/blob/main"
 KNOWN_URL = f"{REPO_URL}/pipeline/known-warnings.json"
 DOCS_URL = f"{REPO_URL}/docs/monitoring.md#build-warnings"
+# The sources the site should have, sorted: a PR that adds a provider adds its source here, and
+# one that removes a provider removes it (CONTRIBUTING.md). metrics.txt publishes the list, so
+# the alert can tell a source that went missing from one removed on purpose.
+EXPECTED = Path(__file__).resolve().parents[2] / "expected-sources.json"
 
 
 def _timestamp(iso: str) -> int:
@@ -251,6 +262,93 @@ def count_new(status: dict, texts: dict[str, list[str] | None], known: dict[str,
         numbers["newWarnings"] = len(new_warnings(texts.get(source), known.get(source, set())))
 
 
+# --- the sources the site should have ---------------------------------------------
+
+
+def load_expected(path: Path = EXPECTED) -> list[str]:
+    """The sources the site should have (pipeline/expected-sources.json). No file: none, so
+    metrics.txt has no expected series and the alert falls back to the sources it saw lately."""
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        # Failing here would stop the deploy; the live check of the PR that removed it fails.
+        print(f"{path} not found: no expected sources published", file=sys.stderr)
+        return []
+
+
+def compare_expected(status: dict, expected: list[str]) -> None:
+    """Adds the list to `status` (`expected`), with the listed sources the site doesn't have
+    (`notBuilt`) and the sources it has that aren't listed (`notListed`)."""
+    built = set(status["sources"])
+    status["expected"] = sorted(expected)
+    status["notBuilt"] = sorted(set(expected) - built)
+    status["notListed"] = sorted(built - set(expected))
+
+
+def _escape(text: str) -> str:
+    """For a GitHub workflow command (::error::...)."""
+    return text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+
+def check_expected(status: dict, site: Path) -> int:
+    """The live check's comparison of the built sources with the list (`status` after
+    compare_expected): GitHub annotations and a job summary, and 1 if they differ. A listed source
+    whose build failed (its folder isn't in the site) is only a notice: that build's own job fails
+    the check, and the list is right."""
+    build_of = {source: build for build in BUILDS for source in build.sources}
+    errors, notices = [], []
+    for source in status["notListed"]:
+        errors.append(
+            (
+                f"Not in pipeline/expected-sources.json ({source})",
+                f"{source} is built but not listed. Add it to pipeline/expected-sources.json in"
+                " this PR: the published list is what the source-missing alert watches.",
+            )
+        )
+    for source in status["notBuilt"]:
+        build = build_of.get(source)
+        if build is None:
+            text = (
+                f"{source} is in pipeline/expected-sources.json, but no build in live_builds.py"
+                " publishes it. Remove it from the list in the PR that removes the provider."
+            )
+        elif (site / build.out).exists():
+            text = (
+                f"{source} is in pipeline/expected-sources.json, but live ({build.name}) didn't"
+                " publish it. Fix its build or, if the provider is removed on purpose, remove it"
+                " from the list in the PR that removes the provider."
+            )
+        else:
+            notices.append(
+                (
+                    f"Not built ({source})",
+                    f"{source} is listed, but its build, live ({build.name}), failed: that job"
+                    " fails this check on its own.",
+                )
+            )
+            continue
+        errors.append((f"Not built ({source})", text))
+    for title, text in notices:
+        print(f"::notice title={title}::{_escape(text)}")
+    for title, text in errors:
+        print(f"::error title={title}::{_escape(text)}")
+    listed, built = len(status["expected"]), len(status["sources"])
+    lines = [
+        "### Sources compared with pipeline/expected-sources.json",
+        "",
+        f"{listed} listed, {built} built: {len(errors)} differences, {len(notices)} listed sources"
+        " whose build failed.",
+        "",
+        *(f"- {title}: {text}" for title, text in errors + notices),
+    ]
+    report = "\n".join(lines) + "\n"
+    print(report)
+    if summary := os.environ.get("GITHUB_STEP_SUMMARY"):
+        with open(summary, "a", encoding="utf-8") as file:
+            file.write(report)
+    return 1 if errors else 0
+
+
 def known_from(
     texts: dict[str, list[str] | None], before: dict[str, set[str]]
 ) -> dict[str, list[str]]:
@@ -395,6 +493,13 @@ because the site refused GitHub's runner is never new). Fix the parser, or ackno
 def metrics(status: dict) -> str:
     """Prometheus text exposition format."""
     series = {
+        # First, so a file cut short loses the list last: with the list and without a source's
+        # other series, the source is missing; without the list, the alert can't tell.
+        "siuksliaveze_data_expected": (
+            "1 for every source the site should have (pipeline/expected-sources.json). A source "
+            "with this but without siuksliaveze_data_generated_timestamp_seconds is missing.",
+            [({"source": s}, 1) for s in status.get("expected", [])],
+        ),
         "siuksliaveze_data_generated_timestamp_seconds": (
             "When the published data of a source was built (Unix time).",
             [({"source": s}, _timestamp(d["generatedAt"])) for s, d in status["sources"].items()],
@@ -460,11 +565,26 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="acknowledge the site's warnings: rewrite --known from them, then report",
     )
+    parser.add_argument(
+        "--expected",
+        type=Path,
+        default=EXPECTED,
+        help="the sources the site should have (default: pipeline/expected-sources.json)",
+    )
+    parser.add_argument(
+        "--check-expected",
+        action="store_true",
+        help="only compare the site's sources with --expected (the live check of a PR): writes"
+        " nothing, fails if they differ",
+    )
     args = parser.parse_args(argv)
     status, texts = read(args.site)
     if not status["sources"]:
         print("No data files found", file=sys.stderr)
         return 1
+    compare_expected(status, load_expected(args.expected))
+    if args.check_expected:
+        return check_expected(status, args.site)
     known = load_known(args.known)
     if args.write_known:
         listed = known_from(texts, known)

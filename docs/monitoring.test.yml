@@ -282,8 +282,9 @@ tests:
     interval: 15m
     input_series:
       # As on 25 November 2026: the run at 40h00 ends a 40-hour outage, and kaisiadorys is no
-      # longer in metrics.txt. For 15 minutes its last sample, 40 hours old, is next to the new
-      # checked time: ScheduleDataStale is pending, then ScheduleDataSourceMissing takes over.
+      # longer in metrics.txt (no list of expected sources yet). For 15 minutes its last sample,
+      # 40 hours old, is next to the new checked time: ScheduleDataStale is pending. At 40h30m
+      # the sample leaves ScheduleDataSourceMissing's window, and it fires at 41h00m.
       - series: 'siuksliaveze_status_checked_timestamp_seconds{job="siuksliaveze-data"}'
         values: "0x159 144000x16"
       - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="kauno"}'
@@ -297,12 +298,15 @@ tests:
         alertname: ScheduleDataStale
       - eval_time: 40h50m
         alertname: ScheduleDataSourceMissing
+      - eval_time: 41h05m
+        alertname: ScheduleDataSourceMissing
         exp_alerts:
           - exp_labels:
               source: kaisiadorys
               severity: warning
             exp_annotations:
               summary: "kaisiadorys is missing from metrics.txt"
+              description: &missing "Its build or the publish step broke. It stays until the source is back or a PR removes it from pipeline/expected-sources.json."
     promql_expr_test:
       - expr: group by (alertname, alertstate, source) (last_over_time(ALERTS[44h]))
         eval_time: 43h45m
@@ -958,32 +962,143 @@ tests:
       - eval_time: 50h10m
         alertname: ScheduleDataNewWarnings
 
-  - name: a source disappears from metrics.txt
+  - name: a source disappears from metrics.txt before it has the list
     interval: 15m
     input_series:
-      # kauno is in the file until 10h00, then gone; the file itself is still fetched.
+      # metrics.txt without siuksliaveze_data_expected, as before the list. kauno is in the file
+      # until 10h00, then gone; the file itself is still fetched. The rule falls back to the
+      # sources seen in the last 3 days, so it clears at 82h00, fixed or not.
       - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="kauno"}'
         values: "0x40"
       - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
-        values: "0x80"
+        values: "0x335"
       - series: 'up{job="siuksliaveze-data"}'
-        values: "1x80"
+        values: "1x335"
     alert_rule_test:
       - eval_time: 10h10m
         alertname: ScheduleDataSourceMissing
       - eval_time: 12h10m
         alertname: ScheduleDataSourceMissing
-        exp_alerts:
+        exp_alerts: &kauno
           - exp_labels:
               source: kauno
               severity: warning
             exp_annotations:
               summary: "kauno is missing from metrics.txt"
+              description: *missing
+      - eval_time: 81h50m
+        alertname: ScheduleDataSourceMissing
+        exp_alerts: *kauno
+      - eval_time: 82h10m
+        alertname: ScheduleDataSourceMissing
+
+  - name: a listed source disappears from metrics.txt
+    interval: 15m
+    input_series:
+      # metrics.txt lists kauno and nemencine. kauno is in it until 10h00, then gone until it is
+      # back at 90h00. The fetches at 11h30m and 11h45m fail (one good fetch left in the
+      # 45-minute window), and so do the four from 50h00 to 50h45m (none left: the 2h30m part
+      # holds it). It fires at 11h15m and stays firing, past 3 days, until kauno is back.
+      - series: 'siuksliaveze_data_expected{job="siuksliaveze-data",source="kauno"}'
+        values: "1x45 _ _ 1x151 _ _ _ _ 1x179"
+      - series: 'siuksliaveze_data_expected{job="siuksliaveze-data",source="nemencine"}'
+        values: "1x45 _ _ 1x151 _ _ _ _ 1x179"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="kauno"}'
+        values: "0x40 _x319 0x23"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
+        values: "0x45 _ _ 0x151 _ _ _ _ 0x179"
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "1x45 0 0 1x151 0 0 0 0 1x179"
+    alert_rule_test:
+      - eval_time: 10h40m
+        alertname: ScheduleDataSourceMissing
+      - eval_time: 11h20m
+        alertname: ScheduleDataSourceMissing
+        exp_alerts: *kauno
+      - eval_time: 12h10m
+        alertname: ScheduleDataSourceMissing
+        exp_alerts: *kauno
+      - eval_time: 50h50m
+        alertname: ScheduleDataSourceMissing
+        exp_alerts: *kauno
+      - eval_time: 85h
+        alertname: ScheduleDataSourceMissing
+        exp_alerts: *kauno
+      - eval_time: 90h10m
+        alertname: ScheduleDataSourceMissing
+    promql_expr_test:
+      # Pending from 10h45m to 11h14m, then firing without a break until 89h59m.
+      - expr: group by (alertname, alertstate) (last_over_time(ALERTS{alertname="ScheduleDataSourceMissing",alertstate="pending"}[78h40m]))
+        eval_time: 89h59m
+        exp_samples: []
+      - expr: group by (alertname, alertstate, source) (last_over_time(ALERTS{alertname="ScheduleDataSourceMissing"}[5m]))
+        eval_time: 89h59m
+        exp_samples:
+          - labels: '{alertname="ScheduleDataSourceMissing",alertstate="firing",source="kauno"}'
+            value: 1
+
+  - name: the list appears while a source is missing
+    interval: 15m
+    input_series:
+      # kauno is gone from 10h00, before metrics.txt has the list; the list (kauno and
+      # nemencine) is in it from 20h00. The alert keeps firing past the 3 days the fallback
+      # would have given it.
+      - series: 'siuksliaveze_data_expected{job="siuksliaveze-data",source="kauno"}'
+        values: "_x80 1x279"
+      - series: 'siuksliaveze_data_expected{job="siuksliaveze-data",source="nemencine"}'
+        values: "_x80 1x279"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="kauno"}'
+        values: "0x40"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
+        values: "0x359"
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "1x359"
+    alert_rule_test:
+      - eval_time: 19h50m
+        alertname: ScheduleDataSourceMissing
+        exp_alerts: *kauno
+      - eval_time: 20h10m
+        alertname: ScheduleDataSourceMissing
+        exp_alerts: *kauno
+      - eval_time: 85h
+        alertname: ScheduleDataSourceMissing
+        exp_alerts: *kauno
+    promql_expr_test:
+      - expr: group by (alertname, alertstate) (last_over_time(ALERTS{alertname="ScheduleDataSourceMissing",alertstate="pending"}[78h40m]))
+        eval_time: 89h59m
+        exp_samples: []
+
+  - name: a provider removed or added with its list line raises nothing
+    interval: 15m
+    input_series:
+      # The publish at 10h00 drops kauno and its list line together (the PR that removes the
+      # provider); the one at 20h00 adds kaisiadorys and its list line together.
+      - series: 'siuksliaveze_data_expected{job="siuksliaveze-data",source="kauno"}'
+        values: "1x40"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="kauno"}'
+        values: "0x40"
+      - series: 'siuksliaveze_data_expected{job="siuksliaveze-data",source="kaisiadorys"}'
+        values: "_x80 1x319"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="kaisiadorys"}'
+        values: "_x80 72000x319"
+      - series: 'siuksliaveze_data_expected{job="siuksliaveze-data",source="nemencine"}'
+        values: "1x399"
+      - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
+        values: "0x399"
+      - series: 'up{job="siuksliaveze-data"}'
+        values: "1x399"
+    promql_expr_test:
+      # Not even pending, at any time in the 100 hours.
+      - expr: group by (alertname) (last_over_time(ALERTS[100h]))
+        eval_time: 99h45m
+        exp_samples: []
 
   - name: healthy data raises nothing
     interval: 15m
     input_series:
       # Rebuilt at 24h00; the yearly schedules end in 300 days.
+      - series: 'siuksliaveze_data_expected{job="siuksliaveze-data",source="nemencine"}'
+        values: "1x191"
       - series: 'siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data",source="nemencine"}'
         values: "0x95 86400x96"
       - series: 'siuksliaveze_status_checked_timestamp_seconds{job="siuksliaveze-data"}'

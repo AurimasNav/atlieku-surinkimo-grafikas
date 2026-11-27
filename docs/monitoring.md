@@ -381,6 +381,7 @@ The job therefore publishes the state of the data with every run:
 
 | Metric | Meaning |
 |---|---|
+| `siuksliaveze_data_expected{source}` | 1 for every source of [`pipeline/expected-sources.json`](../pipeline/expected-sources.json), the sources the site should have, built or not (see [The sources the site should have](#the-sources-the-site-should-have)); the first lines of the file |
 | `siuksliaveze_data_generated_timestamp_seconds{source}` | when the published data of `nemencine` / `nemezio` / `kauno` / `mazeikiai` / `telsiai` / `plunge` / `rietavas` / `klaipedos` / `jurbarkas` / `taurage` / `silale` / `pagegiai` / `siauliai` / `radviliskis` / `alytus` / `pasvalys` / `rokiskis` / `birzai` / `panevezio-r` / `marijampole` / `vilkaviskis` / `kalvarija` / `kazluruda` / `sakiai` / `raseiniai` / `jonava` / `kretinga` / `silute` / `trakai` / `salcininkai` / `kedainiai` / `moletai` / `skuodas` / `ukmerge` / `anyksciai` / `utena` / `ignalina` / `elektrenai` / `sirvintos` / `kupiskis` / `svencionys` / `zarasai` / `kaisiadorys` was built |
 | `siuksliaveze_data_areas{source,kind}` | schedules per waste type |
 | `siuksliaveze_data_places{source}` | settlements (`nemencine`, `nemezio`; for `mazeikiai`, `telsiai`, `plunge`, `rietavas`, `klaipedos`, `jurbarkas`, `taurage`, `silale`, `pagegiai`, `siauliai`, `radviliskis`, `alytus`, `pasvalys`, `rokiskis`, `birzai`, `panevezio-r`, `marijampole`, `vilkaviskis`, `kalvarija`, `kazluruda`, `sakiai`, `raseiniai`, `jonava`, `kretinga`, `silute`, `trakai`, `salcininkai`, `kedainiai`, `moletai`, `skuodas`, `ukmerge`, `anyksciai`, `utena`, `ignalina`, `elektrenai`, `sirvintos`, `kupiskis`, `svencionys`, `zarasai` and `kaisiadorys` those with a schedule) or addresses (`kauno`) covered |
@@ -393,6 +394,28 @@ If a source fails, its `generated` time stays old while `checked` keeps moving:
 `ScheduleDataStale` (below) fires for that source. If the job doesn't publish at all (the
 schedule didn't start, the run hit its time limit, the deploy failed), both stay old together:
 that is one problem, so only `ScheduleDataNotPublished` fires, not an alert per source.
+
+### The sources the site should have
+
+If a source's build fails and there is no published data to keep, or `metrics.txt` is cut
+short, the source's series leave the file, and a rule over them can't fire for it.
+[`pipeline/expected-sources.json`](../pipeline/expected-sources.json) lists the sources the
+site should have (the 43 above), and `metrics.txt` publishes them first, as
+`siuksliaveze_data_expected{source} 1`, so `ScheduleDataSourceMissing` (below) fires for a
+listed source that is missing until it is back or a PR removes it from the list. `status.json`
+has the list too (`expected`), with the listed sources the run didn't publish (`notBuilt`) and
+the published sources it doesn't list (`notListed`).
+
+A PR that adds a provider adds its source to the list (and to its build's `sources` in
+`pipeline/src/schedule_pipeline/live_builds.py`), and a PR that removes a provider removes it,
+so the source and its list line appear or go in the same publish and nothing fires. The live
+check of a PR that touches `pipeline/` fails while the sources it built and the list differ,
+both ways: a built source not listed (add it), a listed source not built (fix its build, or
+remove it in the PR that removes the provider). A listed source whose build failed is only a
+notice there, since its `live (…)` job already fails the check. A unit test in `build` also
+checks that the list is the sources the builds in `live_builds.py` publish, the providers their
+modules define and the table of sources above. The daily job doesn't compare: it publishes what
+it has, and the alert names what is missing.
 
 ### Build warnings
 
@@ -744,20 +767,55 @@ groups:
         labels: { severity: warning }
         annotations:
           summary: "{{ $labels.source }}: the {{ $labels.kind }} schedule ends within a week"
-      # A source that was in metrics.txt in the last 3 days is gone while the file itself is
-      # fetched fine (its build failed and there was nothing to keep): ScheduleDataStale can't
-      # fire for a series that no longer exists.
+      # A source the site should have is missing from metrics.txt while the file itself is
+      # fetched: ScheduleDataStale can't fire for a series that no longer exists. Its build
+      # failed and there was nothing to keep, or the file was cut short.
+      # siuksliaveze_data_expected is 1 for every source of pipeline/expected-sources.json. A PR
+      # that adds or removes a provider changes the list in the same change (its live check
+      # fails until it does), so a source removed on purpose loses both series in the same
+      # publish and a new one gains both: neither fires. A source that goes missing fires until
+      # it is back or a PR removes it from the list.
+      # First part: listed, unless in the file now, while the file is fetched. [45m] is three
+      # scrapes: the guard needs one good fetch in it (max_over_time; last_over_time(up) reads a
+      # failed fetch's 0 and would resolve the alert), and the listed and present sides read the
+      # same scrapes, so two failed fetches in a row empty them together and it keeps firing.
+      # Second part: a source listed in as many fetches of the last 2h30m as any source and in
+      # the file in none of them. It needs no guard, so a source missing that long keeps firing
+      # through a fetch outage until ScheduleDataNotScraped has fired (at the 9th failed fetch in
+      # a row); with no fetch in the window it is empty, and NotScraped's alert is the one left.
+      # Until metrics.txt has the list (no expected series in the last 2h30m), the first part
+      # falls back to the sources seen in the last 3 days, which clears 3 days after a source's
+      # last sample, fixed or not. Every part gives just `source`, so an alert that is firing
+      # when the list first appears keeps firing.
       - alert: ScheduleDataSourceMissing
         expr: |-
-          group by (source) (last_over_time(siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data"}[3d]))
+          (
+            group by (source) (last_over_time(siuksliaveze_data_expected{job="siuksliaveze-data"}[45m]))
+              or
+            (
+              group by (source) (last_over_time(siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data"}[3d]))
+                unless on ()
+              count(last_over_time(siuksliaveze_data_expected{job="siuksliaveze-data"}[2h30m]))
+            )
+          )
             unless on (source)
-          group by (source) (last_over_time(siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data"}[30m]))
+          group by (source) (last_over_time(siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data"}[45m]))
             and on ()
-          (last_over_time(up{job="siuksliaveze-data"}[30m]) == 1)
+          (max_over_time(up{job="siuksliaveze-data"}[45m]) == 1)
+            or
+          (
+            group by (source) (
+              sum by (source) (count_over_time(siuksliaveze_data_expected{job="siuksliaveze-data"}[2h30m]))
+                >= scalar(max(sum by (source) (count_over_time(siuksliaveze_data_expected{job="siuksliaveze-data"}[2h30m]))))
+            )
+              unless on (source)
+            group by (source) (last_over_time(siuksliaveze_data_generated_timestamp_seconds{job="siuksliaveze-data"}[2h30m]))
+          )
         for: 30m
         labels: { severity: warning }
         annotations:
           summary: "{{ $labels.source }} is missing from metrics.txt"
+          description: "Its build or the publish step broke. It stays until the source is back or a PR removes it from pipeline/expected-sources.json."
       # absent_over_time: also fires when the scrape job itself is gone.
       - alert: ScheduleDataNotScraped
         expr: |-
@@ -773,7 +831,8 @@ CI checks these examples with promtool whenever this file, the code that writes 
 or the tests change. They must parse, use only metrics the data job writes, and pass the
 scenarios in [`monitoring.test.yml`](monitoring.test.yml) with the 15-minute scrape above:
 stale data, a failing fetch, a schedule running out, fewer places, new warnings, a vanished
-source and healthy data. Run the same locally with `sh docs/monitoring-check.sh` (needs
+source (with and without the list of expected sources), a source removed or added on purpose
+and healthy data. Run the same locally with `sh docs/monitoring-check.sh` (needs
 promtool and python3).
 
 ## Grafana without Prometheus
@@ -800,5 +859,6 @@ source, query `status.json` (type JSON, URL above) and alert when `checkedAt` is
 `sources.elektrenai.generatedAt`, `sources.sirvintos.generatedAt`,
 `sources.kupiskis.generatedAt`, `sources.svencionys.generatedAt`,
 `sources.zarasai.generatedAt` or `sources.kaisiadorys.generatedAt` is older than 30 hours and more than 2 hours older than
-`checkedAt` (that source's build fails), or missing. Without the second condition, a job that
-doesn't publish raises an alert for every source.
+`checkedAt` (that source's build fails), or missing (`notBuilt` lists the sources of
+`pipeline/expected-sources.json` the run didn't publish). Without the second condition, a job
+that doesn't publish raises an alert for every source.

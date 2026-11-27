@@ -38,6 +38,7 @@ from schedule_pipeline import status  # noqa: E402
 text = status.metrics(
     {
         "checkedAt": "2026-11-21T04:20:00+00:00",
+        "expected": ["mazeikiai"],
         "sources": {
             "mazeikiai": {
                 "generatedAt": "2026-11-21T04:19:00+00:00",

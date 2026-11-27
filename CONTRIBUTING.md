@@ -152,6 +152,17 @@ uv run python -m schedule_pipeline.status --site <the artifact, unzipped> --writ
 It rewrites the file from the site's warnings, dropping the ones the builds no longer give;
 review the diff, it is what you are acknowledging.
 
+**Adding or removing a provider: `pipeline/expected-sources.json`.** The file lists the sources
+the site should have, and `metrics.txt` publishes it, so the `ScheduleDataSourceMissing` alert
+fires for a listed source that goes missing until it is back
+([docs/monitoring.md](docs/monitoring.md#the-sources-the-site-should-have)). A PR that adds a
+provider adds its source ids there and to its build's `sources` in
+`pipeline/src/schedule_pipeline/live_builds.py`; a PR that removes a provider removes them from
+both. Then the source and its list line appear or go in the same publish, and nothing fires.
+A unit test checks the list against the builds, the providers each module defines and the
+sources table of docs/monitoring.md, and the live-build check fails while the sources it built
+and the list differ.
+
 **When the publisher changes the file format** (this will happen):
 
 1. Save the new file to `pipeline/tests/fixtures/`.
