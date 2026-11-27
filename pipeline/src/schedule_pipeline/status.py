@@ -421,7 +421,7 @@ def metrics(status: dict) -> str:
             "rokiskis, birzai, panevezio-r, marijampole, vilkaviskis, kalvarija, kazluruda, "
             "sakiai, raseiniai, jonava, kretinga, silute, trakai, salcininkai, kedainiai, "
             "moletai, skuodas, ukmerge, anyksciai, utena, ignalina, elektrenai, sirvintos, "
-            "kupiskis, svencionys, zarasai) or addresses (kauno, kaisiadorys) the data covers.",
+            "kupiskis, svencionys, zarasai, kaisiadorys) or addresses (kauno) the data covers.",
             [({"source": s}, d["places"]) for s, d in status["sources"].items()],
         ),
         "siuksliaveze_data_warnings": (
