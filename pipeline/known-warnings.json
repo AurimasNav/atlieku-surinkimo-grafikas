@@ -65,7 +65,7 @@
     "not a settlement or a street: packaging: Anykščių r.: Šiauliai"
   ],
   "birzai": [
-    "NAUJAS Maisto atliekų konteinerių aptranavimo grafikas_Biržų r-.xlsx [Biržų raj. MA #] row #: shared containers; not read",
+    "<file> [Biržų raj. MA #] row #: shared containers; not read",
     "not a settlement or a street: food: Biržų m.: S. Nėries g.",
     "not a settlement or a street: glass: Biržų m.: Bokšto g.",
     "not a settlement or a street: glass: Biržų m.: Karklų g.",
@@ -226,7 +226,7 @@
     "not a settlement or a street: packaging: Sasnavos sen.: Nedėldaržio k."
   ],
   "mazeikiai": [
-    "Mazeikiai_pakuociu-grafikas-_#.xlsx [Mažeikiai #]: the rules for shared containers have no dates; not read",
+    "<file> [Mažeikiai #]: the rules for shared containers have no dates; not read",
     "not a settlement or a street: glass: Lūšė",
     "not a settlement or a street: household: Lūšė",
     "not a settlement or a street: household: Miesto laukai",
@@ -238,9 +238,9 @@
     "not a settlement or a street: packaging: Dubingių sen.: Antapusnė"
   ],
   "nemencine": [
-    "# m- # mėn  Buitinių atliekų surinkimo grafikasP.xlsx row #: kept as text, no exact dates: 'kas antras mėnesio antradienis'",
-    "# m- # mėn  Buitinių atliekų surinkimo grafikasP.xlsx row #: kept as text, no exact dates: 'kas antras mėnesio ketvirtadienis'",
-    "# m- # mėn  Buitinių atliekų surinkimo grafikasP.xlsx row #: kept as text, no exact dates: 'kas antras mėnesio trečiadienis'",
+    "<file> row #: kept as text, no exact dates: 'kas antras mėnesio antradienis'",
+    "<file> row #: kept as text, no exact dates: 'kas antras mėnesio ketvirtadienis'",
+    "<file> row #: kept as text, no exact dates: 'kas antras mėnesio trečiadienis'",
     "not linked to any settlement: household: Dambliškės",
     "not linked to any settlement: household: Jakubonys",
     "not linked to any settlement: household: Margutiškės",
@@ -261,15 +261,15 @@
     "not linked to any settlement: household: Žudiškės"
   ],
   "nemezio": [
-    "Grafikas mišrių # (#-#).xlsx - # (#-#).pdf page # row #: 'Akmeniškės' is listed twice; the dates of both are kept",
-    "Grafikas mišrių # (#-#).xlsx - # (#-#).pdf page # row #: 'Galgių g. (Centrinė g. #, #, #A, Mokyklos g. #, #A, Vaka' is listed twice; the dates of both are kept",
-    "Grafikas pakuočių # (#-#).xlsx - # (#-#).pdf page # row #: the packaging rules for apartment buildings have no dates; not read",
+    "<file> page # row #: 'Akmeniškės' is listed twice; the dates of both are kept",
+    "<file> page # row #: 'Galgių g. (Centrinė g. #, #, #A, Mokyklos g. #, #A, Vaka' is listed twice; the dates of both are kept",
+    "<file> page # row #: the packaging rules for apartment buildings have no dates; not read",
     "not a settlement of the eldership: household: Bogušiai (Marijampolio sen.)",
     "not a settlement of the eldership: household: Mikutiškės (Rukainių sen.)"
   ],
   "pagegiai": [],
   "panevezio-r": [
-    "Mišrių komunalinių grafikas#.doc route 3*: #-#-# isn't a day of the rule 'ketvirtadieniai'",
+    "<file> route 3*: #-#-# isn't a day of the rule 'ketvirtadieniai'",
     "not a settlement or a street: household: Panevėžio r.: Dvareliškių",
     "not a settlement or a street: household: Panevėžio r.: Pučiakų",
     "not a settlement or a street: household: Ramygalos m.: Lauko g.",
@@ -277,8 +277,8 @@
     "not a settlement or a street: household: Ramygalos m.: Šilo g."
   ],
   "pasvalys": [
-    "Bendro ir individualaus naudojimo mišrių kom- atliekų kont- aptarnavimo grafikas.xlsx [Pasvalio raj. MKA #] row #: shared containers; not read",
-    "Maisto atliekų konteinerių aptarnavimo grafikas_Pasvalio r-.xlsx [Pasvalio raj. MA] row #: shared containers; not read",
+    "<file> [Pasvalio raj. MA] row #: shared containers; not read",
+    "<file> [Pasvalio raj. MKA #] row #: shared containers; not read",
     "not a settlement or a street: glass: Joniškėlio m.: S. Nėries g.",
     "not a settlement or a street: glass: Pasvalio m.: P. Cvirkos g.",
     "not a settlement or a street: glass: Pasvalio m.: S. Nėries g.",
@@ -288,10 +288,8 @@
     "not a settlement or a street: packaging: Pasvalio m.: S. Nėries g."
   ],
   "plunge": [
-    "#-MKA-Plunge-exel.xlsx [MKA] row #: shared containers; not read",
-    "#-Pakuociu-stiklo-Plunge-exel.xlsx [Plungė #] row #: shared containers; not read",
-    "Kopija-Plunge-#-grafikas-#-#.xlsx [Plungė #] row #: shared containers; not read",
-    "MKA-atlieku-surinkimo-grafikas-Plunges-raj.sav_.-#-#-#-men.xlsx [MKA] row #: shared containers; not read",
+    "<file> [MKA] row #: shared containers; not read",
+    "<file> [Plungė #] row #: shared containers; not read",
     "glass: the # route 'Noriškiai (Medelyno g., Saulėgrąžų g., Lubinų g., Mergvagio ' doesn't match one # route; its dates are left out until #",
     "glass: the # route 'Noriškiai (Medelyno g., Saulėgrąžų g., Lubinų g., Mergvagio ' has no dates for #",
     "glass: the # route 'Plungės m.individualių namų: P.Mantvydo g., Antanavičių g., ' doesn't match one # route; its dates are left out until #",
@@ -343,15 +341,14 @@
     "not a settlement or a street: packaging: Raseinių sen.: SB \"Prabauda\""
   ],
   "rietavas": [
-    "#-pakuociu-stiklo-grafikas-RIETAVAS.xlsx [Rietavas #] row #: shared containers; not read",
-    "Kopija-Rietavas-#-grafikas.xlsx [Rietavas #] row #: shared containers; not read",
-    "Rietavo-MKA-#-Grafikas-#.xlsx [Rietavo raj. MKA # m. ] row #: shared containers; not read",
+    "<file> [Rietavas #] row #: shared containers; not read",
+    "<file> [Rietavo raj. MKA # m. ] row #: shared containers; not read",
     "not a settlement or a street: glass: Bagdonavas",
     "not a settlement or a street: packaging: Bagdonavas"
   ],
   "rokiskis": [
-    "Maisto atliekų surinkimo grafikas_Rokiškio r-.xlsx [Rokiškio raj. MA #] row #: shared containers; not read",
-    "Mišrių komunalinių atliekų surinkimo grafikas.xlsx [#] row #: shared containers; not read",
+    "<file> [#] row #: shared containers; not read",
+    "<file> [Rokiškio raj. MA #] row #: shared containers; not read",
     "not a settlement or a street: food: Rokiškio m.: P. Cvirkos g.",
     "not a settlement or a street: glass: Jūžintų sen.: Palūšnių k.",
     "not a settlement or a street: glass: Rokiškio m.: P. Cvirkos g.",
@@ -378,8 +375,8 @@
     "not a settlement or a street: household: Žvirgždaičių sen.: Trumpų k."
   ],
   "salcininkai": [
-    "Individualiu-valdu-antriniu-zaliavu-isvezimo-grafikas-Salcininku-r.-#-m.pdf page #: packaging of 'Dainavos sen.' on #-#-#, not on its weekday (Penktadienis)",
-    "Individualiu-valdu-antriniu-zaliavu-isvezimo-grafikas-Salcininku-r.-#-m.pdf page #: packaging of 'Jašiūnų sen.: Buikų k., Deguškių k., Gojaus k., Jašiūnų mstl' on #-#-#, not on its weekday (Penktadienis)",
+    "<file> page #: packaging of 'Dainavos sen.' on #-#-#, not on its weekday (Penktadienis)",
+    "<file> page #: packaging of 'Jašiūnų sen.: Buikų k., Deguškių k., Gojaus k., Jašiūnų mstl' on #-#-#, not on its weekday (Penktadienis)",
     "not a settlement or a street: household: Karmoniškių k.: Gėlių g."
   ],
   "siauliai": [
@@ -582,8 +579,8 @@
     "not a settlement or a street: packaging: Žemaitija"
   ],
   "trakai": [
-    "Traku-r.-atlieku-surinkimo-grafikas-#.pdf page #: household of 'Paluknio sen.: Bakieriškių k., Dainių k., Kajetoniškių k., K' on #-#-#, not on its weekday (Šeštadienis)",
-    "Traku-r.-atlieku-surinkimo-grafikas-#.pdf page #: household of 'Trakų m.: Bernardinų g., Birutės g., Birutės skg., Ežero g.,' on #-#-#, not on its weekday (Trečiadienis)",
+    "<file> page #: household of 'Paluknio sen.: Bakieriškių k., Dainių k., Kajetoniškių k., K' on #-#-#, not on its weekday (Šeštadienis)",
+    "<file> page #: household of 'Trakų m.: Bernardinų g., Birutės g., Birutės skg., Ežero g.,' on #-#-#, not on its weekday (Trečiadienis)",
     "not a settlement or a street: glass: Trakų m.: Sodų g.",
     "not a settlement or a street: glass: Trakų sen.: Užpelkių k.",
     "not a settlement or a street: household: Trakų m.: Sodų g.",
