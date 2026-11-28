@@ -14,8 +14,22 @@ food waste, UAB „Virginijus ir Ko“ packaging and glass):
     Kopija-Plunge-2026-grafikas-003-3.xlsx        a name that says nothing: the title above its
                                                   table does ("... pakuočių ir stiklo atliekų
                                                   išvežimo paslaugos grafikas 2026 m.")
+    2027-m.-indiv-bioskaidzios-grafikas-PLUNGE.xlsx
+                                                  Plungės r.: food and green waste of private
+                                                  houses
+    2027-m.-daugiabuciai-bioskaidzios-grafikas-Plunge.xlsx
+                                                  and of apartment buildings: not read (below)
 
 Telšių r. publishes its green and food waste schedule only as a PDF, which isn't read.
+
+A spreadsheet for apartment buildings alone ("daugiabučiai" in its name, not "indiv") is the
+schedule of their shared containers: Plungės r. 2027 has one column, "Plungės miesto
+daugiabučiai", with the months in rows and a day or a weekday rule ("1/sav pirmad.") for no
+list of places. It is left out by its name, as bulky waste is, without a warning when a file of
+the same kind and year is linked next to it: a warning about a file keeps its name, so it would
+come back with every year's file. Next to that file of private houses, it would otherwise be
+taken for a correction of it. Alone, it may be the only schedule of that kind for its year (or a
+combined one named oddly), so it is not read with a warning.
 
 A sheet is a table of routes with the days of every month:
 
@@ -250,12 +264,28 @@ def is_bulky(name: str) -> bool:
     return "stambiagabar" in folded or "dga" in words
 
 
+def for_apartment_blocks(name: str) -> bool:
+    """A schedule of the shared containers of apartment buildings alone ("2027-m.-daugiabuciai-
+    bioskaidzios-grafikas-Plunge.xlsx"): no list of places, so it isn't read (as the _SHARED
+    routes aren't). Not one that is for private houses too ("indiv")."""
+    folded, _ = _name_words(name)
+    return "daugiabu" in folded and "indiv" not in folded
+
+
+def left_out(name: str) -> bool:
+    """A spreadsheet that isn't read, by its name. Without a warning, but for a file for
+    apartment buildings that no other file of its kind and year is linked next to (download)."""
+    return is_bulky(name) or for_apartment_blocks(name)
+
+
 def classify(name: str) -> Kind | None:
     """By file name, or by the title above a table. "MKA" is "mišrios komunalinės
     atliekos"."""
+    return None if left_out(name) else _by_name(name)
+
+
+def _by_name(name: str) -> Kind | None:
     folded, words = _name_words(name)
-    if is_bulky(name):
-        return None
     if "pakuo" in folded or "stikl" in folded:
         return "packaging"
     if "bio" in folded or "maist" in folded:
@@ -294,7 +324,7 @@ def find_files(
         kind = classify(name)
         if kind is not None:
             files.append(SourceFile(kind=kind, url=url, file_name=name))
-        elif unknown is not None and not is_bulky(name):
+        elif unknown is not None and not left_out(name):
             unknown.append(name)
     return files
 
@@ -363,7 +393,7 @@ def download(
     warnings: list[str] = []
     for url, name in spreadsheets(html, page):
         kind = classify(name)
-        if kind is None and not is_bulky(name):
+        if kind is None and not left_out(name):
             # A name that doesn't tell ("Kopija-Plunge-2026-grafikas-003-3.xlsx"): the title
             # of its table does. A new way of naming the files must not go unnoticed.
             fetched[url] = http.get(url, timeout=60)
@@ -372,6 +402,16 @@ def download(
                 warnings.append(f"{name}: a spreadsheet of no kind we know; not read")
         if kind is not None:
             files.append(SourceFile(kind=kind, url=url, file_name=name))
+    # A file for apartment buildings alone is left out next to the file of its kind and year
+    # that is read; alone, it may be the only schedule of that year: say so.
+    for _, name in spreadsheets(html, page):
+        if for_apartment_blocks(name) and not is_bulky(name):
+            kind, year = _by_name(name), file_year(name)
+            if kind and not any(f.kind == kind and file_year(f.file_name) == year for f in files):
+                warnings.append(
+                    f"{name}: for apartment buildings alone, and no other {kind} schedule"
+                    f" for {year}; not read"
+                )
     selected, select_warnings = select_files(files, today)
     sources = [(f, fetched.get(f.url) or http.get(f.url, timeout=60)) for f in selected]
     return sources, warnings + select_warnings
@@ -445,6 +485,9 @@ def _row_kind(text: str) -> Kind | None:
 _SHARED = re.compile(r"daugiabu|kolektyvin")
 # "Plungės raj.sav. juridiniai asmenys (įmonės)": businesses.
 _BUSINESSES = re.compile(r"juridin|\bimon")
+# Notes in the route column under the table, without dates (Plungės r. 2027 food waste): "Prašome
+# konteinerius išstumti iki 8 val. ryto. ...", "Raudonai pažymėti - perkeltas iš kito maršruto."
+_NOTE = re.compile(r"(?:prasome|raudonai pazymet)")
 
 
 def parse_sheet(
@@ -498,6 +541,8 @@ def parse_sheet(
             continue
         if name.isdigit():  # a row that numbers the columns
             continue
+        if _NOTE.match(fold(name)) and not any(clean_text(v) for v in values):
+            continue  # a note, not a route
         if name:
             shared = bool(_SHARED.search(fold(name)))
             skipping = shared or bool(_BUSINESSES.search(fold(name)))

@@ -14,14 +14,19 @@ komunalininkas" at <https://www.nkom.lt/kita.html>, downloaded on 2026-11-17:
 `tratc/` has the Mažeikiai page of UAB "Telšių regiono atliekų tvarkymo centras" at
 <https://tratc.lt/atlieku-surinkimo-grafikai/atlieku-surinkimo-grafikai-mazeikiai/> and the
 2026 and 2027 spreadsheets it links (mixed, food and green, packaging and glass), downloaded on
-2026-11-17, with the Address Register extract for Mažeikių r. of the same day. `page-telsiai.html`,
+2026-11-17, with the Address Register extract for Mažeikių r. of the same day; and the 2027
+packaging and glass spreadsheet linked there later, `2027-pakuotes-stiklas-grafikas-MAZEIKAI.xlsx`,
+downloaded on 2026-11-28. `page-telsiai.html`,
 `page-plunge.html` and `page-rietavas.html` are its pages of Telšių r., Plungės r. and Rietavo
 sav. (the same address, ending `-telsiai/`, `-plunge/`, `-rietavas/`), downloaded on 2026-11-21
 with the spreadsheets they link, bulky waste aside: Telšių r. 2026 (mixed waste, packaging and
 glass in one file), Plungės r. 2026 and 2027 (mixed waste; packaging and glass, the 2026 one
 named `Kopija-Plunge-2026-grafikas-003-3.xlsx`) and 2026 food and green waste, Rietavo sav. 2026
 (mixed waste) and 2026 and 2027 (packaging and glass); and the Address Register extracts for
-the three municipalities of that day.
+the three municipalities of that day. The 2027 food and green waste files of Plungės r. were
+linked later and downloaded on 2026-11-28: `2027-m.-indiv-bioskaidzios-grafikas-PLUNGE.xlsx`
+(private houses, 5 routes) and `2027-m.-daugiabuciai-bioskaidzios-grafikas-Plunge.xlsx`
+(apartment buildings, not read).
 
 `gargzdu/` has the page of VšĮ "Gargždų švara" (Klaipėdos r.) at
 <https://www.gargzdusvara.eu/komunaliniu-atlieku-tvarkymo-grafikai/> and the 2026 spreadsheet it

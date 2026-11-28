@@ -291,7 +291,11 @@ _HEAD = re.compile(
     r"(?:\s+(?P<houses>\d+[A-Za-z]?(?:\s*,\s*\d+[A-Za-z]?)*))?",
     re.I,
 )
-_GARDEN = re.compile(rf"\bS\s*/?\s*B\s*[{_QUOTES}]?\s*([^{_QUOTES}(),]+?)\s*[{_QUOTES}]", re.U)
+# A garden community: 'SB „Rasa“', 'S/B "Legotė"', 'SB Prekyba'; Mažeikių r. 2027 writes
+# 'Sb „Šaltinėlis“' too. Not a word that starts with "Sb" ("Sbarro"): no IGNORECASE.
+_GARDEN = re.compile(
+    rf"\bS(?:\s*/?\s*B|b\b)\s*[{_QUOTES}]?\s*([^{_QUOTES}(),]+?)\s*[{_QUOTES}]", re.U
+)
 # "(bendri)", "(bendro naud.)": shared containers; "(visi)": all; "(ind.)": private houses.
 _NOTES = {"bendri": "shared", "bendro naud": "shared", "bendro naudojimo": "shared"}
 _NOTES |= {"visi": "all", "ind": "all"}

@@ -388,14 +388,26 @@ someone has checked, per source. `siuksliaveze_data_new_warnings` counts the res
 
 The comparison leaves out what changes from run to run while the warning stays the same: numbers
 become `#` (row, page and line numbers, dates and years), and so do the months of the period in
-the name of the file a warning starts with (`2026 m- birželis-gruodis mėn …xlsx row 715` and
-next half year's `2027 m- sausis-birželis mėn …xlsx row 20` are both `# m- # mėn …xlsx row #`;
-a rule's months, after the file name, stay). The numbers of a name stay: those of a place a row
+the name of the file a warning starts with. A warning about what a file says, whose file name is
+followed by a place in the file (a sheet `[…]`, `page N`, `row N`, `route N`, or a second file
+name: `X.xlsx - Y.pdf page N`), has the name left out altogether (`<file>`): the next period's
+file says the same whatever the publisher calls it, so
+`2027-pakuotes-stiklas-grafikas-MAZEIKAI.xlsx [Mažeikiai 2027]: the rules for shared containers
+have no dates; not read` and `Mazeikiai_pakuociu-grafikas-_2026.xlsx [Mažeikiai 2026]: …` are
+both `<file> [Mažeikiai #]: …`, and Nemenčinė's `2026 m- birželis-gruodis mėn …xlsx row 715`
+and next half year's `2027 m- sausis-birželis mėn …xlsx row 20` are both `<file> row #` (a
+rule's months, after the file name, stay). A warning about the file itself, its name followed by
+`: ` ("no year in the file name; not read", "a spreadsheet of no kind we know; not read", "not
+read, Y is a newer … schedule"), keeps the name, with its numbers and the months of its period
+as `#`: a warning about a newly linked file itself is new, unless its name differs from a
+listed one only in those. The numbers of a name stay: those of a place a row
 names (`SB "Girios -7"`, `Kelmės miestas 3`, a house number, in "not a settlement …" and "not
 linked to any settlement …" warnings, which have no row numbers) and a route's (`route 13` is
 other places than `route 3`). A site copy's
 "unavailable (…); used the copy from … (… days old)" becomes "unavailable; used the copy". A
-source that published its data before the texts were published counts no new warnings.
+source that published its data before the texts were published counts no new warnings. The
+entries of `known-warnings.json` are normalised the same way when they are read, so an entry
+written before a change to these rules still matches; `--write-known` writes them anew.
 
 A site copy used is never new, and `--write-known` doesn't list it: six sites (`kedainiai`,
 `silute`, `sirvintos`, `svencionys`, `ukmerge`, `zarasai`) refuse GitHub's runners on some days

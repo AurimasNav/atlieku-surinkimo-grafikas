@@ -83,13 +83,9 @@ def test_no_data_is_an_error(tmp_path):
 
 
 def test_normalise_leaves_out_what_changes_from_run_to_run():
-    assert status.normalise(
-        "2026 m- birželis-gruodis mėn  Buitinių atliekų surinkimo grafikasP.xlsx row 715: kept as"
-        " text, no exact dates: 'kas antras mėnesio trečiadienis'"
-    ) == (
-        "# m- # mėn  Buitinių atliekų surinkimo grafikasP.xlsx row #: kept as"
-        " text, no exact dates: 'kas antras mėnesio trečiadienis'"
-    )
+    name = "2026 m- birželis-gruodis mėn  Buitinių atliekų surinkimo grafikasP.xlsx"
+    rule = "kept as text, no exact dates: 'kas antras mėnesio trečiadienis'"
+    assert status.normalise(f"{name} row 715: {rule}") == f"<file> row #: {rule}"
     # A site copy: its date and age, and whatever the site answered.
     copy = "https://www.zarasai.lt/x/269: unavailable ({}); used the copy from {} ({})"
     expected = "https://www.zarasai.lt/x/#: unavailable; used the copy"
@@ -168,24 +164,172 @@ def test_next_half_years_file_keeps_its_warnings_known():
         "2027 m- sausis-birželis mėn  Buitinių atliekų surinkimo grafikasP.xlsx",
         "2027 m- sausio–birželio mėn  Buitinių atliekų surinkimo grafikasP.xlsx",
         "2027 m- liepa-gruodis mėn  Buitinių atliekų surinkimo grafikasP.xlsx",
+        # Whatever the next file is called: a note about what a file says.
+        "2027 m- sausis-birželis mėn  Konteinerių grafikas.xlsx",
     ):
         assert status.new_warnings([f"{name} row 20{rule}"], known) == [], name
-    # Another rule is new; so is another file.
+    # Another rule is new.
     other = ": kept as text, no exact dates: 'kas antras mėnesio penktadienis'"
     assert status.new_warnings(
-        [
-            f"2027 m- sausis-birželis mėn  Buitinių atliekų surinkimo grafikasP.xlsx row 20{other}",
-            f"2027 m- sausis-birželis mėn  Konteinerių grafikas.xlsx row 20{rule}",
-        ],
+        [f"2027 m- sausis-birželis mėn  Buitinių atliekų surinkimo grafikasP.xlsx row 20{other}"],
         known,
-    ) == [
-        f"2027 m- sausis-birželis mėn  Buitinių atliekų surinkimo grafikasP.xlsx row 20{other}",
-        f"2027 m- sausis-birželis mėn  Konteinerių grafikas.xlsx row 20{rule}",
-    ]
+    ) == [f"2027 m- sausis-birželis mėn  Buitinių atliekų surinkimo grafikasP.xlsx row 20{other}"]
     # The months of a rule, after the file name, stay: another month is another rule.
     assert status.normalise("G.xlsx row 4: kept as text, no exact dates: 'liepos mėn. 1 d.'") == (
-        "G.xlsx row #: kept as text, no exact dates: 'liepos mėn. # d.'"
+        "<file> row #: kept as text, no exact dates: 'liepos mėn. # d.'"
     )
+    # A warning about the file itself keeps its name, the months of its period as #.
+    name = "Buitinių atliekų surinkimo grafikasP.xlsx"
+    assert status.normalise(f"2026 m- birželis-gruodis mėn  {name}: no year; not read") == (
+        f"# m- # mėn  {name}: no year; not read"
+    )
+
+
+# --- the file name of a warning about what a file says ------------------------------------
+
+# known-warnings.json entries as an older normalise() wrote them (file names kept).
+OLD_PLUNGE = [
+    "#-MKA-Plunge-exel.xlsx [MKA] row #: shared containers; not read",
+    "#-Pakuociu-stiklo-Plunge-exel.xlsx [Plungė #] row #: shared containers; not read",
+    "Kopija-Plunge-#-grafikas-#-#.xlsx [Plungė #] row #: shared containers; not read",
+    "MKA-atlieku-surinkimo-grafikas-Plunges-raj.sav_.-#-#-#-men.xlsx [MKA] row #: shared"
+    " containers; not read",
+    "not a settlement or a street: food: Jucio skg",
+]
+OLD_MAZEIKIAI = (
+    "Mazeikiai_pakuociu-grafikas-_#.xlsx [Mažeikiai #]: the rules for shared containers have no"
+    " dates; not read"
+)
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # A sheet, a row, a page, a route of the file.
+        (
+            "2027-pakuotes-stiklas-grafikas-MAZEIKAI.xlsx [Mažeikiai 2027]: the rules for shared"
+            " containers have no dates; not read",
+            "<file> [Mažeikiai #]: the rules for shared containers have no dates; not read",
+        ),
+        (
+            "2027-MKA-Plunge-exel.xlsx [MKA] row 33: shared containers; not read",
+            "<file> [MKA] row #: shared containers; not read",
+        ),
+        (
+            "Traku-r.-atlieku-surinkimo-grafikas-2026.pdf page 3: household of 'Trakų m.' on"
+            " 2026-12-05, not on its weekday (Trečiadienis)",
+            "<file> page #: household of 'Trakų m.' on #-#-#, not on its weekday (Trečiadienis)",
+        ),
+        (
+            "Mišrių komunalinių grafikas1.doc route 3*: 2026-12-03 isn't a day of the rule"
+            " 'ketvirtadieniai'",
+            "<file> route 3*: #-#-# isn't a day of the rule 'ketvirtadieniai'",
+        ),
+        # A file exported from another: both names.
+        (
+            "Grafikas mišrių 2026 (10-12).xlsx - 2026 (10-12).pdf page 4 row 7: 'Akmeniškės' is"
+            " listed twice; the dates of both are kept",
+            "<file> page # row #: 'Akmeniškės' is listed twice; the dates of both are kept",
+        ),
+        # The file itself: its name stays.
+        (
+            "2028-komunaliniu-atlieku-grafikas.xlsx: a spreadsheet of no kind we know; not read",
+            "#-komunaliniu-atlieku-grafikas.xlsx: a spreadsheet of no kind we know; not read",
+        ),
+        (
+            "misriu-2026.xlsx: not read, misriu-2026-1.xlsx is a newer household schedule for 2026",
+            "misriu-#.xlsx: not read, misriu-#-#.xlsx is a newer household schedule for #",
+        ),
+        (
+            "Alytaus r 2026-2027 PA STKL.pdf: not read, Alytaus r 2026-2028 PA STKL"
+            " individualūs.pdf replaces it after 2026-11-30",
+            "Alytaus r #-# PA STKL.pdf: not read, Alytaus r #-# PA STKL individualūs.pdf replaces"
+            " it after #-#-#",
+        ),
+        # A page or row in a file's name or in the text, not right after the name: not a place
+        # in the file.
+        (
+            "grafikas row 2026.xlsx: no year in the file name; not read",
+            "grafikas row #.xlsx: no year in the file name; not read",
+        ),
+    ],
+)
+def test_a_warning_about_what_a_file_says_leaves_out_its_name(text, expected):
+    assert status.normalise(text) == expected
+    # Normalised again, the same: an entry of pipeline/known-warnings.json stays what it is.
+    assert status.normalise(expected) == expected
+
+
+def test_entries_of_an_older_normalise_still_match(tmp_path):
+    # pipeline/known-warnings.json as it was before file names were left out: still known, and
+    # --write-known rewrites it, the entries that are now one note once.
+    path = tmp_path / "known-warnings.json"
+    path.write_text(
+        json.dumps({"mazeikiai": [OLD_MAZEIKIAI], "plunge": OLD_PLUNGE}), encoding="utf-8"
+    )
+    known = status.load_known(path)
+    assert known["plunge"] == {
+        "<file> [MKA] row #: shared containers; not read",
+        "<file> [Plungė #] row #: shared containers; not read",
+        "not a settlement or a street: food: Jucio skg",
+    }
+    # The next year's file of another name: known, in the comparison too.
+    note = (
+        "2027-pakuotes-stiklas-grafikas-MAZEIKAI.xlsx [Mažeikiai 2027]: the rules for shared"
+        " containers have no dates; not read"
+    )
+    assert status.new_warnings([note], known["mazeikiai"]) == []
+    assert status.new_warnings([note], {OLD_MAZEIKIAI}) == []
+    site = site_with(tmp_path / "site", [part("mazeikiai", [note])])
+    assert status.main(["--site", str(site), "--known", str(path), "--write-known"]) == 0
+    assert json.loads(path.read_text(encoding="utf-8")) == {
+        "mazeikiai": [
+            "<file> [Mažeikiai #]: the rules for shared containers have no dates; not read"
+        ],
+        # Not on the site: kept, as this code normalises it.
+        "plunge": sorted(known["plunge"]),
+    }
+
+
+def test_what_must_stay_new_or_known():
+    known = {
+        status.normalise(t)
+        for t in (
+            "2026-misriu.xlsx [2026] row 12: no dates for 'Viekšniai'",
+            "Kopija-Plunge-2026-grafikas-003-3.xlsx [Plungė 2026] row 33: shared containers;"
+            " not read",
+            "Mišrių komunalinių grafikas1.doc route 3*: 2026-12-03 isn't a day of the rule"
+            " 'ketvirtadieniai'",
+            "2027-a.xlsx: a spreadsheet of no kind we know; not read",
+            "grafikas.xlsx: no year in the file name; not read",
+            "a-2026.xlsx: not read, b-2026.xlsx is a newer food schedule for 2026",
+            'not linked to any settlement: household: SB "Girios -7"',
+            "not a settlement or a street: household: Kelmės miestas 2: S. Nėries g.",
+        )
+    }
+    # Known: a moved row; the next period's file, renamed; the months of a period in its name.
+    for text in (
+        "2026-misriu.xlsx [2026] row 14: no dates for 'Viekšniai'",
+        "2027-MKA-grafikas.xlsx [2027] row 12: no dates for 'Viekšniai'",
+        "2027-Pakuociu-stiklo-Plunge-exel.xlsx [Plungė 2027] row 35: shared containers; not read",
+        "2027 m- sausis-birželis mėn  Mišrių.doc route 3*: 2027-01-07 isn't a day of the rule"
+        " 'ketvirtadieniai'",
+    ):
+        assert status.new_warnings([text], known) == [], text
+    # New: another route, another sheet, another route number, a new spreadsheet, another file
+    # with no year or replaced, another place (its numbers are part of its name).
+    for text in (
+        "2026-misriu.xlsx [2026] row 12: no dates for 'Seda'",
+        "Kopija-Plunge-2026-grafikas-003-3.xlsx [MKA] row 33: shared containers; not read",
+        "Mišrių komunalinių grafikas1.doc route 13*: 2026-12-03 isn't a day of the rule"
+        " 'ketvirtadieniai'",
+        "2027-b.xlsx: a spreadsheet of no kind we know; not read",
+        "kitas grafikas.xlsx: no year in the file name; not read",
+        "c-2026.xlsx: not read, b-2026.xlsx is a newer food schedule for 2026",
+        'not linked to any settlement: household: SB "Girios -8"',
+        "not a settlement or a street: household: Kelmės miestas 3: S. Nėries g.",
+    ):
+        assert status.new_warnings([text], known) == [text], text
 
 
 COPY = "https://www.zarasai.lt/x/: unavailable (HTTP Error 403: Forbidden); used the copy from {}"
