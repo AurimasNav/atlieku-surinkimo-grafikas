@@ -398,8 +398,9 @@ both `<file> [Mažeikiai #]: …`, and Nemenčinė's `2026 m- birželis-gruodis 
 and next half year's `2027 m- sausis-birželis mėn …xlsx row 20` are both `<file> row #` (a
 rule's months, after the file name, stay). A warning about the file itself, its name followed by
 `: ` ("no year in the file name; not read", "a spreadsheet of no kind we know; not read", "not
-read, Y is a newer … schedule"), keeps the name, with the months of its period as `#`: a newly
-linked file is never known. The numbers of a name stay: those of a place a row
+read, Y is a newer … schedule"), keeps the name, with its numbers and the months of its period
+as `#`: a warning about a newly linked file itself is new, unless its name differs from a
+listed one only in those. The numbers of a name stay: those of a place a row
 names (`SB "Girios -7"`, `Kelmės miestas 3`, a house number, in "not a settlement …" and "not
 linked to any settlement …" warnings, which have no row numbers) and a route's (`route 13` is
 other places than `route 3`). A site copy's

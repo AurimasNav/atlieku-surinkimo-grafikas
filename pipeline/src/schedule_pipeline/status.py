@@ -219,9 +219,11 @@ def normalise(text: str) -> str:
     publisher calls it ("2027-pakuotes-stiklas-grafikas-MAZEIKAI.xlsx [Mažeikiai 2027]: ..." is
     the same note as "Mazeikiai_pakuociu-grafikas-_2026.xlsx [Mažeikiai 2026]: ..."). A warning
     about the file itself (its name, then ": ": "no year in the file name; not read", "a
-    spreadsheet of no kind we know; not read", "not read, Y is a newer ... schedule") keeps it, so
-    a file newly linked is never known. Normalising a normalised warning gives it back as it is,
-    so entries written by an older version of this still match (load_known)."""
+    spreadsheet of no kind we know; not read", "not read, Y is a newer ... schedule") keeps it,
+    with its numbers and its period's months as #: a warning about a newly linked file itself is
+    new, unless its name differs from a listed one only in those. Normalising a normalised
+    warning gives it back as it is, so entries written by an older version of this still match
+    (load_known)."""
     text = COPY.sub(USED_THE_COPY[2:], text)
     if PLACE.match(text):
         return text
