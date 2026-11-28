@@ -466,7 +466,9 @@ Every rule reads the newest sample of the last 30 minutes with `last_over_time(.
 plain selector like `siuksliaveze_data_places` only looks back 5 minutes (Prometheus'
 `--query.lookback-delta`), so with a 15-minute scrape it has no value for 10 of every 15
 minutes: alerts with `for:` never fire, and the others fire and resolve every 15 minutes.
-Keep the window at least twice the scrape interval.
+Keep the window at least twice the scrape interval. `ScheduleDataNotPublished` reads the last
+hour instead: two missed scrapes in a row empty a 30-minute window, and the alert would resolve
+with nothing fixed and fire again 30 minutes later.
 
 ```yaml
 groups:
@@ -476,8 +478,9 @@ groups:
         # The job runs daily at 04:17 UTC and writes checked_timestamp at the end of every run
         # that publishes, whatever its sources' builds did: 30 hours means the job itself missed
         # a run (the schedule didn't start, the run hit its time limit, the deploy failed). One
-        # alert for all sources.
-        expr: time() - last_over_time(siuksliaveze_status_checked_timestamp_seconds[30m]) > 30 * 3600
+        # alert for all sources. [1h] bridges up to three missed scrapes in a row; a longer
+        # outage is ScheduleDataNotScraped's. The newest sample still wins, so a publish clears it.
+        expr: time() - last_over_time(siuksliaveze_status_checked_timestamp_seconds[1h]) > 30 * 3600
         for: 30m
         labels: { severity: warning }
         annotations:
