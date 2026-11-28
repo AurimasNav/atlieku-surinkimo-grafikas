@@ -82,6 +82,10 @@ def test_finds_the_spreadsheets_on_the_page():
         # Bulky waste is collected by registration.
         ("2027-Stambiagabariciu-grafikas-MAZEIKIAI.xlsx", None),
         ("DGA-surinkimo-grafikas-2026-m.-Plunges-raj.-sav.xlsx", None),
+        # Apartment buildings alone: their shared containers, no list of places.
+        ("2027-m.-daugiabuciai-bioskaidzios-grafikas-Plunge.xlsx", None),
+        ("2027-m.-indiv-bioskaidzios-grafikas-PLUNGE.xlsx", "food"),
+        ("2028-indiv-ir-daugiabuciu-maisto-grafikas.xlsx", "food"),
         ("mazeikiai.png", None),
     ],
 )
@@ -572,6 +576,67 @@ def test_routes_of_shared_containers_and_businesses_are_not_read():
         "2027-MKA-Plunge-exel.xlsx [MKA] row 33: shared containers; not read"
     ]
     assert all(a.kind == "household" and a.weekday for a in result.areas)
+
+
+PLUNGE_FOOD_2027 = "2027-m.-indiv-bioskaidzios-grafikas-PLUNGE.xlsx"
+APARTMENTS_FOOD_2027 = "2027-m.-daugiabuciai-bioskaidzios-grafikas-Plunge.xlsx"
+
+
+def test_notes_under_the_table_are_not_routes():
+    # Plungės r. 2027 food waste: two notes in the route column under the table (in 2026 they
+    # were above it).
+    result = parse(PLUNGE_FOOD_2027, "food", "plunge")
+    assert len(result.areas) == 5 and result.warnings == []
+    assert {min(a.dates) for a in result.areas} == {date(2027, 1, 14), date(2027, 1, 15)}
+    # Only those notes: another route without dates is still reported.
+    content = workbook(
+        [
+            ["Nr.", "Maršrutas", *MONTHS],
+            [1, "Viekšniai", 5],
+            [None, "Prašome konteinerius išstumti iki 8 val. ryto. Jei dėl techninių kliūčių"],
+            [None, "Raudonai pažymėti - perkeltas iš kito maršruto."],
+            [2, "Seda"],
+        ]
+    )
+    result = tratc.parse_file(TEST_FILE, content)
+    assert [a.name for a in result.areas] == ["Viekšniai"]
+    assert result.warnings == ["h-2027.xlsx [2027] row 5: no dates for 'Seda'"]
+
+
+def test_food_waste_of_apartment_buildings_is_left_out(monkeypatch):
+    # Plungės r. 2027: food waste in two files uploaded the same month, the one for apartment
+    # buildings linked last. It isn't a correction of the other: one column for the town's
+    # apartment buildings, the months in rows, no list of places.
+    plunge = OTHERS["plunge"]
+    links = "".join(
+        f'<a href="https://tratc.lt/wp-content/uploads/2026/11/{name}">xlsx</a>'
+        for name in (PLUNGE_FOOD_2027, APARTMENTS_FOOD_2027)
+    )
+    page = fixture("tratc/page-plunge.html") + links.encode()
+    asked = []
+
+    def get(url, timeout=0):
+        asked.append(url)
+        return page if url == plunge.provider.url else serve(url)
+
+    monkeypatch.setattr(tratc.http, "get", get)
+    files, warnings = tratc.download(plunge, DAY, 31)
+    food = sorted(f.file_name for f, _ in files if f.kind == "food")
+    assert food == [PLUNGE_FOOD_2027, "Kopija-2026-m.-maisto-atliekos-Plunge.xlsx"]
+    # Left out by its name, without a warning, and not even downloaded.
+    assert warnings == []
+    assert not any(APARTMENTS_FOOD_2027 in url for url in asked)
+    with pytest.raises(ValueError, match="no schedule table found"):
+        parse(APARTMENTS_FOOD_2027, "food", "plunge")
+    # The 2027 routes continue the five of 2026.
+    registry = Registry.load(FIXTURES / "tratc" / REGISTRIES["plunge"])
+    data, more = build_dataset(files, registry, DAY, 31, tratc.source(plunge))
+    rows = [a for a in data["areas"] if a["kind"] == "food"]
+    assert len(rows) == 5
+    assert all(a["dates"][0] < "2027" and a["dates"][-1] > "2027-12" for a in rows)
+    assert not [w for w in more if w.startswith("food:") or PLUNGE_FOOD_2027 in w]
+    dates = row(data, schedule_of(data, "Babrungas", "food")["area"])["dates"]
+    assert {"2026-12-17", "2027-01-14", "2027-12-16"} <= set(dates)
 
 
 def test_a_second_line_of_a_row():
