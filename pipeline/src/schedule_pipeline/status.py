@@ -188,6 +188,17 @@ PERIOD = re.compile(
 # surinkimo grafikasP.xlsx row 715: ..."): only there do months name a period. A rule's text
 # after it ("liepos mėn. paskutinis penktadienis") keeps its months.
 FILE_NAME = re.compile(r"^[^:]*?\.(?:xlsx?|pdf|docx?|csv)\b", re.IGNORECASE)
+# After that name, a place inside the file: a warning about what the file says, not about the
+# file. A sheet ("X.xlsx [Plungė 2027] row 33: ..."), a page, row or route ("X.pdf page 4: ...",
+# "X.doc route 3*: ..."), after a second file name for a file exported from another ("Grafikas
+# mišrių 2026 (10-12).xlsx - 2026 (10-12).pdf page 4 row 7: ..."). "#" for a number: the entries
+# of pipeline/known-warnings.json are normalised already.
+INSIDE = re.compile(
+    r"(?:\s+-\s+[^:]*?\.(?:xlsx?|pdf|docx?|csv)\b)?\s+(?=\[|(?:page|row|route) [\d#])",
+    re.IGNORECASE,
+)
+# What the name of such a file becomes.
+A_FILE = "<file>"
 # A site copy read instead of the site (snapshot.site_copy_note): the site refused the runner.
 COPY = re.compile(r"unavailable \(.*\); used the copy from \S+ \(\d+ days? old\)")
 USED_THE_COPY = ": unavailable; used the copy"
@@ -201,12 +212,25 @@ def normalise(text: str) -> str:
     row is added above, and dates, years and a file's months change with every period, so
     "2026 m- birželis-gruodis mėn ... row 715: kept as text ..." is known whatever its row, and
     so is next half year's file. Except for those that are part of a name: a place's (PLACE)
-    keeps its numbers, and so does a route ("route 13" is other places than "route 3")."""
+    keeps its numbers, and so does a route ("route 13" is other places than "route 3").
+
+    A warning about what a file says (its name is followed by a sheet, page, row or route of it,
+    INSIDE) has the name left out (A_FILE): the next period's file says the same whatever the
+    publisher calls it ("2027-pakuotes-stiklas-grafikas-MAZEIKAI.xlsx [Mažeikiai 2027]: ..." is
+    the same note as "Mazeikiai_pakuociu-grafikas-_2026.xlsx [Mažeikiai 2026]: ..."). A warning
+    about the file itself (its name, then ": ": "no year in the file name; not read", "a
+    spreadsheet of no kind we know; not read", "not read, Y is a newer ... schedule") keeps it, so
+    a file newly linked is never known. Normalising a normalised warning gives it back as it is,
+    so entries written by an older version of this still match (load_known)."""
     text = COPY.sub(USED_THE_COPY[2:], text)
     if PLACE.match(text):
         return text
     if name := FILE_NAME.match(text):
-        text = PERIOD.sub("#", name[0]) + text[name.end() :]
+        rest = text[name.end() :]
+        if inside := INSIDE.match(rest):
+            text = f"{A_FILE} {rest[inside.end() :]}"
+        else:
+            text = PERIOD.sub("#", name[0]) + rest
     return re.sub(r"(\broute )?\d+", lambda m: m[0] if m[1] else "#", text)
 
 
@@ -219,22 +243,25 @@ def used_the_copy(text: str) -> bool:
 
 
 def load_known(path: Path = KNOWN) -> dict[str, set[str]]:
-    """The warnings someone has checked, per source (normalised). No file: none."""
+    """The warnings someone has checked, per source, normalised by this code: an entry written
+    by an older normalise() matches as one written now does. No file: none."""
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
         # Every warning is new then, and the alert says so; failing here would stop the deploy.
         print(f"{path} not found: every warning counts as new", file=sys.stderr)
         return {}
-    return {source: set(texts) for source, texts in data.items()}
+    return {source: {normalise(text) for text in texts} for source, texts in data.items()}
 
 
 def new_warnings(texts: list[str] | None, known: set[str]) -> list[str]:
     """The warnings of `texts` whose normalised text `known` doesn't list, in the build's order,
     but for a site copy used (used_the_copy). None (data published before the builds published
-    their warnings) has none."""
+    their warnings) has none. `known` is normalised too, so an entry an older normalise() wrote
+    still matches."""
+    listed = {normalise(text) for text in known}
     return [
-        text for text in texts or [] if not used_the_copy(text) and normalise(text) not in known
+        text for text in texts or [] if not used_the_copy(text) and normalise(text) not in listed
     ]
 
 
@@ -372,8 +399,9 @@ def warnings_page(report: dict) -> str:
 <h1>Build warnings</h1>
 <p>What the last build of each source warned about. <strong class="new">{total} new</strong>:
 warnings that <a href="{KNOWN_URL}">pipeline/known-warnings.json</a> doesn't list (numbers, the
-months of a file's period and a site copy's date are left out when comparing; a site copy used
-because the site refused GitHub's runner is never new). Fix the parser, or acknowledge them as
+months of a file's period, the name of a file a warning is about the content of, and a site
+copy's date are left out when comparing; a site copy used because the site refused GitHub's
+runner is never new). Fix the parser, or acknowledge them as
 <a href="{DOCS_URL}">docs/monitoring.md</a> says.</p>
 <p><small>Checked {e(_vilnius(report["checkedAt"]))}.</small></p>
 <table>
