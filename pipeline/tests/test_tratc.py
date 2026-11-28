@@ -669,6 +669,22 @@ def test_food_waste_of_apartment_buildings_is_left_out(monkeypatch):
     assert {"2026-12-17", "2027-01-14", "2027-12-16"} <= set(dates)
 
 
+def test_an_apartment_buildings_file_alone_is_reported(monkeypatch):
+    # The same file, but no other food schedule for 2027 next to it: not read, said so.
+    plunge = OTHERS["plunge"]
+    link = f'<a href="https://tratc.lt/wp-content/uploads/2026/11/{APARTMENTS_FOOD_2027}">x</a>'
+    page = fixture("tratc/page-plunge.html") + link.encode()
+    monkeypatch.setattr(
+        tratc.http, "get", lambda url, timeout=0: page if url == plunge.provider.url else serve(url)
+    )
+    files, warnings = tratc.download(plunge, DAY, 31)
+    assert not any(f.file_name == APARTMENTS_FOOD_2027 for f, _ in files)
+    assert warnings == [
+        f"{APARTMENTS_FOOD_2027}: for apartment buildings alone, and no other food schedule for"
+        " 2027; not read"
+    ]
+
+
 def test_a_second_line_of_a_row():
     # Plungės r. 2026: a second date of January or February in the line below ("3" over "23"),
     # the route's other cells merged. Those months are hidden: the file is for March-December.

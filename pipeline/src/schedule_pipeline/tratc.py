@@ -25,9 +25,11 @@ Telšių r. publishes its green and food waste schedule only as a PDF, which isn
 A spreadsheet for apartment buildings alone ("daugiabučiai" in its name, not "indiv") is the
 schedule of their shared containers: Plungės r. 2027 has one column, "Plungės miesto
 daugiabučiai", with the months in rows and a day or a weekday rule ("1/sav pirmad.") for no
-list of places. It is left out by its name, as bulky waste is, without a warning: a warning
-about a file keeps its name, so it would come back with every year's file. Next to the file of
-private houses of the same kind and year, it would otherwise be taken for a correction of it.
+list of places. It is left out by its name, as bulky waste is, without a warning when a file of
+the same kind and year is linked next to it: a warning about a file keeps its name, so it would
+come back with every year's file. Next to that file of private houses, it would otherwise be
+taken for a correction of it. Alone, it may be the only schedule of that kind for its year (or a
+combined one named oddly), so it is not read with a warning.
 
 A sheet is a table of routes with the days of every month:
 
@@ -271,16 +273,19 @@ def for_apartment_blocks(name: str) -> bool:
 
 
 def left_out(name: str) -> bool:
-    """A spreadsheet that isn't read, by its name, without a warning."""
+    """A spreadsheet that isn't read, by its name. Without a warning, but for a file for
+    apartment buildings that no other file of its kind and year is linked next to (download)."""
     return is_bulky(name) or for_apartment_blocks(name)
 
 
 def classify(name: str) -> Kind | None:
     """By file name, or by the title above a table. "MKA" is "mišrios komunalinės
     atliekos"."""
+    return None if left_out(name) else _by_name(name)
+
+
+def _by_name(name: str) -> Kind | None:
     folded, words = _name_words(name)
-    if left_out(name):
-        return None
     if "pakuo" in folded or "stikl" in folded:
         return "packaging"
     if "bio" in folded or "maist" in folded:
@@ -397,6 +402,16 @@ def download(
                 warnings.append(f"{name}: a spreadsheet of no kind we know; not read")
         if kind is not None:
             files.append(SourceFile(kind=kind, url=url, file_name=name))
+    # A file for apartment buildings alone is left out next to the file of its kind and year
+    # that is read; alone, it may be the only schedule of that year: say so.
+    for _, name in spreadsheets(html, page):
+        if for_apartment_blocks(name) and not is_bulky(name):
+            kind, year = _by_name(name), file_year(name)
+            if kind and not any(f.kind == kind and file_year(f.file_name) == year for f in files):
+                warnings.append(
+                    f"{name}: for apartment buildings alone, and no other {kind} schedule"
+                    f" for {year}; not read"
+                )
     selected, select_warnings = select_files(files, today)
     sources = [(f, fetched.get(f.url) or http.get(f.url, timeout=60)) for f in selected]
     return sources, warnings + select_warnings
