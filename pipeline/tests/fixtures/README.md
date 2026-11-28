@@ -14,7 +14,9 @@ komunalininkas" at <https://www.nkom.lt/kita.html>, downloaded on 2026-11-17:
 `tratc/` has the Mažeikiai page of UAB "Telšių regiono atliekų tvarkymo centras" at
 <https://tratc.lt/atlieku-surinkimo-grafikai/atlieku-surinkimo-grafikai-mazeikiai/> and the
 2026 and 2027 spreadsheets it links (mixed, food and green, packaging and glass), downloaded on
-2026-11-17, with the Address Register extract for Mažeikių r. of the same day. `page-telsiai.html`,
+2026-11-17, with the Address Register extract for Mažeikių r. of the same day; and the 2027
+packaging and glass spreadsheet linked there later, `2027-pakuotes-stiklas-grafikas-MAZEIKAI.xlsx`,
+downloaded on 2026-11-28. `page-telsiai.html`,
 `page-plunge.html` and `page-rietavas.html` are its pages of Telšių r., Plungės r. and Rietavo
 sav. (the same address, ending `-telsiai/`, `-plunge/`, `-rietavas/`), downloaded on 2026-11-21
 with the spreadsheets they link, bulky waste aside: Telšių r. 2026 (mixed waste, packaging and

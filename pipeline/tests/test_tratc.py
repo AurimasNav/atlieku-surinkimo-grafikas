@@ -416,6 +416,36 @@ def test_a_changed_route_waits_for_its_year():
     assert "the 2026 route 'Seda, Užežerė' has no dates for 2027" in warnings[1]
 
 
+PACKAGING_2027 = "2027-pakuotes-stiklas-grafikas-MAZEIKAI.xlsx"
+
+
+def test_a_garden_written_sb_continues_its_route():
+    # Mažeikių r. 2027 packaging and glass, linked after the page of 17 Nov: route 4 writes
+    # "Sb „Šaltinėlis“" (2026: "SB „Šaltinėlis“"), "SB Ąžuolas" without quotes and
+    # "Hipodromo g.,Troškučių g." without a space. The same places: its 2027 dates join the
+    # 2026 route, of packaging and of glass.
+    url = f"https://tratc.lt/wp-content/uploads/2026/11/{PACKAGING_2027}"
+    files = [
+        *sources(),
+        (SourceFile("packaging", url, PACKAGING_2027), fixture(f"tratc/{PACKAGING_2027}")),
+    ]
+    data, warnings = build_dataset(files, REGISTRY, TODAY, 31, tratc.SOURCE)
+    assert not [w for w in warnings if w.startswith(("packaging:", "glass:"))]
+    town = place(data, "Mažeikiai")
+    streets = {label: key for key, label in town["streets"]}
+    for kind in ("packaging", "glass"):
+        rows = data["areas"]
+        assert sum(a["kind"] == kind for a in rows) == 17
+        # Every route of 2026 continues into 2027.
+        assert all(a["dates"][-1] > "2027" for a in rows if a["kind"] == kind)
+        (garden,) = town["schedule"][kind]["streets"][streets["SB „Šaltinėlis“"]]
+        route = row(data, garden)
+        assert route["name"].startswith("Kalnėnų g., Kaštonų g.")
+        assert route["dates"][0] < "2027" < route["dates"][-1]
+        assert town["schedule"][kind]["streets"][streets["Kalnėnų g."]] == [garden]
+        assert row(data, place(data, "Troškučiai")["schedule"][kind]["area"]) == route
+
+
 def test_january_without_the_new_packaging_file():
     today = date(2027, 1, 5)
     data, _ = build_dataset(sources(today), REGISTRY, today, 31, tratc.SOURCE)

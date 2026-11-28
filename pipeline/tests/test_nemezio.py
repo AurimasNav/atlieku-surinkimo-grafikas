@@ -198,6 +198,12 @@ def test_garden_labels():
     assert garden_label('SB"Migūnai"')[1] == "SB „Migūnai“"
     assert garden_label("SB „Aidas- 1“")[1] == "SB „Aidas-1“"
     assert garden_label("Skaidiškės") is None
+    # "Sb" (Mažeikių r. 2027) is the same garden as "SB"; a word that starts with "Sb" or "sb"
+    # isn't a garden.
+    assert garden_label("Sb „Šaltinėlis“") == garden_label("SB „Šaltinėlis“")
+    assert garden_label("Sb „Šaltinėlis“")[1] == "SB „Šaltinėlis“"
+    for word in ("Sbarro", "Sbėgimo g.", "sbarro", "Asb „Rasa“", "S. Bajoro g."):
+        assert garden_label(word) is None, word
 
 
 @pytest.fixture(scope="module")
